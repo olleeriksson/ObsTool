@@ -4,9 +4,9 @@ import ObsSessionList from "./ObsSessionList";
 import ObsSessionForm from "./ObsSessionForm";
 import { IObsSession } from "./Types";
 
-interface IServerResponse {
-  data: IObsSession[];
-}
+// interface IServerResponse {
+//   data: IObsSession[];
+// }
 
 export interface IObsSessionListAndFormState {
   isLoading: boolean;
@@ -30,10 +30,7 @@ class ObsSessionListAndForm extends React.Component<{}, IObsSessionListAndFormSt
   }
 
   public componentDidMount() {
-    axios.request<IObsSession[]>({
-      url: "http://localhost:50995/api/obsSessions/",
-      transformResponse: (r: IServerResponse) => r.data
-    }).then(
+    axios.get<IObsSession[]>("http://localhost:50995/api/obsSessions/").then(
       (response) => {
         const { data } = response;
         console.log(data);

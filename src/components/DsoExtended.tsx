@@ -31,10 +31,7 @@ class DsoExtended extends React.Component<IDsoExtendedProps, IDsoExtendedState> 
 
   public componentDidMount() {
     if (this.props.id) {
-      axios.request<IDso>({
-        url: "http://localhost:50995/api/dso/" + this.props.id,
-        transformResponse: (r: IServerResponse) => r.data
-      }).then((response) => {
+      axios.get<IDso>("http://localhost:50995/api/dso/" + this.props.id).then((response) => {
         const { data } = response;
         console.log(response);
         this.setState({ isLoading: false });

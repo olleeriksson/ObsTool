@@ -17,10 +17,6 @@ export interface IObsSessionFormState {
   obsSession: IObsSession;
 }
 
-interface IServerResponse {
-  data: IObsSession;
-}
-
 class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFormState> {
   constructor(props: IObsSessionFormProps) {
     super(props);
@@ -42,10 +38,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
   private loadData(obsSessionId?: number) {
     if (obsSessionId) {
-      axios.request<IObsSession>({
-        url: "http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeObservations=true&includeDso=true",
-        transformResponse: (r: IServerResponse) => r.data
-      }).then(
+      axios.get<IObsSession>("http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeObservations=true&includeDso=true").then(
         response => {
           console.log(response);
           this.setState({ isLoading: false });
@@ -90,15 +83,14 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
   }
 
   public render() {
+
     let dsoObjects: any = [];
     if (this.state.obsSession.observations) {
       dsoObjects = this.state.obsSession.observations.map(o => {
         return <DsoExtended key={o.dso.id} id={o.dso.id} />;
       });
     }
-
-    // let dsoObjects = dummyObjects.map(s =>
-    //   <DsoExtended key={s} name={s} />);
+    const dsoList: any = dsoObjects.length > 0 ? dsoObjects : <div>None</div>;
 
     return (
       <div className="obsSessionForm">
@@ -131,7 +123,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
           </div>
 
           <h4>Observed objects</h4>
-          {dsoObjects}
+          {dsoList}
 
           <Button
             variant="contained"

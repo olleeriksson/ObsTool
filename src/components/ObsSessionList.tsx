@@ -21,15 +21,19 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
 
   public render() {
     if (this.props.obsSessions) {
-      return this.props.obsSessions.map(o => (
-        <ObsSessionPreview
-          onSelectObsSessionPreview={this.onSelectObsSessionPreview}
-          key={o.id}
-          id={o.id || -1}
-          title={o.title}
-          date={o.date}
-          summary={o.summary || ""}
-        />));
+      if (this.props.obsSessions.length > 0) {
+        return this.props.obsSessions.map(o => (
+          <ObsSessionPreview
+            onSelectObsSessionPreview={this.onSelectObsSessionPreview}
+            key={o.id}
+            id={o.id || -1}
+            title={o.title}
+            date={o.date}
+            summary={o.summary || ""}
+          />));
+      } else {
+        return <div>None</div>;
+      }
     } else {
       return <div>Unable to load observation session</div>;
     }
