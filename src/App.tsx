@@ -1,19 +1,33 @@
 import * as React from "react";
 import "./App.css";
 import ObsSessionListAndForm from "./components/ObsSessionListAndForm";
-import logo from "./obstool-logo.png";
+import Layout from "./components/Layout";
+import Home from "./components/Home";
+import { BrowserRouter, Route } from "react-router-dom";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faHome } from "@fortawesome/free-solid-svg-icons";
 
-class App extends React.Component {
+class App extends React.Component<{}, {}> {
+  constructor(props: any) {
+    super(props);
+
+    library.add(faHome);
+  }
+
   public render() {
+
+    const routes = (
+      <Layout>
+        <Route exact={true} path="/" component={Home} />
+        <Route path="/sessions" component={ObsSessionListAndForm} />
+      </Layout>
+    );
+
+    // basename={baseUrl}
+    // <ObsSessionListAndForm />
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">ObsTool</h1>
-        </header>
-        <div className="App-intro">
-          <ObsSessionListAndForm />
-        </div>
+        <BrowserRouter children={routes} />
       </div>
     );
   }

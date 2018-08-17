@@ -18,7 +18,7 @@ interface IServerResponse {
   data: IDso;
 }
 
-class DsoExtended extends React.Component<IDsoExtendedProps, IDsoExtendedState> {
+export default class DsoExtended extends React.Component<IDsoExtendedProps, IDsoExtendedState> {
   constructor(props: IDsoExtendedProps) {
     super(props);
 
@@ -81,5 +81,3 @@ class DsoExtended extends React.Component<IDsoExtendedProps, IDsoExtendedState> 
     }
   }
 }
-
-export default DsoExtended;
