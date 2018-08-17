@@ -1,0 +1,75 @@
+{
+  "linterOptions": {
+    "exclude": [
+      "config/**/*.js",
+      "node_modules/**/*.ts",
+      "coverage/lcov-report/*.js"
+    ]
+  },
+  "extends": [
+    "tslint:recommended",
+    "tslint-react"
+  ],
+  "rules": {
+    "max-line-length": [
+      true,
+      {
+        "limit": 180,
+        "ignore-pattern": "^import |^export {(.*?)}"
+      }
+    ],
+    "arrow-parens": false,
+    "object-literal-sort-keys": false,
+    "new-parens": true,
+    "trailing-comma": false,
+    "no-arg": true,
+    "no-bitwise": true,
+    "no-conditional-assignment": true,
+    "no-consecutive-blank-lines": true,
+    "no-console": {
+      "severity": "off"
+    },
+    // "no-console": {
+    //   "severity": "warning",
+    //   "options": [
+    //     "debug",
+    //     "info",
+    //     "log",
+    //     "time",
+    //     "timeEnd",
+    //     "trace"
+    //   ]
+    // },
+    "eofline": false,
+    "no-trailing-whitespace": true,
+    "jsdoc-format": false,
+    "whitespace": [
+      true,
+      "check-branch",
+      "check-operator",
+      "check-module",
+      "check-separator",
+      "check-rest-spread",
+      "check-type",
+      "check-typecast",
+      "check-type-operator",
+      "check-preblock"
+    ],
+    "comment-format": false,
+    "no-irregular-whitespace": true,
+    "jsx-equals-spacing": "always",
+    "ordered-imports": false,
+    "jsx-wrap-multiline": false,
+    "member-ordering": false,
+    "curly": true,
+    "no-empty": false,
+    "object-literal-shorthand": false,
+    "align": [
+      true,
+      "arguments",
+      "elements",
+      "members",
+      "statements"
+    ]
+  }
+}
