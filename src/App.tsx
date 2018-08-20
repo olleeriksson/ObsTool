@@ -5,13 +5,14 @@ import Layout from "./components/Layout";
 import Home from "./components/Home";
 import { BrowserRouter, Route } from "react-router-dom";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faHome } from "@fortawesome/free-solid-svg-icons";
+import { faHome, faPlus, faSearch, faTable } from "@fortawesome/free-solid-svg-icons";
+import CssBaseline from "@material-ui/core/CssBaseline";
 
 class App extends React.Component<{}, {}> {
   constructor(props: any) {
     super(props);
 
-    library.add(faHome);
+    library.add(faHome, faPlus, faSearch, faTable);
   }
 
   public render() {
@@ -24,9 +25,9 @@ class App extends React.Component<{}, {}> {
     );
 
     // basename={baseUrl}
-    // <ObsSessionListAndForm />
     return (
       <div className="App">
+        <CssBaseline />
         <BrowserRouter children={routes} />
       </div>
     );

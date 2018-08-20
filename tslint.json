@@ -3,7 +3,8 @@
     "exclude": [
       "config/**/*.js",
       "node_modules/**/*.ts",
-      "coverage/lcov-report/*.js"
+      "coverage/lcov-report/*.js",
+      "webpack.config.js"
     ]
   },
   "extends": [
@@ -17,6 +18,11 @@
         "limit": 180,
         "ignore-pattern": "^import |^export {(.*?)}"
       }
+    ],
+    "indent": [
+      true,
+      "spaces",
+      2
     ],
     "arrow-parens": false,
     "object-literal-sort-keys": false,
