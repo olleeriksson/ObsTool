@@ -1,26 +1,114 @@
 import * as React from "react";
-import NavMenu from "./NavMenu";
-import logo from "../obstool-logo.png";
+import { withStyles } from "@material-ui/core/styles";
+import { WithStyles, createStyles } from "@material-ui/core";
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import AppBar from "@material-ui/core/AppBar";
+import Button from "@material-ui/core/Button";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import Grid from "@material-ui/core/Grid";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import classNames from "classnames";
+import logo from "./../obstool-logo.png";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import "./Layout.css";
+import { Link } from "react-router-dom";
 
-export interface ILayoutProps {
+const styles = (theme: Theme) => createStyles({
+    appBar: {
+        position: "relative",
+    },
+    toolbarTitle: {
+        flex: 1,
+        alignContent: "left",
+    },
+    layout: {
+        width: "auto",
+        marginLeft: theme.spacing.unit * 3,
+        marginRight: theme.spacing.unit * 3,
+        [theme.breakpoints.up(900 + theme.spacing.unit * 3 * 2)]: {
+            width: 900,
+            marginLeft: "auto",
+            marginRight: "auto",
+        },
+    },
+    heroContent: {
+        maxWidth: 600,
+        margin: "0 auto",
+        padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`,
+    },
+    cardHeader: {
+        backgroundColor: theme.palette.grey[200],
+    },
+    cardPricing: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "baseline",
+        marginBottom: theme.spacing.unit * 2,
+    },
+    cardActions: {
+        [theme.breakpoints.up("sm")]: {
+            paddingBottom: theme.spacing.unit * 2,
+        },
+    },
+    footer: {
+        marginTop: theme.spacing.unit * 8,
+        borderTop: `1px solid ${theme.palette.divider}`,
+        padding: `${theme.spacing.unit * 6}px 0`,
+    },
+});
+
+export interface ILayoutProps extends WithStyles<typeof styles> {
     children?: React.ReactNode;
 }
 
-export default class Layout extends React.Component<ILayoutProps, {}> {
+class Layout extends React.Component<ILayoutProps, {}> {
+    constructor(props: ILayoutProps) {
+        super(props);
+    }
+
     public render() {
+        const { classes } = this.props;
+
+        const LinkToHome = (props: any) => <Link to="/" {...props} />;
+        const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
+        const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
+        const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
+
         return <div>
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-                <h1 className="App-title">ObsTool</h1>
-            </header>
-            <div>
-                <div>
-                    <NavMenu />
-                </div>
-                <div>
-                    {this.props.children}
-                </div>
-            </div>
+            <CssBaseline />
+            <AppBar position="static" color="default" className={classes.appBar}>
+                <Toolbar>
+                    <Typography variant="display1" color="inherit" noWrap={true} className={classes.toolbarTitle}>
+                        <img src={logo} className="logo-appbar" alt="logo" /> ObsTool
+                    </Typography>
+                    <Button component={LinkToHome}><FontAwesomeIcon icon="home" />Home</Button>
+                    <Button component={LinkToSessions}><FontAwesomeIcon icon="table" /> List sessions</Button>
+                    <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" /> New session</Button>
+                    <Button component={LinkToSearch}><FontAwesomeIcon icon="search" /> Search observations</Button>
+                    <Button color="primary" variant="outlined">
+                        Login
+                    </Button>
+                </Toolbar>
+            </AppBar>
+            <main className={classes.layout}>
+                {this.props.children}
+            </main>
+            {/* Footer */}
+            <footer className={classNames(classes.footer, classes.layout)}>
+                <Grid container={true} spacing={32} justify="space-evenly">
+                    <Grid item={true} xs={true}>
+                        <Typography variant="title" color="textPrimary" gutterBottom={true}>
+                            Created with React + TypeScript and ASP.NET Core
+                        </Typography>
+                        <Typography variant="subheading" color="textSecondary">
+                            Copyright bla bla
+                        </Typography>
+                    </Grid>
+                </Grid>
+            </footer>
         </div>;
     }
 }
+
+export default withStyles(styles)(Layout);

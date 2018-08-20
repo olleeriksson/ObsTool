@@ -28,3 +28,11 @@ export interface IObsSession {
     reportText?: string;
     dsoObjects?: IDso[];
 }
+
+export interface IStatistics {
+    numObsSessions: number;
+    numObservedObjects: number;
+    numObservations: number;
+    numLocations: number;
+    numDsoInDatabase: number;
+}

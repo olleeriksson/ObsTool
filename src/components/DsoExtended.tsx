@@ -30,6 +30,7 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
   }
 
   public componentDidMount() {
+    console.log("Requesting DSO object");
     if (this.props.id) {
       axios.get<IDso>("http://localhost:50995/api/dso/" + this.props.id).then((response) => {
         const { data } = response;
@@ -54,7 +55,7 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
     if (this.state.isLoading) {
       return (
         <div>
-          <CircularProgress /> Loading DSO object
+          <CircularProgress />Loading DSO object
         </div>
       );
     } else if (this.state.isError) {
@@ -65,7 +66,7 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
       if (this.state.dso) {
         return (
           <div className="dsoExtended">
-            <strong>{this.state.dso.name}</strong>
+            <div className="dsoExtendedName"><strong>{this.state.dso.name}</strong></div>
             ({this.state.dso.otherNames})
             Type: {this.state.dso.type},
             Constellation: {this.state.dso.con}
