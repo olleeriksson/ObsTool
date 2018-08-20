@@ -18,9 +18,13 @@ const styles = (theme: Theme) => createStyles({
     appBar: {
         position: "relative",
     },
+    toolbar: {
+        flex: 1,
+        alignContent: "center",
+    },
     toolbarTitle: {
         flex: 1,
-        alignContent: "left",
+        alignContent: "center",
     },
     layout: {
         width: "auto",
@@ -30,25 +34,6 @@ const styles = (theme: Theme) => createStyles({
             width: 900,
             marginLeft: "auto",
             marginRight: "auto",
-        },
-    },
-    heroContent: {
-        maxWidth: 600,
-        margin: "0 auto",
-        padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`,
-    },
-    cardHeader: {
-        backgroundColor: theme.palette.grey[200],
-    },
-    cardPricing: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "baseline",
-        marginBottom: theme.spacing.unit * 2,
-    },
-    cardActions: {
-        [theme.breakpoints.up("sm")]: {
-            paddingBottom: theme.spacing.unit * 2,
         },
     },
     footer: {
@@ -78,14 +63,14 @@ class Layout extends React.Component<ILayoutProps, {}> {
         return <div>
             <CssBaseline />
             <AppBar position="static" color="default" className={classes.appBar}>
-                <Toolbar>
-                    <Typography variant="display1" color="inherit" noWrap={true} className={classes.toolbarTitle}>
+                <Toolbar className={classes.toolbar}>
+                    <Typography variant="display1" color="inherit" noWrap={false} className={classes.toolbarTitle}>
                         <img src={logo} className="logo-appbar" alt="logo" /> ObsTool
                     </Typography>
-                    <Button component={LinkToHome}><FontAwesomeIcon icon="home" />Home</Button>
-                    <Button component={LinkToSessions}><FontAwesomeIcon icon="table" /> List sessions</Button>
-                    <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" /> New session</Button>
-                    <Button component={LinkToSearch}><FontAwesomeIcon icon="search" /> Search observations</Button>
+                    <Button component={LinkToHome}><FontAwesomeIcon icon="home" className="faSpaceAfter" />Home</Button>
+                    <Button component={LinkToSessions}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions</Button>
+                    <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session</Button>
+                    <Button component={LinkToSearch}><FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search observations</Button>
                     <Button color="primary" variant="outlined">
                         Login
                     </Button>
@@ -102,7 +87,7 @@ class Layout extends React.Component<ILayoutProps, {}> {
                             Created with React + TypeScript and ASP.NET Core
                         </Typography>
                         <Typography variant="subheading" color="textSecondary">
-                            Copyright bla bla
+                            Copyright Olle Eriksson
                         </Typography>
                     </Grid>
                 </Grid>

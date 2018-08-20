@@ -28,6 +28,7 @@ const styles = (theme: Theme) => createStyles({
     header: {
         maxWidth: 600,
         margin: "0 auto",
+        verticalAlign: "center",
         padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`,
     },
     cardContent: {
@@ -56,8 +57,8 @@ class Home extends React.Component<IHomeProps> {
         const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
 
         return <div>
-            {/* Hero unit */}
-            <div className={classes.header}>
+            {/* Header */}
+            <div className={classes.header} style={{}}>
                 <img src={logo} className="App-logo" alt="logo" />
                 <Typography variant="display1" align="center" color="textPrimary" gutterBottom={true}>
                     ObsTool
@@ -66,13 +67,13 @@ class Home extends React.Component<IHomeProps> {
                     A tool for recording and keeping track of deepsky observations.
                 </Typography>
             </div>
-            {/* End hero unit */}
+            {/* First row */}
             <Grid container={true} spacing={40} alignItems="flex-start">
                 <Grid item={true} xs={12} sm={12} md={4}>
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="title" color="textSecondary">
-                                <FontAwesomeIcon icon="table" /> List sessions
+                                <FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions
                             </Typography>
                             <Typography variant="subheading" align="center">
                                 List observation sessions
@@ -89,7 +90,7 @@ class Home extends React.Component<IHomeProps> {
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="title" color="textSecondary">
-                                <FontAwesomeIcon icon="plus" /> New session
+                                <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
                             </Typography>
                             <Typography variant="subheading" align="center">
                                 Add a new observation session
@@ -106,7 +107,7 @@ class Home extends React.Component<IHomeProps> {
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="title" color="textSecondary">
-                                <FontAwesomeIcon icon="search" /> Search observations
+                                <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search observations
                             </Typography>
                             <Typography variant="subheading" align="center">
                                 Search existing observations or deepsky objects
@@ -120,6 +121,7 @@ class Home extends React.Component<IHomeProps> {
                     </Card>
                 </Grid>
             </Grid>
+            {/* Second row */}
             <Grid container={true} spacing={40} alignItems="flex-start" justify="center">
                 <Grid item={true} xs={12} sm={12} md={6}>
                     <StatisticsTable />

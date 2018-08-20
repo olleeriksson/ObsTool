@@ -26,6 +26,10 @@
   to { transform: rotate(360deg); }
 }
 
+.faSpaceAfter {
+  margin-right: 0.3em;
+}
+
 .test {
   border: 1px solid black;
 }

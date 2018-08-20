@@ -23,14 +23,17 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
     if (this.props.obsSessions) {
       if (this.props.obsSessions.length > 0) {
         return this.props.obsSessions.map(o => (
-          <ObsSessionPreview
-            onSelectObsSessionPreview={this.onSelectObsSessionPreview}
-            key={o.id}
-            id={o.id || -1}
-            title={o.title}
-            date={o.date}
-            summary={o.summary || ""}
-          />));
+          <div className="obsSessionList">
+            <ObsSessionPreview
+              onSelectObsSessionPreview={this.onSelectObsSessionPreview}
+              key={o.id}
+              id={o.id || -1}
+              title={o.title}
+              date={o.date}
+              summary={o.summary || ""}
+            />
+          </div>
+        ));
       } else {
         return <div>None</div>;
       }
