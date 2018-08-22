@@ -1,4 +1,5 @@
 export interface IObservation {
+    id: number;
     dso: IDso;
     customObjectName: string;
     text: string;

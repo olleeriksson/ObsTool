@@ -1,5 +1,6 @@
-.obsSessionForm {
+.observation {
   border: 1px solid darkblue;
+  margin: 10pxs;
+  padding: 10px;
   border-radius: 10px;
-  width: 100%;
 }

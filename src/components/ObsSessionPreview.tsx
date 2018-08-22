@@ -5,16 +5,14 @@ import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
-import CardMedia from "@material-ui/core/CardMedia";
 import CardContent from "@material-ui/core/CardContent";
 import CardActions from "@material-ui/core/CardActions";
 import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import red from "@material-ui/core/colors/red";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import ShareIcon from "@material-ui/icons/Share";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import EditIcon from "@material-ui/icons/Edit";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import classNames from "classnames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -70,28 +68,17 @@ class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSes
       expanded: false
     };
 
-    // this.onClick = this.onClick.bind(this);
+    this.onClick = this.onClick.bind(this);
   }
 
   private handleExpandClick = () => {
     this.setState(state => ({ expanded: !state.expanded }));
   }
 
-  // public onClick() {
-  //   console.log("Clicked on the div");
-  //   this.props.onSelectObsSessionPreview(this.props.id);
-  // }
-
-  // public render() {
-  //   const { classes } = this.props;
-  //   return (
-  //     <div className="obsSessionPreview" onClick={this.onClick}>
-  //       <div><strong>{this.props.title}</strong></div>
-  //       <div><strong>Date:</strong> {this.props.date}</div>
-  //       <div><strong>Summary:</strong> {this.props.summary}</div>
-  //     </div>
-  //   );
-  // }
+  public onClick() {
+    console.log("Clicked on the observation session");
+    this.props.onSelectObsSessionPreview(this.props.id);
+  }
 
   public render() {
     const { classes } = this.props;
@@ -104,22 +91,14 @@ class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSes
           title={this.props.title}
           subheader={this.props.date}
         />
-        <CardMedia
-          className={classes.media}
-          image="/static/images/cards/paella.jpg"
-          title="Contemplative Reptile"
-        />
         <CardContent>
           <Typography component="p">
             {this.props.summary}
           </Typography>
         </CardContent>
         <CardActions className={classes.actions} disableActionSpacing={true}>
-          <IconButton aria-label="Add to favorites">
-            <FavoriteIcon />
-          </IconButton>
-          <IconButton aria-label="Share">
-            <ShareIcon />
+          <IconButton aria-label="Share" onClick={this.onClick}>
+            <EditIcon />
           </IconButton>
           <IconButton
             className={classNames(classes.expand, { [classes.expandOpen]: this.state.expanded })}

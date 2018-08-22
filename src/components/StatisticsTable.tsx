@@ -64,20 +64,20 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
 
     private addRow(id: number, text: string, value: number) {
         return {
-            key: id++,
+            key: id,
             text: text,
             value: value
         };
     }
 
     private createRowsData(statistics?: IStatistics) {
-        const id = 0;
+        let id = 0;
         const rowsData = [];
         if (statistics) {
-            rowsData.push(this.addRow(id, "Number of observation sessions", statistics.numObsSessions));
-            rowsData.push(this.addRow(id, "Number of observations", statistics.numObservations));
-            rowsData.push(this.addRow(id, "Number of observed objects", statistics.numObservedObjects));
-            rowsData.push(this.addRow(id, "Number of recorded locations", statistics.numLocations));
+            rowsData.push(this.addRow(id++, "Number of observation sessions", statistics.numObsSessions));
+            rowsData.push(this.addRow(id++, "Number of observations", statistics.numObservations));
+            rowsData.push(this.addRow(id++, "Number of observed objects", statistics.numObservedObjects));
+            rowsData.push(this.addRow(id++, "Number of recorded locations", statistics.numLocations));
         }
         return rowsData;
     }
