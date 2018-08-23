@@ -28,6 +28,8 @@ export interface IObsSession {
     observations?: IObservation[];
     reportText?: string;
     dsoObjects?: IDso[];
+
+    locationId?: number; // addition for post/put
 }
 
 export interface IStatistics {
@@ -36,4 +38,12 @@ export interface IStatistics {
     numObservations: number;
     numLocations: number;
     numDsoInDatabase: number;
+}
+
+export interface ILocation {
+    id: number;
+    name: string;
+    longitude: number;
+    latitude: number;
+    googleMapsAddress: string;
 }

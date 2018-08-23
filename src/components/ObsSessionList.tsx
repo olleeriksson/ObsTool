@@ -1,6 +1,7 @@
 import * as React from "react";
 import ObsSessionPreview from "./ObsSessionPreview";
 import { IObsSession } from "./Types";
+import Typography from "@material-ui/core/Typography";
 
 export interface IObsSessionListProps {
   obsSessions: IObsSession[];
@@ -30,7 +31,11 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
             id={o.id || -1}
             title={o.title}
             date={o.date}
-            summary={o.summary || ""}
+            summary={o.summary}
+            conditions={o.conditions}
+            seeing={o.seeing}
+            transparency={o.transparency}
+            lm={o.limitingMagnitude}
           />
         ));
 
@@ -40,7 +45,9 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
           </div>
         );
       } else {
-        return <div>None</div>;
+        return <Typography variant="caption" color="textSecondary" >
+          No observation sessions!
+        </Typography>;
       }
     } else {
       return <div>Unable to load observation session</div>;

@@ -3,6 +3,7 @@ import { IObservation } from "./Types";
 import "./ObservationList.css";
 import Observation from "./Observation";
 import Typography from "@material-ui/core/Typography";
+import Grid from "@material-ui/core/Grid";
 
 export interface IObservationListProps {
   observations: IObservation[];
@@ -22,18 +23,22 @@ class ObservationList extends React.Component<IObservationListProps> {
   public render() {
     const observations = this.props.observations.map(observation => {
       return (
-        <Observation
-          key={observation.id}
-          observation={observation}
-          onSelectObservation={this.onSelectObsSessionPreview}
-        />
+        <Grid item={true} key={observation.id}>
+          <Observation
+            key={observation.id}
+            observation={observation}
+            onSelectObservation={this.onSelectObsSessionPreview}
+          />
+        </Grid>
       );
     });
 
     if (this.props.observations) {
       if (this.props.observations.length > 0) {
         return <div className="observationList">
-          {observations}
+          <Grid container={true} direction="column" spacing={8}>
+            {observations}
+          </Grid>
         </div>;
       } else {
         return <div className="observationList">

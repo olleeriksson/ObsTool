@@ -3,30 +3,38 @@ import "./ObsSessionPreview.css";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import CardContent from "@material-ui/core/CardContent";
-import CardActions from "@material-ui/core/CardActions";
-import Collapse from "@material-ui/core/Collapse";
+import Grid from "@material-ui/core/Grid";
+import Paper from "@material-ui/core/Paper";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
-import red from "@material-ui/core/colors/red";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import EditIcon from "@material-ui/icons/Edit";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
 import classNames from "classnames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const styles = (theme: Theme) => createStyles({
-  card: {
-    maxWidth: 400,
-    margin: "10px",
+  paper: {
+    margin: theme.spacing.unit * 1,
+    padding: theme.spacing.unit * 1,
   },
-  media: {
-    height: 0,
+  mainRowItem: {
+    flexGrow: 1,
   },
-  actions: {
-    display: "flex",
+  mainRowContainer: {
+    flexGrow: 1,
+    maxWidth: "100%",
+    padding: theme.spacing.unit * 1,
+  },
+  icon: {
+    padding: theme.spacing.unit * 1,
+  },
+  header: {
+    flexGrow: 1,
+  },
+  buttons: {
+  },
+  summary: {
+    padding: theme.spacing.unit * 1,
   },
   expand: {
     transform: "rotate(0deg)",
@@ -41,23 +49,24 @@ const styles = (theme: Theme) => createStyles({
   expandOpen: {
     transform: "rotate(180deg)",
   },
-  avatar: {
-    backgroundColor: red[500],
-  },
 });
 
 // children?: React.ReactNode;
 
 export interface IObsSessionPreviewProps extends WithStyles<typeof styles> {
   id: number;
-  title: string;
-  date: string;
-  summary: string;
+  title?: string;
+  date?: string;
+  summary?: string;
+  conditions?: string;
+  seeing?: number;
+  transparency?: number;
+  lm?: number;
   onSelectObsSessionPreview: (obsSessionId: number) => void;
 }
 
 interface IObsSessionPreviewState {
-  expanded: boolean;
+  isExpanded: boolean;
 }
 
 class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSessionPreviewState> {
@@ -65,17 +74,18 @@ class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSes
     super(props);
 
     this.state = {
-      expanded: false
+      isExpanded: false
     };
 
-    this.onClick = this.onClick.bind(this);
+    // this.handleExpandClick = this.handleExpandClick.bind(this);
+    this.handleClickOnObsSession = this.handleClickOnObsSession.bind(this);
   }
 
   private handleExpandClick = () => {
-    this.setState(state => ({ expanded: !state.expanded }));
+    this.setState(state => ({ isExpanded: !state.isExpanded }));
   }
 
-  public onClick() {
+  public handleClickOnObsSession() {
     console.log("Clicked on the observation session");
     this.props.onSelectObsSessionPreview(this.props.id);
   }
@@ -83,62 +93,84 @@ class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSes
   public render() {
     const { classes } = this.props;
 
-    return (
-      <Card className={classes.card}>
-        <CardHeader
-          avatar={<FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />}
-          action={<IconButton><MoreVertIcon /></IconButton>}
-          title={this.props.title}
-          subheader={this.props.date}
-        />
-        <CardContent>
-          <Typography component="p">
-            {this.props.summary}
+    let expandedGridItem;
+    if (this.state.isExpanded) {
+      expandedGridItem = (
+        <Grid item={true}>
+          <Typography variant="body1">
+            <strong>Conditions:</strong>
           </Typography>
-        </CardContent>
-        <CardActions className={classes.actions} disableActionSpacing={true}>
-          <IconButton aria-label="Share" onClick={this.onClick}>
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            className={classNames(classes.expand, { [classes.expandOpen]: this.state.expanded })}
-            onClick={this.handleExpandClick}
-            aria-expanded={this.state.expanded}
-            aria-label="Show more"
-          >
-            <ExpandMoreIcon />
-          </IconButton>
-        </CardActions>
-        <Collapse in={this.state.expanded} timeout="auto" unmountOnExit={true}>
-          <CardContent>
-            <Typography variant="body2">
-              Method:
-            </Typography>
-            <Typography>
-              Heat 1/2 cup of the broth in a pot until simmering, add saffron and set aside for 10
-              minutes.
-            </Typography>
-            <Typography>
-              Heat oil in a (14- to 16-inch) paella pan or a large, deep skillet over medium-high
-              heat. Add chicken, shrimp and chorizo, and cook, stirring occasionally until lightly
-              browned, 6 to 8 minutes. Transfer shrimp to a large plate and set aside, leaving
-              chicken and chorizo in the pan. Add pimentón, bay leaves, garlic, tomatoes, onion,
-              salt and pepper, and cook, stirring often until thickened and fragrant, about 10
-              minutes. Add saffron broth and remaining 4 1/2 cups chicken broth; bring to a boil.
-            </Typography>
-            <Typography>
-              Add rice and stir very gently to distribute. Top with artichokes and peppers, and cook
-              without stirring, until most of the liquid is absorbed, 15 to 18 minutes. Reduce heat
-              to medium-low, add reserved shrimp and mussels, tucking them down into the rice, and
-              cook again without stirring, until mussels have opened and rice is just tender, 5 to 7
-              minutes more. (Discard any mussels that don’t open.)
-            </Typography>
-            <Typography>
-              Set aside off of the heat to let rest for 10 minutes, and then serve.
-            </Typography>
-          </CardContent>
-        </Collapse>
-      </Card>
+          <Typography variant="body1">
+            {this.props.conditions || <span>N/A</span>}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Seeing:</strong> {this.props.seeing || <span>N/A</span>}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Transparency:</strong> {this.props.transparency || <span>N/A</span>}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Limiting magnitude:</strong> {this.props.lm || <span>N/A</span>}
+          </Typography>
+        </Grid>
+      );
+    }
+
+    return (
+      <Paper className={classes.paper}>
+        <Grid container={true} spacing={8}>
+          <Grid item={true} className={classes.mainRowItem}>
+            <Grid container={true} spacing={8} className={classes.mainRowContainer}>
+              <Grid item={true}>
+                <div className={classes.icon}>
+                  <Typography gutterBottom={true} variant="display1">
+                    <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
+                  </Typography>
+                </div>
+              </Grid>
+              <Grid item={true} xs={12} sm={true} className={classes.header}>
+                <Grid container={true} direction="column" spacing={8}>
+                  <Grid item={true} xs={true}>
+                    <Typography variant="subheading">
+                      {this.props.title}
+                    </Typography>
+                    <Typography variant="caption">
+                      {this.props.date}
+                    </Typography>
+                  </Grid>
+                  <Grid item={true} xs={true} className={classes.summary}>
+                    <Typography variant="caption">
+                      {this.props.summary}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item={true} className={classes.buttons}>
+                <Grid container={true} direction="column" spacing={0}>
+                  <Grid item={true}>
+                    <IconButton
+                      onClick={this.handleClickOnObsSession}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Grid>
+                  <Grid item={true}>
+                    <IconButton
+                      className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
+                      onClick={this.handleExpandClick}
+                      aria-expanded={this.state.isExpanded}
+                      aria-label="Show more"
+                    >
+                      <ExpandMoreIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
+          {expandedGridItem}
+        </Grid>
+      </Paper>
     );
   }
 }

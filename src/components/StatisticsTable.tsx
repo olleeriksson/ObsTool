@@ -98,7 +98,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         if (this.state.isLoading) {
             return (
                 <div>
-                    <CircularProgress />Loading DSO object
+                    <CircularProgress /> Loading statistics...
               </div>
             );
         } else if (this.state.isError) {

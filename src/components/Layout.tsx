@@ -30,8 +30,8 @@ const styles = (theme: Theme) => createStyles({
         width: "auto",
         marginLeft: theme.spacing.unit * 3,
         marginRight: theme.spacing.unit * 3,
-        [theme.breakpoints.up(900 + theme.spacing.unit * 3 * 2)]: {
-            width: 1100,
+        [theme.breakpoints.up(1300 + theme.spacing.unit * 3 * 2)]: {
+            width: 1300,
             marginLeft: "auto",
             marginRight: "auto",
         },
@@ -81,12 +81,12 @@ class Layout extends React.Component<ILayoutProps, {}> {
             </main>
             {/* Footer */}
             <footer className={classNames(classes.footer, classes.layout)}>
-                <Grid container={true} spacing={32} justify="space-evenly">
+                <Grid container={true} spacing={32} direction="column" justify="space-evenly">
                     <Grid item={true} xs={true}>
-                        <Typography variant="title" color="textPrimary" gutterBottom={true}>
+                        <Typography variant="title" align="center" color="textPrimary" gutterBottom={true}>
                             Created with React + TypeScript and ASP.NET Core
                         </Typography>
-                        <Typography variant="subheading" color="textSecondary">
+                        <Typography variant="subheading" align="center" color="textSecondary">
                             Copyright Olle Eriksson
                         </Typography>
                     </Grid>

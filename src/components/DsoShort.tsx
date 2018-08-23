@@ -4,14 +4,14 @@ import axios from "axios";
 import { IDso } from "./Types";
 import Typography from "@material-ui/core/Typography";
 
-export interface IDsoExtendedProps {
+export interface IDsoShortProps {
   id?: number;
   name?: string;
   error?: string;
   dso?: IDso;
 }
 
-export interface IDsoExtendedState {
+export interface IDsoShortState {
   isMounted: boolean;
   isLoading: boolean;
   isError: boolean;
@@ -22,11 +22,12 @@ interface IServerResponse {
   data: IDso;
 }
 
-export default class DsoExtended extends React.Component<IDsoExtendedProps, IDsoExtendedState> {
-  constructor(props: IDsoExtendedProps) {
+export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
+  constructor(props: IDsoShortProps) {
     super(props);
+
     this.state = {
-      isMounted: false,
+      isMounted: true,
       isLoading: true,
       isError: false,
       dso: undefined,
@@ -84,9 +85,9 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
       );
     } else if (this.state.isLoading) {
       return (
-        <div>
-          <CircularProgress />Loading DSO object
-        </div>
+        <Typography variant="caption" color="textSecondary" gutterBottom={true}>
+          <CircularProgress />
+        </Typography>
       );
     } else if (this.state.isError) {
       return (
@@ -97,19 +98,19 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
     } else {
       if (this.state.dso) {
         return (
-          <div className="dsoExtended">
-            <Typography variant="subheading">
-              {this.state.dso.name} ({this.state.dso.otherNames})
+          <div className="dsoShort">
+            <Typography variant="body1">
+              {this.state.dso.name}
             </Typography>
-            <Typography color="textSecondary" gutterBottom={true}>
-              <strong>Type:</strong> {this.state.dso.type}, <strong>Constellation:</strong> {this.state.dso.con}
+            <Typography color="textSecondary" variant="caption" gutterBottom={true}>
+              {this.state.dso.type}, {this.state.dso.con}
             </Typography>
           </div>
         );
       } else {
         return (
-          <Typography color="textSecondary" gutterBottom={true}>
-            Unable to load DSO object!
+          <Typography variant="caption" color="textSecondary" gutterBottom={true}>
+            Unable to load!
           </Typography>
         );
       }

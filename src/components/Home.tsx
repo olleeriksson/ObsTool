@@ -15,21 +15,14 @@ import "./Layout.css";
 import { Link } from "react-router-dom";
 
 const styles = (theme: Theme) => createStyles({
-    layout: {
-        width: "auto",
-        marginLeft: theme.spacing.unit * 3,
-        marginRight: theme.spacing.unit * 3,
-        [theme.breakpoints.up(900 + theme.spacing.unit * 3 * 2)]: {
-            width: 900,
-            marginLeft: "auto",
-            marginRight: "auto",
-        },
-    },
     header: {
         maxWidth: 600,
         margin: "0 auto",
         verticalAlign: "center",
         padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`,
+    },
+    cardGridItem: {
+        maxWidth: 300,
     },
     cardContent: {
     },
@@ -58,21 +51,27 @@ class Home extends React.Component<IHomeProps> {
 
         return <div>
             {/* Header */}
-            <div className={classes.header} style={{}}>
-                <img src={logo} className="App-logo" alt="logo" />
-                <Typography variant="display1" align="center" color="textPrimary" gutterBottom={true}>
-                    ObsTool
-                </Typography>
-                <Typography variant="title" align="center" color="textSecondary" component="p">
-                    A tool for recording and keeping track of deepsky observations.
-                </Typography>
-            </div>
+            <Grid container={true} justify="center">
+                <Grid item={true} md={12}>
+                    <div className={classes.header}>
+                        <Typography align="center" gutterBottom={true}>
+                            <img src={logo} className="App-logo" alt="logo" />
+                        </Typography>
+                        <Typography variant="display1" align="center" color="textPrimary" gutterBottom={true}>
+                            ObsTool
+                        </Typography>
+                        <Typography variant="title" align="center" color="textSecondary" component="p">
+                            A tool for recording and keeping track of deepsky observations.
+                        </Typography>
+                    </div>
+                </Grid>
+            </Grid>
             {/* First row */}
-            <Grid container={true} spacing={40} alignItems="flex-start">
-                <Grid item={true} xs={12} sm={12} md={4}>
+            <Grid container={true} spacing={40} justify="center">
+                <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
-                            <Typography variant="title" color="textSecondary">
+                            <Typography variant="title" color="textSecondary" align="center">
                                 <FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions
                             </Typography>
                             <Typography variant="subheading" align="center">
@@ -86,10 +85,10 @@ class Home extends React.Component<IHomeProps> {
                         </CardActions>
                     </Card>
                 </Grid>
-                <Grid item={true} xs={12} sm={12} md={4}>
+                <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
-                            <Typography variant="title" color="textSecondary">
+                            <Typography variant="title" color="textSecondary" align="center">
                                 <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
                             </Typography>
                             <Typography variant="subheading" align="center">
@@ -103,10 +102,10 @@ class Home extends React.Component<IHomeProps> {
                         </CardActions>
                     </Card>
                 </Grid>
-                <Grid item={true} xs={12} sm={12} md={4}>
+                <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
-                            <Typography variant="title" color="textSecondary">
+                            <Typography variant="title" color="textSecondary" align="center">
                                 <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search observations
                             </Typography>
                             <Typography variant="subheading" align="center">
@@ -122,8 +121,8 @@ class Home extends React.Component<IHomeProps> {
                 </Grid>
             </Grid>
             {/* Second row */}
-            <Grid container={true} spacing={40} alignItems="flex-start" justify="center">
-                <Grid item={true} xs={12} sm={12} md={6}>
+            <Grid container={true} alignItems="flex-start" justify="center">
+                <Grid item={true} xs={12} sm={6} md={4}>
                     <StatisticsTable />
                 </Grid>
             </Grid>

@@ -28,7 +28,6 @@ it("logs to console, verified with sinon spy", () => {
 //    sinon.stub(userService, 'getUser').withArgs(1).returns(new User(1, 'User1'));
 //  Mock - a combination of spy and stub. We can verify afterwards that the contract was fulfilled.
 it("verifies sinon stubs", () => {
-
 });
 
 it("renders the correct text", () => {

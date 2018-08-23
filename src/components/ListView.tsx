@@ -5,6 +5,7 @@ import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import Paper from "@material-ui/core/Paper";
 import "./Layout.css";
 import axios from "axios";
@@ -36,9 +37,7 @@ interface IListViewProps extends WithStyles<typeof styles> {
 
 interface IListViewState {
     isLoadingObsSessions: boolean;
-    isLoadingSelectedObsSession: boolean;
     isErrorObsSessions: boolean;
-    isErrorSelectedObsSession: boolean;
     obsSessions?: IObsSession[];
     selectedObsSession?: IObsSession;
 }
@@ -49,8 +48,6 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
         this.state = {
             isLoadingObsSessions: true,
-            isLoadingSelectedObsSession: false,
-            isErrorSelectedObsSession: false,
             isErrorObsSessions: false,
             obsSessions: undefined,
             selectedObsSession: undefined,
@@ -80,34 +77,11 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         );
     }
 
-    private loadObsSession = (obsSessionId: number) => {
-        axios.get<IObsSession>("http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeLocation=true&includeObservations=true&includeDso=true").then(
-            (response) => {
-                const { data } = response;
-                console.log(data);
-                this.setState({ selectedObsSession: data });
-                this.setState({ isLoadingSelectedObsSession: false });
-                this.setState({ isErrorSelectedObsSession: false });
-            },
-            () => {
-                this.setState({ isLoadingSelectedObsSession: false });
-                this.setState({ isErrorSelectedObsSession: true });
-            }
-        );
-    }
-
     public onSelectObsSession = (obsSessionId: number) => {
         if (this.state.obsSessions) {
             // Get it and store it
             const selectedObsSession = this.state.obsSessions.find(s => s.id === obsSessionId);
             this.setState({ selectedObsSession: selectedObsSession });
-
-            // Load it again to get more data, including the observations and dso's etc
-            if (selectedObsSession) {
-                console.log("Selected a new obs session with id " + selectedObsSession.id);
-                this.loadObsSession(selectedObsSession.id || 0);
-                console.log("Clicked on obs session_ " + obsSessionId);
-            }
         }
     }
 
@@ -118,14 +92,38 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
     public render() {
         const { classes } = this.props;
 
-        let rightSideHeading;
-        if (this.state.selectedObsSession) {
+        let leftSideView;
+        if (this.state.isLoadingObsSessions) {
+            leftSideView = (
+                <div>
+                    <CircularProgress />
+                </div>
+            );
+        } else if (this.state.isErrorObsSessions) {
+            leftSideView = (
+                <div>
+                    Error loading observation sessions!
+                </div>
+            );
+        } else if (this.state.obsSessions) {
+            leftSideView = (
+                <div className={classes.sessionList}>
+                    <ObsSessionList
+                        obsSessions={this.state.obsSessions || []}
+                        onSelectObsSession={this.onSelectObsSession}
+                    />
+                </div>
+            );
+        }
+
+        let rightSideView;
+        if (this.state.selectedObsSession) { // default view
             const selectedObsSessionId = this.state.selectedObsSession ? this.state.selectedObsSession.id : 0;
-            rightSideHeading = (
+            rightSideView = (
                 <ObsSessionPage obsSessionId={selectedObsSessionId} />
             );
-        } else {
-            rightSideHeading = (
+        } else { // empty view
+            rightSideView = (
                 <Typography variant="title" align="center" color="textPrimary" component="p">
                     <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" /> Observations
                 </Typography>
@@ -134,21 +132,15 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
         return <div className={classes.root}>
             <Grid container={true} spacing={40} alignItems="flex-start">
-                <Grid item={true} xs={12} sm={12} md={5} className={classes.column}>
+                <Grid item={true} xs={12} sm={4} className={classes.column}>
                     <Typography variant="title" align="center" color="textPrimary" component="p">
                         <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" /> Sessions
                     </Typography>
-
-                    <div className={classes.sessionList}>
-                        <ObsSessionList
-                            obsSessions={this.state.obsSessions || []}
-                            onSelectObsSession={this.onSelectObsSession}
-                        />
-                    </div>
+                    {leftSideView}
                 </Grid>
-                <Grid item={true} xs={12} sm={12} md={7} className={classes.column}>
+                <Grid item={true} xs={12} sm={8} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
-                        {rightSideHeading}
+                        {rightSideView}
                     </Paper>
                 </Grid>
             </Grid>
