@@ -15,6 +15,10 @@ import SwipeableViews from "react-swipeable-views";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Redirect } from "react-router-dom";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import IconButton from "@material-ui/core/IconButton";
 // import Snackbar from "@material-ui/core/Snackbar";
 // import MySnackbar from "./MySnackbar";
 
@@ -36,6 +40,7 @@ interface IObsSessionPageState {
     isLoading: boolean;
     isError: boolean;
     redirect: boolean;
+    anchorEl: any;
     activeView: number;
     obsSessionId?: number;
     obsSession?: IObsSession;
@@ -50,6 +55,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             isLoading: false,
             isError: false,
             redirect: false,
+            anchorEl: null,
             activeView: 0,
             obsSessionId: this.props.obsSessionId,
             obsSession: undefined,
@@ -168,6 +174,14 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ activeView: index });
     }
 
+    private handleOpenMenu = (event: any) => {
+        this.setState({ anchorEl: event.currentTarget });
+    }
+
+    private handleCloseMenu = () => {
+        this.setState({ anchorEl: null });
+    }
+
     public render() {
         const { classes } = this.props;
 
@@ -207,43 +221,63 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 {circularProgress}
                 <div className={classes.root} >
                     <div className={classes.header}>
-                        <Grid container={true} direction="row" justify="center">
-                            <Grid item={true}>
-                                <Typography gutterBottom={true} variant="display1">
-                                    <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
-                                </Typography>
+                        <Grid container={true} direction="row">
+                            <Grid item={true} xs={1}>
+                                <Typography />
                             </Grid>
-                            <Grid item={true}>
-                                <Typography variant="title" align="center">
-                                    {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
-                                </Typography>
-                                <Typography variant="subheading" align="center">
-                                    {this.state.obsSession ? this.state.obsSession.date : ""}
-                                </Typography>
+                            <Grid item={true} xs={10}>
+                                <Grid container={true} direction="row" justify="center">
+                                    <Grid item={true}>
+                                        <Typography gutterBottom={true} variant="display1">
+                                            <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
+                                        </Typography>
+                                    </Grid>
+                                    <Grid item={true}>
+                                        <Typography variant="title" align="center">
+                                            {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
+                                        </Typography>
+                                        <Typography variant="subheading" align="center">
+                                            {this.state.obsSession ? this.state.obsSession.date : ""}
+                                        </Typography>
+                                    </Grid>
+                                </Grid>
                             </Grid>
+                            <Grid item={true} xs={1} justify="flex-end">
+                                <IconButton onClick={this.handleOpenMenu} >
+                                    <MoreVertIcon />
+                                </IconButton>
+                                <Menu
+                                    id="simple-menu"
+                                    anchorEl={this.state.anchorEl}
+                                    open={Boolean(this.state.anchorEl)}
+                                    onClose={this.handleCloseMenu}
+                                >
+                                    <MenuItem onClick={this.handleCloseMenu}>Delete session</MenuItem>
+                                </Menu>
                         </Grid>
-                    </div>
-                    <Tabs
-                        value={this.state.activeView}
-                        onChange={this.handleChange}
-                        indicatorColor="primary"
-                        textColor="primary"
-                        fullWidth={true}
-                        centered={true}
-                    >
-                        <Tab label="Session data" />
-                        <Tab label="View observed objects" />
-                    </Tabs>
-                    <SwipeableViews
-                        axis={"x"}
-                        index={this.state.activeView}
-                        onChangeIndex={this.handleChangeIndex}
-                    >
-                        <ObsSessionForm obsSession={this.state.obsSession} locations={this.state.locations} onSaveObsSession={this.onSaveObsSession} />
-                        <ObservationList observations={observations} onSelectObservation={this.onSelectObservation} />
-                    </SwipeableViews>
+                        </Grid>
                 </div>
+                <Tabs
+                    value={this.state.activeView}
+                    onChange={this.handleChange}
+                    indicatorColor="primary"
+                    textColor="primary"
+                    fullWidth={true}
+                    centered={true}
+                >
+                    <Tab label="Session data" />
+                    <Tab label="View observed objects" />
+                </Tabs>
+                <SwipeableViews
+                    axis={"x"}
+                    index={this.state.activeView}
+                    onChangeIndex={this.handleChangeIndex}
+                >
+                    <ObsSessionForm obsSession={this.state.obsSession} locations={this.state.locations} onSaveObsSession={this.onSaveObsSession} />
+                    <ObservationList observations={observations} onSelectObservation={this.onSelectObservation} />
+                </SwipeableViews>
             </div>
+            </div >
         );
     }
 }
