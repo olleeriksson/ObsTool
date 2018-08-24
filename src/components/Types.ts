@@ -8,18 +8,33 @@ export interface IObservation {
 export interface IDso {
     id: number;
     catalog: string;
-    catalogNumber: string;
+    catalogNumber?: string;
     name: string;
-    otherNames: string;
+    otherNames?: string;
+    commonName: string;
+    otherCommonNames: string;
     type: string;
     con: string;
+    mag: string;
+    sb: string;
+    u2k: string;
+    ti: string;
+    sizeMax?: string;
+    sizeMin?: string;
+    ps?: string;
+    class?: string;
+    nsts?: string;
+    brstr?: string;
+    bchm?: string;
+    dreyerDesc?: string;
+    notes?: string;
 }
 
 export interface IObsSession {
     id?: number;
-    date: string;
+    date?: string;
     location?: any;
-    title: string;
+    title?: string;
     summary?: string;
     conditions?: string;
     seeing?: number;

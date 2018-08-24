@@ -11,7 +11,6 @@ import "./Layout.css";
 import axios from "axios";
 import { IObsSession } from "./Types";
 import ObsSessionList from "./ObsSessionList";
-// import ObservationList from "./ObservationList";
 import ObsSessionPage from "./ObsSessionPage";
 
 const styles = (theme: Theme) => createStyles({
@@ -85,6 +84,16 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         }
     }
 
+    public onUpdatedObsSession = (updatedObsSession: IObsSession) => {
+        // Replace the observation session in the list of sessions in the state and update to reflect the made changes visually
+        if (this.state.obsSessions) {
+            const updatedObsSessionList = this.state.obsSessions.map(o => {
+                return o.id === updatedObsSession.id ? updatedObsSession : o;  // replace this particular ObsSession
+            });
+            this.setState({obsSessions: updatedObsSessionList});
+        }
+    }
+
     public onSelectObservation(observationId: number) {
         console.log("Clicked on observation with id " + observationId);
     }
@@ -120,7 +129,7 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         if (this.state.selectedObsSession) { // default view
             const selectedObsSessionId = this.state.selectedObsSession ? this.state.selectedObsSession.id : 0;
             rightSideView = (
-                <ObsSessionPage obsSessionId={selectedObsSessionId} />
+                <ObsSessionPage obsSessionId={selectedObsSessionId} onUpdatedObsSession={this.onUpdatedObsSession} />
             );
         } else { // empty view
             rightSideView = (

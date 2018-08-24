@@ -4,3 +4,32 @@
   padding: 10px;
   border-radius: 10px;
 }
+
+.circularProgressSuperContainer {
+  position: relative;
+}
+
+.circularProgressContainer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  text-align: center;
+  background-color: rgba(0,0,0,0.1);
+}
+
+.circularProgressContainer:before {
+  content: "";
+  height: 100%;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.circularProgress {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  overflow: hidden;
+}

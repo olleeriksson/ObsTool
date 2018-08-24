@@ -1,5 +1,5 @@
 import * as React from "react";
-import "./ObsSessionPreview.css";
+import "./ObsSessionCard.css";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
@@ -53,7 +53,7 @@ const styles = (theme: Theme) => createStyles({
 
 // children?: React.ReactNode;
 
-export interface IObsSessionPreviewProps extends WithStyles<typeof styles> {
+export interface IObsSessionCardProps extends WithStyles<typeof styles> {
   id: number;
   title?: string;
   date?: string;
@@ -62,15 +62,15 @@ export interface IObsSessionPreviewProps extends WithStyles<typeof styles> {
   seeing?: number;
   transparency?: number;
   lm?: number;
-  onSelectObsSessionPreview: (obsSessionId: number) => void;
+  onSelectObsSessionCard: (obsSessionId: number) => void;
 }
 
-interface IObsSessionPreviewState {
+interface IObsSessionCardState {
   isExpanded: boolean;
 }
 
-class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSessionPreviewState> {
-  constructor(props: IObsSessionPreviewProps) {
+class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCardState> {
+  constructor(props: IObsSessionCardProps) {
     super(props);
 
     this.state = {
@@ -87,7 +87,7 @@ class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSes
 
   public handleClickOnObsSession() {
     console.log("Clicked on the observation session");
-    this.props.onSelectObsSessionPreview(this.props.id);
+    this.props.onSelectObsSessionCard(this.props.id);
   }
 
   public render() {
@@ -175,4 +175,4 @@ class ObsSessionPreview extends React.Component<IObsSessionPreviewProps, IObsSes
   }
 }
 
-export default withStyles(styles)(ObsSessionPreview);
+export default withStyles(styles)(ObsSessionCard);

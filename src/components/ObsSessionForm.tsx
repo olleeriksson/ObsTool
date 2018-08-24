@@ -44,7 +44,7 @@ const styles = (theme: Theme) => createStyles({
 });
 
 export interface IObsSessionFormProps extends WithStyles<typeof styles> {
-  obsSessionId?: number;
+  obsSessionId?: number;  // anyone really setting this?
   obsSession?: IObsSession;
   locations?: ILocation[];
   onSaveObsSession: (obsSession: IObsSession) => void;
@@ -52,6 +52,7 @@ export interface IObsSessionFormProps extends WithStyles<typeof styles> {
 
 export interface IObsSessionFormState {
   isLoading: boolean;
+  isSaving: boolean;
   isError: boolean;
   errorOnControl: { [key: string]: string | undefined };
   obsSession: IObsSession;
@@ -63,15 +64,19 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
     this.state = {
       isLoading: true,
+      isSaving: false,
       isError: false,
       errorOnControl: {},
       obsSession: {
         title: "",
         date: new Date().toISOString().slice(0, 10),
+        locationId: undefined,
         summary: "",
         conditions: "",
-        seeing: 0,
-        limitingMagnitude: 0,
+        seeing: undefined,
+        transparency: undefined,
+        limitingMagnitude: undefined,
+        reportText: "",
         dsoObjects: [],    // not sure
       }
     };
@@ -117,13 +122,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
   private handleSubmit(e: any) {
     e.preventDefault();
-
-    if (this.state.obsSession.title === "" || this.state.obsSession.summary === "") {
-      alert("Must fill in title and summary");
-    } else {
-      console.log("Title: " + this.state.obsSession.title + ", Summary: " + this.state.obsSession.summary);
-      this.props.onSaveObsSession(this.state.obsSession);
-    }
+    this.props.onSaveObsSession(this.state.obsSession);
   }
 
   private handleChange = (name: string) => (event: any) => {
@@ -253,31 +252,36 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 style={{ width: 150 }}
               />
             </Grid>
-            <Grid container={true}>
-              <Grid item={true} xs={11}>
-                <TextField
-                  id="reportText"
-                  label="Report Text"
-                  multiline={true}
-                  rowsMax="100"
-                  value={this.state.obsSession.reportText || ""}
-                  onChange={this.handleChange("reportText")}
-                  className={classNames(classes.formControl, classes.textFieldReportText)}
-                  margin="dense"
-                />
-              </Grid>
-              <Grid item={true} xs={1}>
-                {dsoList}
-              </Grid>
-            </Grid>
             <Grid item={true}>
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-              >
-                Save
-              </Button>
+              <Grid container={true} direction="row">
+                <Grid item={true} xs={11}>
+                  <Grid container={true} direction="column">
+                    <Grid item={true} xs={12}>
+                      <TextField
+                        id="reportText"
+                        label="Report Text"
+                        multiline={true}
+                        value={this.state.obsSession.reportText || ""}
+                        onChange={this.handleChange("reportText")}
+                        className={classNames(classes.formControl, classes.textFieldReportText)}
+                        margin="normal"
+                      />
+                    </Grid>
+                    <Grid item={true}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        type="submit"
+                      >
+                        Save
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item={true} xs={1}>
+                  {dsoList}
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
         </form>

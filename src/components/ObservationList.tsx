@@ -15,8 +15,8 @@ class ObservationList extends React.Component<IObservationListProps> {
     super(props);
   }
 
-  private onSelectObsSessionPreview(obsSessionId: number) {
-    console.log("Clicked on ObsSessionPreview");
+  private onSelectObsSessionCard(obsSessionId: number) {
+    console.log("Clicked on ObsSessionCard");
     this.props.onSelectObservation(obsSessionId);
   }
 
@@ -27,7 +27,7 @@ class ObservationList extends React.Component<IObservationListProps> {
           <Observation
             key={observation.id}
             observation={observation}
-            onSelectObservation={this.onSelectObsSessionPreview}
+            onSelectObservation={this.onSelectObsSessionCard}
           />
         </Grid>
       );

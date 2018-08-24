@@ -1,5 +1,5 @@
 import * as React from "react";
-import ObsSessionPreview from "./ObsSessionPreview";
+import ObsSessionCard from "./ObsSessionCard";
 import { IObsSession } from "./Types";
 import Typography from "@material-ui/core/Typography";
 
@@ -12,32 +12,40 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
   constructor(props: IObsSessionListProps) {
     super(props);
 
-    this.onSelectObsSessionPreview = this.onSelectObsSessionPreview.bind(this);
+    this.onSelectObsSessionCard = this.onSelectObsSessionCard.bind(this);
   }
 
-  private onSelectObsSessionPreview(obsSessionId: number) {
-    console.log("Clicked on ObsSessionPreview " + obsSessionId);
+  private onSelectObsSessionCard(obsSessionId: number) {
+    console.log("Clicked on ObsSessionCard " + obsSessionId);
     this.props.onSelectObsSession(obsSessionId);
+  }
+
+  private sortByDate(obsSessionA: IObsSession, obsSessionB: IObsSession) {
+    const dateA: any = new Date(obsSessionA.date || "");
+    const dateB: any = new Date(obsSessionB.date || "");
+    return dateB - dateA;
   }
 
   public render() {
     if (this.props.obsSessions) {
       if (this.props.obsSessions.length > 0) {
 
-        const obsSessions = this.props.obsSessions.map(o => (
-          <ObsSessionPreview
-            onSelectObsSessionPreview={this.onSelectObsSessionPreview}
-            key={o.id}
-            id={o.id || -1}
-            title={o.title}
-            date={o.date}
-            summary={o.summary}
-            conditions={o.conditions}
-            seeing={o.seeing}
-            transparency={o.transparency}
-            lm={o.limitingMagnitude}
-          />
-        ));
+        const obsSessions = this.props.obsSessions
+          .sort(this.sortByDate)
+          .map(o => (
+            <ObsSessionCard
+              onSelectObsSessionCard={this.onSelectObsSessionCard}
+              key={o.id}
+              id={o.id || -1}
+              title={o.title}
+              date={o.date}
+              summary={o.summary}
+              conditions={o.conditions}
+              seeing={o.seeing}
+              transparency={o.transparency}
+              lm={o.limitingMagnitude}
+            />
+          ));
 
         return (
           <div className="obsSessionList">

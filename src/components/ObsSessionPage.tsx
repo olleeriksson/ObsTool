@@ -14,6 +14,7 @@ import ObsSessionForm from "./ObsSessionForm";
 import SwipeableViews from "react-swipeable-views";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Redirect } from "react-router-dom";
 // import Snackbar from "@material-ui/core/Snackbar";
 // import MySnackbar from "./MySnackbar";
 
@@ -28,12 +29,15 @@ const styles = (theme: Theme) => createStyles({
 
 interface IObsSessionPageProps extends WithStyles<typeof styles> {
     obsSessionId?: number;
+    onUpdatedObsSession: (obsSession: IObsSession) => void;
 }
 
 interface IObsSessionPageState {
     isLoading: boolean;
     isError: boolean;
+    redirect: boolean;
     activeView: number;
+    obsSessionId?: number;
     obsSession?: IObsSession;
     locations?: ILocation[];
 }
@@ -43,9 +47,11 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         super(props);
 
         this.state = {
-            isLoading: true,
+            isLoading: false,
             isError: false,
+            redirect: false,
             activeView: 0,
+            obsSessionId: this.props.obsSessionId,
             obsSession: undefined,
             locations: undefined,
         };
@@ -65,7 +71,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 
     public componentWillReceiveProps(nextProps: IObsSessionPageProps) {
-        if (nextProps.obsSessionId && this.props.obsSessionId !== nextProps.obsSessionId) {
+        if (nextProps.obsSessionId && this.state.obsSessionId !== nextProps.obsSessionId) {
             this.setState({ isLoading: true });
             this.loadObsSession(nextProps.obsSessionId);
         }
@@ -89,20 +95,62 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         axios.get<IObsSession>("http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeLocation=true&includeObservations=true&includeDso=true").then(
             (response) => {
                 const { data } = response;
-                console.log(data);
-
-                // Update the "shadow" field locationId according to the location.id field.
-                data.locationId = data.location ? data.location.id : undefined;
-
-                this.setState({ obsSession: data });
-                this.setState({ isLoading: false });
-                this.setState({ isError: false });
+                const obsSession = data;
+                this.handleSuccessDataFromApi(obsSession);
             },
-            () => {
-                this.setState({ isLoading: false });
-                this.setState({ isError: true });
-            }
+            () => this.indicateError()
         );
+    }
+
+    public onSaveObsSession(newObsSession: IObsSession) {
+        this.setState({ isLoading: true });
+
+        // Convert the "shadow" field locationId back to a number. The API expects a number,
+        // but the SelectComponent requires a string backing field.
+        newObsSession.locationId = newObsSession.locationId ? Number(newObsSession.locationId) : undefined;
+
+        if (!newObsSession.id) {
+            axios.post<IObsSession>(
+                "http://localhost:50995/api/obsSessions/",
+                newObsSession).then(
+                    (response) => {
+                        const { data } = response;
+                        const obsSession = data;
+                        this.handleSuccessDataFromApi(obsSession);
+                        this.props.onUpdatedObsSession(obsSession);
+                        this.setState({ redirect: true });
+                    },
+                    () => this.indicateError()
+                );
+        } else {
+            axios.put<IObsSession>(
+                "http://localhost:50995/api/obsSessions/" + this.state.obsSessionId,
+                newObsSession).then(
+                    (response) => {
+                        const { data } = response;
+                        const obsSession = data;
+                        this.handleSuccessDataFromApi(obsSession);
+                        this.props.onUpdatedObsSession(obsSession);
+                    },
+                    () => this.indicateError()
+                );
+        }
+    }
+
+    private handleSuccessDataFromApi = (obsSession: IObsSession) => {
+        // Update the "shadow" field locationId according to the location.id field.
+        obsSession.locationId = obsSession.location ? obsSession.location.id : undefined;
+
+        this.setState({ obsSessionId: obsSession.id });
+        this.setState({ obsSession: obsSession });
+        this.setState({ isLoading: false });
+        this.setState({ isError: false });
+
+    }
+
+    private indicateError = () => {
+        this.setState({ isLoading: false });
+        this.setState({ isError: true });
     }
 
     public onSelectObsSession = (obsSessionId: number) => {
@@ -110,38 +158,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     public onSelectObservation(observationId: number) {
         console.log("Clicked on observation with id " + observationId);
-    }
-
-    public onSaveObsSession(newObsSession: IObsSession) {
-        console.log("Wanted to save observation with new title " + newObsSession.title);
-
-        // Convert the "shadow" field locationId back to a number. The API expects a number,
-        // but the SelectComponent requires a string backing field.
-        newObsSession.locationId = newObsSession.locationId ? Number(newObsSession.locationId) : undefined;
-
-        console.log("Saving");
-        console.log(newObsSession);
-
-        axios.put<IObsSession>(
-            "http://localhost:50995/api/obsSessions/" + this.props.obsSessionId,
-            newObsSession).then(
-                (response) => {
-                    const { data } = response;
-
-                    // Update the "shadow" field locationId according to the location.id field.
-                    data.locationId = data.location ? data.location.id : undefined;
-
-                    console.log("Saved:");
-                    console.log(data);
-                    this.setState({ obsSession: data });
-                    this.setState({ isLoading: false });
-                    this.setState({ isError: false });
-                },
-                () => {
-                    this.setState({ isLoading: false });
-                    this.setState({ isError: true });
-                }
-            );
     }
 
     private handleChange = (event: any, value: number) => {
@@ -154,6 +170,12 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     public render() {
         const { classes } = this.props;
+
+        if (this.state.redirect) {
+            console.log(this.state.redirect);
+            const url = "/session/" + this.state.obsSessionId;
+            return <Redirect to={url} />;
+        }
 
         // const snackbar = <Snackbar
         //     anchorOrigin={{ vertical: "top", horizontal: "center" }}
@@ -171,15 +193,19 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             observations = this.state.obsSession.observations;
         }
 
+        let circularProgress;
         if (this.state.isLoading) {
-            return (
-                <div>
-                    <CircularProgress />
+            circularProgress = (
+                <div className="circularProgressContainer">
+                    <CircularProgress className="circularProgress" />
                 </div>
             );
-        } else if (this.state.obsSession) {
-            return (
-                <div className={classes.root}>
+        }
+
+        return (
+            <div className="circularProgressSuperContainer">
+                {circularProgress}
+                <div className={classes.root} >
                     <div className={classes.header}>
                         <Grid container={true} direction="row" justify="center">
                             <Grid item={true}>
@@ -189,10 +215,10 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                             </Grid>
                             <Grid item={true}>
                                 <Typography variant="title" align="center">
-                                    {this.state.obsSession.title}
+                                    {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
                                 </Typography>
                                 <Typography variant="subheading" align="center">
-                                    {this.state.obsSession.date}
+                                    {this.state.obsSession ? this.state.obsSession.date : ""}
                                 </Typography>
                             </Grid>
                         </Grid>
@@ -217,10 +243,8 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         <ObservationList observations={observations} onSelectObservation={this.onSelectObservation} />
                     </SwipeableViews>
                 </div>
-            );
-        } else {
-            return;
-        }
+            </div>
+        );
     }
 }
 

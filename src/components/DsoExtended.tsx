@@ -96,13 +96,23 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
       );
     } else {
       if (this.state.dso) {
+        const commonName = this.state.dso.commonName && (" - " + this.state.dso.commonName);
+        const sizeSeparator = this.state.dso.sizeMax && this.state.dso.sizeMax.trim() !== "" && this.state.dso.sizeMin && this.state.dso.sizeMin.trim() !== "" && " - ";
+
         return (
           <div className="dsoExtended">
             <Typography variant="subheading">
-              {this.state.dso.name} ({this.state.dso.otherNames})
+              {this.state.dso.name} ({this.state.dso.otherNames}) {commonName}
             </Typography>
             <Typography color="textSecondary" gutterBottom={true}>
-              <strong>Type:</strong> {this.state.dso.type}, <strong>Constellation:</strong> {this.state.dso.con}
+              <strong>Type:</strong> {this.state.dso.type} &nbsp;
+              <strong>Const:</strong> {this.state.dso.con} &nbsp;
+              <strong>Mag:</strong> {this.state.dso.mag} &nbsp;
+              <strong>SB:</strong> {this.state.dso.sb} &nbsp;
+              <strong>Class:</strong> {this.state.dso.class} &nbsp;
+              <strong>Dreyer:</strong> {this.state.dso.dreyerDesc} &nbsp;
+              <strong>Size:</strong> {this.state.dso.sizeMax} {sizeSeparator} {this.state.dso.sizeMin} &nbsp;
+              <strong>Notes:</strong> {this.state.dso.notes} &nbsp;
             </Typography>
           </div>
         );
