@@ -1,0 +1,11 @@
+export const ADD_OBSSESSION = "ADD_OBSSESSION";
+export type ADD_OBSSESSION = typeof ADD_OBSSESSION;
+
+export const UPDATE_OBSSESSION = "UPDATE_OBSSESSION";
+export type UPDATE_OBSSESSION = typeof UPDATE_OBSSESSION;
+
+export const INCREMENT_NUM = "INCREMENT_NUM";
+export type INCREMENT_NUM = typeof INCREMENT_NUM;
+
+export const DECREMENT_NUM = "DECREMENT_NUM";
+export type DECREMENT_NUM = typeof DECREMENT_NUM;

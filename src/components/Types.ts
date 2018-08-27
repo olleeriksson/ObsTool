@@ -62,3 +62,14 @@ export interface ILocation {
     latitude: number;
     googleMapsAddress: string;
 }
+
+// --------------------------------------------------------------------------
+
+export interface IObsSessionReducer {
+    obsSessions: IObsSession[];
+    num: number;
+}
+
+export interface IAppState {
+    obsSessions: IObsSessionReducer;
+}

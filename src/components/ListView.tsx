@@ -9,9 +9,13 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Paper from "@material-ui/core/Paper";
 import "./Layout.css";
 import axios from "axios";
-import { IObsSession } from "./Types";
+import { IObsSession, IObsSessionReducer } from "./Types";
 import ObsSessionList from "./ObsSessionList";
 import ObsSessionPage from "./ObsSessionPage";
+import { connect } from "react-redux";
+import { Dispatch } from "redux";
+import { IAppState } from "./Types";
+import * as actions from "../actions/actions";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -31,7 +35,9 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface IListViewProps extends WithStyles<typeof styles> {
-    children?: React.ReactNode;
+    onIncrement?: () => void;
+    onDecrement?: () => void;
+    store: IObsSessionReducer;
 }
 
 interface IListViewState {
@@ -54,6 +60,24 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
         this.onSelectObsSession = this.onSelectObsSession.bind(this);
         this.onSelectObservation = this.onSelectObservation.bind(this);
+        this.onIncrement = this.onIncrement.bind(this);
+        this.onDecrement = this.onDecrement.bind(this);
+    }
+
+    private onIncrement() {
+        console.log("onIncrement " + this.props.store.num);
+        if (this.props.onIncrement) {
+            console.log("dispatching event");
+            this.props.onIncrement();
+        }
+    }
+
+    private onDecrement() {
+        console.log("onDecrement " + this.props.store.num);
+        if (this.props.onDecrement) {
+            console.log("dispatching event");
+            this.props.onDecrement();
+        }
     }
 
     public componentDidMount() {
@@ -112,6 +136,10 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
     public render() {
         const { classes } = this.props;
 
+        console.log("Local props");
+        console.log(this.props);
+        console.log(this.props.store);
+
         let leftSideView;
         if (this.state.isLoadingObsSessions) {
             leftSideView = (
@@ -128,6 +156,9 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         } else if (this.state.obsSessions) {
             leftSideView = (
                 <div className={classes.sessionList}>
+                    <p>From redux: {this.props.store.num}</p>
+                    <button onClick={this.onIncrement}>Increment</button>
+                    <button onClick={this.onDecrement}>Decrement</button>
                     <ObsSessionList
                         obsSessions={this.state.obsSessions || []}
                         onSelectObsSession={this.onSelectObsSession}
@@ -168,4 +199,17 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
     }
 }
 
-export default withStyles(styles)(ListView);
+const mapStateToProps = (state: IAppState) => {
+    return {
+        store: state.obsSessions
+    };
+};
+
+export function mapDispatchToProps(dispatch: Dispatch<actions.ObsSessionAction>) {
+    return {
+        onIncrement: () => dispatch(actions.createIncrementAction()),
+        onDecrement: () => dispatch(actions.createDecrementAction()),
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(ListView));

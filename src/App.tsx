@@ -7,6 +7,8 @@ import { faCalendarAlt, faEdit } from "@fortawesome/free-regular-svg-icons";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import "typeface-roboto";
 import * as Routes from "./components/Routes";
+import { Provider } from "react-redux";
+import initStore from "./store/AppStore";
 
 class App extends React.Component<{}, {}> {
   constructor(props: any) {
@@ -17,11 +19,15 @@ class App extends React.Component<{}, {}> {
 
   public render() {
     // basename={baseUrl}
+    const store = initStore();
+
     return (
-      <div className="App">
-        <CssBaseline />
-        <BrowserRouter children={Routes.routes} />
-      </div>
+      <Provider store={store}>
+        <div className="App">
+          <CssBaseline />
+          <BrowserRouter children={Routes.routes} />
+        </div>
+      </Provider>
     );
   }
 }
