@@ -19,6 +19,7 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import IconButton from "@material-ui/core/IconButton";
+import DeleteDialog from "./DeleteDialog";
 // import Snackbar from "@material-ui/core/Snackbar";
 // import MySnackbar from "./MySnackbar";
 
@@ -34,13 +35,15 @@ const styles = (theme: Theme) => createStyles({
 interface IObsSessionPageProps extends WithStyles<typeof styles> {
     obsSessionId?: number;
     onUpdatedObsSession: (obsSession: IObsSession) => void;
+    onDeletedObsSession?: (obsSessionId: number) => void;
 }
 
 interface IObsSessionPageState {
     isLoading: boolean;
     isError: boolean;
-    redirect: boolean;
-    anchorEl: any;
+    redirectToSingleSessionPage: boolean;
+    menuAnchorEl: any;
+    isDeleteDialogOpen: boolean;
     activeView: number;
     obsSessionId?: number;
     obsSession?: IObsSession;
@@ -54,8 +57,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.state = {
             isLoading: false,
             isError: false,
-            redirect: false,
-            anchorEl: null,
+            redirectToSingleSessionPage: false,
+            menuAnchorEl: null,
+            isDeleteDialogOpen: false,
             activeView: 0,
             obsSessionId: this.props.obsSessionId,
             obsSession: undefined,
@@ -65,6 +69,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.onSelectObsSession = this.onSelectObsSession.bind(this);
         this.onSelectObservation = this.onSelectObservation.bind(this);
         this.onSaveObsSession = this.onSaveObsSession.bind(this);
+        this.deleteObsSession = this.deleteObsSession.bind(this);
     }
 
     public componentDidMount() {
@@ -124,7 +129,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
                         this.props.onUpdatedObsSession(obsSession);
-                        this.setState({ redirect: true });
+                        this.setState({ redirectToSingleSessionPage: true });
                     },
                     () => this.indicateError()
                 );
@@ -141,6 +146,17 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                     () => this.indicateError()
                 );
         }
+    }
+
+    private deleteObsSession() {
+        axios.delete("http://localhost:50995/api/obsSessions/" + this.state.obsSessionId).then(
+            (response) => {
+                if (this.props.onDeletedObsSession) {
+                    this.props.onDeletedObsSession(this.state.obsSessionId || 0);
+                }
+            },
+            () => this.indicateError()
+        );
     }
 
     private handleSuccessDataFromApi = (obsSession: IObsSession) => {
@@ -175,18 +191,34 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 
     private handleOpenMenu = (event: any) => {
-        this.setState({ anchorEl: event.currentTarget });
+        this.setState({ menuAnchorEl: event.currentTarget });
     }
 
     private handleCloseMenu = () => {
-        this.setState({ anchorEl: null });
+        this.setState({ menuAnchorEl: null });
+    }
+
+    private handleMenuClickDeleteObsSession = () => {
+        this.setState({ menuAnchorEl: null });
+        this.setState({ isDeleteDialogOpen: true });
+    }
+
+    private handleDeleteDialogClosed = (confirm: boolean) => {
+        this.setState({ isDeleteDialogOpen: false });
+        if (confirm) {
+            console.log("Delete");
+            this.deleteObsSession();
+        } else {
+            console.log("Cancel delete");
+        }
     }
 
     public render() {
         const { classes } = this.props;
 
-        if (this.state.redirect) {
-            console.log(this.state.redirect);
+        // Redirects
+        // ----------------------------------------
+        if (this.state.redirectToSingleSessionPage) {
             const url = "/session/" + this.state.obsSessionId;
             return <Redirect to={url} />;
         }
@@ -216,9 +248,29 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             );
         }
 
+        let menu;
+        if (this.state.obsSessionId) {
+            menu = (
+                <div>
+                    <IconButton onClick={this.handleOpenMenu} >
+                        <MoreVertIcon />
+                    </IconButton>
+                    <Menu
+                        id="simple-menu"
+                        anchorEl={this.state.menuAnchorEl}
+                        open={Boolean(this.state.menuAnchorEl)}
+                        onClose={this.handleCloseMenu}
+                    >
+                        <MenuItem onClick={this.handleMenuClickDeleteObsSession}>Delete session</MenuItem>
+                    </Menu>
+                </div>
+            );
+        }
+
         return (
             <div className="circularProgressSuperContainer">
                 {circularProgress}
+                <DeleteDialog isOpen={this.state.isDeleteDialogOpen} obsSession={this.state.obsSession} onHandleClose={this.handleDeleteDialogClosed} />
                 <div className={classes.root} >
                     <div className={classes.header}>
                         <Grid container={true} direction="row">
@@ -242,41 +294,31 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     </Grid>
                                 </Grid>
                             </Grid>
-                            <Grid item={true} xs={1} justify="flex-end">
-                                <IconButton onClick={this.handleOpenMenu} >
-                                    <MoreVertIcon />
-                                </IconButton>
-                                <Menu
-                                    id="simple-menu"
-                                    anchorEl={this.state.anchorEl}
-                                    open={Boolean(this.state.anchorEl)}
-                                    onClose={this.handleCloseMenu}
-                                >
-                                    <MenuItem onClick={this.handleCloseMenu}>Delete session</MenuItem>
-                                </Menu>
+                            <Grid item={true} xs={1}>
+                                {menu}
+                            </Grid>
                         </Grid>
-                        </Grid>
+                    </div>
+                    <Tabs
+                        value={this.state.activeView}
+                        onChange={this.handleChange}
+                        indicatorColor="primary"
+                        textColor="primary"
+                        fullWidth={true}
+                        centered={true}
+                    >
+                        <Tab label="Session data" />
+                        <Tab label="View observed objects" />
+                    </Tabs>
+                    <SwipeableViews
+                        axis={"x"}
+                        index={this.state.activeView}
+                        onChangeIndex={this.handleChangeIndex}
+                    >
+                        <ObsSessionForm obsSession={this.state.obsSession} locations={this.state.locations} onSaveObsSession={this.onSaveObsSession} />
+                        <ObservationList observations={observations} onSelectObservation={this.onSelectObservation} />
+                    </SwipeableViews>
                 </div>
-                <Tabs
-                    value={this.state.activeView}
-                    onChange={this.handleChange}
-                    indicatorColor="primary"
-                    textColor="primary"
-                    fullWidth={true}
-                    centered={true}
-                >
-                    <Tab label="Session data" />
-                    <Tab label="View observed objects" />
-                </Tabs>
-                <SwipeableViews
-                    axis={"x"}
-                    index={this.state.activeView}
-                    onChangeIndex={this.handleChangeIndex}
-                >
-                    <ObsSessionForm obsSession={this.state.obsSession} locations={this.state.locations} onSaveObsSession={this.onSaveObsSession} />
-                    <ObservationList observations={observations} onSelectObservation={this.onSelectObservation} />
-                </SwipeableViews>
-            </div>
             </div >
         );
     }

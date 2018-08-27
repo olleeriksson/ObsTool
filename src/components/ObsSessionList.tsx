@@ -23,7 +23,9 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
   private sortByDate(obsSessionA: IObsSession, obsSessionB: IObsSession) {
     const dateA: any = new Date(obsSessionA.date || "");
     const dateB: any = new Date(obsSessionB.date || "");
-    return dateB - dateA;
+    const idA: any = obsSessionA.id || 0;
+    const idB: any = obsSessionB.id || 0;
+    return dateB - dateA || idB - idA;
   }
 
   public render() {

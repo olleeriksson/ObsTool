@@ -90,7 +90,18 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
             const updatedObsSessionList = this.state.obsSessions.map(o => {
                 return o.id === updatedObsSession.id ? updatedObsSession : o;  // replace this particular ObsSession
             });
-            this.setState({obsSessions: updatedObsSessionList});
+            this.setState({ obsSessions: updatedObsSessionList });
+        }
+    }
+
+    public onDeletedObsSession = (obsSessionId: number) => {
+        // Remove the observation session from the list of sessions in the state
+        if (this.state.obsSessions) {
+            const updatedObsSessionList = this.state.obsSessions.filter(o => {
+                return o.id !== obsSessionId;
+            });
+            this.setState({ obsSessions: updatedObsSessionList });
+            this.setState({ selectedObsSession: undefined });
         }
     }
 
@@ -129,7 +140,7 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         if (this.state.selectedObsSession) { // default view
             const selectedObsSessionId = this.state.selectedObsSession ? this.state.selectedObsSession.id : 0;
             rightSideView = (
-                <ObsSessionPage obsSessionId={selectedObsSessionId} onUpdatedObsSession={this.onUpdatedObsSession} />
+                <ObsSessionPage obsSessionId={selectedObsSessionId} onUpdatedObsSession={this.onUpdatedObsSession} onDeletedObsSession={this.onDeletedObsSession} />
             );
         } else { // empty view
             rightSideView = (
