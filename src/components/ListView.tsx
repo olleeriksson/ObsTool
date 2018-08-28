@@ -122,7 +122,7 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         } else if (this.props.store.isErrorObsSessions) {
             leftSideView = (
                 <div>
-                    Error loading observation sessions! {this.props.store.isErrorObsSessions}
+                    {this.props.store.isErrorObsSessions.toString()}
                 </div>
             );
         } else if (this.props.store.obsSessions) {
