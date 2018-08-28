@@ -8,7 +8,6 @@ import Typography from "@material-ui/core/Typography";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Paper from "@material-ui/core/Paper";
 import "./Layout.css";
-import axios from "axios";
 import { IObsSession, IObsSessionState } from "./Types";
 import ObsSessionList from "./ObsSessionList";
 import ObsSessionPage from "./ObsSessionPage";
@@ -16,6 +15,7 @@ import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IAppState } from "./Types";
 import * as actions from "../actions/actions";
+import Api from "../api/Api";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -63,7 +63,7 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
     private loadAllObsSessions = () => {
         this.props.actions.getObsSessionsBegin();
-        axios.get<IObsSession[]>("http://localhost:50995/api/obsSessions/").then(
+        Api.getObsSessions().then(
             (response) => {
                 this.props.actions.getObsSessionsSuccess(response.data);
             }).catch(
