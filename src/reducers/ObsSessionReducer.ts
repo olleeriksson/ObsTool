@@ -1,17 +1,50 @@
 import { Reducer } from "redux";
-import { IObsSessionReducer } from "../components/Types";
-import { ObsSessionAction, IAddObsSessionAction } from "../actions/actions";
+import { IObsSessionState } from "../components/Types";
+import * as actions from "../actions/actions";
 import * as constants from "../types/Constants";
 
-const initialObsSessionReducerState: IObsSessionReducer = {
+const initialObsSessionState: IObsSessionState = {
     obsSessions: [],
-    num: 3
+    isLoadingObsSessions: false,
+    isErrorObsSessions: undefined,
+    num: 4
 };
+// const initialAppState: IAppState = {
+//     obsSessions: {
+//         obsSessions: [],
+//         num: 3
+//     }
+// };
 
-const ObsSessionReducer: Reducer<IObsSessionReducer> = (state: IObsSessionReducer = initialObsSessionReducerState, action: ObsSessionAction) => {
+const ObsSessionReducer: Reducer<IObsSessionState> = (state: IObsSessionState = initialObsSessionState, action: actions.ObsSessionAction) => {
+
     switch (action.type) {
+        case constants.GET_OBSSESSIONS_BEGIN: {
+            return {
+                ...state,
+                isLoadingObsSessions: true,
+                isErrorObsSessions: undefined,
+            };
+        }
+        case constants.GET_OBSSESSIONS_SUCCESS: {
+            const action1 = action as actions.IGetObsSessionsSuccessAction;
+            return {
+                ...state,
+                obsSessions: action1.payload.obsSessions,
+                isLoadingObsSessions: false,
+                isErrorObsSessions: undefined,
+            };
+        }
+        case constants.GET_OBSSESSIONS_FAILURE:
+            const action2: actions.IGetObsSessionsFailureAction = action as actions.IGetObsSessionsFailureAction;
+            return {
+                ...state,
+                obsSessions: [],
+                isLoadingObsSessions: false,
+                isErrorObsSessions: action2.payload.error,
+            };
         case constants.ADD_OBSSESSION:
-            const newAction: IAddObsSessionAction = action as IAddObsSessionAction;
+            const newAction: actions.IAddObsSessionAction = action as actions.IAddObsSessionAction;
             return {
                 ...state,
                 obsSessions: [

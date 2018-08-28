@@ -11,6 +11,8 @@ const initStore = () => {
     const initialAppState: IAppState = {
         obsSessions: {
             obsSessions: [],
+            isLoadingObsSessions: false,
+            isErrorObsSessions: undefined,
             num: 3
         }
     };

@@ -6,7 +6,6 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import "./ObsSessionForm.css";
 import DsoShort from "./DsoShort";
-import axios from "axios";
 import { IObsSession, ILocation } from "./Types";
 import classNames from "classnames";
 import Grid from "@material-ui/core/Grid";
@@ -44,16 +43,12 @@ const styles = (theme: Theme) => createStyles({
 });
 
 export interface IObsSessionFormProps extends WithStyles<typeof styles> {
-  obsSessionId?: number;  // anyone really setting this?
-  obsSession?: IObsSession;
-  locations?: ILocation[];
+  obsSession: IObsSession;
+  locations: ILocation[];
   onSaveObsSession: (obsSession: IObsSession) => void;
 }
 
 export interface IObsSessionFormState {
-  isLoading: boolean;
-  isSaving: boolean;
-  isError: boolean;
   errorOnControl: { [key: string]: string | undefined };
   obsSession: IObsSession;
 }
@@ -63,9 +58,6 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     super(props);
 
     this.state = {
-      isLoading: true,
-      isSaving: false,
-      isError: false,
       errorOnControl: {},
       obsSession: {
         title: "",
@@ -85,36 +77,15 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  private loadObsSessionFromId(obsSessionId?: number) {
-    if (obsSessionId) {
-      axios.get<IObsSession>("http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeObservations=true&includeDso=true").then(
-        response => {
-          console.log(response);
-          this.setState({ isLoading: false });
-          this.setState({ obsSession: response.data });
-        },
-        () => {
-          this.setState({ isError: true });
-        }
-      );
-    }
-  }
-
   public componentWillReceiveProps(nextProps: IObsSessionFormProps) {
-    if (nextProps.obsSessionId && this.props.obsSessionId !== nextProps.obsSessionId) {
-      // Load from id
-      this.loadObsSessionFromId(nextProps.obsSessionId);
-    } else if (nextProps.obsSession && this.props.obsSession !== nextProps.obsSession) {
+    if (nextProps.obsSession && this.props.obsSession !== nextProps.obsSession) {
       // Load from object
       this.setState({ obsSession: nextProps.obsSession });
     }
   }
 
   public componentDidMount() {
-    if (this.props.obsSessionId) {
-      // Load from id
-      this.loadObsSessionFromId(this.props.obsSessionId);
-    } else if (this.props.obsSession) {
+    if (this.props.obsSession) {
       // Load from object
       this.setState({ obsSession: this.props.obsSession });
     }

@@ -53,8 +53,6 @@ export interface IObservationProps extends WithStyles<typeof styles> {
 }
 
 export interface IObservationState {
-  isLoading: boolean;
-  isError: boolean;
   isExpanded: boolean;
 }
 
@@ -63,8 +61,6 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
     super(props);
 
     this.state = {
-      isLoading: true,
-      isError: false,
       isExpanded: false,
     };
 

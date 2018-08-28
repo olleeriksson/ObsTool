@@ -41,13 +41,14 @@ interface IObsSessionPageProps extends WithStyles<typeof styles> {
 interface IObsSessionPageState {
     isLoading: boolean;
     isError: boolean;
+    redirectToListView: boolean;
     redirectToSingleSessionPage: boolean;
     menuAnchorEl: any;
     isDeleteDialogOpen: boolean;
-    activeView: number;
+    activeTab: number;
     obsSessionId?: number;
-    obsSession?: IObsSession;
-    locations?: ILocation[];
+    obsSession: IObsSession;
+    locations: ILocation[];
 }
 
 class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPageState> {
@@ -57,13 +58,16 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.state = {
             isLoading: false,
             isError: false,
+            redirectToListView: false,
             redirectToSingleSessionPage: false,
             menuAnchorEl: null,
             isDeleteDialogOpen: false,
-            activeView: 0,
+            activeTab: 0,
             obsSessionId: this.props.obsSessionId,
-            obsSession: undefined,
-            locations: undefined,
+            obsSession: {
+                date: new Date().toISOString().slice(0, 10),
+            },
+            locations: [],
         };
 
         this.onSelectObsSession = this.onSelectObsSession.bind(this);
@@ -95,11 +99,12 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 console.log(data);
                 this.setState({ locations: data });
                 this.setState({ isError: false });
-            },
-            () => {
-                this.setState({ isError: true });
-            }
-        );
+            })
+            .catch(
+                (error) => {
+                    this.setState({ isError: true });
+                }
+            );
     }
 
     private loadObsSession = (obsSessionId: number) => {
@@ -108,9 +113,10 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 const { data } = response;
                 const obsSession = data;
                 this.handleSuccessDataFromApi(obsSession);
-            },
-            () => this.indicateError()
-        );
+            })
+            .catch(
+                (error) => this.indicateError()
+            );
     }
 
     public onSaveObsSession(newObsSession: IObsSession) {
@@ -130,8 +136,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         this.handleSuccessDataFromApi(obsSession);
                         this.props.onUpdatedObsSession(obsSession);
                         this.setState({ redirectToSingleSessionPage: true });
-                    },
-                    () => this.indicateError()
+                    }
+                ).catch(
+                    (error) => this.indicateError()
                 );
         } else {
             axios.put<IObsSession>(
@@ -142,8 +149,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
                         this.props.onUpdatedObsSession(obsSession);
-                    },
-                    () => this.indicateError()
+                    }
+                ).catch(
+                    (error) => this.indicateError()
                 );
         }
     }
@@ -153,10 +161,13 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             (response) => {
                 if (this.props.onDeletedObsSession) {
                     this.props.onDeletedObsSession(this.state.obsSessionId || 0);
+                } else {
+                    this.setState({ redirectToListView: true });
                 }
-            },
-            () => this.indicateError()
-        );
+            })
+            .then(
+                (error) => this.indicateError()
+            );
     }
 
     private handleSuccessDataFromApi = (obsSession: IObsSession) => {
@@ -183,11 +194,11 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 
     private handleChange = (event: any, value: number) => {
-        this.setState({ activeView: value });
+        this.setState({ activeTab: value });
     }
 
     private handleChangeIndex = (index: number) => {
-        this.setState({ activeView: index });
+        this.setState({ activeTab: index });
     }
 
     private handleOpenMenu = (event: any) => {
@@ -221,6 +232,8 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         if (this.state.redirectToSingleSessionPage) {
             const url = "/session/" + this.state.obsSessionId;
             return <Redirect to={url} />;
+        } else if (this.state.redirectToListView) {
+            return <Redirect to={"/sessions"} />;
         }
 
         // const snackbar = <Snackbar
@@ -300,7 +313,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         </Grid>
                     </div>
                     <Tabs
-                        value={this.state.activeView}
+                        value={this.state.activeTab}
                         onChange={this.handleChange}
                         indicatorColor="primary"
                         textColor="primary"
@@ -312,7 +325,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                     </Tabs>
                     <SwipeableViews
                         axis={"x"}
-                        index={this.state.activeView}
+                        index={this.state.activeTab}
                         onChangeIndex={this.handleChangeIndex}
                     >
                         <ObsSessionForm obsSession={this.state.obsSession} locations={this.state.locations} onSaveObsSession={this.onSaveObsSession} />

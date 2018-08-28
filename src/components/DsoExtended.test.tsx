@@ -1,17 +1,32 @@
 import * as React from "react";
 import * as enzyme from "enzyme";
+import { IDso } from "./Types";
 import DsoExtended from "./DsoExtended";
 import * as sinon from "sinon";
 
+const dso: IDso = {
+    id: 0,
+    catalog: "",
+    name: "",
+    commonName: "",
+    otherCommonNames: "",
+    type: "",
+    con: "",
+    mag: "",
+    sb: "",
+    u2k: "",
+    ti: ""
+};
+
 it("renders the loading text", () => {
-    const object = enzyme.mount(<DsoExtended name="M 51" />);
+    const object = enzyme.mount(<DsoExtended dso={dso} />);
     expect(object.find("div").first().text()).toEqual("Loading DSO object");
 });
 
 it("logs to console, verified with sinon spy", () => {
     const consoleSpy = sinon.spy(console, "log");
 
-    enzyme.shallow(<DsoExtended name="M 51" />);
+    enzyme.shallow(<DsoExtended dso={dso} />);
 
     // Using chai:
     // consoleSpy.called.should.be.true;
@@ -31,7 +46,7 @@ it("verifies sinon stubs", () => {
 });
 
 it("renders the correct text", () => {
-    const hello = enzyme.mount(<DsoExtended name="M 51" />);
+    const hello = enzyme.mount(<DsoExtended dso={dso} />);
     const deb = hello.find("div").first();
     console.log("---------------------------");
     console.log(deb.text());

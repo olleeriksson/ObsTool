@@ -16,7 +16,6 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
   }
 
   private onSelectObsSessionCard(obsSessionId: number) {
-    console.log("Clicked on ObsSessionCard " + obsSessionId);
     this.props.onSelectObsSession(obsSessionId);
   }
 

@@ -65,11 +65,13 @@ export interface ILocation {
 
 // --------------------------------------------------------------------------
 
-export interface IObsSessionReducer {
+export interface IObsSessionState {
     obsSessions: IObsSession[];
+    isLoadingObsSessions: boolean;
+    isErrorObsSessions?: string;
     num: number;
 }
 
 export interface IAppState {
-    obsSessions: IObsSessionReducer;
+    obsSessions: IObsSessionState;
 }

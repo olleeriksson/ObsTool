@@ -9,11 +9,11 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Paper from "@material-ui/core/Paper";
 import "./Layout.css";
 import axios from "axios";
-import { IObsSession, IObsSessionReducer } from "./Types";
+import { IObsSession, IObsSessionState } from "./Types";
 import ObsSessionList from "./ObsSessionList";
 import ObsSessionPage from "./ObsSessionPage";
 import { connect } from "react-redux";
-import { Dispatch } from "redux";
+import { bindActionCreators, Dispatch } from "redux";
 import { IAppState } from "./Types";
 import * as actions from "../actions/actions";
 
@@ -37,13 +37,11 @@ const styles = (theme: Theme) => createStyles({
 interface IListViewProps extends WithStyles<typeof styles> {
     onIncrement?: () => void;
     onDecrement?: () => void;
-    store: IObsSessionReducer;
+    store: IObsSessionState;
+    actions: any;
 }
 
 interface IListViewState {
-    isLoadingObsSessions: boolean;
-    isErrorObsSessions: boolean;
-    obsSessions?: IObsSession[];
     selectedObsSession?: IObsSession;
 }
 
@@ -52,32 +50,11 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         super(props);
 
         this.state = {
-            isLoadingObsSessions: true,
-            isErrorObsSessions: false,
-            obsSessions: undefined,
             selectedObsSession: undefined,
         };
 
         this.onSelectObsSession = this.onSelectObsSession.bind(this);
         this.onSelectObservation = this.onSelectObservation.bind(this);
-        this.onIncrement = this.onIncrement.bind(this);
-        this.onDecrement = this.onDecrement.bind(this);
-    }
-
-    private onIncrement() {
-        console.log("onIncrement " + this.props.store.num);
-        if (this.props.onIncrement) {
-            console.log("dispatching event");
-            this.props.onIncrement();
-        }
-    }
-
-    private onDecrement() {
-        console.log("onDecrement " + this.props.store.num);
-        if (this.props.onDecrement) {
-            console.log("dispatching event");
-            this.props.onDecrement();
-        }
     }
 
     public componentDidMount() {
@@ -85,48 +62,43 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
     }
 
     private loadAllObsSessions = () => {
+        this.props.actions.getObsSessionsBegin();
         axios.get<IObsSession[]>("http://localhost:50995/api/obsSessions/").then(
             (response) => {
-                const { data } = response;
-                console.log(data);
-                this.setState({ obsSessions: data });
-                this.setState({ isLoadingObsSessions: false });
-                this.setState({ isErrorObsSessions: false });
-            },
-            () => {
-                this.setState({ isLoadingObsSessions: false });
-                this.setState({ isErrorObsSessions: true });
-            }
-        );
+                this.props.actions.getObsSessionsSuccess(response.data);
+            }).catch(
+                (error) => this.props.actions.getObsSessionsFailure(error)
+            );
     }
 
     public onSelectObsSession = (obsSessionId: number) => {
-        if (this.state.obsSessions) {
+        // if (this.state.obsSessions) {
+        if (this.props.store.obsSessions) {
             // Get it and store it
-            const selectedObsSession = this.state.obsSessions.find(s => s.id === obsSessionId);
-            this.setState({ selectedObsSession: selectedObsSession });
+            // const selectedObsSession = this.state.obsSessions.find(s => s.id === obsSessionId);
+            // this.setState({ selectedObsSession: selectedObsSession });
         }
     }
 
     public onUpdatedObsSession = (updatedObsSession: IObsSession) => {
         // Replace the observation session in the list of sessions in the state and update to reflect the made changes visually
-        if (this.state.obsSessions) {
-            const updatedObsSessionList = this.state.obsSessions.map(o => {
-                return o.id === updatedObsSession.id ? updatedObsSession : o;  // replace this particular ObsSession
-            });
-            this.setState({ obsSessions: updatedObsSessionList });
-        }
+        // if (this.state.obsSessions) {
+        //     const updatedObsSessionList = this.state.obsSessions.map(o => {
+        //         return o.id === updatedObsSession.id ? updatedObsSession : o;  // replace this particular ObsSession
+        //     });
+        //     this.setState({ obsSessions: updatedObsSessionList });
+        // }
     }
 
     public onDeletedObsSession = (obsSessionId: number) => {
         // Remove the observation session from the list of sessions in the state
-        if (this.state.obsSessions) {
-            const updatedObsSessionList = this.state.obsSessions.filter(o => {
-                return o.id !== obsSessionId;
-            });
-            this.setState({ obsSessions: updatedObsSessionList });
-            this.setState({ selectedObsSession: undefined });
-        }
+        // if (this.state.obsSessions) {
+        //     const updatedObsSessionList = this.state.obsSessions.filter(o => {
+        //         return o.id !== obsSessionId;
+        //     });
+        //     this.setState({ obsSessions: updatedObsSessionList });
+        //     this.setState({ selectedObsSession: undefined });
+        // }
     }
 
     public onSelectObservation(observationId: number) {
@@ -141,26 +113,26 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         console.log(this.props.store);
 
         let leftSideView;
-        if (this.state.isLoadingObsSessions) {
+        if (this.props.store.isLoadingObsSessions) {
             leftSideView = (
                 <div>
                     <CircularProgress />
                 </div>
             );
-        } else if (this.state.isErrorObsSessions) {
+        } else if (this.props.store.isErrorObsSessions) {
             leftSideView = (
                 <div>
-                    Error loading observation sessions!
+                    Error loading observation sessions! {this.props.store.isErrorObsSessions}
                 </div>
             );
-        } else if (this.state.obsSessions) {
+        } else if (this.props.store.obsSessions) {
             leftSideView = (
                 <div className={classes.sessionList}>
                     <p>From redux: {this.props.store.num}</p>
-                    <button onClick={this.onIncrement}>Increment</button>
-                    <button onClick={this.onDecrement}>Decrement</button>
+                    <button onClick={this.props.actions.increment}>Increment</button>
+                    <button onClick={this.props.actions.decrement}>Decrement</button>
                     <ObsSessionList
-                        obsSessions={this.state.obsSessions || []}
+                        obsSessions={this.props.store.obsSessions || []}
                         onSelectObsSession={this.onSelectObsSession}
                     />
                 </div>
@@ -205,11 +177,23 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-export function mapDispatchToProps(dispatch: Dispatch<actions.ObsSessionAction>) {
+// export function mapDispatchToProps(dispatch: Dispatch<actions.ObsSessionAction>) {
+//     return {
+//         getObsSessionsBegin: () => dispatch(actions.getObsSessionsBegin()),
+//         getObsSessionsSuccess: (obsSessions: IObsSession[]) => dispatch(actions.getObsSessionsSuccess(obsSessions)),
+//         getObsSessionsFailure: (error: string) => dispatch(actions.getObsSessionsFailure(error)),
+//         onIncrement: () => dispatch(actions.createIncrementAction()),
+//         onDecrement: () => dispatch(actions.createDecrementAction()),
+//     };
+// }
+
+const mapDispatchToProps = (dispatch: Dispatch<actions.ObsSessionAction>) => {
     return {
-        onIncrement: () => dispatch(actions.createIncrementAction()),
-        onDecrement: () => dispatch(actions.createDecrementAction()),
+        actions: bindActionCreators(
+            actions.ObsSessionActionCreators,
+            dispatch
+        )
     };
-}
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(ListView));
