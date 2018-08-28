@@ -6,6 +6,10 @@ import * as constants from "../types/Constants";
 // Remember, you can also pass parameters into an action creator. Make sure to
 // type them properly.
 
+// ---------------------------------------------------------------
+// Action interfaces
+// ---------------------------------------------------------------
+
 export interface IGetObsSessionsBeginAction extends Action {
     type: constants.GET_OBSSESSIONS_BEGIN;
 }
@@ -39,6 +43,19 @@ export interface IDecrementNumAction extends Action {
     type: constants.DECREMENT_NUM;
 }
 
+export type ObsSessionAction =
+    IGetObsSessionsBeginAction |
+    IGetObsSessionsSuccessAction |
+    IGetObsSessionsFailureAction |
+    IAddObsSessionAction |
+    IUpdateObsSessionAction |
+    IIncrementNumAction |
+    IDecrementNumAction;
+
+// ---------------------------------------------------------------
+// Action creators
+// ---------------------------------------------------------------
+
 export const getObsSessionsBegin: ActionCreator<IGetObsSessionsBeginAction> = () => ({
     type: constants.GET_OBSSESSIONS_BEGIN,
 });
@@ -53,17 +70,6 @@ export const getObsSessionsFailure: ActionCreator<IGetObsSessionsFailureAction> 
     payload: { error: error },
     error: true,
 });
-
-export type ObsSessionAction =
-    IGetObsSessionsBeginAction |
-    IGetObsSessionsSuccessAction |
-    IGetObsSessionsFailureAction |
-    IAddObsSessionAction |
-    IUpdateObsSessionAction |
-    IIncrementNumAction |
-    IDecrementNumAction;
-
-// ---------------------------------------------------------------------
 
 export const addObsSession: ActionCreator<IAddObsSessionAction> = (obsSession: IObsSession) => ({
     type: constants.ADD_OBSSESSION,
@@ -83,10 +89,12 @@ export const decrement: ActionCreator<IDecrementNumAction> = () => ({
     type: constants.DECREMENT_NUM,
 });
 
-export const ObsSessionActionCreators = {
-    getObsSessionsBegin,
-    getObsSessionsSuccess,
-    getObsSessionsFailure,
-    increment,
-    decrement
-};
+// No need to actually define them since just using import * from actions and then passing actions
+// to bindActionCreators() will work as well. But this file must not contain any other consts.
+// export const ObsSessionActionCreators = {
+//     getObsSessionsBegin,
+//     getObsSessionsSuccess,
+//     getObsSessionsFailure,
+//     increment,
+//     decrement
+// };

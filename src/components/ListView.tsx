@@ -190,7 +190,7 @@ const mapStateToProps = (state: IAppState) => {
 const mapDispatchToProps = (dispatch: Dispatch<actions.ObsSessionAction>) => {
     return {
         actions: bindActionCreators(
-            actions.ObsSessionActionCreators,
+            actions,
             dispatch
         )
     };
