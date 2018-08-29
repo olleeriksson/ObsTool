@@ -22,35 +22,72 @@ export interface IGetObsSessionsSuccessAction extends Action {
 export interface IGetObsSessionsFailureAction extends Action {
     type: constants.GET_OBSSESSIONS_FAILURE;
     payload: { error: string };
-    error: boolean;
 }
 
-export interface IAddObsSessionAction extends Action {
-    type: constants.ADD_OBSSESSION;
-    obsSession: IObsSession;
+// ------------
+
+export interface IInitiateObsSessionChangeAction extends Action {
+    type: constants.INITIATE_OBSSESSION_CHANGE;
+    payload: { obsSessionId: number };
 }
 
-export interface IUpdateObsSessionAction extends Action {
-    type: constants.UPDATE_OBSSESSION;
-    obsSession: IObsSession;
+export interface ILoadObsSessionBeginAction extends Action {
+    type: constants.LOAD_OBSSESSION_BEGIN;
+    payload: { obsSessionId: number };
 }
 
-export interface IIncrementNumAction extends Action {
-    type: constants.INCREMENT_NUM;
+export interface ILoadObsSessionSuccessAction extends Action {
+    type: constants.LOAD_OBSSESSION_SUCCESS;
+    payload: { obsSession: IObsSession };
 }
 
-export interface IDecrementNumAction extends Action {
-    type: constants.DECREMENT_NUM;
+export interface ILoadObsSessionFailureAction extends Action {
+    type: constants.LOAD_OBSSESSION_FAILURE;
+    payload: { error: string };
 }
+
+// ------------
+
+export interface IModifyingObsSessionBeginAction extends Action {
+    type: constants.MODIFYING_OBSSESSION_BEGIN;
+}
+
+export interface IAddObsSessionSuccessAction extends Action {
+    type: constants.ADD_OBSSESSION_SUCCESS;
+    payload: { obsSession: IObsSession };
+}
+
+export interface IUpdateObsSessionSuccessAction extends Action {
+    type: constants.UPDATE_OBSSESSION_SUCCESS;
+    payload: { obsSession: IObsSession };
+}
+
+export interface IDeleteObsSessionSuccessAction extends Action {
+    type: constants.DELETE_OBSSESSION_SUCCESS;
+    payload: { obsSessionId: number };
+}
+
+export interface IModifyingObsSessionFailureAction extends Action {
+    type: constants.MODIFYING_OBSSESSION_FAILURE;
+    payload: { error: string };
+}
+
+// ------------
 
 export type ObsSessionAction =
     IGetObsSessionsBeginAction |
     IGetObsSessionsSuccessAction |
     IGetObsSessionsFailureAction |
-    IAddObsSessionAction |
-    IUpdateObsSessionAction |
-    IIncrementNumAction |
-    IDecrementNumAction;
+    IInitiateObsSessionChangeAction |
+    ILoadObsSessionBeginAction |
+    ILoadObsSessionSuccessAction |
+    ILoadObsSessionFailureAction |
+    IModifyingObsSessionBeginAction |
+    IAddObsSessionSuccessAction |
+    IUpdateObsSessionSuccessAction |
+    IDeleteObsSessionSuccessAction |
+    IModifyingObsSessionFailureAction
+    ;
 
 // ---------------------------------------------------------------
 // Action creators
@@ -84,25 +121,50 @@ export const getObsSessionsSuccess: ActionCreator<IGetObsSessionsSuccessAction> 
 export const getObsSessionsFailure: ActionCreator<IGetObsSessionsFailureAction> = (error: string) => ({
     type: constants.GET_OBSSESSIONS_FAILURE,
     payload: { error: error },
-    error: true,
 });
 
-export const addObsSession: ActionCreator<IAddObsSessionAction> = (obsSession: IObsSession) => ({
-    type: constants.ADD_OBSSESSION,
-    obsSession
+export const initiateObsSessionChange: ActionCreator<IInitiateObsSessionChangeAction> = (obsSessionId: number) => ({
+    type: constants.INITIATE_OBSSESSION_CHANGE,
+    payload: { obsSessionId: obsSessionId },
 });
 
-export const updateObsSession: ActionCreator<IUpdateObsSessionAction> = (obsSession: IObsSession) => ({
-    type: constants.UPDATE_OBSSESSION,
-    obsSession
+export const loadObsSessionBegin: ActionCreator<ILoadObsSessionBeginAction> = (obsSessionId: number) => ({
+    type: constants.LOAD_OBSSESSION_BEGIN,
+    payload: { obsSessionId: obsSessionId },
 });
 
-export const increment: ActionCreator<IIncrementNumAction> = () => ({
-    type: constants.INCREMENT_NUM,
+export const loadObsSessionSuccess: ActionCreator<ILoadObsSessionSuccessAction> = (obsSession: IObsSession) => ({
+    type: constants.LOAD_OBSSESSION_SUCCESS,
+    payload: { obsSession: obsSession },
 });
 
-export const decrement: ActionCreator<IDecrementNumAction> = () => ({
-    type: constants.DECREMENT_NUM,
+export const loadObsSessionFailure: ActionCreator<ILoadObsSessionFailureAction> = (error: string) => ({
+    type: constants.LOAD_OBSSESSION_FAILURE,
+    payload: { error: error },
+});
+
+export const modifyingObsSessionBegin: ActionCreator<IModifyingObsSessionBeginAction> = () => ({
+    type: constants.MODIFYING_OBSSESSION_BEGIN,
+});
+
+export const addObsSessionSuccess: ActionCreator<IAddObsSessionSuccessAction> = (obsSession: IObsSession) => ({
+    type: constants.ADD_OBSSESSION_SUCCESS,
+    payload: { obsSession: obsSession },
+});
+
+export const updateObsSessionSuccess: ActionCreator<IUpdateObsSessionSuccessAction> = (obsSession: IObsSession) => ({
+    type: constants.UPDATE_OBSSESSION_SUCCESS,
+    payload: { obsSession: obsSession },
+});
+
+export const deleteObsSessionSuccess: ActionCreator<IDeleteObsSessionSuccessAction> = (obsSessionId: number) => ({
+    type: constants.DELETE_OBSSESSION_SUCCESS,
+    payload: { obsSessionId: obsSessionId },
+});
+
+export const modifyingObsSessionFailure: ActionCreator<IModifyingObsSessionFailureAction> = (error: string) => ({
+    type: constants.MODIFYING_OBSSESSION_FAILURE,
+    payload: { error: error }
 });
 
 // No need to actually define them since just using import * from actions and then passing actions

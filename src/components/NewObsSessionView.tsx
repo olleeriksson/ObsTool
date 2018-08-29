@@ -6,7 +6,6 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import ObsSessionPage from "./ObsSessionPage";
-import { IObsSession } from "./Types";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -30,11 +29,6 @@ class NewObsSessionView extends React.Component<INewObsSessionViewProps> {
         super(props);
     }
 
-    private onUpdatedObsSession = (obsSession: IObsSession) => {
-        // TODO: Go to sessions page
-        // TODO: Show Snackbar
-    }
-
     public render() {
         const { classes } = this.props;
 
@@ -45,7 +39,7 @@ class NewObsSessionView extends React.Component<INewObsSessionViewProps> {
                 </Grid>
                 <Grid item={true} xs={12} sm={8} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
-                        <ObsSessionPage onUpdatedObsSession={this.onUpdatedObsSession} />
+                        <ObsSessionPage />
                     </Paper>
                 </Grid>
             </Grid>

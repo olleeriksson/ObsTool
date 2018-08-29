@@ -22,6 +22,12 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteDialog from "./DeleteDialog";
 // import Snackbar from "@material-ui/core/Snackbar";
 // import MySnackbar from "./MySnackbar";
+import Api from "../api/Api";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
+import { IAppState, IDataState } from "./Types";
+import * as obsSessionActions from "../actions/ObsSessionActions";
+import * as locationActions from "../actions/LocationActions";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -33,14 +39,11 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface IObsSessionPageProps extends WithStyles<typeof styles> {
-    obsSessionId?: number;
-    onUpdatedObsSession: (obsSession: IObsSession) => void;
-    onDeletedObsSession?: (obsSessionId: number) => void;
+    actions: any;
+    store: IDataState;
 }
 
 interface IObsSessionPageState {
-    isLoading: boolean;
-    isError: boolean;
     redirectToListView: boolean;
     redirectToSingleSessionPage: boolean;
     menuAnchorEl: any;
@@ -56,14 +59,12 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         super(props);
 
         this.state = {
-            isLoading: false,
-            isError: false,
             redirectToListView: false,
             redirectToSingleSessionPage: false,
             menuAnchorEl: null,
             isDeleteDialogOpen: false,
             activeTab: 0,
-            obsSessionId: this.props.obsSessionId,
+            obsSessionId: this.props.store.selectedObsSession.obsSessionId,
             obsSession: {
                 date: new Date().toISOString().slice(0, 10),
             },
@@ -78,49 +79,56 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     public componentDidMount() {
         this.loadLocations();
-
-        if (this.props.obsSessionId) {
-            this.setState({ isLoading: true });
-            this.loadObsSession(this.props.obsSessionId);
-        }
+        this.loadSelectedObsSession();
     }
 
     public componentWillReceiveProps(nextProps: IObsSessionPageProps) {
-        if (nextProps.obsSessionId && this.state.obsSessionId !== nextProps.obsSessionId) {
-            this.setState({ isLoading: true });
-            this.loadObsSession(nextProps.obsSessionId);
+        // TODO: Maybe listen to changes here.
+        //
+        if (nextProps.store.selectedObsSession.obsSessionId &&
+            this.props.store.selectedObsSession.obsSessionId !== nextProps.store.selectedObsSession.obsSessionId) {
+            // New/different obsSessionId from the store -> load the full obssession from the API
+            this.loadObsSession(nextProps.store.selectedObsSession.obsSessionId);
+
+        } else if (nextProps.store.selectedObsSession.obsSession &&
+            this.props.store.selectedObsSession.obsSession !== nextProps.store.selectedObsSession.obsSession) {
+            // 2nd turn around
+            // New/different obsSession object -> set the local state
+            this.setState({ obsSession: nextProps.store.selectedObsSession.obsSession });
         }
     }
 
     private loadLocations = () => {
-        axios.get<ILocation[]>("http://localhost:50995/api/locations").then(
-            (response) => {
-                const { data } = response;
-                console.log(data);
-                this.setState({ locations: data });
-                this.setState({ isError: false });
-            })
-            .catch(
-                (error) => {
-                    this.setState({ isError: true });
-                }
-            );
+        if (!this.props.store.locations) {
+            this.props.actions.getLocationsBegin();
+            Api.getLocations().then(
+                (response) => {
+                    this.props.actions.getLocationsSuccess(response.data);
+                }).catch(
+                    (error) => this.props.actions.getLocationsFailure(error)
+                );
+        }
     }
 
+    private loadSelectedObsSession = () => this.loadObsSession(this.props.store.selectedObsSession.obsSessionId || 0);
+
     private loadObsSession = (obsSessionId: number) => {
-        axios.get<IObsSession>("http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeLocation=true&includeObservations=true&includeDso=true").then(
-            (response) => {
-                const { data } = response;
-                const obsSession = data;
-                this.handleSuccessDataFromApi(obsSession);
-            })
-            .catch(
-                (error) => this.indicateError()
-            );
+        // const obsSessionId = this.props.store.selectedObsSession.obsSessionId;
+        this.props.actions.loadObsSessionBegin(obsSessionId);
+        if (obsSessionId) {
+            Api.getFullObsSession(obsSessionId).then(
+                (response) => {
+                    const { data } = response;
+                    const obsSession = data;
+                    this.props.actions.loadObsSessionSuccess(obsSession);
+                }).catch(
+                    (error) => this.props.actions.loadObsSessionFailure(error)
+                );
+        }
     }
 
     public onSaveObsSession(newObsSession: IObsSession) {
-        this.setState({ isLoading: true });
+        this.props.actions.modifyingObsSessionBegin();
 
         // Convert the "shadow" field locationId back to a number. The API expects a number,
         // but the SelectComponent requires a string backing field.
@@ -131,27 +139,27 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 "http://localhost:50995/api/obsSessions/",
                 newObsSession).then(
                     (response) => {
+                        this.props.actions.addObsSessionSuccess(response.data);
                         const { data } = response;
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
-                        this.props.onUpdatedObsSession(obsSession);
                         this.setState({ redirectToSingleSessionPage: true });
                     }
                 ).catch(
-                    (error) => this.indicateError()
+                    (error) => this.props.actions.modifyingObsSessionFailure(error)
                 );
         } else {
             axios.put<IObsSession>(
                 "http://localhost:50995/api/obsSessions/" + this.state.obsSessionId,
                 newObsSession).then(
                     (response) => {
+                        this.props.actions.updateObsSessionSuccess(response.data);
                         const { data } = response;
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
-                        this.props.onUpdatedObsSession(obsSession);
                     }
                 ).catch(
-                    (error) => this.indicateError()
+                    (error) => this.props.actions.modifyingObsSessionFailure(error)
                 );
         }
     }
@@ -159,14 +167,14 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     private deleteObsSession() {
         axios.delete("http://localhost:50995/api/obsSessions/" + this.state.obsSessionId).then(
             (response) => {
-                if (this.props.onDeletedObsSession) {
-                    this.props.onDeletedObsSession(this.state.obsSessionId || 0);
-                } else {
-                    this.setState({ redirectToListView: true });
-                }
+                // if (this.props.onDeletedObsSession) {
+                //     this.props.onDeletedObsSession(this.state.obsSessionId || 0);
+                // } else {
+                //     this.setState({ redirectToListView: true });
+                // }
             })
             .then(
-                (error) => this.indicateError()
+                (error) => this.props.actions.modifyingObsSessionFailure(error)
             );
     }
 
@@ -176,14 +184,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
         this.setState({ obsSessionId: obsSession.id });
         this.setState({ obsSession: obsSession });
-        this.setState({ isLoading: false });
-        this.setState({ isError: false });
 
-    }
-
-    private indicateError = () => {
-        this.setState({ isLoading: false });
-        this.setState({ isError: true });
     }
 
     public onSelectObsSession = (obsSessionId: number) => {
@@ -227,6 +228,8 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     public render() {
         const { classes } = this.props;
 
+        // TODO: Handle error {this.props.store.selectedObsSession.isError.toString()}
+
         // Redirects
         // ----------------------------------------
         if (this.state.redirectToSingleSessionPage) {
@@ -253,7 +256,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
 
         let circularProgress;
-        if (this.state.isLoading) {
+        if (this.props.store.selectedObsSession.isLoading) {
             circularProgress = (
                 <div className="circularProgressContainer">
                     <CircularProgress className="circularProgress" />
@@ -337,4 +340,19 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 }
 
-export default withStyles(styles)(ObsSessionPage);
+const mapStateToProps = (state: IAppState) => {
+    return {
+        store: state.data
+    };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<obsSessionActions.ObsSessionAction | locationActions.LocationAction>) => {
+    return {
+        actions: bindActionCreators(
+            { ...obsSessionActions, ...locationActions },
+            dispatch
+        )
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(ObsSessionPage));
