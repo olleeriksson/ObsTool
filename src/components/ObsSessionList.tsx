@@ -4,7 +4,7 @@ import { IObsSession } from "./Types";
 import Typography from "@material-ui/core/Typography";
 
 export interface IObsSessionListProps {
-  obsSessions: IObsSession[];
+  obsSessions: ReadonlyArray<IObsSession>;
   onSelectObsSession: (obsSessionId: number) => void;
 }
 
@@ -31,21 +31,11 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
     if (this.props.obsSessions) {
       if (this.props.obsSessions.length > 0) {
 
-        const obsSessions = this.props.obsSessions
+        const obsSessionsModifiable = [...this.props.obsSessions];
+        const obsSessions = obsSessionsModifiable
           .sort(this.sortByDate)
           .map(o => (
-            <ObsSessionCard
-              onSelectObsSessionCard={this.onSelectObsSessionCard}
-              key={o.id}
-              id={o.id || -1}
-              title={o.title}
-              date={o.date}
-              summary={o.summary}
-              conditions={o.conditions}
-              seeing={o.seeing}
-              transparency={o.transparency}
-              lm={o.limitingMagnitude}
-            />
+            <ObsSessionCard onSelectObsSessionCard={this.onSelectObsSessionCard} obsSession={o} />
           ));
 
         return (

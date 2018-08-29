@@ -145,7 +145,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               <TextField
                 id="title"
                 label="Title"
-                value={this.state.obsSession.title}
+                value={this.state.obsSession.title || ""}
                 onChange={this.handleChange("title")}
                 className={classNames(classes.formControl, classes.textField)}
                 margin="dense"
@@ -174,9 +174,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               <TextField
                 id="summary"
                 label="Summary"
-                multiline={false}
                 rowsMax="10"
-                value={this.state.obsSession.summary}
+                value={this.state.obsSession.summary || ""}
                 onChange={this.handleChange("summary")}
                 className={classNames(classes.formControl, classes.textField)}
                 margin="dense"

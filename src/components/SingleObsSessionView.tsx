@@ -44,7 +44,7 @@ class SingleObsSessionView extends React.Component<ISingleObsSessionViewProps> {
                 </Grid>
                 <Grid item={true} xs={12} sm={8} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
-                        <ObsSessionPage obsSessionId={this.props.obsSessionId} />
+                        <ObsSessionPage obsSessionId={this.props.match.params.obsSessionId} />
                     </Paper>
                 </Grid>
             </Grid>

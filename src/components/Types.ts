@@ -33,7 +33,7 @@ export interface IDso {
 export interface IObsSession {
     id?: number;
     date?: string;
-    location?: any;
+    location?: ILocation;
     title?: string;
     summary?: string;
     conditions?: string;
@@ -69,10 +69,23 @@ export interface IDataState {
     obsSessions: IObsSession[];
     isLoadingObsSessions: boolean;
     isErrorObsSessions?: string;
+    selectedObsSessionId?: number;
     locations?: ILocation[];
     isLoadingLocations: boolean;
     isErrorLocations?: string;
 }
+
+export interface IReadonlyDataState {
+    obsSessions: ReadonlyArray<Readonly<IObsSession>>;
+    isLoadingObsSessions: boolean;
+    isErrorObsSessions?: string;
+    selectedObsSessionId?: number;
+    locations?: ILocation[];
+    isLoadingLocations: boolean;
+    isErrorLocations?: string;
+}
+
+export type ReadonlyDataState = Readonly<IReadonlyDataState>;
 
 export interface IAppState {
     data: IDataState;

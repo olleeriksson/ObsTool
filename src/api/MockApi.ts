@@ -9,7 +9,7 @@ const obsSessions: IObsSession[] =
         {
             id: 4,
             date: "2017-12-18",
-            location: null,
+            location: undefined,
             title: "Coldest night of the year",
             summary: "A summary for session 4",
             conditions: "Some conditions",
@@ -22,7 +22,7 @@ const obsSessions: IObsSession[] =
         {
             id: 6,
             date: "2018-07-30",
-            location: null,
+            location: undefined,
             title: "A new name 23kkxcz",
             summary: "ljlkj",
             conditions: "lkjldskjf",

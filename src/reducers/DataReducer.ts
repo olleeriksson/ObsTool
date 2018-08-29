@@ -4,6 +4,7 @@ import {
     ObsSessionAction,
     IGetObsSessionsSuccessAction,
     IGetObsSessionsFailureAction,
+    ISelectObsSessionAction,
     IAddObsSessionSuccessAction,
     IUpdateObsSessionSuccessAction,
     IDeleteObsSessionSuccessAction,
@@ -20,6 +21,7 @@ const initialDataState: IDataState = {
     obsSessions: [],
     isLoadingObsSessions: false,
     isErrorObsSessions: undefined,
+    selectedObsSessionId: undefined,
     locations: undefined,
     isLoadingLocations: false,
     isErrorLocations: undefined,
@@ -41,7 +43,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             const action1 = action as IGetObsSessionsSuccessAction;
             return {
                 ...state,
-                obsSessions: action1.payload.obsSessions,
+                obsSessions: [...action1.payload.obsSessions],
                 isLoadingObsSessions: false,
                 isErrorObsSessions: undefined,
             };
@@ -53,11 +55,27 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 isLoadingObsSessions: false,
                 isErrorObsSessions: action2.payload.error,
             };
-        case constants.ADD_OBSSESSION_SUCCESS: {
-            const addAction = action as IAddObsSessionSuccessAction;
+        case constants.SELECT_OBSSESSION: {
+            const selectAction = action as ISelectObsSessionAction;
             return {
                 ...state,
-                obsSessions: [...state.obsSessions, addAction.payload.obsSession]
+                selectedObsSessionId: selectAction.payload.obsSessionId
+            };
+        }
+        case constants.NEW_OBSSESSION: {
+            return {
+                ...state,
+                selectedObsSessionId: undefined
+            };
+        }
+        case constants.ADD_OBSSESSION_SUCCESS: {
+            const addAction = action as IAddObsSessionSuccessAction;
+            const newObsSession = { ...addAction.payload.obsSession };
+            console.log(newObsSession);
+            return {
+                ...state,
+                obsSessions: [...state.obsSessions, newObsSession],
+                //selectedObsSessionId: newObsSession.id,
             };
         }
         case constants.UPDATE_OBSSESSION_SUCCESS: {
@@ -77,7 +95,8 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             });
             return {
                 ...state,
-                obsSessions: updatedObsSessionList2
+                obsSessions: updatedObsSessionList2,
+                selectedObsSessionId: undefined,
             };
             return state;
         }
@@ -92,7 +111,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             const action10 = action as IGetLocationsSuccessAction;
             return {
                 ...state,
-                locations: action10.payload.locations,
+                locations: [...action10.payload.locations],
                 isLoadingLocations: false,
                 isErrorLocations: undefined,
             };

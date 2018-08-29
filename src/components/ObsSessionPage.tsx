@@ -5,7 +5,6 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import "./ObsSessionPage.css";
-import axios from "axios";
 import { IObsSession, IObservation } from "./Types";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
@@ -108,7 +107,8 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 
     private loadObsSession = (obsSessionId: number) => {
-        axios.get<IObsSession>("http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeLocation=true&includeObservations=true&includeDso=true").then(
+        this.setState({ isLoading: true });
+        Api.getFullObsSession(obsSessionId).then(
             (response) => {
                 const { data } = response;
                 const obsSession = data;
@@ -126,40 +126,38 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         newObsSession.locationId = newObsSession.locationId ? Number(newObsSession.locationId) : undefined;
 
         if (!newObsSession.id) {
-            axios.post<IObsSession>(
-                "http://localhost:50995/api/obsSessions/",
-                newObsSession).then(
-                    (response) => {
-                        const { data } = response;
-                        const obsSession = data;
-                        this.handleSuccessDataFromApi(obsSession);
-                        this.props.actions.addObsSessionSuccess(obsSession);
-                        this.setState({ redirectToSingleSessionPage: true });
-                    },
-                    () => this.indicateError()
-                );
+            Api.addObsSession(newObsSession).then(
+                (response) => {
+                    const { data } = response;
+                    const obsSession = data;
+                    this.handleSuccessDataFromApi(obsSession);
+                    this.props.actions.addObsSessionSuccess(obsSession);
+                    this.setState({ redirectToSingleSessionPage: true });
+                },
+                () => this.indicateError()
+            );
         } else {
-            axios.put<IObsSession>(
-                "http://localhost:50995/api/obsSessions/" + this.state.obsSession.id,
-                newObsSession).then(
-                    (response) => {
-                        const { data } = response;
-                        const obsSession = data;
-                        this.handleSuccessDataFromApi(obsSession);
-                        this.props.actions.updateObsSessionSuccess(obsSession);
-                    },
-                    () => this.indicateError()
-                );
+            Api.updateObsSession(newObsSession).then(
+                (response) => {
+                    const { data } = response;
+                    const obsSession = data;
+                    this.handleSuccessDataFromApi(obsSession);
+                    this.props.actions.updateObsSessionSuccess(obsSession);
+                },
+                () => this.indicateError()
+            );
         }
     }
 
     private deleteObsSession() {
-        axios.delete("http://localhost:50995/api/obsSessions/" + this.state.obsSession.id).then(
-            (response) => {
-                this.props.actions.deleteObsSessionSuccess(this.state.obsSession.id);
-            },
-            () => this.indicateError()
-        );
+        if (this.state.obsSession.id) {
+            Api.deleteObsSession(this.state.obsSession.id).then(
+                (response) => {
+                    this.props.actions.deleteObsSessionSuccess(this.state.obsSession.id);
+                },
+                () => this.indicateError()
+            );
+        }
     }
 
     private handleSuccessDataFromApi = (obsSession: IObsSession) => {
@@ -169,7 +167,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ obsSession: obsSession });
         this.setState({ isLoading: false });
         this.setState({ isError: false });
-
     }
 
     private indicateError = () => {

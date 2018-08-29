@@ -11,6 +11,7 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import EditIcon from "@material-ui/icons/Edit";
 import classNames from "classnames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IObsSession } from "./Types";
 
 const styles = (theme: Theme) => createStyles({
   paper: {
@@ -54,14 +55,7 @@ const styles = (theme: Theme) => createStyles({
 // children?: React.ReactNode;
 
 export interface IObsSessionCardProps extends WithStyles<typeof styles> {
-  id: number;
-  title?: string;
-  date?: string;
-  summary?: string;
-  conditions?: string;
-  seeing?: number;
-  transparency?: number;
-  lm?: number;
+  obsSession: IObsSession;
   onSelectObsSessionCard: (obsSessionId: number) => void;
 }
 
@@ -86,8 +80,9 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
   }
 
   public handleClickOnObsSession() {
-    console.log("Clicked on the observation session");
-    this.props.onSelectObsSessionCard(this.props.id);
+    if (this.props.obsSession.id) {
+      this.props.onSelectObsSessionCard(this.props.obsSession.id);
+    }
   }
 
   public render() {
@@ -98,23 +93,35 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
       expandedGridItem = (
         <Grid item={true}>
           <Typography variant="body1">
+            <strong>Summary:</strong>
+          </Typography>
+          <Typography variant="body1">
+            {this.props.obsSession.summary && this.props.obsSession.summary.toString()}
+          </Typography>
+          <Typography variant="body1">
             <strong>Conditions:</strong>
           </Typography>
           <Typography variant="body1">
-            {this.props.conditions || <span>N/A</span>}
+            {this.props.obsSession.conditions && this.props.obsSession.conditions.toString() || <span>N/A</span>}
           </Typography>
           <Typography variant="body1">
-            <strong>Seeing:</strong> {this.props.seeing || <span>N/A</span>}
+            <strong>Seeing:</strong>
+            {this.props.obsSession.seeing && this.props.obsSession.seeing.toString() || <span>N/A</span>}
           </Typography>
           <Typography variant="body1">
-            <strong>Transparency:</strong> {this.props.transparency || <span>N/A</span>}
+            <strong>Transparency:</strong>
+            {this.props.obsSession.transparency && this.props.obsSession.transparency.toString() || <span>N/A</span>}
           </Typography>
           <Typography variant="body1">
-            <strong>Limiting magnitude:</strong> {this.props.lm || <span>N/A</span>}
+            <strong>Limiting magnitude:</strong>
+            {this.props.obsSession.limitingMagnitude && this.props.obsSession.limitingMagnitude.toString() || <span>N/A</span>}
           </Typography>
         </Grid>
       );
     }
+
+    const dateLocationSeparator = this.props.obsSession.date &&
+      this.props.obsSession.location && this.props.obsSession.location.name && " - ";
 
     return (
       <Paper className={classes.paper}>
@@ -132,15 +139,17 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                 <Grid container={true} direction="column" spacing={8}>
                   <Grid item={true} xs={true}>
                     <Typography variant="subheading">
-                      {this.props.title}
+                      {this.props.obsSession.title && this.props.obsSession.title.toString()}
                     </Typography>
                     <Typography variant="caption">
-                      {this.props.date}
+                      {this.props.obsSession.date && this.props.obsSession.date.toString()}
+                      {dateLocationSeparator}
+                      {this.props.obsSession.location && this.props.obsSession.location.name}
                     </Typography>
                   </Grid>
                   <Grid item={true} xs={true} className={classes.summary}>
                     <Typography variant="caption">
-                      {this.props.summary}
+                      {this.props.obsSession.summary && this.props.obsSession.summary.toString()}
                     </Typography>
                   </Grid>
                 </Grid>

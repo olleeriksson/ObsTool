@@ -11,6 +11,7 @@ const initialDataState: IDataState = {
     obsSessions: [],
     isLoadingObsSessions: false,
     isErrorObsSessions: undefined,
+    selectedObsSessionId: undefined,
     locations: undefined,
     isLoadingLocations: false,
     isErrorLocations: undefined,

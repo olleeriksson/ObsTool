@@ -13,7 +13,7 @@ import ObsSessionList from "./ObsSessionList";
 import ObsSessionPage from "./ObsSessionPage";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { IAppState, IDataState } from "./Types";
+import { IAppState, ReadonlyDataState } from "./Types";
 import * as actions from "../actions/ObsSessionActions";
 import Api from "../api/Api";
 
@@ -37,22 +37,14 @@ const styles = (theme: Theme) => createStyles({
 interface IListViewProps extends WithStyles<typeof styles> {
     onIncrement?: () => void;
     onDecrement?: () => void;
-    store: IDataState;
+    store: ReadonlyDataState;
     actions: any;
     dispatch: any;
 }
 
-interface IListViewState {
-    selectedObsSessionId?: number;
-}
-
-class ListView extends React.Component<IListViewProps, IListViewState> {
+class ListView extends React.Component<IListViewProps> {
     constructor(props: IListViewProps) {
         super(props);
-
-        this.state = {
-            selectedObsSessionId: undefined
-        };
 
         this.onSelectObsSession = this.onSelectObsSession.bind(this);
     }
@@ -63,7 +55,7 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
     private loadAllObsSessions = () => {
         this.props.actions.getObsSessionsBegin();
-        Api.getObsSessions().then(
+        Api.getObsSessionsSimple().then(
             (response) => {
                 this.props.actions.getObsSessionsSuccess(response.data);
             }).catch(
@@ -73,7 +65,7 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
     public onSelectObsSession = (obsSessionId: number) => {
         if (this.props.store.obsSessions) {
-            this.setState({selectedObsSessionId: obsSessionId});
+            this.props.actions.selectObsSession(obsSessionId);
         }
     }
 
@@ -109,9 +101,9 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         }
 
         let rightSideView;
-        if (this.state.selectedObsSessionId) { // default view
+        if (this.props.store.selectedObsSessionId) { // default view
             rightSideView = (
-                <ObsSessionPage obsSessionId={this.state.selectedObsSessionId} />
+                <ObsSessionPage obsSessionId={this.props.store.selectedObsSessionId} />
             );
         } else { // empty view
             rightSideView = (
@@ -141,7 +133,7 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
 const mapStateToProps = (state: IAppState) => {
     return {
-        store: state.data
+        store: state.data as ReadonlyDataState
     };
 };
 

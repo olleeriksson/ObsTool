@@ -26,6 +26,17 @@ export interface IGetObsSessionsFailureAction extends Action {
 
 // ------------
 
+export interface ISelectObsSessionAction extends Action {
+    type: constants.SELECT_OBSSESSION;
+    payload: { obsSessionId: number };
+}
+
+export interface INewObsSessionAction extends Action {
+    type: constants.NEW_OBSSESSION;
+}
+
+// ------------
+
 export interface IAddObsSessionSuccessAction extends Action {
     type: constants.ADD_OBSSESSION_SUCCESS;
     payload: { obsSession: IObsSession };
@@ -47,6 +58,8 @@ export type ObsSessionAction =
     IGetObsSessionsBeginAction |
     IGetObsSessionsSuccessAction |
     IGetObsSessionsFailureAction |
+    ISelectObsSessionAction |
+    INewObsSessionAction |
     IAddObsSessionSuccessAction |
     IUpdateObsSessionSuccessAction |
     IDeleteObsSessionSuccessAction
@@ -85,6 +98,19 @@ export const getObsSessionsFailure: ActionCreator<IGetObsSessionsFailureAction> 
     type: constants.GET_OBSSESSIONS_FAILURE,
     payload: { error: error },
 });
+
+// -------
+
+export const selectObsSession: ActionCreator<ISelectObsSessionAction> = (obsSessionId: number) => ({
+    type: constants.SELECT_OBSSESSION,
+    payload: { obsSessionId: obsSessionId },
+});
+
+export const newObsSession: ActionCreator<INewObsSessionAction> = () => ({
+    type: constants.NEW_OBSSESSION
+});
+
+// -------
 
 export const addObsSessionSuccess: ActionCreator<IAddObsSessionSuccessAction> = (obsSession: IObsSession) => ({
     type: constants.ADD_OBSSESSION_SUCCESS,
