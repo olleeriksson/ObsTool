@@ -132,7 +132,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                 <Grid container={true} direction="column" spacing={8}>
                   <Grid item={true} xs={true}>
                     <Typography variant="subheading">
-                      {this.props.title}
+                    {this.props.id} {this.props.title}
                     </Typography>
                     <Typography variant="caption">
                       {this.props.date}

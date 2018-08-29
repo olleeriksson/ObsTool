@@ -112,7 +112,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 }
             };
         }
-        case constants.LOAD_OBSSESSION_FAILURE:
+        case constants.LOAD_OBSSESSION_FAILURE: {
             const action4 = action as ILoadObsSessionFailureAction;
             return {
                 ...state,
@@ -122,7 +122,8 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                     isError: action4.payload.error,
                 }
             };
-        case constants.MODIFYING_OBSSESSION_BEGIN:
+        }
+        case constants.MODIFYING_OBSSESSION_BEGIN: {
             return {
                 ...state,
                 selectedObsSession: {
@@ -131,7 +132,8 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                     isError: undefined,
                 }
             };
-        case constants.ADD_OBSSESSION_SUCCESS:
+        }
+        case constants.ADD_OBSSESSION_SUCCESS: {
             const addAction = action as IAddObsSessionSuccessAction;
             return {
                 ...state,
@@ -145,41 +147,47 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                     isError: undefined,
                 }
             };
-        case constants.UPDATE_OBSSESSION_SUCCESS:
+        }
+        case constants.UPDATE_OBSSESSION_SUCCESS: {
             const updateAction = action as IUpdateObsSessionSuccessAction;
             const updatedObsSessionList = state.obsSessions.obsSessions.map(s => {
                 return s.id === updateAction.payload.obsSession.id ? updateAction.payload.obsSession : s;  // replace this particular ObsSession
             });
             return {
                 ...state,
-                obsSessions: updatedObsSessionList,
+                obsSessions: {
+                    ...state.obsSessions,
+                    obsSessions: updatedObsSessionList
+                },
                 selectedObsSession: {
                     ...state.selectedObsSession,
                     isLoading: false,
                     isError: undefined,
                 }
             };
-        case constants.DELETE_OBSSESSION_SUCCESS:
+        }
+        case constants.DELETE_OBSSESSION_SUCCESS: {
             const deleteAction = action as IDeleteObsSessionSuccessAction;
-            const updatedObsSessionList = state.obsSessions.obsSessions.map(s => {
-                return s.id === updateAction.payload.obsSession.id ? updateAction.payload.obsSession : s;  // replace this particular ObsSession
+            const updatedObsSessionList2 = state.obsSessions.obsSessions.filter(s => {
+                return s.id !== deleteAction.payload.obsSessionId;  // filter in all except the one with the matching id
             });
             return {
                 ...state,
-                obsSessions: updatedObsSessionList,
+                obsSessions: {
+                    ...state.obsSessions,
+                    obsSessions: updatedObsSessionList2
+                },
                 selectedObsSession: {
                     ...state.selectedObsSession,
+                    obsSessionId: undefined,  // not going to display any obssession right now
+                    obsSession: undefined,  // not going to display any obssession right now
                     isLoading: false,
                     isError: undefined,
                 }
             };
-            //     const updatedObsSessionList = this.state.obsSessions.filter(o => {
-            //         return o.id !== obsSessionId;
-            //     });
-            //     this.setState({ obsSessions: updatedObsSessionList });
-            //     this.setState({ selectedObsSession: undefined });
             return state;
-        case constants.MODIFYING_OBSSESSION_FAILURE:
+        }
+        case constants.MODIFYING_OBSSESSION_FAILURE: {
             const action5 = action as IModifyingObsSessionFailureAction;
             return {
                 ...state,
@@ -189,6 +197,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                     isError: action5.payload.error,
                 }
             };
+        }
         case constants.GET_LOCATIONS_BEGIN: {
             return {
                 ...state,

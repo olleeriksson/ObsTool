@@ -39,17 +39,19 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface IObsSessionPageProps extends WithStyles<typeof styles> {
+    obsSessionId: number;
     actions: any;
     store: IDataState;
 }
 
 interface IObsSessionPageState {
+    isLoading: boolean;
+    isError: boolean;
     redirectToListView: boolean;
     redirectToSingleSessionPage: boolean;
     menuAnchorEl: any;
     isDeleteDialogOpen: boolean;
     activeTab: number;
-    obsSessionId?: number;
     obsSession: IObsSession;
     locations: ILocation[];
 }
@@ -59,12 +61,13 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         super(props);
 
         this.state = {
+            isLoading: false,
+            isError: false,
             redirectToListView: false,
             redirectToSingleSessionPage: false,
             menuAnchorEl: null,
             isDeleteDialogOpen: false,
             activeTab: 0,
-            obsSessionId: this.props.store.selectedObsSession.obsSessionId,
             obsSession: {
                 date: new Date().toISOString().slice(0, 10),
             },
@@ -79,22 +82,18 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     public componentDidMount() {
         this.loadLocations();
-        this.loadSelectedObsSession();
+        if (this.props.obsSessionId) {
+            this.loadObsSession(this.props.obsSessionId);
+        }
     }
 
     public componentWillReceiveProps(nextProps: IObsSessionPageProps) {
         // TODO: Maybe listen to changes here.
         //
-        if (nextProps.store.selectedObsSession.obsSessionId &&
-            this.props.store.selectedObsSession.obsSessionId !== nextProps.store.selectedObsSession.obsSessionId) {
+        if (nextProps.obsSessionId && nextProps.obsSessionId !== this.props.obsSessionId) {
             // New/different obsSessionId from the store -> load the full obssession from the API
-            this.loadObsSession(nextProps.store.selectedObsSession.obsSessionId);
-
-        } else if (nextProps.store.selectedObsSession.obsSession &&
-            this.props.store.selectedObsSession.obsSession !== nextProps.store.selectedObsSession.obsSession) {
-            // 2nd turn around
-            // New/different obsSession object -> set the local state
-            this.setState({ obsSession: nextProps.store.selectedObsSession.obsSession });
+            this.loadObsSession(nextProps.obsSessionId);
+            return;
         }
     }
 
@@ -110,10 +109,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
     }
 
-    private loadSelectedObsSession = () => this.loadObsSession(this.props.store.selectedObsSession.obsSessionId || 0);
-
     private loadObsSession = (obsSessionId: number) => {
-        // const obsSessionId = this.props.store.selectedObsSession.obsSessionId;
         this.props.actions.loadObsSessionBegin(obsSessionId);
         if (obsSessionId) {
             Api.getFullObsSession(obsSessionId).then(
@@ -128,7 +124,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 
     public onSaveObsSession(newObsSession: IObsSession) {
-        this.props.actions.modifyingObsSessionBegin();
+        this.setState({ isLoading: true });
 
         // Convert the "shadow" field locationId back to a number. The API expects a number,
         // but the SelectComponent requires a string backing field.
@@ -139,27 +135,25 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 "http://localhost:50995/api/obsSessions/",
                 newObsSession).then(
                     (response) => {
-                        this.props.actions.addObsSessionSuccess(response.data);
                         const { data } = response;
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
+                        this.props.onUpdatedObsSession(obsSession);
                         this.setState({ redirectToSingleSessionPage: true });
-                    }
-                ).catch(
-                    (error) => this.props.actions.modifyingObsSessionFailure(error)
+                    },
+                    () => this.indicateError()
                 );
         } else {
             axios.put<IObsSession>(
                 "http://localhost:50995/api/obsSessions/" + this.state.obsSessionId,
                 newObsSession).then(
                     (response) => {
-                        this.props.actions.updateObsSessionSuccess(response.data);
                         const { data } = response;
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
-                    }
-                ).catch(
-                    (error) => this.props.actions.modifyingObsSessionFailure(error)
+                        this.props.onUpdatedObsSession(obsSession);
+                    },
+                    () => this.indicateError()
                 );
         }
     }
@@ -167,15 +161,12 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     private deleteObsSession() {
         axios.delete("http://localhost:50995/api/obsSessions/" + this.state.obsSessionId).then(
             (response) => {
-                // if (this.props.onDeletedObsSession) {
-                //     this.props.onDeletedObsSession(this.state.obsSessionId || 0);
-                // } else {
-                //     this.setState({ redirectToListView: true });
-                // }
-            })
-            .then(
-                (error) => this.props.actions.modifyingObsSessionFailure(error)
-            );
+                if (this.props.onDeletedObsSession) {
+                    this.props.onDeletedObsSession(this.state.obsSessionId || 0);
+                }
+            },
+            () => this.indicateError()
+        );
     }
 
     private handleSuccessDataFromApi = (obsSession: IObsSession) => {
@@ -184,7 +175,14 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
         this.setState({ obsSessionId: obsSession.id });
         this.setState({ obsSession: obsSession });
+        this.setState({ isLoading: false });
+        this.setState({ isError: false });
 
+    }
+
+    private indicateError = () => {
+        this.setState({ isLoading: false });
+        this.setState({ isError: true });
     }
 
     public onSelectObsSession = (obsSessionId: number) => {
@@ -228,12 +226,10 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     public render() {
         const { classes } = this.props;
 
-        // TODO: Handle error {this.props.store.selectedObsSession.isError.toString()}
-
         // Redirects
         // ----------------------------------------
         if (this.state.redirectToSingleSessionPage) {
-            const url = "/session/" + this.state.obsSessionId;
+            const url = "/session/" + this.state.obsSession.id;
             return <Redirect to={url} />;
         } else if (this.state.redirectToListView) {
             return <Redirect to={"/sessions"} />;
@@ -256,7 +252,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
 
         let circularProgress;
-        if (this.props.store.selectedObsSession.isLoading) {
+        if (this.state.isLoading) {
             circularProgress = (
                 <div className="circularProgressContainer">
                     <CircularProgress className="circularProgress" />
@@ -265,7 +261,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
 
         let menu;
-        if (this.state.obsSessionId) {
+        if (this.state.obsSession.id) {
             menu = (
                 <div>
                     <IconButton onClick={this.handleOpenMenu} >
@@ -283,6 +279,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             );
         }
 
+        const hej = this.props.store.selectedObsSession.obsSession;
         return (
             <div className="circularProgressSuperContainer">
                 {circularProgress}
@@ -301,6 +298,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                         </Typography>
                                     </Grid>
                                     <Grid item={true}>
+                                        <Typography variant="caption" align="center">
+                                            this state.id: {this.state.obsSession.id && this.state.obsSession.id.toString()},
+                                        </Typography>
                                         <Typography variant="title" align="center">
                                             {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
                                         </Typography>

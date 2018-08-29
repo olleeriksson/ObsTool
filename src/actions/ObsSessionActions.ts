@@ -72,6 +72,12 @@ export interface IModifyingObsSessionFailureAction extends Action {
     payload: { error: string };
 }
 
+// -------
+
+export interface INewObsSessionAction extends Action {
+    type: constants.NEW_OBSSESSION;
+}
+
 // ------------
 
 export type ObsSessionAction =
@@ -86,7 +92,8 @@ export type ObsSessionAction =
     IAddObsSessionSuccessAction |
     IUpdateObsSessionSuccessAction |
     IDeleteObsSessionSuccessAction |
-    IModifyingObsSessionFailureAction
+    IModifyingObsSessionFailureAction |
+    INewObsSessionAction
     ;
 
 // ---------------------------------------------------------------
@@ -165,6 +172,10 @@ export const deleteObsSessionSuccess: ActionCreator<IDeleteObsSessionSuccessActi
 export const modifyingObsSessionFailure: ActionCreator<IModifyingObsSessionFailureAction> = (error: string) => ({
     type: constants.MODIFYING_OBSSESSION_FAILURE,
     payload: { error: error }
+});
+
+export const newObsSession: ActionCreator<INewObsSessionAction> = () => ({
+    type: constants.NEW_OBSSESSION,
 });
 
 // No need to actually define them since just using import * from actions and then passing actions
