@@ -44,7 +44,7 @@ const styles = (theme: Theme) => createStyles({
 
 export interface IObsSessionFormProps extends WithStyles<typeof styles> {
   obsSession: IObsSession;
-  locations: ILocation[];
+  locations?: ILocation[];
   onSaveObsSession: (obsSession: IObsSession) => void;
 }
 

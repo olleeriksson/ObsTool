@@ -6,7 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import "./ObsSessionPage.css";
 import axios from "axios";
-import { IObsSession, IObservation, ILocation } from "./Types";
+import { IObsSession, IObservation } from "./Types";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import ObservationList from "./ObservationList";
@@ -39,7 +39,7 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface IObsSessionPageProps extends WithStyles<typeof styles> {
-    obsSessionId: number;
+    obsSessionId?: number;
     actions: any;
     store: IDataState;
 }
@@ -53,7 +53,6 @@ interface IObsSessionPageState {
     isDeleteDialogOpen: boolean;
     activeTab: number;
     obsSession: IObsSession;
-    locations: ILocation[];
 }
 
 class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPageState> {
@@ -71,7 +70,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             obsSession: {
                 date: new Date().toISOString().slice(0, 10),
             },
-            locations: [],
         };
 
         this.onSelectObsSession = this.onSelectObsSession.bind(this);
@@ -110,17 +108,14 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 
     private loadObsSession = (obsSessionId: number) => {
-        this.props.actions.loadObsSessionBegin(obsSessionId);
-        if (obsSessionId) {
-            Api.getFullObsSession(obsSessionId).then(
-                (response) => {
-                    const { data } = response;
-                    const obsSession = data;
-                    this.props.actions.loadObsSessionSuccess(obsSession);
-                }).catch(
-                    (error) => this.props.actions.loadObsSessionFailure(error)
-                );
-        }
+        axios.get<IObsSession>("http://localhost:50995/api/obsSessions/" + obsSessionId + "?includeLocation=true&includeObservations=true&includeDso=true").then(
+            (response) => {
+                const { data } = response;
+                const obsSession = data;
+                this.handleSuccessDataFromApi(obsSession);
+            },
+            () => this.indicateError()
+        );
     }
 
     public onSaveObsSession(newObsSession: IObsSession) {
@@ -138,20 +133,20 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         const { data } = response;
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
-                        this.props.onUpdatedObsSession(obsSession);
+                        this.props.actions.addObsSessionSuccess(obsSession);
                         this.setState({ redirectToSingleSessionPage: true });
                     },
                     () => this.indicateError()
                 );
         } else {
             axios.put<IObsSession>(
-                "http://localhost:50995/api/obsSessions/" + this.state.obsSessionId,
+                "http://localhost:50995/api/obsSessions/" + this.state.obsSession.id,
                 newObsSession).then(
                     (response) => {
                         const { data } = response;
                         const obsSession = data;
                         this.handleSuccessDataFromApi(obsSession);
-                        this.props.onUpdatedObsSession(obsSession);
+                        this.props.actions.updateObsSessionSuccess(obsSession);
                     },
                     () => this.indicateError()
                 );
@@ -159,11 +154,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     }
 
     private deleteObsSession() {
-        axios.delete("http://localhost:50995/api/obsSessions/" + this.state.obsSessionId).then(
+        axios.delete("http://localhost:50995/api/obsSessions/" + this.state.obsSession.id).then(
             (response) => {
-                if (this.props.onDeletedObsSession) {
-                    this.props.onDeletedObsSession(this.state.obsSessionId || 0);
-                }
+                this.props.actions.deleteObsSessionSuccess(this.state.obsSession.id);
             },
             () => this.indicateError()
         );
@@ -173,7 +166,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         // Update the "shadow" field locationId according to the location.id field.
         obsSession.locationId = obsSession.location ? obsSession.location.id : undefined;
 
-        this.setState({ obsSessionId: obsSession.id });
         this.setState({ obsSession: obsSession });
         this.setState({ isLoading: false });
         this.setState({ isError: false });
@@ -279,7 +271,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             );
         }
 
-        const hej = this.props.store.selectedObsSession.obsSession;
         return (
             <div className="circularProgressSuperContainer">
                 {circularProgress}
@@ -298,9 +289,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                         </Typography>
                                     </Grid>
                                     <Grid item={true}>
-                                        <Typography variant="caption" align="center">
-                                            this state.id: {this.state.obsSession.id && this.state.obsSession.id.toString()},
-                                        </Typography>
                                         <Typography variant="title" align="center">
                                             {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
                                         </Typography>
@@ -331,7 +319,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         index={this.state.activeTab}
                         onChangeIndex={this.handleChangeIndex}
                     >
-                        <ObsSessionForm obsSession={this.state.obsSession} locations={this.state.locations} onSaveObsSession={this.onSaveObsSession} />
+                        <ObsSessionForm obsSession={this.state.obsSession} locations={this.props.store.locations || []} onSaveObsSession={this.onSaveObsSession} />
                         <ObservationList observations={observations} onSelectObservation={this.onSelectObservation} />
                     </SwipeableViews>
                 </div>

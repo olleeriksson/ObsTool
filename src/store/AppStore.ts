@@ -8,22 +8,12 @@ import reduxImmutableStateInvariant from "redux-immutable-state-invariant";
 import thunk from "redux-thunk";
 
 const initialDataState: IDataState = {
-    obsSessions: {
-        obsSessions: [],
-        isLoadingObsSessions: false,
-        isErrorObsSessions: undefined,
-    },
-    selectedObsSession: {
-        obsSessionId: undefined,
-        obsSession: undefined,
-        isLoading: false,
-        isError: undefined,
-    },
-    locations: {
-        locations: undefined,
-        isLoadingLocations: false,
-        isErrorLocations: undefined,
-    }
+    obsSessions: [],
+    isLoadingObsSessions: false,
+    isErrorObsSessions: undefined,
+    locations: undefined,
+    isLoadingLocations: false,
+    isErrorLocations: undefined,
 };
 
 const initialAppState: IAppState = {

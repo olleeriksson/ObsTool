@@ -42,9 +42,17 @@ interface IListViewProps extends WithStyles<typeof styles> {
     dispatch: any;
 }
 
-class ListView extends React.Component<IListViewProps> {
+interface IListViewState {
+    selectedObsSessionId?: number;
+}
+
+class ListView extends React.Component<IListViewProps, IListViewState> {
     constructor(props: IListViewProps) {
         super(props);
+
+        this.state = {
+            selectedObsSessionId: undefined
+        };
 
         this.onSelectObsSession = this.onSelectObsSession.bind(this);
     }
@@ -65,8 +73,7 @@ class ListView extends React.Component<IListViewProps> {
 
     public onSelectObsSession = (obsSessionId: number) => {
         if (this.props.store.obsSessions) {
-            this.props.actions.initiateObsSessionChange(obsSessionId);
-            // Let the ObsSessionPage do the actual loading, receiving, and updating
+            this.setState({selectedObsSessionId: obsSessionId});
         }
     }
 
@@ -78,23 +85,23 @@ class ListView extends React.Component<IListViewProps> {
         console.log(this.props.store);
 
         let leftSideView;
-        if (this.props.store.obsSessions.isLoadingObsSessions) {
+        if (this.props.store.isLoadingObsSessions) {
             leftSideView = (
                 <div>
                     <CircularProgress />
                 </div>
             );
-        } else if (this.props.store.obsSessions.isErrorObsSessions) {
+        } else if (this.props.store.isErrorObsSessions) {
             leftSideView = (
                 <div>
-                    {this.props.store.obsSessions.isErrorObsSessions.toString()}
+                    {this.props.store.isErrorObsSessions.toString()}
                 </div>
             );
-        } else if (this.props.store.obsSessions.obsSessions) {
+        } else if (this.props.store.obsSessions) {
             leftSideView = (
                 <div className={classes.sessionList}>
                     <ObsSessionList
-                        obsSessions={this.props.store.obsSessions.obsSessions}
+                        obsSessions={this.props.store.obsSessions}
                         onSelectObsSession={this.onSelectObsSession}
                     />
                 </div>
@@ -102,9 +109,9 @@ class ListView extends React.Component<IListViewProps> {
         }
 
         let rightSideView;
-        if (this.props.store.selectedObsSession.obsSessionId) { // default view
+        if (this.state.selectedObsSessionId) { // default view
             rightSideView = (
-                <ObsSessionPage />
+                <ObsSessionPage obsSessionId={this.state.selectedObsSessionId} />
             );
         } else { // empty view
             rightSideView = (

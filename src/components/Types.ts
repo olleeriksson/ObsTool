@@ -65,29 +65,13 @@ export interface ILocation {
 
 // --------------------------------------------------------------------------
 
-export interface IObsSessionState {
+export interface IDataState {
     obsSessions: IObsSession[];
     isLoadingObsSessions: boolean;
     isErrorObsSessions?: string;
-}
-
-export interface ISelectedObsSessionState {
-    obsSessionId?: number;
-    obsSession?: IObsSession;
-    isLoading: boolean;
-    isError?: string;
-}
-
-export interface ILocationState {
-    locations?: IObsSession[];
+    locations?: ILocation[];
     isLoadingLocations: boolean;
     isErrorLocations?: string;
-}
-
-export interface IDataState {
-    obsSessions: IObsSessionState;
-    selectedObsSession: ISelectedObsSessionState;
-    locations: ILocationState;
 }
 
 export interface IAppState {

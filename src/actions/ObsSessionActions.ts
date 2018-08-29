@@ -26,32 +26,6 @@ export interface IGetObsSessionsFailureAction extends Action {
 
 // ------------
 
-export interface IInitiateObsSessionChangeAction extends Action {
-    type: constants.INITIATE_OBSSESSION_CHANGE;
-    payload: { obsSessionId: number };
-}
-
-export interface ILoadObsSessionBeginAction extends Action {
-    type: constants.LOAD_OBSSESSION_BEGIN;
-    payload: { obsSessionId: number };
-}
-
-export interface ILoadObsSessionSuccessAction extends Action {
-    type: constants.LOAD_OBSSESSION_SUCCESS;
-    payload: { obsSession: IObsSession };
-}
-
-export interface ILoadObsSessionFailureAction extends Action {
-    type: constants.LOAD_OBSSESSION_FAILURE;
-    payload: { error: string };
-}
-
-// ------------
-
-export interface IModifyingObsSessionBeginAction extends Action {
-    type: constants.MODIFYING_OBSSESSION_BEGIN;
-}
-
 export interface IAddObsSessionSuccessAction extends Action {
     type: constants.ADD_OBSSESSION_SUCCESS;
     payload: { obsSession: IObsSession };
@@ -67,33 +41,15 @@ export interface IDeleteObsSessionSuccessAction extends Action {
     payload: { obsSessionId: number };
 }
 
-export interface IModifyingObsSessionFailureAction extends Action {
-    type: constants.MODIFYING_OBSSESSION_FAILURE;
-    payload: { error: string };
-}
-
 // -------
-
-export interface INewObsSessionAction extends Action {
-    type: constants.NEW_OBSSESSION;
-}
-
-// ------------
 
 export type ObsSessionAction =
     IGetObsSessionsBeginAction |
     IGetObsSessionsSuccessAction |
     IGetObsSessionsFailureAction |
-    IInitiateObsSessionChangeAction |
-    ILoadObsSessionBeginAction |
-    ILoadObsSessionSuccessAction |
-    ILoadObsSessionFailureAction |
-    IModifyingObsSessionBeginAction |
     IAddObsSessionSuccessAction |
     IUpdateObsSessionSuccessAction |
-    IDeleteObsSessionSuccessAction |
-    IModifyingObsSessionFailureAction |
-    INewObsSessionAction
+    IDeleteObsSessionSuccessAction
     ;
 
 // ---------------------------------------------------------------
@@ -130,30 +86,6 @@ export const getObsSessionsFailure: ActionCreator<IGetObsSessionsFailureAction> 
     payload: { error: error },
 });
 
-export const initiateObsSessionChange: ActionCreator<IInitiateObsSessionChangeAction> = (obsSessionId: number) => ({
-    type: constants.INITIATE_OBSSESSION_CHANGE,
-    payload: { obsSessionId: obsSessionId },
-});
-
-export const loadObsSessionBegin: ActionCreator<ILoadObsSessionBeginAction> = (obsSessionId: number) => ({
-    type: constants.LOAD_OBSSESSION_BEGIN,
-    payload: { obsSessionId: obsSessionId },
-});
-
-export const loadObsSessionSuccess: ActionCreator<ILoadObsSessionSuccessAction> = (obsSession: IObsSession) => ({
-    type: constants.LOAD_OBSSESSION_SUCCESS,
-    payload: { obsSession: obsSession },
-});
-
-export const loadObsSessionFailure: ActionCreator<ILoadObsSessionFailureAction> = (error: string) => ({
-    type: constants.LOAD_OBSSESSION_FAILURE,
-    payload: { error: error },
-});
-
-export const modifyingObsSessionBegin: ActionCreator<IModifyingObsSessionBeginAction> = () => ({
-    type: constants.MODIFYING_OBSSESSION_BEGIN,
-});
-
 export const addObsSessionSuccess: ActionCreator<IAddObsSessionSuccessAction> = (obsSession: IObsSession) => ({
     type: constants.ADD_OBSSESSION_SUCCESS,
     payload: { obsSession: obsSession },
@@ -168,22 +100,3 @@ export const deleteObsSessionSuccess: ActionCreator<IDeleteObsSessionSuccessActi
     type: constants.DELETE_OBSSESSION_SUCCESS,
     payload: { obsSessionId: obsSessionId },
 });
-
-export const modifyingObsSessionFailure: ActionCreator<IModifyingObsSessionFailureAction> = (error: string) => ({
-    type: constants.MODIFYING_OBSSESSION_FAILURE,
-    payload: { error: error }
-});
-
-export const newObsSession: ActionCreator<INewObsSessionAction> = () => ({
-    type: constants.NEW_OBSSESSION,
-});
-
-// No need to actually define them since just using import * from actions and then passing actions
-// to bindActionCreators() will work as well. But this file must not contain any other consts.
-// export const ObsSessionActionCreators = {
-//     getObsSessions,
-//     getObsSessionsSuccess,
-//     getObsSessionsFailure,
-//     increment,
-//     decrement
-// };
