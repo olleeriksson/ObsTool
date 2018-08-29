@@ -8,13 +8,13 @@ import Typography from "@material-ui/core/Typography";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Paper from "@material-ui/core/Paper";
 import "./Layout.css";
-import { IObsSession, IObsSessionState } from "./Types";
+import { IObsSession } from "./Types";
 import ObsSessionList from "./ObsSessionList";
 import ObsSessionPage from "./ObsSessionPage";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { IAppState } from "./Types";
-import * as actions from "../actions/actions";
+import { IAppState, IDataState } from "./Types";
+import * as actions from "../actions/ObsSessionActions";
 import Api from "../api/Api";
 
 const styles = (theme: Theme) => createStyles({
@@ -37,8 +37,9 @@ const styles = (theme: Theme) => createStyles({
 interface IListViewProps extends WithStyles<typeof styles> {
     onIncrement?: () => void;
     onDecrement?: () => void;
-    store: IObsSessionState;
+    store: IDataState;
     actions: any;
+    dispatch: any;
 }
 
 interface IListViewState {
@@ -113,26 +114,26 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
         console.log(this.props.store);
 
         let leftSideView;
-        if (this.props.store.isLoadingObsSessions) {
+        if (this.props.store.obsSessions.isLoadingObsSessions) {
             leftSideView = (
                 <div>
                     <CircularProgress />
                 </div>
             );
-        } else if (this.props.store.isErrorObsSessions) {
+        } else if (this.props.store.obsSessions.isErrorObsSessions) {
             leftSideView = (
                 <div>
-                    {this.props.store.isErrorObsSessions.toString()}
+                    {this.props.store.obsSessions.isErrorObsSessions.toString()}
                 </div>
             );
         } else if (this.props.store.obsSessions) {
             leftSideView = (
                 <div className={classes.sessionList}>
-                    <p>From redux: {this.props.store.num}</p>
+                    <p>From redux: {this.props.store.obsSessions.num}</p>
                     <button onClick={this.props.actions.increment}>Increment</button>
                     <button onClick={this.props.actions.decrement}>Decrement</button>
                     <ObsSessionList
-                        obsSessions={this.props.store.obsSessions || []}
+                        obsSessions={this.props.store.obsSessions.obsSessions || []}
                         onSelectObsSession={this.onSelectObsSession}
                     />
                 </div>
@@ -173,13 +174,13 @@ class ListView extends React.Component<IListViewProps, IListViewState> {
 
 const mapStateToProps = (state: IAppState) => {
     return {
-        store: state.obsSessions
+        store: state.data
     };
 };
 
 // export function mapDispatchToProps(dispatch: Dispatch<actions.ObsSessionAction>) {
 //     return {
-//         getObsSessionsBegin: () => dispatch(actions.getObsSessionsBegin()),
+//         getObsSessions: () => dispatch(actions.getObsSessions()),
 //         getObsSessionsSuccess: (obsSessions: IObsSession[]) => dispatch(actions.getObsSessionsSuccess(obsSessions)),
 //         getObsSessionsFailure: (error: string) => dispatch(actions.getObsSessionsFailure(error)),
 //         onIncrement: () => dispatch(actions.createIncrementAction()),

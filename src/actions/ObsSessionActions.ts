@@ -56,6 +56,22 @@ export type ObsSessionAction =
 // Action creators
 // ---------------------------------------------------------------
 
+// Attempt at a thunk
+// npm install thunk-redux (@types/thunk-redux)
+// import { ThunkAction } from "redux-thunk";
+// import Api from "../api/Api";
+// export const getObsSessionThunkAsync: ActionCreator<ThunkAction<Action, IObsSessionState, void, AnyAction>> = () => {
+//     return (dispatch: Dispatch<any>): void => {
+//         dispatch(getObsSessionsBegin());
+//         Api.getObsSessions().then(
+//             (response) => {
+//                 dispatch(getObsSessionsSuccess(response.data));
+//             }).catch(
+//                 (error) => dispatch(getObsSessionsFailure(error))
+//             );
+//     }
+// }
+
 export const getObsSessionsBegin: ActionCreator<IGetObsSessionsBeginAction> = () => ({
     type: constants.GET_OBSSESSIONS_BEGIN,
 });
@@ -92,7 +108,7 @@ export const decrement: ActionCreator<IDecrementNumAction> = () => ({
 // No need to actually define them since just using import * from actions and then passing actions
 // to bindActionCreators() will work as well. But this file must not contain any other consts.
 // export const ObsSessionActionCreators = {
-//     getObsSessionsBegin,
+//     getObsSessions,
 //     getObsSessionsSuccess,
 //     getObsSessionsFailure,
 //     increment,

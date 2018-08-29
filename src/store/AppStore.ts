@@ -1,27 +1,35 @@
 import { createStore, applyMiddleware } from "redux";
 // import { routerMiddleware } from "react-router-redux";
 import rootReducer from "../reducers/index";
-import { ObsSessionAction } from "../actions/actions";
+import { ObsSessionAction } from "../actions/ObsSessionActions";
 import { IAppState } from "../components/Types";
 // import { History } from "history";
 import reduxImmutableStateInvariant from "redux-immutable-state-invariant";
+import thunk from "redux-thunk";
 
-const initStore = () => {
-
-    const initialAppState: IAppState = {
+export const initialState: IAppState = {
+    data: {
         obsSessions: {
             obsSessions: [],
             isLoadingObsSessions: false,
             isErrorObsSessions: undefined,
-            num: 3
+            num: 3,
+        },
+        locations: {
+            locations: [],
+            isLoadingLocations: false,
+            isErrorLocations: undefined,
         }
-    };
+    }
+};
 
+const initStore = () => {
     const store = createStore<IAppState, ObsSessionAction, {}, {}>(
         rootReducer,
-        initialAppState,
+        initialState,
         applyMiddleware(
-            reduxImmutableStateInvariant()
+            reduxImmutableStateInvariant(),
+            thunk
             // routerMiddleware(),
             // routerMiddleware(history),
         ),
