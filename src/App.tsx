@@ -6,6 +6,7 @@ import { faHome, faPlus, faSearch, faTable, faBinoculars } from "@fortawesome/fr
 import { faCalendarAlt, faEdit } from "@fortawesome/free-regular-svg-icons";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import "typeface-roboto";
+//import "typeface-open-sans";
 import * as Routes from "./components/Routes";
 import { Provider } from "react-redux";
 import initStore from "./store/AppStore";

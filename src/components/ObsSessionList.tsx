@@ -35,7 +35,7 @@ class ObsSessionList extends React.Component<IObsSessionListProps> {
         const obsSessions = obsSessionsModifiable
           .sort(this.sortByDate)
           .map(o => (
-            <ObsSessionCard onSelectObsSessionCard={this.onSelectObsSessionCard} obsSession={o} />
+            <ObsSessionCard key={o.id} onSelectObsSessionCard={this.onSelectObsSessionCard} obsSession={o} />
           ));
 
         return (
