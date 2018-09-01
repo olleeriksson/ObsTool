@@ -30,6 +30,15 @@ export interface IDso {
     bchm?: string;
     dreyerDesc?: string;
     notes?: string;
+    numObservations?: number;
+    observations?: IObservation[];
+}
+
+export interface IPagedDsoList {
+    data: IDso[];
+    total: number;
+    count: number;
+    more: number;
 }
 
 export interface IObsSession {

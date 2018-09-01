@@ -7,7 +7,7 @@ import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
 import MenuItem from "@material-ui/core/MenuItem";
 import Api from "../api/Api";
-import { IDso } from "./Types";
+import { IDso, IPagedDsoList } from "./Types";
 import { debounce } from "lodash";
 import DsoLabel from "./DsoLabel";
 
@@ -120,32 +120,22 @@ class Search extends React.Component<ISearchProps, ISearchState> {
     private loadDsoFromApi(query: string) {
         Api.searchDso(query).then(
             (response) => {
-                const dsoList = response.data;
-                let suggestions: ISuggestion[];
-                const maxLength: number = 20;
+                const pagedResult: IPagedDsoList = response.data;
 
-                if (dsoList.length > maxLength) {
-                    const totalLength = dsoList.length;
-                    const moreLength = totalLength - maxLength;
+                const dsoList = pagedResult.data;
+                const suggestions = this.toSuggestions(dsoList);
 
-                    // Push a truncated suggestions list
-                    const truncatedDsoList = dsoList.slice(0, maxLength);
-                    suggestions = this.toSuggestions(truncatedDsoList);
-
-                    // Push the 'and more' element
+                // Push the 'and more' element if the list has been truncated
+                if (pagedResult.more > 0) {
                     const andMoreElem: ISuggestion = {
                         dso: undefined,
-                        altText: "... and " + moreLength + " more ..."
+                        altText: "... and " + pagedResult.more + " more ..."
                     };
                     suggestions.push(andMoreElem);
-                } else {
-                    suggestions = this.toSuggestions(dsoList);
                 }
 
                 // Push to state
-                this.setState({
-                    suggestions: suggestions
-                });
+                this.setState({ suggestions: suggestions });
 
             }).catch(
                 (error) => {

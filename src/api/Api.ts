@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IDso } from "../components/Types";
+import { IObsSession, ILocation, IPagedDsoList } from "../components/Types";
 import axios from "axios";
 
 class Api {
@@ -32,7 +32,7 @@ class Api {
     }
 
     public static searchDso(query: string) {
-        return axios.get<IDso[]>("http://localhost:50995/api/dso?query=" + query);
+        return axios.get<IPagedDsoList>("http://localhost:50995/api/dso?query=" + query);
     }
 }
 

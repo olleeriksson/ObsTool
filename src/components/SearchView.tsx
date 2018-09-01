@@ -6,11 +6,11 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
-import { IDso } from "./Types";
+import { IDso, IPagedDsoList } from "./Types";
 import Api from "../api/Api";
 import { debounce } from "lodash";
 // import DsoExtended from "./DsoExtended";
-import DsoLabel from "./DsoLabel";
+import DynamicDsoLabel from "./DynamicDsoLabel";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -23,6 +23,10 @@ const styles = (theme: Theme) => createStyles({
         margin: theme.spacing.unit * 1,
         width: "95%"
     },
+    badge: {
+        top: 20,
+        right: -15,
+    }
 });
 
 interface ISearchViewProps extends WithStyles<typeof styles> {
@@ -59,22 +63,10 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
     private loadDsoFromApi(query: string) {
         Api.searchDso(query).then(
             (response) => {
-                const dsoList = response.data;
-                const maxLength: number = 10;
+                const pagedResult: IPagedDsoList = response.data;
 
-                const totalLength = dsoList.length;
-
-                const moreHits = totalLength > maxLength ? totalLength - maxLength : 0;
-                this.setState({ moreHits: moreHits });
-
-                // Push a truncated suggestions list
-                const truncatedDsoList = dsoList.slice(0, maxLength);
-
-                // Push to state
-                this.setState({
-                    dsoList: truncatedDsoList
-                });
-
+                this.setState({ moreHits: pagedResult.more });
+                this.setState({ dsoList: pagedResult.data });
             }).catch(
                 (error) => {
                     this.setState({ isError: true });
@@ -110,14 +102,7 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
                 );
             }
 
-            if (this.state.dsoList.length > 0) {
-                searchResult = this.state.dsoList.map(dso => (
-                    <Grid key={dso.id} item={true} xs={12}>
-                        <DsoLabel dso={dso} />
-                        {/* <DsoExtended dso={dso} /> */}
-                    </Grid>
-                ));
-            } else {
+            if (this.state.dsoList.length === 0) {  // No matches
                 searchResult = (
                     <Grid key={-1} item={true} xs={12}>
                         <Typography color="textSecondary" style={{ marginTop: 20 }}>
@@ -125,6 +110,18 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
                         </Typography>
                     </Grid>
                 );
+            } else if (this.state.dsoList.length === 1) {  // Exactly one match
+                searchResult = this.state.dsoList.map(dso => (
+                    <Grid key={dso.id} item={true} xs={12}>
+                        <DynamicDsoLabel dso={dso} showBadge={true} showObservations={true} />
+                    </Grid>
+                ));
+            } else {   // Several matches
+                searchResult = this.state.dsoList.map(dso => (
+                    <Grid key={dso.id} item={true} xs={12}>
+                        <DynamicDsoLabel dso={dso} showBadge={true} showObservations={false} />
+                    </Grid>
+                ));
             }
 
             searchResultPaper = (
