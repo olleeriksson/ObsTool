@@ -3,7 +3,6 @@ import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import ObsSessionPage from "./ObsSessionPage";
 
@@ -38,10 +37,7 @@ class SingleObsSessionView extends React.Component<ISingleObsSessionViewProps> {
         const { classes } = this.props;
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={40} alignItems="flex-start">
-                <Grid item={true} xs={12} sm={4} className={classes.column}>
-                    <Typography />
-                </Grid>
+            <Grid container={true} spacing={40} justify="center">
                 <Grid item={true} xs={12} sm={8} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
                         <ObsSessionPage obsSessionId={this.props.match.params.obsSessionId} />

@@ -3,7 +3,6 @@ import "./Observation.css";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import EditIcon from "@material-ui/icons/Edit";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IObservation } from "./Types";
 import Grid from "@material-ui/core/Grid";
@@ -14,6 +13,7 @@ import IconButton from "@material-ui/core/IconButton";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import classNames from "classnames";
 import DsoExtended from "./DsoExtended";
+import ObservationSecondary from "./ObservationSecondary";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -64,12 +64,11 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       isExpanded: false,
     };
 
-    this.handleExpandClick = this.handleExpandClick.bind(this);
     this.handleClickOnObservation = this.handleClickOnObservation.bind(this);
+    this.handleExpandClick = this.handleExpandClick.bind(this);
   }
 
   private handleClickOnObservation = () => {
-    console.log("Clicked an observation");
   }
 
   private handleExpandClick = () => {
@@ -81,65 +80,71 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
     let expandedGridItem;
     if (this.state.isExpanded) {
+
+      let otherObservations;
+      if (this.props.observation.otherObservations) {
+        otherObservations = this.props.observation.otherObservations.map(otherObs =>
+          <ObservationSecondary key={otherObs.id} observation={otherObs} />
+        );
+      }
+
       expandedGridItem = (
-        <Grid item={true}>
-          <Typography>
-            Heat oil in a (14- to 16-inch) paella pan or a large, deep skillet over medium-high
-            heat. Add chicken, shrimp and chorizo, and cook, stirring occasionally until lightly
-            browned, 6 to 8 minutes. Transfer shrimp to a large plate and set aside, leaving
-            chicken and chorizo in the pan. Add pimentón, bay leaves, garlic, tomatoes, onion,
-            salt and pepper, and cook, stirring often until thickened and fragrant, about 10
-            minutes. Add saffron broth and remaining 4 1/2 cups chicken broth; bring to a boil.
+        <Grid item={true} xs={12}>
+          <Typography gutterBottom={true} variant="subheading">
+            <strong>Other (earlier) observations</strong>
           </Typography>
-          <Typography>
-            Add rice and stir very gently to distribute. Top with artichokes and peppers, and cook
-            without stirring, until most of the liquid is absorbed, 15 to 18 minutes. Reduce heat
-            to medium-low, add reserved shrimp and mussels, tucking them down into the rice, and
-            cook again without stirring, until mussels have opened and rice is just tender, 5 to 7
-            minutes more. (Discard any mussels that don’t open.)
-          </Typography>
+          {otherObservations}
         </Grid>
+      );
+    }
+
+    let expandButton;
+    if (this.props.observation.otherObservations && this.props.observation.otherObservations.length > 0) {
+      expandButton = (
+        <IconButton
+          className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
+          onClick={this.handleExpandClick}
+          aria-expanded={this.state.isExpanded}
+          aria-label="Show more"
+        >
+          <ExpandMoreIcon />
+        </IconButton>
       );
     }
 
     return (
       <Paper className={classes.root}>
-        <Grid container={true} spacing={16}>
-          <Grid item={true}>
-            <ButtonBase className={classes.image}>
-              <Typography gutterBottom={true} variant="display2">
-                <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" />
-              </Typography>
-            </ButtonBase>
-          </Grid>
-          <Grid item={true} xs={12} sm={true}>
-            <Grid container={true} direction="column" spacing={16}>
-              <Grid item={true} xs={true}>
-                <DsoExtended dso={this.props.observation.dso} />
-                <Typography >
-                  {this.props.observation.text}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-          <Grid item={true}>
-            <Grid container={true} direction="column">
+        <Grid container={true} spacing={16} direction="column">
+          <Grid item={true} xs={12}>
+            <Grid container={true} spacing={16}>
               <Grid item={true}>
-                <IconButton
-                  onClick={this.handleClickOnObservation}
-                >
-                  <EditIcon />
-                </IconButton>
+                <ButtonBase className={classes.image}>
+                  <Typography gutterBottom={true} variant="display2">
+                    <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" />
+                  </Typography>
+                </ButtonBase>
+              </Grid>
+              <Grid item={true} xs={12} sm={true}>
+                <Grid container={true} direction="column" spacing={16}>
+                  <Grid item={true} xs={true}>
+                    <DsoExtended dso={this.props.observation.dso} />
+                    <Typography >
+                      {this.props.observation.text}
+                    </Typography>
+                  </Grid>
+                </Grid>
               </Grid>
               <Grid item={true}>
-                <IconButton
-                  className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
-                  onClick={this.handleExpandClick}
-                  aria-expanded={this.state.isExpanded}
-                  aria-label="Show more"
-                >
-                  <ExpandMoreIcon />
-                </IconButton>
+                <Grid container={true} direction="column">
+                  <Grid item={true}>
+                    <IconButton onClick={this.handleClickOnObservation} >
+                      <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
+                    </IconButton>
+                  </Grid>
+                  <Grid item={true}>
+                    {expandButton}
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
           </Grid>

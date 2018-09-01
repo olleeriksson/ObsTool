@@ -268,6 +268,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             );
         }
 
+        const listTabLabel = "View observed objects (" +
+            (this.state.obsSession.observations && this.state.obsSession.observations.length || 0) + ")";
+
         return (
             <div className="circularProgressSuperContainer">
                 {circularProgress}
@@ -309,7 +312,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         centered={true}
                     >
                         <Tab label="Session data" />
-                        <Tab label="View observed objects" />
+                        <Tab label={listTabLabel} />
                     </Tabs>
                     <SwipeableViews
                         axis={"x"}

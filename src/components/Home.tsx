@@ -13,6 +13,7 @@ import Typography from "@material-ui/core/Typography";
 import logo from "./../obstool-logo.png";
 import "./Layout.css";
 import { Link } from "react-router-dom";
+import Search from "./Search";
 
 const styles = (theme: Theme) => createStyles({
     header: {
@@ -66,7 +67,14 @@ class Home extends React.Component<IHomeProps> {
                     </div>
                 </Grid>
             </Grid>
-            {/* First row */}
+            <Grid container={true} alignItems="flex-start" justify="center">
+                <Grid item={true} xs={12} sm={6} md={3}>
+                    <div style={{ height: 70 }}>
+                        <Search />
+                    </div>
+                </Grid>
+            </Grid>
+            {/* First/second row */}
             <Grid container={true} spacing={40} justify="center">
                 <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
@@ -120,7 +128,7 @@ class Home extends React.Component<IHomeProps> {
                     </Card>
                 </Grid>
             </Grid>
-            {/* Second row */}
+            {/* Second/third row */}
             <Grid container={true} alignItems="flex-start" justify="center">
                 <Grid item={true} xs={12} sm={6} md={4}>
                     <StatisticsTable />

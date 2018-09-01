@@ -3,6 +3,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import axios from "axios";
 import { IDso } from "./Types";
 import Typography from "@material-ui/core/Typography";
+import CosmosIcon from "../cosmos.svg";
 
 export interface IDsoExtendedProps {
   id?: number;
@@ -96,15 +97,16 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
       );
     } else {
       if (this.state.dso) {
+        const otherNames = this.state.dso.otherNames && this.state.dso.otherNames.trim() !== "" && "(" + this.state.dso.otherNames + ")";
         const commonName = this.state.dso.commonName && (" - " + this.state.dso.commonName);
         const sizeSeparator = this.state.dso.sizeMax && this.state.dso.sizeMax.trim() !== "" && this.state.dso.sizeMin && this.state.dso.sizeMin.trim() !== "" && " - ";
 
         return (
           <div className="dsoExtended">
             <Typography variant="subheading">
-              {this.state.dso.name} ({this.state.dso.otherNames}) {commonName}
+              <img src={CosmosIcon} width="20" height="20" /> {this.state.dso.name} {otherNames} {commonName}
             </Typography>
-            <Typography color="textSecondary" gutterBottom={true}>
+            <Typography color="textSecondary">
               <strong>Type:</strong> {this.state.dso.type} &nbsp;
               <strong>Const:</strong> {this.state.dso.con} &nbsp;
               <strong>Mag:</strong> {this.state.dso.mag} &nbsp;

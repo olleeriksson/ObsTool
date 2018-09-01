@@ -3,6 +3,8 @@ export interface IObservation {
     dso: IDso;
     customObjectName: string;
     text: string;
+    obsSession?: IObsSession;
+    otherObservations?: IObservation[];
 }
 
 export interface IDso {

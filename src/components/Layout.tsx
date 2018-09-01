@@ -13,6 +13,7 @@ import logo from "./../obstool-logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Layout.css";
 import { Link } from "react-router-dom";
+import Search from "./Search";
 
 const styles = (theme: Theme) => createStyles({
     appBar: {
@@ -58,7 +59,6 @@ class Layout extends React.Component<ILayoutProps, {}> {
         const LinkToHome = (props: any) => <Link to="/" {...props} />;
         const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
         const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
-        const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
 
         return <div>
             <CssBaseline />
@@ -70,7 +70,9 @@ class Layout extends React.Component<ILayoutProps, {}> {
                     <Button component={LinkToHome}><FontAwesomeIcon icon="home" className="faSpaceAfter" />Home</Button>
                     <Button component={LinkToSessions}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions</Button>
                     <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session</Button>
-                    <Button component={LinkToSearch}><FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search observations</Button>
+                    <div style={{ width: 180, marginLeft: 20, marginRight: 20 }}>
+                        <Search />
+                    </div>
                     <Button color="primary" variant="outlined">
                         Login
                     </Button>
