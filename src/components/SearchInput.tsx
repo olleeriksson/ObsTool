@@ -9,7 +9,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Api from "../api/Api";
 import { IDso, IPagedDsoList } from "./Types";
 import { debounce } from "lodash";
-import DsoLabel from "./DsoLabel";
+import DynamicDsoLabel from "./DynamicDsoLabel";
 
 // #########################################################
 // Read more about Autosuggest here:
@@ -48,7 +48,7 @@ function renderSuggestion(suggestion: ISuggestion, param: Autosuggest.RenderSugg
     if (suggestion.dso) {
         return (
             <MenuItem selected={isHighlighted} component="div">
-                <DsoLabel dso={suggestion.dso} />
+                <DynamicDsoLabel dso={suggestion.dso} showBadge={true} showObservations={false} />
             </MenuItem>
         );
     } else {
@@ -93,16 +93,16 @@ const styles = (theme: Theme) => createStyles({
     }
 });
 
-interface ISearchProps extends WithStyles<typeof styles> {
+interface ISearchInputProps extends WithStyles<typeof styles> {
 }
 
-interface ISearchState {
+interface ISearchInputState {
     single: string;
     suggestions: any;
 }
 
-class Search extends React.Component<ISearchProps, ISearchState> {
-    constructor(props: ISearchProps) {
+class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> {
+    constructor(props: ISearchInputProps) {
         super(props);
 
         this.state = {
@@ -239,4 +239,4 @@ class Search extends React.Component<ISearchProps, ISearchState> {
     }
 }
 
-export default withStyles(styles)(Search);
+export default withStyles(styles)(SearchInput);

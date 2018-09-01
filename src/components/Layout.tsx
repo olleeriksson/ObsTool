@@ -13,7 +13,7 @@ import logo from "./../obstool-logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Layout.css";
 import { Link } from "react-router-dom";
-import Search from "./Search";
+import SearchInput from "./SearchInput";
 
 const styles = (theme: Theme) => createStyles({
     appBar: {
@@ -59,6 +59,13 @@ class Layout extends React.Component<ILayoutProps, {}> {
         const LinkToHome = (props: any) => <Link to="/" {...props} />;
         const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
         const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
+        const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
+
+        // const loginButton = (
+        //     <Button color="primary" variant="outlined">
+        //         Login
+        //     </Button>;
+        // );
 
         return <div>
             <CssBaseline />
@@ -67,15 +74,13 @@ class Layout extends React.Component<ILayoutProps, {}> {
                     <Typography variant="display1" color="inherit" noWrap={false} className={classes.toolbarTitle}>
                         <img src={logo} className="logo-appbar" alt="logo" /> ObsTool
                     </Typography>
+                    <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>
+                        <SearchInput />
+                    </div>
                     <Button component={LinkToHome}><FontAwesomeIcon icon="home" className="faSpaceAfter" />Home</Button>
                     <Button component={LinkToSessions}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions</Button>
                     <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session</Button>
-                    <div style={{ width: 180, marginLeft: 20, marginRight: 20 }}>
-                        <Search />
-                    </div>
-                    <Button color="primary" variant="outlined">
-                        Login
-                    </Button>
+                    <Button component={LinkToSearch}><FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search</Button>
                 </Toolbar>
             </AppBar>
             <main className={classes.layout}>

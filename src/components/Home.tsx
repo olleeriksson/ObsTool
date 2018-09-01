@@ -13,7 +13,7 @@ import Typography from "@material-ui/core/Typography";
 import logo from "./../obstool-logo.png";
 import "./Layout.css";
 import { Link } from "react-router-dom";
-import Search from "./Search";
+import SearchInput from "./SearchInput";
 
 const styles = (theme: Theme) => createStyles({
     header: {
@@ -70,7 +70,7 @@ class Home extends React.Component<IHomeProps> {
             <Grid container={true} alignItems="flex-start" justify="center">
                 <Grid item={true} xs={12} sm={6} md={3}>
                     <div style={{ height: 70 }}>
-                        <Search />
+                        <SearchInput />
                     </div>
                 </Grid>
             </Grid>
@@ -114,7 +114,7 @@ class Home extends React.Component<IHomeProps> {
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="title" color="textSecondary" align="center">
-                                <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search observations
+                                <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search
                             </Typography>
                             <Typography variant="subheading" align="center">
                                 Search existing observations or deepsky objects
