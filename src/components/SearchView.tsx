@@ -11,6 +11,10 @@ import Api from "../api/Api";
 import { debounce } from "lodash";
 // import DsoExtended from "./DsoExtended";
 import DynamicDsoLabel from "./DynamicDsoLabel";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
+import { IAppState, ReadonlyDataState } from "./Types";
+import * as actions from "../actions/SearchActions";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -31,7 +35,15 @@ const styles = (theme: Theme) => createStyles({
 
 interface ISearchViewProps extends WithStyles<typeof styles> {
     obsSessionId: number;
+
+    // Routing
     match: { params: any };
+    location: any;
+
+    // Redux
+    store: ReadonlyDataState;
+    actions: any;
+    dispatch?: any;
 }
 
 interface ISearchViewState {
@@ -57,11 +69,28 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
         this.loadDsoFromApi = debounce(this.loadDsoFromApi, 300);
     }
 
+    private receiveAndResetSearchQueryFromRedux(queryFromRedux: string) {
+        this.setState({ query: queryFromRedux });
+        this.loadDsoFromApi(queryFromRedux);
+
+        // Then clear it in the redux store
+        this.props.actions.clearSearch();
+    }
+
     public componentDidMount() {
+        this.receiveAndResetSearchQueryFromRedux(this.props.store.searchQuery || "");
+    }
+
+    public componentWillReceiveProps(nextProps: ISearchViewProps) {
+        // If as new search query arrived from the redux store
+        const newQueryFromRedux = nextProps.store.searchQuery;
+        if (newQueryFromRedux && newQueryFromRedux !== this.props.store.searchQuery && newQueryFromRedux !== "") {
+            this.receiveAndResetSearchQueryFromRedux(newQueryFromRedux);
+        }
     }
 
     private loadDsoFromApi(query: string) {
-        Api.searchDso(query).then(
+        Api.searchDso(this.state.query).then(
             (response) => {
                 const pagedResult: IPagedDsoList = response.data;
 
@@ -154,4 +183,21 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
     }
 }
 
-export default withStyles(styles)(SearchView);
+const mapStateToProps = (state: IAppState) => {
+    return {
+        store: state.data as ReadonlyDataState
+    };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<actions.SearchAction>) => {
+    return {
+        actions: bindActionCreators(
+            actions,
+            dispatch
+        )
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(SearchView));
+// Non-redux way:
+//export default withStyles(styles)(SearchView);

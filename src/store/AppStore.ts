@@ -15,6 +15,7 @@ const initialDataState: IDataState = {
     locations: undefined,
     isLoadingLocations: false,
     isErrorLocations: undefined,
+    searchQuery: "",
 };
 
 const initialAppState: IAppState = {

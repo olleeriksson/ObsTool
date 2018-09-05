@@ -46,15 +46,19 @@ const styles = (theme: Theme) => createStyles({
 
 export interface ILayoutProps extends WithStyles<typeof styles> {
     children?: React.ReactNode;
+    location?: any;
 }
 
-class Layout extends React.Component<ILayoutProps, {}> {
+class Layout extends React.Component<ILayoutProps> {
     constructor(props: ILayoutProps) {
         super(props);
     }
 
     public render() {
         const { classes } = this.props;
+
+        console.log("Location found in Layout");
+        console.log(this.props.location);
 
         const LinkToHome = (props: any) => <Link to="/" {...props} />;
         const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
@@ -67,6 +71,9 @@ class Layout extends React.Component<ILayoutProps, {}> {
         //     </Button>;
         // );
 
+        // Hack because I couldn't get withRouter() to work with Typescript
+        const weAreOnSearchView = this.props.location.pathname === "/search";
+
         return <div>
             <CssBaseline />
             <AppBar position="static" color="default" className={classes.appBar}>
@@ -75,7 +82,7 @@ class Layout extends React.Component<ILayoutProps, {}> {
                         <img src={logo} className="logo-appbar" alt="logo" /> ObsTool
                     </Typography>
                     <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>
-                        <SearchInput />
+                        <SearchInput onSearchView={weAreOnSearchView} />
                     </div>
                     <Button component={LinkToHome}><FontAwesomeIcon icon="home" className="faSpaceAfter" />Home</Button>
                     <Button component={LinkToSessions}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions</Button>

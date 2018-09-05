@@ -14,6 +14,10 @@ import {
     IGetLocationsSuccessAction,
     IGetLocationsFailureAction
 } from "../actions/LocationActions";
+import {
+    SearchAction,
+    ISearchAction
+} from "../actions/SearchActions";
 import * as constants from "../types/Constants";
 // import { initialAppState, initialDataState } from "../store/AppStore";
 
@@ -25,9 +29,10 @@ const initialDataState: IDataState = {
     locations: undefined,
     isLoadingLocations: false,
     isErrorLocations: undefined,
+    searchQuery: "",
 };
 
-type DataAction = ObsSessionAction | LocationAction;
+type DataAction = ObsSessionAction | LocationAction | SearchAction;
 
 const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, action: DataAction) => {
 
@@ -117,12 +122,23 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             };
         }
         case constants.GET_LOCATIONS_FAILURE:
-            const action11: IGetLocationsFailureAction = action as IGetLocationsFailureAction;
+            const action11 = action as IGetLocationsFailureAction;
             return {
                 ...state,
                 locations: [],   //???
                 isLoadingLocations: false,
                 isErrorLocations: action11.payload.error,
+            };
+        case constants.SEARCH:
+            const searchAction = action as ISearchAction;
+            return {
+                ...state,
+                searchQuery: searchAction.payload.query
+            };
+        case constants.CLEAR_SEARCH:
+            return {
+                ...state,
+                searchQuery: ""
             };
         default:
             return state;

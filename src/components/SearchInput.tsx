@@ -10,6 +10,11 @@ import Api from "../api/Api";
 import { IDso, IPagedDsoList } from "./Types";
 import { debounce } from "lodash";
 import DynamicDsoLabel from "./DynamicDsoLabel";
+import { Redirect } from "react-router-dom";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
+import { IAppState, ReadonlyDataState } from "./Types";
+import * as actions from "../actions/SearchActions";
 
 // #########################################################
 // Read more about Autosuggest here:
@@ -94,11 +99,16 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface ISearchInputProps extends WithStyles<typeof styles> {
+    onSearchView?: boolean;  // hack since I can't get hold of react-router-dom's location parameter it seems
+    store: ReadonlyDataState;
+    actions: any;
+    dispatch?: any;
 }
 
 interface ISearchInputState {
     single: string;
     suggestions: any;
+    redirectToSearchPage: boolean;
 }
 
 class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> {
@@ -108,6 +118,7 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
         this.state = {
             single: "",
             suggestions: [],
+            redirectToSearchPage: false
         };
 
         this.loadDsoFromApi = debounce(this.loadDsoFromApi, 300);
@@ -164,9 +175,8 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
     }
 
     private onSuggestionSelected = (event: any, params: Autosuggest.SuggestionSelectedEventData<ISuggestion>) => {
-        const { suggestionValue } = params;
-        console.log("Suggestionvalue: ");
-        console.log(suggestionValue);
+        this.props.actions.search(params.suggestionValue);
+        this.setState({ redirectToSearchPage: true });
     }
 
     private onSuggestionHighlighted = (param: Autosuggest.SuggestionHighlightedParams) => {
@@ -187,11 +197,19 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
 
     private onFormSubmit = (e: any) => {
         e.preventDefault();
-        console.log("User pressed enter at " + this.state.single);
+        // Clicking without actively selecting a suggestion also redirects
+        this.props.actions.search(this.state.single);
+        this.setState({ redirectToSearchPage: true });
     }
 
     public render() {
         const { classes } = this.props;
+
+        // Redirects
+        //-----------------------------------
+        if (this.state.redirectToSearchPage && !this.props.onSearchView) {
+            return <Redirect to="/search" />;
+        }
 
         const autosuggestProps = {
             renderInputComponent,
@@ -239,4 +257,21 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
     }
 }
 
-export default withStyles(styles)(SearchInput);
+const mapStateToProps = (state: IAppState) => {
+    return {
+        store: state.data as ReadonlyDataState
+    };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<actions.SearchAction>) => {
+    return {
+        actions: bindActionCreators(
+            actions,
+            dispatch
+        )
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(SearchInput));
+// Non-redux way:
+//export default withStyles(styles)(SearchInput);

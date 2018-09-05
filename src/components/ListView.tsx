@@ -137,16 +137,6 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-// export function mapDispatchToProps(dispatch: Dispatch<actions.ObsSessionAction>) {
-//     return {
-//         getObsSessions: () => dispatch(actions.getObsSessions()),
-//         getObsSessionsSuccess: (obsSessions: IObsSession[]) => dispatch(actions.getObsSessionsSuccess(obsSessions)),
-//         getObsSessionsFailure: (error: string) => dispatch(actions.getObsSessionsFailure(error)),
-//         onIncrement: () => dispatch(actions.createIncrementAction()),
-//         onDecrement: () => dispatch(actions.createDecrementAction()),
-//     };
-// }
-
 const mapDispatchToProps = (dispatch: Dispatch<actions.ObsSessionAction>) => {
     return {
         actions: bindActionCreators(

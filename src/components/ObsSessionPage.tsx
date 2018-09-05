@@ -205,10 +205,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     private handleDeleteDialogClosed = (confirm: boolean) => {
         this.setState({ isDeleteDialogOpen: false });
         if (confirm) {
-            console.log("Delete");
             this.deleteObsSession();
-        } else {
-            console.log("Cancel delete");
         }
     }
 
@@ -271,10 +268,14 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         const listTabLabel = "View observed objects (" +
             (this.state.obsSession.observations && this.state.obsSession.observations.length || 0) + ")";
 
+        const deleteDialogTitle = "Delete " + (this.state.obsSession && this.state.obsSession.title) + "?";
+        const deleteDialogText = "Are you sure you want to delete the observation session titled " +
+            (this.state.obsSession && this.state.obsSession.title) + "?";
+
         return (
             <div className="circularProgressSuperContainer">
                 {circularProgress}
-                <DeleteDialog isOpen={this.state.isDeleteDialogOpen} obsSession={this.state.obsSession} onHandleClose={this.handleDeleteDialogClosed} />
+                <DeleteDialog isOpen={this.state.isDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleDeleteDialogClosed} />
                 <div className={classes.root} >
                     <div className={classes.header}>
                         <Grid container={true} direction="row">

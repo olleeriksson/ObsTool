@@ -44,3 +44,11 @@ export type GET_LOCATIONS_SUCCESS = typeof GET_LOCATIONS_SUCCESS;
 
 export const GET_LOCATIONS_FAILURE = "GET_LOCATIONS_FAILURE";
 export type GET_LOCATIONS_FAILURE = typeof GET_LOCATIONS_FAILURE;
+
+// Search
+
+export const SEARCH = "SEARCH";
+export type SEARCH = typeof SEARCH;
+
+export const CLEAR_SEARCH = "CLEAR_SEARCH";
+export type CLEAR_SEARCH = typeof CLEAR_SEARCH;

@@ -5,11 +5,11 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { IObsSession } from "./Types";
 
 interface IDeleteDialogProps {
     isOpen: boolean;
-    obsSession?: IObsSession;
+    title: string;
+    text: string;
     onHandleClose: (confirm: boolean) => void;
 }
 
@@ -34,11 +34,10 @@ class DeleteDialog extends React.Component<IDeleteDialogProps> {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">Delete "{this.props.obsSession && this.props.obsSession.title}"?</DialogTitle>
+                <DialogTitle id="alert-dialog-title">{this.props.title}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to delete the observation session titled
-                        "{this.props.obsSession && this.props.obsSession.title}"?
+                        {this.props.text}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

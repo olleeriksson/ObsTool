@@ -14,6 +14,7 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import classNames from "classnames";
 import DsoExtended from "./DsoExtended";
 import ObservationSecondary from "./ObservationSecondary";
+import ImageList from "./ImageList";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -131,6 +132,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                     <Typography >
                       {this.props.observation.text}
                     </Typography>
+                    <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} />
                   </Grid>
                 </Grid>
               </Grid>

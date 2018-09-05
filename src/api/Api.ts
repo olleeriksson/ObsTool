@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IPagedDsoList } from "../components/Types";
+import { IObsSession, ILocation, IPagedDsoList, IObsResource } from "../components/Types";
 import axios from "axios";
 
 class Api {
@@ -33,6 +33,22 @@ class Api {
 
     public static searchDso(query: string) {
         return axios.get<IPagedDsoList>("http://localhost:50995/api/dso?query=" + query);
+    }
+
+    public static getResources(observationId: number) {
+        return axios.get<IObsResource[]>("http://localhost:50995/api/observations/" + observationId + "/resources");
+    }
+
+    public static addResource(observationId: number, newResource: IObsResource) {
+        return axios.post<IObsResource>("http://localhost:50995/api/observations/" + observationId + "/resources", newResource);
+    }
+
+    public static updateResource(newResource: IObsResource) {
+        return axios.put<IObsResource>("http://localhost:50995/api/resources/" + newResource.id, newResource);
+    }
+
+    public static deleteResource(resourceId: number) {
+        return axios.delete("http://localhost:50995/api/resources/" + resourceId);
     }
 }
 

@@ -5,6 +5,14 @@ export interface IObservation {
     text: string;
     obsSession?: IObsSession;
     otherObservations?: IObservation[];
+    obsResources?: IObsResource[];
+}
+
+export interface IObsResource {
+    id?: number;
+    type: string;
+    name?: string;
+    url?: string;
 }
 
 export interface IDso {
@@ -84,6 +92,7 @@ export interface IDataState {
     locations?: ILocation[];
     isLoadingLocations: boolean;
     isErrorLocations?: string;
+    searchQuery?: string;
 }
 
 export interface IReadonlyDataState {
@@ -94,6 +103,7 @@ export interface IReadonlyDataState {
     locations?: ILocation[];
     isLoadingLocations: boolean;
     isErrorLocations?: string;
+    searchQuery?: string;
 }
 
 export type ReadonlyDataState = Readonly<IReadonlyDataState>;
