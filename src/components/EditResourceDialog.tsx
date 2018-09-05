@@ -6,7 +6,6 @@ import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { IObsResource } from "./Types";
 import TextField from "@material-ui/core/TextField";
@@ -26,11 +25,20 @@ import Grid from "@material-ui/core/Grid";
 const styles = (theme: Theme) => createStyles({
     root: {
     },
-    imageContainer: {
+    imagePreviewContainer: {
+        border: "2px dashed lightgray",
+        padding: 5,
+        minWidth: 400,
+        minHeight: 400,
+    },
+    linkPreviewContainer: {
+        border: "2px dashed lightgray",
+        padding: 5,
+        minWidth: 400,
+        minHeight: 400,
     },
     image: {
-        border: 1,
-        width: 200,
+        maxWidth: 700
     },
     formControl: {
         margin: theme.spacing.unit * 3,
@@ -86,7 +94,21 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         };
     }
 
+    private resetState = () => {
+        this.state = {
+            isLoading: false,
+            isError: false,
+            isConfirmDeleteDialogOpen: false,
+            type: "sketch",
+            name: "",
+            url: ""
+        };
+    }
+
     public componentWillReceiveProps(nextProps: IEditResourceDialogProps) {
+        if (!nextProps.resource) {
+            this.resetState();
+        }
         if (nextProps.resource && this.props.resource !== nextProps.resource) {
             // Load from new object
             this.setState({
@@ -175,9 +197,19 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
     public render() {
         const { classes } = this.props;
 
-        let imagePreview;
-        if (this.state.url && (this.state.type === "sketch" || this.state.type === "image")) {
-            imagePreview = <img src={this.state.url} title={this.state.name} className={classes.image} />;
+        let preview;
+        if ((this.state.type === "sketch" || this.state.type === "image")) {
+            preview = (
+                <div className={classes.linkPreviewContainer}>
+                    <img src={this.state.url} title={this.state.name} className={classes.image} />
+                </div>
+            );
+        } else {
+            preview = (
+                <div className={classes.imagePreviewContainer}>
+                    <a href={this.state.url} title={this.state.name}>{this.state.name}</a>
+                </div>
+            );
         }
 
         let error;
@@ -209,49 +241,61 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                 onClose={this.handleCloseDiscard}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
+                maxWidth={false}
             >
                 <DialogTitle id="alert-dialog-title">{this.props.resource ? "Edit" : "New"} Resource</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Hey hey
-                    </DialogContentText>
-                    <FormControl component="fieldset" className={classes.formControl}>
-                        <FormLabel component="legend">Type</FormLabel>
-                        <RadioGroup
-                            aria-label="Type"
-                            name="type"
-                            className={classes.group}
-                            value={this.state.type}
-                            onChange={this.handleChange("type")}
-                        >
-                            <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
-                            <FormControlLabel value="image" control={<Radio />} label="Image" />
-                            <FormControlLabel value="link" control={<Radio />} label="Link" />
-                        </RadioGroup>
-                    </FormControl>
-                    {imagePreview}
-                    <TextField
-                        autoFocus={true}
-                        margin="dense"
-                        id="name"
-                        name="name"
-                        label="Name"
-                        type="text"
-                        fullWidth={true}
-                        onChange={this.handleChange("name")}
-                        value={this.state.name}
-                    />
-                    <TextField
-                        autoFocus={true}
-                        margin="dense"
-                        id="url"
-                        name="url"
-                        label="url"
-                        type="text"
-                        fullWidth={true}
-                        onChange={this.handleChange("url")}
-                        value={this.state.url}
-                    />
+                    <Grid container={true} spacing={8} direction="column">
+                        <Grid item={true} style={{ flex: 1 }}>
+                            <Grid container={true} spacing={8} direction="row">
+                                <Grid item={true}>
+                                    <FormControl component="fieldset" className={classes.formControl}>
+                                        <FormLabel component="legend">Type</FormLabel>
+                                        <RadioGroup
+                                            aria-label="Type"
+                                            name="type"
+                                            className={classes.group}
+                                            value={this.state.type}
+                                            onChange={this.handleChange("type")}
+                                        >
+                                            <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
+                                            <FormControlLabel value="image" control={<Radio />} label="Image" />
+                                            <FormControlLabel value="link" control={<Radio />} label="Link" />
+                                        </RadioGroup>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item={true} style={{ flex: 1 }}>
+                                    {preview}
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                        <Grid item={true} xs={12}>
+                            <TextField
+                                autoFocus={true}
+                                margin="dense"
+                                id="name"
+                                name="name"
+                                label="Name"
+                                type="text"
+                                fullWidth={true}
+                                onChange={this.handleChange("name")}
+                                value={this.state.name}
+                            />
+                        </Grid>
+                        <Grid item={true} xs={12}>
+                            <TextField
+                                autoFocus={true}
+                                margin="dense"
+                                id="url"
+                                name="url"
+                                label="url"
+                                type="text"
+                                fullWidth={true}
+                                onChange={this.handleChange("url")}
+                                value={this.state.url}
+                            />
+                        </Grid>
+                    </Grid>
                 </DialogContent>
                 <DialogActions>
                     <Grid container={true} spacing={8} direction="row">

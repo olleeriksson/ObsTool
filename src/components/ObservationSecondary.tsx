@@ -11,6 +11,7 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import IconButton from "@material-ui/core/IconButton";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import classNames from "classnames";
+import ImageList from "./ImageList";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -74,21 +75,15 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     if (this.state.isExpanded) {
       expandedGridItem = (
         <Grid item={true} xs={12}>
-          <Typography>
-            (...Not sure what to expose here.. maybe photos and sketches..)
-          </Typography>
-          <Typography>
-            Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum
-            Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum
-          </Typography>
+          <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} />
         </Grid>
       );
     }
 
     return (
-      <Grid container={true} spacing={16} direction="column">
+      <Grid container={true} spacing={0} direction="column">
         <Grid item={true} xs={12}>
-          <Grid container={true} spacing={16} direction="row">
+          <Grid container={true} spacing={0} direction="row">
             <Grid item={true}>
               <ButtonBase className={classes.image}>
                 <Typography gutterBottom={false} variant="title">
@@ -107,6 +102,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
                     {this.props.observation.text}
                   </Typography>
                 </Grid>
+                {expandedGridItem}
               </Grid>
             </Grid>
             <Grid item={true}>
@@ -125,7 +121,6 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
             </Grid>
           </Grid>
         </Grid>
-        {expandedGridItem}
       </Grid>
     );
   }

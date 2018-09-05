@@ -5,7 +5,6 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import { IObsResource } from "./Types";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
 // import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 // import classNames from "classnames";
 import EditIcon from "@material-ui/icons/Edit";
@@ -22,8 +21,8 @@ const styles = (theme: Theme) => createStyles({
 
   },
   image: {
-    border: 1,
-    width: 96,
+    border: "1px solid gray",
+    width: 120,
   },
   addButton: {
     color: "green"
@@ -78,6 +77,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
   }
 
   private handleClickResource = (resourceId?: number) => (event: any) => {
+    event.preventDefault();
     if (this.state.resources) {
       const selectedResource = this.state.resources.find(r => r.id === resourceId);
       if (selectedResource) {
@@ -191,39 +191,34 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     // </Grid>
     // {expandedGridItem}
 
-    const imageElements = [];
-    console.log(images);
-    imageElements.push(images.map(r =>
+    const imageElements = images.map(r =>
       <Grid key={r.id} item={true}>
         <div className={classes.imageContainer} onClick={this.handleClickResource(r.id)}>
           <img src={r.url} title={r.name} className={classes.image} />
         </div>
       </Grid>
-    ));
+    );
 
-    const linkElements = [];
-    linkElements.push(links.map(r =>
-      <Typography key={r.id} gutterBottom={true} variant="subheading">
-        <a href={r.url}>{r.name}</a>
-        <IconButton
-          onClick={this.handleClickResource(r.id)}
-        >
-          <EditIcon />
-        </IconButton>
+    const linkElements = links.map(r =>
+      <Typography key={r.id} gutterBottom={false} variant="caption">
+        <a href={r.url}>{r.name}</a>&nbsp;
+        <a href="" onClick={this.handleClickResource(r.id)}>
+          <EditIcon style={{ fontSize: 14 }} />
+        </a>
       </Typography>
-    ));
+    );
 
     const imagesTitle = imageElements.length > 0 && (
       <Grid item={true}>
         <Typography variant="caption">
-          Sketches &amp; Images
+          <strong>Sketches &amp; Images</strong> &nbsp;
         </Typography>
       </Grid>
     );
 
     const linksTitle = linkElements.length > 0 && (
       <Typography variant="caption">
-        Links
+        <strong>Links</strong> &nbsp;
       </Typography>
     );
 
@@ -246,13 +241,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           <Grid item={true}>
             {linkElements}
           </Grid>
-          <Grid item={true}>
-            {error}
-            {circularProgress}
-            <IconButton color="primary" className={classes.addButton} component="span" onClick={this.onClickAddResource}>
-              <AddIcon />
-            </IconButton>
-          </Grid>
+          {error}
+          {circularProgress}
+          <span onClick={this.onClickAddResource}><AddIcon  style={{ fontSize: 14 }} /></span>
         </Grid>
       </div>
     );

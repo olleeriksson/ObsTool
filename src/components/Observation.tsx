@@ -129,10 +129,12 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                 <Grid container={true} direction="column" spacing={16}>
                   <Grid item={true} xs={true}>
                     <DsoExtended dso={this.props.observation.dso} />
-                    <Typography >
+                    <Typography gutterBottom={true}>
                       {this.props.observation.text}
                     </Typography>
-                    <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} />
+                    <div style={{ marginTop: 5 }}>
+                      <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} />
+                    </div>
                   </Grid>
                 </Grid>
               </Grid>
