@@ -1,5 +1,5 @@
 import { ActionCreator, Action } from "redux";
-import { IObsSession } from "../components/Types";
+import { IObsSession } from "../types/Types";
 import * as constants from "../types/Constants";
 
 // Type these action creators with `: ActionCreator<ActionTypeYouWantToPass>`.

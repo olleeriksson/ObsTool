@@ -1,6 +1,6 @@
 import * as React from "react";
 import ObsSessionCard from "./ObsSessionCard";
-import { IObsSession } from "./Types";
+import { IObsSession } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 
 export interface IObsSessionListProps {

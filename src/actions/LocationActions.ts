@@ -1,5 +1,5 @@
 import { ActionCreator, Action } from "redux";
-import { ILocation } from "../components/Types";
+import { ILocation } from "../types/Types";
 import * as constants from "../types/Constants";
 
 // ---------------------------------------------------------------

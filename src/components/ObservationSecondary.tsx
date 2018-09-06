@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IObservation } from "./Types";
+import { IObservation } from "../types/Types";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import ButtonBase from "@material-ui/core/ButtonBase";

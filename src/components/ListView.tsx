@@ -8,12 +8,12 @@ import Typography from "@material-ui/core/Typography";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Paper from "@material-ui/core/Paper";
 import "./Layout.css";
-// import { IObsSession } from "./Types";
+// import { IObsSession } from "../types/Types";
 import ObsSessionList from "./ObsSessionList";
 import ObsSessionPage from "./ObsSessionPage";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { IAppState, ReadonlyDataState } from "./Types";
+import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/ObsSessionActions";
 import Api from "../api/Api";
 
@@ -71,10 +71,6 @@ class ListView extends React.Component<IListViewProps> {
 
     public render() {
         const { classes } = this.props;
-
-        console.log("Local props");
-        console.log(this.props);
-        console.log(this.props.store);
 
         let leftSideView;
         if (this.props.store.isLoadingObsSessions) {

@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IPagedDsoList, IObsResource } from "../components/Types";
+import { IObsSession, ILocation, IPagedDsoList, IObsResource } from "../types/Types";
 import axios from "axios";
 
 class Api {

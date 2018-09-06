@@ -3,7 +3,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 // import Grid from "@material-ui/core/Grid";
-import { IDso } from "./Types";
+import { IDso } from "../types/Types";
 // import DsoExtended from "./DsoExtended";
 import DsoLabel from "./DsoLabel";
 import Badge from "@material-ui/core/Badge";

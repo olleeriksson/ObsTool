@@ -8,10 +8,10 @@ import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import IconButton from "@material-ui/core/IconButton";
-import EditIcon from "@material-ui/icons/Edit";
+import VisibilityIcon from "@material-ui/icons/Visibility";
 import classNames from "classnames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IObsSession } from "./Types";
+import { IObsSession } from "../types/Types";
 
 const styles = (theme: Theme) => createStyles({
   paper: {
@@ -160,7 +160,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                     <IconButton
                       onClick={this.handleClickOnObsSession}
                     >
-                      <EditIcon />
+                      <VisibilityIcon />
                     </IconButton>
                   </Grid>
                   <Grid item={true}>

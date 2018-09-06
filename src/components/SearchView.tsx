@@ -6,14 +6,14 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
-import { IDso, IPagedDsoList } from "./Types";
+import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
 import { debounce } from "lodash";
 // import DsoExtended from "./DsoExtended";
 import DynamicDsoLabel from "./DynamicDsoLabel";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { IAppState, ReadonlyDataState } from "./Types";
+import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/SearchActions";
 
 const styles = (theme: Theme) => createStyles({

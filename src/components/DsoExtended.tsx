@@ -1,7 +1,7 @@
 import * as React from "react";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import axios from "axios";
-import { IDso } from "./Types";
+import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 import CosmosIcon from "../cosmos.svg";
 

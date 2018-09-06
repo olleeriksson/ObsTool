@@ -5,7 +5,7 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import "./ObsSessionPage.css";
-import { IObsSession, IObservation } from "./Types";
+import { IObsSession, IObservation } from "../types/Types";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import ObservationList from "./ObservationList";
@@ -24,7 +24,7 @@ import DeleteDialog from "./DeleteDialog";
 import Api from "../api/Api";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { IAppState, IDataState } from "./Types";
+import { IAppState, IDataState } from "../types/Types";
 import * as obsSessionActions from "../actions/ObsSessionActions";
 import * as locationActions from "../actions/LocationActions";
 

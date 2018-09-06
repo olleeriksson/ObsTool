@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as enzyme from "enzyme";
-import { IDso } from "./Types";
+import { IDso } from "../types/Types";
 import DsoExtended from "./DsoExtended";
 import * as sinon from "sinon";
 

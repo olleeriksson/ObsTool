@@ -6,7 +6,7 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import "./ObsSessionForm.css";
 import DsoShort from "./DsoShort";
-import { IObsSession, ILocation } from "./Types";
+import { IObsSession, ILocation } from "../types/Types";
 import classNames from "classnames";
 import Grid from "@material-ui/core/Grid";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";

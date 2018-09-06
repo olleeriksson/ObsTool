@@ -7,13 +7,13 @@ import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
 import MenuItem from "@material-ui/core/MenuItem";
 import Api from "../api/Api";
-import { IDso, IPagedDsoList } from "./Types";
+import { IDso, IPagedDsoList } from "../types/Types";
 import { debounce } from "lodash";
 import DynamicDsoLabel from "./DynamicDsoLabel";
 import { Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { IAppState, ReadonlyDataState } from "./Types";
+import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/SearchActions";
 
 // #########################################################

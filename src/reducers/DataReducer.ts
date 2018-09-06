@@ -1,5 +1,5 @@
 import { Reducer } from "redux";
-import { IDataState } from "../components/Types";
+import { IDataState } from "../types/Types";
 import {
     ObsSessionAction,
     IGetObsSessionsSuccessAction,

@@ -2,7 +2,7 @@ import * as React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import { IObsResource } from "./Types";
+import { IObsResource } from "../types/Types";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 // import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
@@ -13,6 +13,7 @@ import AddIcon from "@material-ui/icons/Add";
 import Api from "../api/Api";
 import ErrorIcon from "@material-ui/icons/Error";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import ResourceImage from "./ResourceImage";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -194,7 +195,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     const imageElements = images.map(r =>
       <Grid key={r.id} item={true}>
         <div className={classes.imageContainer} onClick={this.handleClickResource(r.id)}>
-          <img src={r.url} title={r.name} className={classes.image} />
+          <ResourceImage type={r.type} url={r.url} name={r.name} maxWidth="180" />
         </div>
       </Grid>
     );
@@ -243,7 +244,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           </Grid>
           {error}
           {circularProgress}
-          <span onClick={this.onClickAddResource}><AddIcon  style={{ fontSize: 14 }} /></span>
+          <span onClick={this.onClickAddResource}><AddIcon style={{ fontSize: 14 }} /></span>
         </Grid>
       </div>
     );

@@ -7,7 +7,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { IObsResource } from "./Types";
+import { IObsResource } from "../types/Types";
 import TextField from "@material-ui/core/TextField";
 import Radio from "@material-ui/core/Radio";
 import RadioGroup from "@material-ui/core/RadioGroup";
@@ -21,6 +21,7 @@ import IconButton from "@material-ui/core/IconButton";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import DeleteDialog from "./DeleteDialog";
 import Grid from "@material-ui/core/Grid";
+import ResourceImage from "./ResourceImage";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -36,9 +37,6 @@ const styles = (theme: Theme) => createStyles({
         padding: 5,
         minWidth: 400,
         minHeight: 400,
-    },
-    image: {
-        maxWidth: 700
     },
     formControl: {
         margin: theme.spacing.unit * 3,
@@ -88,18 +86,7 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
             isLoading: false,
             isError: false,
             isConfirmDeleteDialogOpen: false,
-            type: "sketch",
-            name: "",
-            url: ""
-        };
-    }
-
-    private resetState = () => {
-        this.state = {
-            isLoading: false,
-            isError: false,
-            isConfirmDeleteDialogOpen: false,
-            type: "sketch",
+            type: "image",
             name: "",
             url: ""
         };
@@ -107,7 +94,14 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
 
     public componentWillReceiveProps(nextProps: IEditResourceDialogProps) {
         if (!nextProps.resource) {
-            this.resetState();
+            this.setState({
+                isLoading: false,
+                isError: false,
+                isConfirmDeleteDialogOpen: false,
+                type: "image",
+                name: "",
+                url: ""
+            });
         }
         if (nextProps.resource && this.props.resource !== nextProps.resource) {
             // Load from new object
@@ -194,23 +188,21 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         this.props.onHandleClose(false);
     }
 
+    // private onBrowseFileSelected = (e: any) => {
+    //     console.log(e.target.files[0]);
+    //     if (e.target.files && e.target.files[0] && e.target.files[0].name) {
+    //         const fileUrl = e.target.files[0].name;
+    //         console.log(fileUrl);
+    //         var temporaryOutput = document.getElementById("temporaryOutput");
+    //         if (temporaryOutput) {
+    //             temporaryOutput.src = URL.createObjectURL(e.target.files[0]);
+    //         }
+    //         this.setState({ url: fileUrl });
+    //     }
+    // }
+
     public render() {
         const { classes } = this.props;
-
-        let preview;
-        if ((this.state.type === "sketch" || this.state.type === "image")) {
-            preview = (
-                <div className={classes.linkPreviewContainer}>
-                    <img src={this.state.url} title={this.state.name} className={classes.image} />
-                </div>
-            );
-        } else {
-            preview = (
-                <div className={classes.imagePreviewContainer}>
-                    <a href={this.state.url} title={this.state.name}>{this.state.name}</a>
-                </div>
-            );
-        }
 
         let error;
         if (this.state.isError) {
@@ -229,6 +221,24 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                 </div>
             );
         }
+
+        // let browseFileControl;
+        // if (this.state.type === "sketch") {
+        //     browseFileControl = (
+        //         <Button
+        //             component="label"
+        //             color="primary"
+        //         >
+        //             {"Browse to file..."}
+        //             <img id="temporaryOutput" style={{ display: "none" }}/>
+        //             <input
+        //                 onChange={this.onBrowseFileSelected}
+        //                 style={{ display: "none" }}
+        //                 type="file"
+        //             />
+        //         </Button>
+        //     );
+        // }
 
         const deleteDialogTitle = "Delete " + (this.props.resource && this.props.resource.type) + "?";
         const deleteDialogText = "Are you sure you want to delete the " + (this.props.resource && this.props.resource.type) +
@@ -258,14 +268,16 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                                             value={this.state.type}
                                             onChange={this.handleChange("type")}
                                         >
-                                            <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
                                             <FormControlLabel value="image" control={<Radio />} label="Image" />
+                                            <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
                                             <FormControlLabel value="link" control={<Radio />} label="Link" />
                                         </RadioGroup>
                                     </FormControl>
                                 </Grid>
                                 <Grid item={true} style={{ flex: 1 }}>
-                                    {preview}
+                                    <div className={classes.linkPreviewContainer}>
+                                        <ResourceImage type={this.state.type} url={this.state.url} name={this.state.name} maxWidth="550" />
+                                    </div>
                                 </Grid>
                             </Grid>
                         </Grid>
@@ -273,9 +285,7 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                             <TextField
                                 autoFocus={true}
                                 margin="dense"
-                                id="name"
-                                name="name"
-                                label="Name"
+                                label={this.state.type === "sketch" ? "Relative Google Drive path for easier identification" : "Name"}
                                 type="text"
                                 fullWidth={true}
                                 onChange={this.handleChange("name")}
@@ -284,11 +294,12 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                         </Grid>
                         <Grid item={true} xs={12}>
                             <TextField
+                                style={{ flex: 1 }}
                                 autoFocus={true}
                                 margin="dense"
                                 id="url"
                                 name="url"
-                                label="url"
+                                label={this.state.type === "sketch" ? "Google Drive image id" : "Url"}
                                 type="text"
                                 fullWidth={true}
                                 onChange={this.handleChange("url")}
