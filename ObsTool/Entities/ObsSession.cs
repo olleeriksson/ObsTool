@@ -37,5 +37,10 @@ namespace ObsTool.Entities
         public List<Observation> Observations { get; set; } = new List<Observation>();
 
         public string ReportText { get; set; }
+
+        public string ToText()
+        {
+            return $"Id: ";
+        }
     }
 }

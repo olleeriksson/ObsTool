@@ -9,6 +9,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ObsTool.Utils;
 
 namespace ObsTool.Controllers
 {
@@ -89,6 +90,9 @@ namespace ObsTool.Controllers
                 return StatusCode(500, "Something went wrong creating a resource");
             }
 
+            _logger.LogInformation("Created a resource:");
+            _logger.LogInformation(PocoPrinter.ToString(addedObsResource));
+
             ObsResourceDto addedObsResourceDto = Mapper.Map<ObsResourceDto>(addedObsResource);
 
             return CreatedAtRoute("GetOneObsResource", new { resourceId = addedObsResourceDto.Id }, addedObsResourceDto);
@@ -118,6 +122,9 @@ namespace ObsTool.Controllers
 
             _obsResourceRepo.SaveChanges();
 
+            _logger.LogInformation("Updated a resource:");
+            _logger.LogInformation(PocoPrinter.ToString(obsResourceEntity));
+
             ObsResource freshObsResourceEntity = _obsResourceRepo.GetOneResource(resourceId);
             var resultingDto = Mapper.Map<ObsResourceDto>(freshObsResourceEntity);
 
@@ -138,6 +145,9 @@ namespace ObsTool.Controllers
             {
                 return StatusCode(500, "Something went wrong deleting the resource");
             }
+
+            _logger.LogInformation("Deleted a resource:");
+            _logger.LogInformation(PocoPrinter.ToString(obsResourceEntity));
 
             return Ok();
         }

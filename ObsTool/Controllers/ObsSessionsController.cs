@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ObsTool.Utils;
 
 namespace ObsTool.Controllers
 {
@@ -130,10 +131,11 @@ namespace ObsTool.Controllers
 
             _mainDbContext.SaveChanges();
 
-            _reportTextManager.Parse(addedObsSession);
+            _reportTextManager.ParseAndStoreObservations(addedObsSession);
 
             _logger.LogInformation("Created an observation session:");
-            _logger.LogInformation(addedObsSession.ToString());
+            _logger.LogInformation(PocoPrinter.ToString(addedObsSession));
+
 
             _localMailService.SendMail("Created", "Someone crated an observation session");
 
@@ -170,16 +172,16 @@ namespace ObsTool.Controllers
 
             Mapper.Map(obsSessionDtoForUpdate, obsSessionEntity);
 
-            _reportTextManager.Parse(obsSessionEntity);
-
-            _logger.LogInformation("Updated an observation session:");
-            _logger.LogInformation(obsSessionEntity.ToString());
+            _reportTextManager.ParseAndStoreObservations(obsSessionEntity);
 
             var result = _obsSessionsRepository.SaveChanges();
             if (!result)
             {
                 return StatusCode(500, "Something went wrong updating the observation session");
             }
+
+            _logger.LogInformation("Updated an observation session:");
+            _logger.LogInformation(PocoPrinter.ToString(obsSessionEntity));
 
             ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, true, true, true);
             var resultingDto = Mapper.Map<ObsSessionDto>(freshObsSessionEntity);
@@ -242,7 +244,7 @@ namespace ObsTool.Controllers
             }
 
             _logger.LogInformation("Deleted an observation session:");
-            _logger.LogInformation(obsSessionEntity.ToString());
+            _logger.LogInformation(PocoPrinter.ToString(obsSessionEntity));
 
             return Ok();
         }
