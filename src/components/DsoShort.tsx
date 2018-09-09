@@ -1,6 +1,5 @@
 import * as React from "react";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import axios from "axios";
 import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 
@@ -16,10 +15,6 @@ export interface IDsoShortState {
   isLoading: boolean;
   isError: boolean;
   dso?: IDso;
-}
-
-interface IServerResponse {
-  data: IDso;
 }
 
 export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
@@ -40,39 +35,6 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
       this.setState({ isLoading: false });
       this.setState({ isError: false });
       this.setState({ dso: this.props.dso });
-    } else {
-      if (this.props.id === -1 || this.props.name === "") {
-        this.setState({ isLoading: false });
-        this.setState({ isError: true });
-      } else {
-        if (this.props.id) {
-          axios.get<IDso>("http://localhost:50995/api/dso/" + this.props.id).then((response) => {
-            const { data } = response;
-            console.log(response);
-            if (this.state.isMounted) {
-              this.setState({ isLoading: false });
-              this.setState({ isError: false });
-              this.setState({ dso: data });
-            }
-          });
-        } else if (this.props.name) {
-          axios.request<IDso>({
-            url: "http://localhost:50995/api/dso?name=" + this.props.name,
-            transformResponse: (r: IServerResponse) => r.data
-          }).then((response) => {
-            const { data } = response;
-            console.log(response);
-            if (this.state.isMounted) {
-              this.setState({ isLoading: false });
-              this.setState({ isError: false });
-              this.setState({ dso: data });
-            }
-          });
-        } else {
-          this.setState({ isLoading: false });
-          this.setState({ isError: true });
-        }
-      }
     }
   }
 

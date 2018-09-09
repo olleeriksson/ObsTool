@@ -9,8 +9,8 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
-import axios from "axios";
 import { IStatistics } from "../types/Types";
+import Api from "../api/Api";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -48,7 +48,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     }
 
     private loadData() {
-        axios.get<IStatistics>("http://localhost:50995/api/statistics/").then(
+        Api.getStatistics().then(
             (response) => {
                 const { data } = response;
                 console.log(data);
