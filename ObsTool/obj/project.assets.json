@@ -2663,6 +2663,72 @@
           "lib/netstandard1.4/Microsoft.Rest.ClientRuntime.Azure.dll": {}
         }
       },
+      "Microsoft.SqlServer.SqlManagementObjects/140.17283.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Data.SqlClient": "4.4.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Microsoft.Data.Tools.Sql.BatchParser.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.ConnectionInfo.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.Dmf.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.Sdk.Sfc.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.SmoMetadataProvider.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlScriptPublishModel.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEvent.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventDbScoped.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventDbScopedEnum.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventEnum.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.NetCoreGlobalization.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Smo.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.SmoExtended.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.SqlEnum.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.SqlParser.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Data.Tools.Sql.BatchParser.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.ConnectionInfo.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.Dmf.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.Sdk.Sfc.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.SmoMetadataProvider.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlScriptPublishModel.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEvent.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventDbScoped.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventDbScopedEnum.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventEnum.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.NetCoreGlobalization.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.Smo.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.SmoExtended.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.SqlEnum.dll": {},
+          "lib/netstandard2.0/Microsoft.SqlServer.SqlParser.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win-x64/native/Microsoft.SqlServer.BatchParser.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x64/native/Microsoft.SqlServer.XEvent.Linq.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x64/native/Microsoft.SqlServer.Xe.Core.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/Microsoft.SqlServer.BatchParser.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win-x86/native/Microsoft.SqlServer.XEvent.Linq.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win-x86/native/Microsoft.SqlServer.Xe.Core.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      },
       "Microsoft.VisualStudio.Web.BrowserLink/2.0.3": {
         "type": "package",
         "dependencies": {
@@ -7796,6 +7862,94 @@
         "lib/netstandard1.4/Microsoft.Rest.ClientRuntime.Azure.xml",
         "microsoft.rest.clientruntime.azure.3.3.7.nupkg.sha512",
         "microsoft.rest.clientruntime.azure.nuspec"
+      ]
+    },
+    "Microsoft.SqlServer.SqlManagementObjects/140.17283.0": {
+      "sha512": "Jd3wngT8BeBuLv9Wx1aLueDhNTefcSV05qa2yEbWg/3vO4CYP2z/ICqfNvOkxe1T0gHCIKiGmXK9cnn1Y3EXww==",
+      "type": "package",
+      "path": "microsoft.sqlserver.sqlmanagementobjects/140.17283.0",
+      "files": [
+        ".signature.p7s",
+        "License_SMO.rtf",
+        "README.md",
+        "build/net40/Microsoft.SqlServer.SqlManagementObjects.targets",
+        "lib/net40/Microsoft.SqlServer.AzureStorageEnum.dll",
+        "lib/net40/Microsoft.SqlServer.AzureStorageEnum.xml",
+        "lib/net40/Microsoft.SqlServer.BatchParserClient.dll",
+        "lib/net40/Microsoft.SqlServer.ConnectionInfo.dll",
+        "lib/net40/Microsoft.SqlServer.ConnectionInfo.xml",
+        "lib/net40/Microsoft.SqlServer.ConnectionInfoExtended.dll",
+        "lib/net40/Microsoft.SqlServer.ConnectionInfoExtended.xml",
+        "lib/net40/Microsoft.SqlServer.Diagnostics.Strace.dll",
+        "lib/net40/Microsoft.SqlServer.Dmf.Common.dll",
+        "lib/net40/Microsoft.SqlServer.Dmf.Common.xml",
+        "lib/net40/Microsoft.SqlServer.Dmf.dll",
+        "lib/net40/Microsoft.SqlServer.Dmf.xml",
+        "lib/net40/Microsoft.SqlServer.Management.Collector.dll",
+        "lib/net40/Microsoft.SqlServer.Management.Collector.xml",
+        "lib/net40/Microsoft.SqlServer.Management.CollectorEnum.dll",
+        "lib/net40/Microsoft.SqlServer.Management.CollectorEnum.xml",
+        "lib/net40/Microsoft.SqlServer.Management.RegisteredServers.dll",
+        "lib/net40/Microsoft.SqlServer.Management.RegisteredServers.xml",
+        "lib/net40/Microsoft.SqlServer.Management.Sdk.Sfc.dll",
+        "lib/net40/Microsoft.SqlServer.Management.Sdk.Sfc.xml",
+        "lib/net40/Microsoft.SqlServer.Management.SqlParser.dll",
+        "lib/net40/Microsoft.SqlServer.Management.Utility.dll",
+        "lib/net40/Microsoft.SqlServer.Management.Utility.xml",
+        "lib/net40/Microsoft.SqlServer.Management.UtilityEnum.dll",
+        "lib/net40/Microsoft.SqlServer.Management.UtilityEnum.xml",
+        "lib/net40/Microsoft.SqlServer.Management.XEvent.dll",
+        "lib/net40/Microsoft.SqlServer.Management.XEvent.xml",
+        "lib/net40/Microsoft.SqlServer.Management.XEventDbScoped.dll",
+        "lib/net40/Microsoft.SqlServer.Management.XEventDbScoped.xml",
+        "lib/net40/Microsoft.SqlServer.Management.XEventDbScopedEnum.dll",
+        "lib/net40/Microsoft.SqlServer.Management.XEventDbScopedEnum.xml",
+        "lib/net40/Microsoft.SqlServer.Management.XEventEnum.dll",
+        "lib/net40/Microsoft.SqlServer.Management.XEventEnum.xml",
+        "lib/net40/Microsoft.SqlServer.PolicyEnum.dll",
+        "lib/net40/Microsoft.SqlServer.PolicyEnum.xml",
+        "lib/net40/Microsoft.SqlServer.RegSvrEnum.dll",
+        "lib/net40/Microsoft.SqlServer.RegSvrEnum.xml",
+        "lib/net40/Microsoft.SqlServer.SString.dll",
+        "lib/net40/Microsoft.SqlServer.ServiceBrokerEnum.dll",
+        "lib/net40/Microsoft.SqlServer.ServiceBrokerEnum.xml",
+        "lib/net40/Microsoft.SqlServer.Smo.dll",
+        "lib/net40/Microsoft.SqlServer.Smo.xml",
+        "lib/net40/Microsoft.SqlServer.SmoExtended.dll",
+        "lib/net40/Microsoft.SqlServer.SmoExtended.xml",
+        "lib/net40/Microsoft.SqlServer.SqlClrProvider.dll",
+        "lib/net40/Microsoft.SqlServer.SqlEnum.dll",
+        "lib/net40/Microsoft.SqlServer.SqlEnum.xml",
+        "lib/net40/Microsoft.SqlServer.SqlTDiagm.dll",
+        "lib/net40/Microsoft.SqlServer.SqlWmiManagement.dll",
+        "lib/net40/Microsoft.SqlServer.SqlWmiManagement.xml",
+        "lib/net40/Microsoft.SqlServer.Types.dll",
+        "lib/net40/Microsoft.SqlServer.Types.xml",
+        "lib/net40/Microsoft.SqlServer.WmiEnum.dll",
+        "lib/net40/Microsoft.SqlServer.WmiEnum.xml",
+        "lib/netstandard2.0/Microsoft.Data.Tools.Sql.BatchParser.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.ConnectionInfo.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.Dmf.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.Sdk.Sfc.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.SmoMetadataProvider.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlScriptPublishModel.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.XEvent.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventDbScoped.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventDbScopedEnum.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.XEventEnum.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.NetCoreGlobalization.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Smo.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.SmoExtended.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.SqlEnum.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.SqlParser.dll",
+        "microsoft.sqlserver.sqlmanagementobjects.140.17283.0.nupkg.sha512",
+        "microsoft.sqlserver.sqlmanagementobjects.nuspec",
+        "runtimes/win-x64/native/Microsoft.SqlServer.BatchParser.dll",
+        "runtimes/win-x64/native/Microsoft.SqlServer.XEvent.Linq.dll",
+        "runtimes/win-x64/native/Microsoft.SqlServer.Xe.Core.dll",
+        "runtimes/win-x86/native/Microsoft.SqlServer.BatchParser.dll",
+        "runtimes/win-x86/native/Microsoft.SqlServer.XEvent.Linq.dll",
+        "runtimes/win-x86/native/Microsoft.SqlServer.Xe.Core.dll"
       ]
     },
     "Microsoft.VisualStudio.Web.BrowserLink/2.0.3": {
@@ -13351,6 +13505,7 @@
     ".NETCoreApp,Version=v2.0": [
       "Microsoft.AspNetCore.All >= 2.0.8",
       "Microsoft.NETCore.App >= 2.0.0",
+      "Microsoft.SqlServer.SqlManagementObjects >= 140.17283.0",
       "Microsoft.VisualStudio.Web.CodeGeneration.Design >= 2.0.3",
       "NLog.Extensions.Logging >= 1.2.1",
       "automapper >= 7.0.1"
@@ -13405,6 +13560,10 @@
             "target": "Package",
             "version": "[2.0.0, )",
             "autoReferenced": true
+          },
+          "Microsoft.SqlServer.SqlManagementObjects": {
+            "target": "Package",
+            "version": "[140.17283.0, )"
           },
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
             "target": "Package",

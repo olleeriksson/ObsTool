@@ -1,5 +1,8 @@
 .vs
 */**/bin/Debug
 */**/bin/Release
+*/**/bin/netcoreapp*
 */**/obj/Debug
 */**/obj/Release
+*/**/obj/netcoreapp*
+

@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,10 +10,22 @@ namespace ObsTool.Entities
 {
     public class MainDbContext : DbContext
     {
-        public MainDbContext(DbContextOptions<MainDbContext> options) : base(options)
+        private ILogger<MainDbContext> _logger;
+
+        public MainDbContext(DbContextOptions<MainDbContext> options, ILogger<MainDbContext> logger) : base(options)
         {
+            _logger = logger;
             //Database.EnsureCreated();
-            //Database.Migrate();
+
+            bool migrate = bool.Parse(Startup.Configuration["Db:Migrate"]);
+            _logger.LogInformation("Migrate DB: " + migrate);
+
+            if (migrate)
+            {
+                _logger.LogInformation("Starting migration");
+                Database.Migrate();
+                _logger.LogInformation("Migration finished");
+            }
         }
         public DbSet<Location> Locations { get; set; }
 

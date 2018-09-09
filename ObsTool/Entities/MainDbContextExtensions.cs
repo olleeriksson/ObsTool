@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
 
 namespace ObsTool.Entities
 {
@@ -9,22 +14,20 @@ namespace ObsTool.Entities
     {
         public static void SeedDatabase(this MainDbContext context)
         {
-            var location1 = new Location() { Name = "Snogeholms strövområder", GoogleMapsAddress = "Gydarpsvägen, Sjöbo" };
-            var location2 = new Location() { Name = "Balkongen i Malmö", GoogleMapsAddress = "Spångatan 32B, Malmö" };
-            if (!context.Locations.Any())
+            if (!context.Dso.Any())
             {
-                var locations = new Location[] { location1, location2 };
-                context.Locations.AddRange(locations);
-            }
-
-            if (!context.ObsSessions.Any())
-            {
-                var sessions = new ObsSession[]
+                var sqlFile = Path.Combine(AppContext.BaseDirectory, "Migrations\\SeedDatabase.sql");
+                if (File.Exists(sqlFile))
                 {
-                    new ObsSession() { Date = new DateTime(2017, 12, 18), Location = location1, Title = "Coldest night of the year" },
-                    new ObsSession { Date = new DateTime(2018, 06, 20), Location = location2, Title = "First time observing from the balcony" }
-                };
-                context.ObsSessions.AddRange(sessions);
+                    FileInfo file = new FileInfo(sqlFile);
+                    string scriptContent = file.OpenText().ReadToEnd();
+                    //string scriptContent = scriptContent.Replace("[databaseOldnameWhileSriptgenerate]", strdbname);
+                    SqlConnection connection = new SqlConnection(Startup.Configuration["Db:ConnectionString"]);
+                    connection.Open();
+                    Server server = new Server(new ServerConnection(connection));
+                    server.ConnectionContext.ExecuteNonQuery(scriptContent);
+                    //context.Database.ExecuteSqlCommand(File.ReadAllText(sqlFile));
+                }
             }
 
             if (!context.Constellations.Any())

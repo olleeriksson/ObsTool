@@ -66,7 +66,7 @@ namespace TestProject
                     + "Report text Report text Report text Report text Report text Report text Report text ",
             };
 
-            string text = PocoPrinter.Print(obsSession);
+            string text = PocoPrinter.ToString(obsSession);
             Console.WriteLine(text);
         }
     }

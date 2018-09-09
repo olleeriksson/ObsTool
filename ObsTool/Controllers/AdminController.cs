@@ -23,5 +23,11 @@ namespace ObsTool.Controllers
             _dbContext.SeedDatabase();
             return Ok();
         }
+
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok("This is a test: " + Startup.Configuration["CorsAllowedOrigins"]);
+        }
     }
 }

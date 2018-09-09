@@ -17,9 +17,23 @@ namespace ObsTool
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IHostingEnvironment env) // IConfiguration configuration) // old
         {
-            Configuration = configuration;
+            string environment = env.EnvironmentName;
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json")
+#if DEBUG
+                .AddJsonFile("appsettings.Development.json")
+#else
+                .AddJsonFile("appsettings.Production.json")
+#endif
+                //.AddJsonFile("appsettings." + environment + ".json")
+                .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
+
+            //Configuration = configuration; // old
         }
 
         public static IConfiguration Configuration { get; set; }
@@ -30,13 +44,8 @@ namespace ObsTool
             services.AddMvc();
             services.AddCors();
 
-            //services.AddDbContext<MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionStringLocaldb"]));
-            services.AddDbContext<MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionStringSqlExpress"]));
-#if DEBUG
+            services.AddDbContext<MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
             services.AddTransient<ILocalMailService, LocalMailServiceTest>();
-#else
-            services.AddTransient<ILocalMailService, LocalMailService>();
-#endif
             services.AddScoped<IObsSessionsRepository, ObsSessionsRepository>();
             services.AddScoped<ILocationsRepository, LocationsRepository>();
             services.AddScoped<DsoRepo, DsoRepo>();
