@@ -6,7 +6,7 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import "./ObsSessionForm.css";
 import DsoShort from "./DsoShort";
-import { IObsSession, ILocation } from "../types/Types";
+import { IObsSession, ILocation, IObservation } from "../types/Types";
 import classNames from "classnames";
 import Grid from "@material-ui/core/Grid";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
@@ -106,19 +106,25 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     }));
   }
 
+  private sortByDisplayOrder = (observationA: IObservation, observationB: IObservation) => {
+    return (observationA.displayOrder || 0) - (observationB.displayOrder || 0);
+  }
+
   public render() {
     const { classes } = this.props;
 
     let dsoObjects: any = [];
     if (this.state.obsSession.observations) {
-      dsoObjects = this.state.obsSession.observations.map((o, index) => {
-        if (o.dso) {
-          return <DsoShort key={o.dso.id} dso={o.dso} />;
-        } else {
-          const errorText = "Err " + o.id;
-          return <DsoShort key={index} error={errorText} />;
-        }
-      });
+      dsoObjects = this.state.obsSession.observations
+        .sort(this.sortByDisplayOrder)
+        .map((o, index) => {
+          if (o.dso) {
+            return <DsoShort key={o.dso.id} dso={o.dso} />;
+          } else {
+            const errorText = "Err " + o.id;
+            return <DsoShort key={index} error={errorText} />;
+          }
+        });
     }
     const dsoList: any = dsoObjects.length > 0 ? dsoObjects : <Typography variant="caption" color="textSecondary" >No objects</Typography>;
 

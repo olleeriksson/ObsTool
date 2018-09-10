@@ -6,6 +6,7 @@ export interface IObservation {
     obsSession?: IObsSession;
     otherObservations?: IObservation[];
     obsResources?: IObsResource[];
+    displayOrder: number;
 }
 
 export interface IObsResource {

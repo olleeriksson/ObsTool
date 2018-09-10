@@ -20,18 +20,24 @@ class ObservationList extends React.Component<IObservationListProps> {
     this.props.onSelectObservation(obsSessionId);
   }
 
+  private sortByDisplayOrder = (observationA: IObservation, observationB: IObservation) => {
+    return (observationA.displayOrder || 0) - (observationB.displayOrder || 0);
+  }
+
   public render() {
-    const observations = this.props.observations.map(observation => {
-      return (
-        <Grid item={true} key={observation.id}>
-          <Observation
-            key={observation.id}
-            observation={observation}
-            onSelectObservation={this.onSelectObsSessionCard}
-          />
-        </Grid>
-      );
-    });
+    const observations = this.props.observations
+      .sort(this.sortByDisplayOrder)
+      .map(observation => {
+        return (
+          <Grid item={true} key={observation.id}>
+            <Observation
+              key={observation.id}
+              observation={observation}
+              onSelectObservation={this.onSelectObsSessionCard}
+            />
+          </Grid>
+        );
+      });
 
     if (this.props.observations) {
       if (this.props.observations.length > 0) {
