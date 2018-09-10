@@ -26,17 +26,13 @@ import ResourceImage from "./ResourceImage";
 const styles = (theme: Theme) => createStyles({
     root: {
     },
-    imagePreviewContainer: {
+    previewContainer: {
         border: "2px dashed lightgray",
         padding: 5,
         minWidth: 400,
         minHeight: 400,
-    },
-    linkPreviewContainer: {
-        border: "2px dashed lightgray",
-        padding: 5,
-        minWidth: 400,
-        minHeight: 400,
+        maxWidth: 550,
+        maxHeight: 550,
     },
     formControl: {
         margin: theme.spacing.unit * 3,
@@ -275,8 +271,8 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                                     </FormControl>
                                 </Grid>
                                 <Grid item={true} style={{ flex: 1 }}>
-                                    <div className={classes.linkPreviewContainer}>
-                                        <ResourceImage type={this.state.type} url={this.state.url} name={this.state.name} maxWidth="550" />
+                                    <div className={classes.previewContainer}>
+                                        <ResourceImage type={this.state.type} url={this.state.url} name={this.state.name} driveMaxHeight="500" driveMaxWidth="500" />
                                     </div>
                                 </Grid>
                             </Grid>

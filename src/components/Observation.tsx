@@ -117,7 +117,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       <Paper className={classes.root}>
         <Grid container={true} spacing={16} direction="column">
           <Grid item={true} xs={12}>
-            <Grid container={true} spacing={16}>
+            <Grid container={true} spacing={16} wrap="nowrap">
               <Grid item={true}>
                 <ButtonBase className={classes.image}>
                   <Typography gutterBottom={true} variant="display2">
@@ -125,7 +125,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                   </Typography>
                 </ButtonBase>
               </Grid>
-              <Grid item={true} xs={12} sm={true}>
+              <Grid item={true} xs={11} sm={true}>
                 <Grid container={true} direction="column" spacing={16}>
                   <Grid item={true} xs={true}>
                     <DsoExtended dso={this.props.observation.dso} />

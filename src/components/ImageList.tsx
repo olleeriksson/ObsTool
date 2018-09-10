@@ -14,35 +14,61 @@ import Api from "../api/Api";
 import ErrorIcon from "@material-ui/icons/Error";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import ResourceImage from "./ResourceImage";
+import GridList from "@material-ui/core/GridList";
+import GridListTile from "@material-ui/core/GridListTile";
+import GridListTileBar from "@material-ui/core/GridListTileBar";
+import Checkbox from "@material-ui/core/Checkbox";
+import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@material-ui/icons/CheckBox";
 
 const styles = (theme: Theme) => createStyles({
   root: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    overflow: "hidden",
+    backgroundColor: "red"
+  },
+  gridList: {
+    flexWrap: "wrap",
+    // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+    transform: "translateZ(0)",
+  },
+  title: {
+    fontSize: "0.9rem",
+    color: "gray", // theme.palette.primary.light,
+  },
+  titleBar: {
+    background: "rgba(0, 0, 0, 0)",
+    padding: 0,
+    height: 30,
+  },
+  titleWrap: {
+    marginLeft: -8,
+  },
+  tile: {
+    backgroundColor: "black",
+    margin: 3,
   },
   imageContainer: {
-
   },
   image: {
     border: "1px solid gray",
     width: 120,
+  },
+  cb: {  // checkbox
+    width: 30,
+    height: 30,
+  },
+  cbIcon: {  // checkbox
+    fontSize: 20,
+    color: "lightgray",
   },
   addButton: {
     color: "green"
   },
   error: {
     color: "red"
-  },
-  expand: {
-    transform: "rotate(0deg)",
-    transition: theme.transitions.create("transform", {
-      duration: theme.transitions.duration.shortest,
-    }),
-    marginLeft: "auto",
-    [theme.breakpoints.up("sm")]: {
-      marginRight: -8,
-    },
-  },
-  expandOpen: {
-    transform: "rotate(180deg)",
   },
 });
 
@@ -54,11 +80,40 @@ export interface IImageListProps extends WithStyles<typeof styles> {
 export interface IImageListState {
   isLoading: boolean;
   isError: boolean;
-  // isExpanded: boolean;
   isEditResourceDialogOpen: boolean;
   resources?: IObsResource[];
   selectedResource?: IObsResource;
 }
+
+// --------------------
+
+const cbStyles = (theme: Theme) => createStyles({
+  cb: {  // checkbox
+    width: 40,
+    height: 40,
+  },
+  cbIcon: {  // checkbox
+    fontSize: 20,
+  },
+});
+
+interface IImageCheckBoxProps extends WithStyles<typeof cbStyles> {
+  resourceId: number;
+  onSelected?: (resourceId: number) => void;
+}
+
+const ImageCheckBox: React.SFC<IImageCheckBoxProps> = (props: IImageCheckBoxProps) => {
+  const { classes } = props;
+
+  return <Checkbox
+    className={classes.cb}
+    icon={<CheckBoxOutlineBlankIcon className={classes.cbIcon} />}
+    checkedIcon={<CheckBoxIcon className={classes.cbIcon} />}
+    value="checked"
+  />;
+};
+
+// --------------------
 
 class ImageList extends React.Component<IImageListProps, IImageListState> {
   constructor(props: IImageListProps) {
@@ -72,9 +127,6 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       isEditResourceDialogOpen: false,
       selectedResource: undefined
     };
-
-    //this.handleClickResource = this.handleClickResource.bind(this);
-    // this.handleExpandClick = this.handleExpandClick.bind(this);
   }
 
   private handleClickResource = (resourceId?: number) => (event: any) => {
@@ -92,10 +144,6 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     this.setState({ selectedResource: undefined });
     this.setState({ isEditResourceDialogOpen: true });
   }
-
-  // private handleExpandClick = () => {
-  //   this.setState({ isExpanded: !this.state.isExpanded });
-  // }
 
   private refreshResourcesListFromApi = () => {
     Api.getResources(this.props.observationId).then(
@@ -150,55 +198,24 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       );
     }
 
-    // let expandButton;
-    // if (this.state.resources && this.state.resources.length > 0) {
-    //   expandButton = (
-    //     <IconButton
-    //       className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
-    //       onClick={this.handleExpandClick}
-    //       aria-expanded={this.state.isExpanded}
-    //       aria-label="Show more"
-    //     >
-    //       <ExpandMoreIcon />
-    //     </IconButton>
-    //   );
-    // }
-
     const images = this.state.resources && this.state.resources.length > 0
       && this.state.resources.filter(r => r.type === "sketch" || r.type === "image") || [];
 
     const links = this.state.resources && this.state.resources.length > 0
       && this.state.resources.filter(r => r.type === "link") || [];
 
-    // <IconButton
-    //   onClick={this.handleClickResource(r.id)}
-    // >
-    //   <EditIcon />
-    // </IconButton>
-
-    // let expandedGridItem;
-    // if (this.state.isExpanded) {
-    //   expandedGridItem = (
-    //     <Grid item={true}>
-    //       <Typography gutterBottom={true} variant="subheading">
-    //         Something more...
-    //       </Typography>
-    //     </Grid>
-    //   );
-    // }
-
-    // <Grid item={true}>
-    //   {expandButton}
-    // </Grid>
-    // {expandedGridItem}
-
-    const imageElements = images.map(r =>
-      <Grid key={r.id} item={true}>
-        <div className={classes.imageContainer} onClick={this.handleClickResource(r.id)}>
-          <ResourceImage type={r.type} url={r.url} name={r.name} maxWidth="180" />
+    const imageElements = images.map(r => (
+      <GridListTile key={r.id} className={classes.tile}>
+        <div onClick={this.handleClickResource(r.id)} className={classes.imageContainer} >
+          <ResourceImage type={r.type} url={r.url} name={r.name} driveMaxHeight="180" driveMaxWidth="180" />
         </div>
-      </Grid>
-    );
+        <GridListTileBar
+          title={r.type}
+          classes={{ root: classes.titleBar, title: classes.title, titlePositionBottom: classes.titleWrap }}
+          actionIcon={<ImageCheckBox resourceId={r.id || 0} classes={{ cb: classes.cb, cbIcon: classes.cbIcon }} />}
+        />
+      </GridListTile>
+    ));
 
     const linkElements = links.map(r =>
       <Typography key={r.id} gutterBottom={false} variant="caption">
@@ -233,11 +250,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
         />
         <Grid container={true} spacing={8} direction="column">
           {imagesTitle}
-          <Grid item={true}>
-            <Grid container={true} spacing={24} direction="row" alignItems="center">
-              {imageElements}
-            </Grid>
-          </Grid>
+          <GridList className={classes.gridList} cols={3.5}>
+            {imageElements}
+          </GridList>
           {linksTitle}
           <Grid item={true}>
             {linkElements}

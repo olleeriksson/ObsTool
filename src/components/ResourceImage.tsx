@@ -9,13 +9,14 @@ interface IResourceImageProps extends WithStyles<typeof styles> {
     name?: string;
     url?: string;
     // In case of images/sketches:
-    maxWidth?: string;
-    maxHeight?: string;
+    driveMaxWidth?: string;
+    driveMaxHeight?: string;
 }
 
 const styles = (theme: Theme) => createStyles({
     image: {
-        maxWidth: 180
+        width: "100%",
+        // height: "auto"
     },
 });
 
@@ -29,12 +30,14 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
 
         if (this.props.type === "sketch") {
             const imageId = this.props.url;  // the google image id is stored in the url field
-            return <GoogleDriveImage imageId={imageId} title={this.props.name} maxWidth={this.props.maxWidth || "1000"} maxHeight={this.props.maxHeight || "1000"} />;
+            return <GoogleDriveImage
+                imageId={imageId}
+                title={this.props.name}
+                driveMaxWidth={this.props.driveMaxWidth || "100"}
+                driveMaxHeight={this.props.driveMaxHeight || "100"}
+            />;
         } else if (this.props.type === "image") {
-            console.log("Max width: " + this.props.maxWidth);
-            return <div>
-                <img src={this.props.url} title={this.props.name} className={classes.image} />
-            </div>;
+            return <img src={this.props.url} title={this.props.name} className={classes.image} />;
         } else {
             return <a href={this.props.url} title={this.props.name}>{this.props.name}</a>;
         }
