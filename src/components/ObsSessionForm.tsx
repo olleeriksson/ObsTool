@@ -20,7 +20,7 @@ const styles = (theme: Theme) => createStyles({
   formControl: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
-    width: "90%",
+    width: "95%",
   },
   textField: {
   },
@@ -180,6 +180,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               <TextField
                 id="summary"
                 label="Summary"
+                multiline={true}
                 rowsMax="10"
                 value={this.state.obsSession.summary || ""}
                 onChange={this.handleChange("summary")}
@@ -191,7 +192,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               <TextField
                 id="conditions"
                 label="Conditions"
-                multiline={false}
+                multiline={true}
                 rowsMax="10"
                 value={this.state.obsSession.conditions || ""}
                 onChange={this.handleChange("conditions")}
@@ -230,7 +231,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
             </Grid>
             <Grid item={true}>
               <Grid container={true} direction="row">
-                <Grid item={true} xs={11}>
+                <Grid item={true} style={{ flex: 1 }}>
                   <Grid container={true} direction="column">
                     <Grid item={true} xs={12}>
                       <TextField
