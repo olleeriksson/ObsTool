@@ -74,11 +74,11 @@ namespace ObsTool.Services
                 if (updatedObservations.ContainsKey(existingObservation.DsoId))
                 {
                     Observation updatedObservation = updatedObservations[existingObservation.DsoId];
-                    Debug.WriteLine("Updating text for existing observation for DSO " + updatedObservation.Dso.Name);
-                    // Transfer/update the report text
+                    Debug.WriteLine("Updating the existing observation for DSO " + updatedObservation.Dso.Name);
+                    // Transfer/update the observation
                     existingObservation.Text = updatedObservation.Text;
+                    existingObservation.DisplayOrder = updatedObservation.DisplayOrder;
                 }
-
             }
 
             // Finally, add those observations that are new, that didn't exist before
@@ -113,7 +113,11 @@ namespace ObsTool.Services
 
             // Regexp for finding DSO names
             string regexpAllCatalogs = RegExpJoinCatalogs(allCatalogs);
-            string dsoNameRegexp = "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+([+-.]?[0-9]+)*)";
+            string startingParenthesisRegexp = @"(\()?";
+            string endingParenthesisRegexp = @"(\))?";
+            // The ?: at the start of one of the groups is to make that the group is non-capturing.
+            // This results in the fourth group always beeing the ending parenthesis.
+            string dsoNameRegexp = startingParenthesisRegexp + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-.]?[0-9]+)*)" + endingParenthesisRegexp;
             var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.IgnoreCase);
 
             // Regexp for finding text sections that include DSO names
@@ -121,6 +125,8 @@ namespace ObsTool.Services
 
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
+                int matchNo = 0;
+
                 MatchCollection sectionsMatches = findSectionsRegexp.Matches(reportText);  // matching on the whole report text
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
@@ -129,12 +135,19 @@ namespace ObsTool.Services
                     MatchCollection dsoNameMatches = findDsoNamesRegexp.Matches(sectionText);  // matching on a single section
                     foreach (Match dsoNameMatch in dsoNameMatches)
                     {
-                        string catalog = dsoNameMatch.Groups[1].Value;
-                        string catalogNo = dsoNameMatch.Groups[2].Value;
+                        string startingParenthesis = dsoNameMatch.Groups[1].Value;
+                        string catalog = dsoNameMatch.Groups[2].Value;
+                        string catalogNo = dsoNameMatch.Groups[3].Value;
+                        string endingParenthesis = dsoNameMatch.Groups[4].Value;
 
-                        //Debug.WriteLine("---------------------------------------------------------");
-                        //Debug.WriteLine($"Match: {catalog} {catalogNo}");
+                        Debug.WriteLine("---------------------------------------------------------");
+                        Debug.WriteLine($"Match: {catalog} {catalogNo}");
                         //Debug.WriteLine($"Match: {sectionText}");
+
+                        // Ignore pattern if it's surrounded by parenthesis
+                        if (startingParenthesis == "(" && endingParenthesis == ")") {
+                            continue;
+                        }
 
                         string dsoName = $"{catalog} {catalogNo}";
                         Dso dso = _dsoRepo.GetDsoByName(dsoName, normalize: false);
@@ -156,7 +169,8 @@ namespace ObsTool.Services
                             {
                                 Text = sectionText,
                                 Dso = dso,
-                                DsoId = dso.Id
+                                DsoId = dso.Id,
+                                DisplayOrder = matchNo++
                             };
                             observationsDictionary.Add(dso.Id, observation);
                         }

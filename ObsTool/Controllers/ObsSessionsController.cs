@@ -136,12 +136,8 @@ namespace ObsTool.Controllers
             _logger.LogInformation("Created an observation session:");
             _logger.LogInformation(PocoPrinter.ToString(addedObsSession));
 
-
-            _localMailService.SendMail("Created", "Someone crated an observation session");
-
             ObsSessionDto addedObsSessionDto = Mapper.Map<ObsSessionDto>(addedObsSession);
 
-            //string controllerName
             return CreatedAtRoute("GetOneObsSession", new { id = addedObsSessionDto.Id }, addedObsSessionDto);
         }
 

@@ -211,6 +211,8 @@ namespace ObsTool.Migrations
 
                     b.Property<string>("CustomObjectName");
 
+                    b.Property<int?>("DisplayOrder");
+
                     b.Property<int>("DsoId");
 
                     b.Property<int>("ObsSessionId");

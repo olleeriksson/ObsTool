@@ -177,6 +177,7 @@ namespace ObsTool.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     CustomObjectName = table.Column<string>(nullable: true),
+                    DisplayOrder = table.Column<int>(nullable: true),
                     DsoId = table.Column<int>(nullable: false),
                     ObsSessionId = table.Column<int>(nullable: false),
                     Text = table.Column<string>(maxLength: 4000, nullable: true)

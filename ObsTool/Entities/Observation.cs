@@ -30,6 +30,8 @@ namespace ObsTool.Entities
         [MaxLength(4000)]
         public string Text { get; set; }
 
+        public int? DisplayOrder { get; set; }
+
         public List<ObsResource> ObsResources { get; set; } = new List<ObsResource>();
     }
 }

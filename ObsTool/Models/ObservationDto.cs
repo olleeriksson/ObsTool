@@ -24,6 +24,8 @@ namespace ObsTool.Models
         // We'll have to do with this one, so we can look up the ObsSession separately
         public int ObsSessionId { get; set; }
 
+        public int? DisplayOrder { get; set; }
+
         public ICollection<ObservationDto> OtherObservations { get; set; } = null;
 
         public ICollection<ObsResourceDto> ObsResources { get; set; } = null;

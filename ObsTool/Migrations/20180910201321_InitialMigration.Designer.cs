@@ -12,7 +12,7 @@ using System;
 namespace ObsTool.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20180909131256_InitialMigration")]
+    [Migration("20180910201321_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -211,6 +211,8 @@ namespace ObsTool.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("CustomObjectName");
+
+                    b.Property<int?>("DisplayOrder");
 
                     b.Property<int>("DsoId");
 

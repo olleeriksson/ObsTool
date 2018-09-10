@@ -52,8 +52,19 @@ namespace ObsTool.Services
 
             Dso foundDso = null;
 
-            // Look for the normalized name in Name and OtherNames
-            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.Name == normalizedName || dso.OtherNames.Contains(normalizedName));
+            // Look for a perfect match with the normalized name
+            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.Name == normalizedName);
+            if (foundDso != null)
+            {
+                return foundDso;
+            }
+
+            // If no perfect match was found, look for other names that contain this name
+            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
+            if (foundDso != null)
+            {
+                return foundDso;
+            }
 
             // If not found, look for the query string in CommonName and AllCommonNames
             if (foundDso == null)
