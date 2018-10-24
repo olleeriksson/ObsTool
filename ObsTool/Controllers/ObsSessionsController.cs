@@ -88,18 +88,18 @@ namespace ObsTool.Controllers
             if (includeOtherObservations)
             {
                 // Get the list of all DSO id's
-                int[] dsoIds = obsSession.Observations.Select(o => o.DsoId).ToArray();
+                int[] dsoIds = obsSession.Observations.SelectMany(obs => obs.DsoObservations.Select(dsoObs => dsoObs.DsoId)).ToArray();
 
                 // We need to know which are the primary observation id's so we can filter them out
                 int[] primaryObservationIds = obsSession.Observations.Select(o => o.Id).ToArray();
 
-                var mapOfOtherObservations = _observationsService.GetAllObservationDtosForMultipleDsoIdsMappedByDsoId(
+                var mapOfOtherObservations = _observationsService.GetAllObservationDtosForMultipleDsoIdsMappedByObsId(
                     dsoIds, exludeObservationIds: primaryObservationIds);
 
                 // Copy each list of observations (one list per DSO) to the primary observation
                 foreach (var primaryObservationDto in obsSessionDto.Observations)
                 {
-                    primaryObservationDto.OtherObservations = mapOfOtherObservations[primaryObservationDto.DsoId];
+                    primaryObservationDto.OtherObservations = mapOfOtherObservations[primaryObservationDto.Id];
                 }
             }
 

@@ -20,7 +20,7 @@ namespace ObsTool.Services
         public Observation GetObservationById(int id)
         {
             return _dbContext.Observations.Where(o => o.Id == id)
-                .Include(o => o.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
                 .Include(o => o.ObsResources)
                 .FirstOrDefault();
         }
@@ -28,7 +28,7 @@ namespace ObsTool.Services
         public ICollection<Observation> GetObservationsByDsoId(int dsoId)
         {
             return _dbContext.Observations
-                .Where(o => o.DsoId == dsoId)
+                .Where(o => o.DsoObservations.Any(obs => obs.DsoId == dsoId))
                 .Include(o => o.ObsResources)
                 .ToList();
         }
@@ -36,7 +36,7 @@ namespace ObsTool.Services
         public ICollection<Observation> GetObservationsByMultipleDsoIds(ICollection<int> dsoIds)
         {
             return _dbContext.Observations
-                .Where(o => dsoIds.Contains(o.DsoId))
+                .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))
                 .Include(o => o.ObsResources)
                 .ToList();
         }

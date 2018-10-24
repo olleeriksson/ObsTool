@@ -176,9 +176,8 @@ namespace ObsTool.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    CustomObjectName = table.Column<string>(nullable: true),
                     DisplayOrder = table.Column<int>(nullable: true),
-                    DsoId = table.Column<int>(nullable: false),
+                    Identifier = table.Column<string>(maxLength: 200, nullable: true),
                     ObsSessionId = table.Column<int>(nullable: false),
                     Text = table.Column<string>(maxLength: 4000, nullable: true)
                 },
@@ -186,15 +185,33 @@ namespace ObsTool.Migrations
                 {
                     table.PrimaryKey("PK_Observations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Observations_SacDeepSkyObjects_DsoId",
+                        name: "FK_Observations_ObsSessions_ObsSessionId",
+                        column: x => x.ObsSessionId,
+                        principalTable: "ObsSessions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DsoObservations",
+                columns: table => new
+                {
+                    ObservationId = table.Column<int>(nullable: false),
+                    DsoId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DsoObservations", x => new { x.ObservationId, x.DsoId });
+                    table.ForeignKey(
+                        name: "FK_DsoObservations_SacDeepSkyObjects_DsoId",
                         column: x => x.DsoId,
                         principalTable: "SacDeepSkyObjects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Observations_ObsSessions_ObsSessionId",
-                        column: x => x.ObsSessionId,
-                        principalTable: "ObsSessions",
+                        name: "FK_DsoObservations_Observations_ObservationId",
+                        column: x => x.ObservationId,
+                        principalTable: "Observations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -232,8 +249,8 @@ namespace ObsTool.Migrations
                 column: "DsoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Observations_DsoId",
-                table: "Observations",
+                name: "IX_DsoObservations_DsoId",
+                table: "DsoObservations",
                 column: "DsoId");
 
             migrationBuilder.CreateIndex(
@@ -261,6 +278,9 @@ namespace ObsTool.Migrations
                 name: "ArticleDsoObjects");
 
             migrationBuilder.DropTable(
+                name: "DsoObservations");
+
+            migrationBuilder.DropTable(
                 name: "ObsResources");
 
             migrationBuilder.DropTable(
@@ -270,10 +290,10 @@ namespace ObsTool.Migrations
                 name: "Articles");
 
             migrationBuilder.DropTable(
-                name: "Observations");
+                name: "SacDeepSkyObjects");
 
             migrationBuilder.DropTable(
-                name: "SacDeepSkyObjects");
+                name: "Observations");
 
             migrationBuilder.DropTable(
                 name: "ObsSessions");

@@ -27,11 +27,20 @@ namespace ObsTool.Services
 
         public bool DeleteObsSession(ObsSession obsSession)
         {
-            // Delete all related Observation's
+            // Load all observations
             _dbContext.Entry(obsSession).Collection("Observations").Load();
-            obsSession.Observations.RemoveAll(obs => true);
 
-            // Then delete the ObsSession itself
+            foreach (Observation observation in obsSession.Observations)
+            {
+                // Load each observations' DsoObservations and then remove them
+                _dbContext.Entry(observation).Collection("DsoObservations").Load();
+                //observation.DsoObservations.RemoveAll(dsoObs => true);  // doesn't seem needed, just loading them
+            }
+
+            // Then delete the Observations themselves
+            //obsSession.Observations.RemoveAll(obs => true);  // doesn't seem needed, just loading them
+
+            // Finally delete the ObsSession itself
             _dbContext.ObsSessions.Remove(obsSession);
             return (_dbContext.SaveChanges() > 0);
         }
@@ -57,7 +66,7 @@ namespace ObsTool.Services
             if (includeObservations && includeDso)
             {
                 query = query
-                    .Include(s => s.Observations).ThenInclude(o => o.Dso)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
                     .Include(s => s.Observations).ThenInclude(o => o.ObsResources);
             }
             else if (includeObservations)

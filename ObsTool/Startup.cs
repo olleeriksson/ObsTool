@@ -66,6 +66,7 @@ namespace ObsTool
             AutoMapper.Mapper.Initialize(cfg =>
             {
                 // disabling because the full ObsSession object gives a recursive problem when asking for a dso's observations
+                cfg.CreateMap<Entities.DsoObservation, Models.DsoObservationDto>();
                 cfg.CreateMap<Entities.ObsSession, Models.ObsSessionDto>();
                 cfg.CreateMap<Entities.ObsSession, Models.ObsSessionDtoSimple>();
                 cfg.CreateMap<Models.ObsSessionDto, Entities.ObsSession>();
@@ -82,6 +83,7 @@ namespace ObsTool
                 cfg.CreateMap<Models.ObsResourceDto, Entities.ObsResource>();
                 cfg.CreateMap<Models.ObsResourceDtoForCreationAndUpdate, Entities.ObsResource>();
             });
+            //AutoMapper.Mapper.AssertConfigurationIsValid();
 
             loggerFactory.AddNLog();
 

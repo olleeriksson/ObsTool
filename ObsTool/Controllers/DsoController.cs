@@ -48,7 +48,7 @@ namespace ObsTool
                 IEnumerable<DsoDto> truncatedDsoDtoList = Mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
 
                 int[] dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToArray();
-                var observationsMap = _observationsService.GetAllObservationDtosForMultipleDsoIdsMappedByDsoId(dsoIds);
+                var observationsMap = _observationsService.GetAllObservationDtosForMultipleDsoIdsMappedByObsId(dsoIds);
 
                 foreach (DsoDto dso in truncatedDsoDtoList)
                 {

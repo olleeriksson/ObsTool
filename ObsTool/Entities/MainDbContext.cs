@@ -43,12 +43,15 @@ namespace ObsTool.Entities
 
         public DbSet<ArticleDsoObjects> ArticleDsoObjects { get; set; }
 
+        public DbSet<DsoObservation> DsoObservations { get; set; }
+
         public DbSet<ObsResource> ObsResources { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ArticleConstellations>().HasKey(ac => new { ac.ArticleId, ac.ConstellationId });
             modelBuilder.Entity<ArticleDsoObjects>().HasKey(ad => new { ad.ArticleId, ad.DsoId});
+            modelBuilder.Entity<DsoObservation>().HasKey(ad => new { ad.ObservationId, ad.DsoId });
         }
 
         //protected override OnConfiguring(DbContextOptionsBuilder optionsBuilder)

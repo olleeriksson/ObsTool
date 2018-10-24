@@ -34,13 +34,13 @@ namespace ObsTool.Services
         public void ParseAndStoreObservations(ObsSession obsSession)
         {
             // Parse
-            IDictionary<int, Observation> updatedObservations = Parse(obsSession.ReportText);
+            IDictionary<string, Observation> updatedObservations = Parse(obsSession.ReportText);
 
             // Replace list of Observations on the ObsSession
             _dbContext.Entry(obsSession).Collection("Observations").Load();
 
             List<Observation> observationsToDelete = obsSession.Observations
-                .Where(oldObs => !updatedObservations.ContainsKey(oldObs.DsoId))  // those where there is (not any/no) match in the updatedObservations list
+                .Where(oldObs => !updatedObservations.ContainsKey(oldObs.Identifier))  // those where there is (not any/no) match in the updatedObservations list
                 .ToList();
 
             // Find out which observations to delete (and not just update)
@@ -56,25 +56,31 @@ namespace ObsTool.Services
                         _logger.LogInformation(PocoPrinter.ToString(obsResource));
                     }
                 }
+                // we never delete the ObsResources   // doesn't seem needed, just loading them
+
+                // Load the Observations' DsoObservations and remove them
+                _dbContext.Entry(observationToDelete).Collection("DsoObservations").Load();
+                //observationToDelete.DsoObservations.RemoveAll(dsoObs => true);  // doesn't seem needed, just loading them
+
                 // Then delete them
-                Debug.WriteLine("Deleting observation for DSO " + (observationToDelete.Dso != null ? observationToDelete.Dso.Name : "" + observationToDelete.DsoId));
+                Debug.WriteLine("Deleting observation with identifier " + observationToDelete.Identifier);
                 obsSession.Observations.Remove(observationToDelete);
             }
 
             // First off, start by creating a dictionary of the existing observations for easier lookup
-            IDictionary<int, Observation> existingObservations = new Dictionary<int, Observation>();
+            IDictionary<string, Observation> existingObservations = new Dictionary<string, Observation>();
             foreach (Observation existingObservation in obsSession.Observations)
             {
-                existingObservations.Add(existingObservation.DsoId, existingObservation);
+                existingObservations.Add(existingObservation.Identifier, existingObservation);
             }
 
             // Now, go through observations that already existed, and that should be updated with the new data
             foreach (Observation existingObservation in obsSession.Observations)
             {
-                if (updatedObservations.ContainsKey(existingObservation.DsoId))
+                if (updatedObservations.ContainsKey(existingObservation.Identifier))
                 {
-                    Observation updatedObservation = updatedObservations[existingObservation.DsoId];
-                    Debug.WriteLine("Updating the existing observation for DSO " + updatedObservation.Dso.Name);
+                    Observation updatedObservation = updatedObservations[existingObservation.Identifier];
+                    Debug.WriteLine("Updating the existing observation for observation with Identifier " + updatedObservation.Identifier);
                     // Transfer/update the observation
                     existingObservation.Text = updatedObservation.Text;
                     existingObservation.DisplayOrder = updatedObservation.DisplayOrder;
@@ -84,10 +90,10 @@ namespace ObsTool.Services
             // Finally, add those observations that are new, that didn't exist before
             foreach (Observation updatedObservation in updatedObservations.Values)
             {
-                if (!existingObservations.ContainsKey(updatedObservation.DsoId))  // it doesn't exists, add it!
+                if (!existingObservations.ContainsKey(updatedObservation.Identifier))  // it doesn't exists, add it!
                 {
                     var newObservation = updatedObservation;  // just to clearly indicate that it's a new one
-                    Debug.WriteLine("Adding new observation for DSO " + newObservation.Dso.Name);
+                    Debug.WriteLine("Adding new observation for observation with Identifier " + newObservation.Identifier);
                     obsSession.Observations.Add(newObservation);
                 }
             }
@@ -95,9 +101,9 @@ namespace ObsTool.Services
             SaveChanges();
         }
 
-        private IDictionary<int, Observation> Parse(string reportText)
+        private IDictionary<string, Observation> Parse(string reportText)
         {
-            IDictionary<int, Observation> observationsDictionary = new Dictionary<int, Observation>();
+            IDictionary<string, Observation> observationsDictionary = new Dictionary<string, Observation>();
 
             // If report text is empty, just return
             if (reportText == null)
@@ -123,14 +129,18 @@ namespace ObsTool.Services
             // Regexp for finding text sections that include DSO names
             var findSectionsRegexp = new Regex(".*" + dsoNameRegexp + ".*", RegexOptions.IgnoreCase);
 
+
+
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
                 int matchNo = 0;
+                ISet<int> foundDsoIds = new HashSet<int>();
 
                 MatchCollection sectionsMatches = findSectionsRegexp.Matches(reportText);  // matching on the whole report text
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
                     string sectionText = sectionsMatch.Value;
+                    var dsosInSection = new List<Dso>();
 
                     MatchCollection dsoNameMatches = findDsoNamesRegexp.Matches(sectionText);  // matching on a single section
                     foreach (Match dsoNameMatch in dsoNameMatches)
@@ -161,23 +171,48 @@ namespace ObsTool.Services
                         {
                             Debug.WriteLine("Found: " + dso.ToString());
                         }
-                        Debug.WriteLine("---------------------------------------------------------");
 
-                        if (!observationsDictionary.ContainsKey(dso.Id))
+                        if (foundDsoIds.Contains(dso.Id))
                         {
-                            Observation observation = new Observation
-                            {
-                                Text = sectionText,
-                                Dso = dso,
-                                DsoId = dso.Id,
-                                DisplayOrder = matchNo++
-                            };
-                            observationsDictionary.Add(dso.Id, observation);
+                            throw new Exception("DSO " + dso.ToString() + " found in more than one section of the report text!");
                         }
+
+                        dsosInSection.Add(dso);
+
+                        Debug.WriteLine("---------------------------------------------------------");
                     }
+
+                    // Create observations identifier based on the DSO objects the observation contains
+                    var observationsIdentifier = CreateDsoObservationsIdentifier(dsosInSection);
+
+                    // Now, create the observation!
+                    Observation observation = new Observation
+                    {
+                        Text = sectionText,
+                        Identifier = observationsIdentifier,
+                        DsoObservations = new List<DsoObservation>(),
+                        DisplayOrder = matchNo++
+                    };
+
+                    // Then add all DSOs to the observation
+                    foreach (Dso dso in dsosInSection)
+                    {
+                        // Remember all the DSOs in this section for the checks in the next section, and the next etc..
+                        foundDsoIds.Add(dso.Id);
+
+                        // Add the DSOs as DsoObservation's to the observation
+                        observation.DsoObservations.Add(new DsoObservation { Dso = dso });
+                    }
+
+                    observationsDictionary.Add(observation.Identifier, observation);
                 }
             }
             return observationsDictionary;
+        }
+
+        public string CreateDsoObservationsIdentifier(List<Dso> dsoList)
+        {
+            return string.Join(",", dsoList.OrderBy(d => d.Name).Select(d => d.Name));
         }
 
         public bool SaveChanges()

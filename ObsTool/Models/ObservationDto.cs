@@ -10,19 +10,23 @@ namespace ObsTool.Models
     {
         public int Id { get; set; }
 
-        public DsoDto Dso { get; set; }
+        //public DsoDto Dso { get; set; }
 
-        public int DsoId { get; set; }
+        //public int DsoId { get; set; }
 
-        public string CustomObjectName { get; set; }
+        // We'll have to do with this one, so we can look up the ObsSession separately
+        public int ObsSessionId { get; set; }
+
+        public string Identifier { get; set; }
+
+        public ICollection<DsoObservationDto> DsoObservations { get; set; }
+
+        //public string CustomObjectName { get; set; }
 
         public string Text { get; set; }
 
         // Can not have this on the corresponding entity because it creates a self referencing loop between ObsSession and Observation
         public ObsSessionDto ObsSession { get; set; }
-
-        // We'll have to do with this one, so we can look up the ObsSession separately
-        public int ObsSessionId { get; set; }
 
         public int? DisplayOrder { get; set; }
 

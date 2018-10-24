@@ -20,12 +20,17 @@ namespace ObsTool.Entities
         [ForeignKey("ObsSessionId")]
         public int ObsSessionId { get; set; }
 
-        [ForeignKey("DsoId")]
-        public Dso Dso { get; set; }
+        //[ForeignKey("DsoId")]
+        //public Dso Dso { get; set; }
 
-        public int DsoId { get; set; }
+        //public int DsoId { get; set; }
 
-        public string CustomObjectName { get; set; }
+        [MaxLength(200)]
+        public string Identifier { get; set; }
+
+        public List<DsoObservation> DsoObservations { get; set; } = new List<DsoObservation>();
+
+        //public string CustomObjectName { get; set; }
 
         [MaxLength(4000)]
         public string Text { get; set; }

@@ -12,7 +12,7 @@ using System;
 namespace ObsTool.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20180910201321_InitialMigration")]
+    [Migration("20181024061818_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -185,6 +185,19 @@ namespace ObsTool.Migrations
                     b.ToTable("SacDeepSkyObjects");
                 });
 
+            modelBuilder.Entity("ObsTool.Entities.DsoObservation", b =>
+                {
+                    b.Property<int>("ObservationId");
+
+                    b.Property<int>("DsoId");
+
+                    b.HasKey("ObservationId", "DsoId");
+
+                    b.HasIndex("DsoId");
+
+                    b.ToTable("DsoObservations");
+                });
+
             modelBuilder.Entity("ObsTool.Entities.Location", b =>
                 {
                     b.Property<int>("Id")
@@ -210,11 +223,10 @@ namespace ObsTool.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("CustomObjectName");
-
                     b.Property<int?>("DisplayOrder");
 
-                    b.Property<int>("DsoId");
+                    b.Property<string>("Identifier")
+                        .HasMaxLength(200);
 
                     b.Property<int>("ObsSessionId");
 
@@ -222,8 +234,6 @@ namespace ObsTool.Migrations
                         .HasMaxLength(4000);
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DsoId");
 
                     b.HasIndex("ObsSessionId");
 
@@ -312,13 +322,21 @@ namespace ObsTool.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("ObsTool.Entities.Observation", b =>
+            modelBuilder.Entity("ObsTool.Entities.DsoObservation", b =>
                 {
                     b.HasOne("ObsTool.Entities.Dso", "Dso")
-                        .WithMany()
+                        .WithMany("Observations")
                         .HasForeignKey("DsoId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("ObsTool.Entities.Observation")
+                        .WithMany("DsoObservations")
+                        .HasForeignKey("ObservationId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("ObsTool.Entities.Observation", b =>
+                {
                     b.HasOne("ObsTool.Entities.ObsSession")
                         .WithMany("Observations")
                         .HasForeignKey("ObsSessionId")

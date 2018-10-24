@@ -98,6 +98,8 @@ namespace ObsTool.Entities
         [MaxLength(100)]
         public string Notes { get; set; }
 
+        public ICollection<DsoObservation> DsoObservations { get; set; }
+
         public ICollection<ArticleDsoObjects> ReferringArticles { get; set; }
 
         public override string ToString()

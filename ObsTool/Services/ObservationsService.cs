@@ -19,31 +19,31 @@ namespace ObsTool.Services
             _obsSessionsRepository = obsSessionsRepository;
         }
 
-        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosForMultipleDsoIdsMappedByDsoId(int[] dsoIds, int[] exludeObservationIds = null)
+        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosForMultipleDsoIdsMappedByObsId(int[] dsoIds, int[] exludeObservationIds = null)
         {
             int[] exludeObservationIdList = exludeObservationIds != null ? exludeObservationIds : new int[] { };
 
             // Get the corresponding ObservationDto's
             var allOtherObservations = GetAllObservationDtosForMultipleDsoIds(dsoIds);
 
-            // Put them in a dictionary of arrays for faster lookup, mapped by the DSO id
+            // Put them in a dictionary of arrays for faster lookup, mapped by the observation id
             // -------------------------------------------------------------------------
             // TODO: It must be possible to do this much better in C# !!!!! Like in Java
             // -------------------------------------------------------------------------
             var mapOfOtherObservations = new Dictionary<int, ICollection<ObservationDto>>();
             foreach (var otherObservationDto in allOtherObservations)
             {
-                int dsoId = otherObservationDto.DsoId;
+                int obsId = otherObservationDto.Id;
                 // For observations of a newly encountered DSO create a list for it in the map
-                if (!mapOfOtherObservations.ContainsKey(dsoId))
+                if (!mapOfOtherObservations.ContainsKey(obsId))
                 {
-                    mapOfOtherObservations.Add(dsoId, new List<ObservationDto>());
+                    mapOfOtherObservations.Add(obsId, new List<ObservationDto>());
                 }
                 // And add the observation to the list (except if it is one of the primary observations)
                 // This is a list of the *other* observations after all.
                 if (!exludeObservationIdList.Contains(otherObservationDto.Id))
                 {
-                    mapOfOtherObservations[dsoId].Add(otherObservationDto);
+                    mapOfOtherObservations[obsId].Add(otherObservationDto);
                 }
             }
 
