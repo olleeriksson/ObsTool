@@ -113,6 +113,13 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       );
     }
 
+    let dsoObjects;
+    if (this.props.observation.dsoObservations) {
+      dsoObjects = this.props.observation.dsoObservations.map(o =>
+        <DsoExtended key={o.dso.id} dso={o.dso} customObjectName={o.customObjectName} />
+      );
+    }
+
     return (
       <Paper className={classes.root}>
         <Grid container={true} spacing={16} direction="column">
@@ -128,7 +135,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
               <Grid item={true} xs={11} sm={true}>
                 <Grid container={true} direction="column" spacing={16}>
                   <Grid item={true} xs={true}>
-                    <DsoExtended dso={this.props.observation.dso} />
+                    {dsoObjects}
                     <Typography gutterBottom={true}>
                       {this.props.observation.text}
                     </Typography>

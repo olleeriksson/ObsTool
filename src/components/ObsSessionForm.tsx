@@ -118,8 +118,10 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
       dsoObjects = this.state.obsSession.observations
         .sort(this.sortByDisplayOrder)
         .map((o, index) => {
-          if (o.dso) {
-            return <DsoShort key={o.dso.id} dso={o.dso} />;
+          if (o.dsoObservations) {
+            return o.dsoObservations.map(dsoObs =>
+              <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} />
+            );
           } else {
             const errorText = "Err " + o.id;
             return <DsoShort key={index} error={errorText} />;

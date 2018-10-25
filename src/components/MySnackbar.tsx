@@ -50,7 +50,7 @@ const styles = (theme: Theme) => createStyles({
     },
 });
 
-export interface IMySnackbar extends WithStyles<typeof styles> {
+export interface IMySnackbarProps extends WithStyles<typeof styles> {
     children?: React.ReactNode;
     className?: string;
     message: React.ReactNode;
@@ -62,8 +62,8 @@ interface IMySnackbarState {
     open: boolean;
 }
 
-class MySnackbar extends React.Component<IMySnackbar, IMySnackbarState> {
-    constructor(props: IMySnackbar) {
+class MySnackbar extends React.Component<IMySnackbarProps, IMySnackbarState> {
+    constructor(props: IMySnackbarProps) {
         super(props);
 
         this.state = {

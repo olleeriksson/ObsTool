@@ -5,7 +5,7 @@ import Typography from "@material-ui/core/Typography";
 
 export interface IDsoShortProps {
   id?: number;
-  name?: string;
+  customObjectName?: string;
   error?: string;
   dso?: IDso;
 }
@@ -62,7 +62,7 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
         return (
           <div className="dsoShort">
             <Typography variant="body1">
-              {this.state.dso.name}
+              {this.state.dso.name === "custom" ? this.props.customObjectName : this.state.dso.name}
             </Typography>
             <Typography color="textSecondary" variant="caption" gutterBottom={true}>
               {this.state.dso.type}, {this.state.dso.con}

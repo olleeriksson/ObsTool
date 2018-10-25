@@ -1,13 +1,12 @@
 import * as React from "react";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import axios from "axios";
 import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 import CosmosIcon from "../cosmos.svg";
 
 export interface IDsoExtendedProps {
   id?: number;
-  name?: string;
+  customObjectName?: string;
   error?: string;
   dso?: IDso;
 }
@@ -17,10 +16,6 @@ export interface IDsoExtendedState {
   isLoading: boolean;
   isError: boolean;
   dso?: IDso;
-}
-
-interface IServerResponse {
-  data: IDso;
 }
 
 export default class DsoExtended extends React.Component<IDsoExtendedProps, IDsoExtendedState> {
@@ -39,40 +34,9 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
     if (this.props.dso) {
       this.setState({ isLoading: false });
       this.setState({ isError: false });
-      this.setState({ dso: this.props.dso });
     } else {
-      if (this.props.id === -1 || this.props.name === "") {
-        this.setState({ isLoading: false });
-        this.setState({ isError: true });
-      } else {
-        if (this.props.id) {
-          axios.get<IDso>("http://localhost:50995/api/dso/" + this.props.id).then((response) => {
-            const { data } = response;
-            console.log(response);
-            if (this.state.isMounted) {
-              this.setState({ isLoading: false });
-              this.setState({ isError: false });
-              this.setState({ dso: data });
-            }
-          });
-        } else if (this.props.name) {
-          axios.request<IDso>({
-            url: "http://localhost:50995/api/dso?name=" + this.props.name,
-            transformResponse: (r: IServerResponse) => r.data
-          }).then((response) => {
-            const { data } = response;
-            console.log(response);
-            if (this.state.isMounted) {
-              this.setState({ isLoading: false });
-              this.setState({ isError: false });
-              this.setState({ dso: data });
-            }
-          });
-        } else {
-          this.setState({ isLoading: false });
-          this.setState({ isError: true });
-        }
-      }
+      this.setState({ isLoading: false });
+      this.setState({ isError: true });
     }
   }
 
@@ -96,28 +60,38 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
         </Typography>
       );
     } else {
-      if (this.state.dso) {
-        const otherNames = this.state.dso.otherNames && this.state.dso.otherNames.trim() !== "" && "(" + this.state.dso.otherNames + ")";
-        const commonName = this.state.dso.commonName && (" - " + this.state.dso.commonName);
-        const sizeSeparator = this.state.dso.sizeMax && this.state.dso.sizeMax.trim() !== "" && this.state.dso.sizeMin && this.state.dso.sizeMin.trim() !== "" && " - ";
+      if (this.props.dso) {
+        const otherNames = this.props.dso.otherNames && this.props.dso.otherNames.trim() !== "" && "(" + this.props.dso.otherNames + ")";
+        const commonName = this.props.dso.commonName && (" - " + this.props.dso.commonName);
+        const sizeSeparator = this.props.dso.sizeMax && this.props.dso.sizeMax.trim() !== "" && this.props.dso.sizeMin && this.props.dso.sizeMin.trim() !== "" && " - ";
 
-        return (
-          <div className="dsoExtended">
-            <Typography variant="subheading">
-              <img src={CosmosIcon} width="20" height="20" /> {this.state.dso.name} {otherNames} {commonName}
-            </Typography>
-            <Typography color="textSecondary">
-              <strong>Type:</strong> {this.state.dso.type} &nbsp;
-              <strong>Const:</strong> {this.state.dso.con} &nbsp;
-              <strong>Mag:</strong> {this.state.dso.mag} &nbsp;
-              <strong>SB:</strong> {this.state.dso.sb} &nbsp;
-              <strong>Class:</strong> {this.state.dso.class} &nbsp;
-              <strong>Dreyer:</strong> {this.state.dso.dreyerDesc} &nbsp;
-              <strong>Size:</strong> {this.state.dso.sizeMax} {sizeSeparator} {this.state.dso.sizeMin} &nbsp;
-              <strong>Notes:</strong> {this.state.dso.notes} &nbsp;
-            </Typography>
-          </div>
-        );
+        if (this.props.dso.name === "custom") {
+          return (
+            <div className="dsoExtended">
+              <Typography variant="subheading">
+                <img src={CosmosIcon} width="20" height="20" /> Custom object: {this.props.customObjectName}
+              </Typography>
+            </div>
+          );
+        } else {
+          return (
+            <div className="dsoExtended">
+              <Typography variant="subheading">
+                <img src={CosmosIcon} width="20" height="20" /> {this.props.dso.name} {otherNames} {commonName}
+              </Typography>
+              <Typography color="textSecondary">
+                <strong>Type:</strong> {this.props.dso.type} &nbsp;
+                <strong>Const:</strong> {this.props.dso.con} &nbsp;
+                <strong>Mag:</strong> {this.props.dso.mag} &nbsp;
+                <strong>SB:</strong> {this.props.dso.sb} &nbsp;
+                <strong>Class:</strong> {this.props.dso.class} &nbsp;
+                <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
+                <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
+                <strong>Notes:</strong> {this.props.dso.notes} &nbsp;
+              </Typography>
+            </div>
+          );
+        }
       } else {
         return (
           <Typography color="textSecondary" gutterBottom={true}>

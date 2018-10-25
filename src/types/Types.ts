@@ -1,12 +1,18 @@
 export interface IObservation {
     id: number;
-    dso: IDso;
-    customObjectName: string;
+    dsoObservations: IDsoObservation[];
     text: string;
     obsSession?: IObsSession;
     otherObservations?: IObservation[];
     obsResources?: IObsResource[];
     displayOrder: number;
+}
+
+export interface IDsoObservation {
+    id: number;
+    dso: IDso;
+    obsSession: IObsSession;
+    customObjectName: string;
 }
 
 export interface IObsResource {

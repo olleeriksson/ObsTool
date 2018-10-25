@@ -19,8 +19,8 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteDialog from "./DeleteDialog";
-// import Snackbar from "@material-ui/core/Snackbar";
-// import MySnackbar from "./MySnackbar";
+import Snackbar from "@material-ui/core/Snackbar";
+import MySnackbar from "./MySnackbar";
 import Api from "../api/Api";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
@@ -46,6 +46,7 @@ interface IObsSessionPageProps extends WithStyles<typeof styles> {
 interface IObsSessionPageState {
     isLoading: boolean;
     isError: boolean;
+    errorMsg?: string;
     redirectToListView: boolean;
     redirectToSingleSessionPage: boolean;
     menuAnchorEl: any;
@@ -61,6 +62,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.state = {
             isLoading: false,
             isError: false,
+            errorMsg: undefined,
             redirectToListView: false,
             redirectToSingleSessionPage: false,
             menuAnchorEl: null,
@@ -144,7 +146,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                     this.handleSuccessDataFromApi(obsSession);
                     this.props.actions.updateObsSessionSuccess(obsSession);
                 },
-                () => this.indicateError()
+                (response) => {
+                    this.indicateError();
+                }
             );
         }
     }
@@ -167,11 +171,18 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ obsSession: obsSession });
         this.setState({ isLoading: false });
         this.setState({ isError: false });
+        this.setState({ errorMsg: undefined });
     }
 
-    private indicateError = () => {
+    private indicateError = (errorMsg?: string) => {
         this.setState({ isLoading: false });
         this.setState({ isError: true });
+        this.setState({ errorMsg: errorMsg });
+    }
+
+    private clearError = () => {
+        this.setState({ isError: false });
+        this.setState({ errorMsg: undefined });
     }
 
     public onSelectObsSession = (obsSessionId: number) => {
@@ -221,16 +232,17 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             return <Redirect to={"/sessions"} />;
         }
 
-        // const snackbar = <Snackbar
-        //     anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        //     open={this.state.isError}
-        //     autoHideDuration={1000}
-        // >
-        //     <MySnackbar
-        //         variant="error"
-        //         message="Something went wrong!"
-        //     />
-        // </Snackbar>;
+        const snackbar = <Snackbar
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            open={this.state.isError}
+            autoHideDuration={1000}
+        >
+            <MySnackbar
+                variant="error"
+                message={this.state.errorMsg || "Something went wrong!"}
+                onClose={this.clearError}
+            />
+        </Snackbar>;
 
         let observations: IObservation[] = [];
         if (this.state.obsSession && this.state.obsSession.observations) {
@@ -274,6 +286,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
         return (
             <div className="circularProgressSuperContainer">
+                {snackbar}
                 {circularProgress}
                 <DeleteDialog isOpen={this.state.isDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleDeleteDialogClosed} />
                 <div className={classes.root} >
@@ -312,7 +325,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         fullWidth={true}
                         centered={true}
                     >
-                        <Tab label="Session data" />
+                        <Tab label="Session data.." />
                         <Tab label={listTabLabel} />
                     </Tabs>
                     <SwipeableViews
