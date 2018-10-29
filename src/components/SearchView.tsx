@@ -10,7 +10,7 @@ import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
 import { debounce } from "lodash";
 // import DsoExtended from "./DsoExtended";
-import DynamicDsoLabel from "./DynamicDsoLabel";
+import DynamicDsoSearchLabel from "./DynamicDsoSearchLabel";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
@@ -142,13 +142,13 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
             } else if (this.state.dsoList.length === 1) {  // Exactly one match
                 searchResult = this.state.dsoList.map(dso => (
                     <Grid key={dso.id} item={true} xs={12}>
-                        <DynamicDsoLabel dso={dso} showBadge={true} showObservations={true} />
+                        <DynamicDsoSearchLabel dso={dso} showBadge={true} showObservations={true} />
                     </Grid>
                 ));
             } else {   // Several matches
                 searchResult = this.state.dsoList.map(dso => (
                     <Grid key={dso.id} item={true} xs={12}>
-                        <DynamicDsoLabel dso={dso} showBadge={true} showObservations={false} />
+                        <DynamicDsoSearchLabel dso={dso} showBadge={true} showObservations={false} />
                     </Grid>
                 ));
             }

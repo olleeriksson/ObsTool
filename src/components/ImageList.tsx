@@ -259,7 +259,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           </Grid>
           {error}
           {circularProgress}
-          <span onClick={this.onClickAddResource}><AddIcon style={{ fontSize: 14 }} /></span>
+          <Typography variant="caption" color="textSecondary">
+            <span onClick={this.onClickAddResource}><AddIcon style={{ fontSize: 14 }} /></span>
+          </Typography>
         </Grid>
       </div>
     );

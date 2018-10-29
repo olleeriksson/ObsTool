@@ -3,11 +3,11 @@ import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 import CosmosIcon from "../cosmos.svg";
 
-interface IDsoLabelProps {
+interface IDsoSearchLabelProps {
   dso: IDso;
 }
 
-const DsoLabel = (props: IDsoLabelProps) => {
+const DsoSearchLabel = (props: IDsoSearchLabelProps) => {
   const otherNames = props.dso.otherNames && props.dso.otherNames.trim() !== "" && "(" + props.dso.otherNames + ")";
   const commonName = props.dso.commonName && (" - " + props.dso.commonName);
 
@@ -18,4 +18,4 @@ const DsoLabel = (props: IDsoLabelProps) => {
   );
 };
 
-export default DsoLabel;
+export default DsoSearchLabel;

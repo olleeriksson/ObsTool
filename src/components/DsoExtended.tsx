@@ -76,10 +76,10 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
         } else {
           return (
             <div className="dsoExtended">
-              <Typography variant="subheading">
-                <img src={CosmosIcon} width="20" height="20" /> {this.props.dso.name} {otherNames} {commonName}
+              <Typography variant="body2" gutterBottom={false}>
+                <img src={CosmosIcon} width="18" height="18" /> {this.props.dso.name} {otherNames} {commonName}
               </Typography>
-              <Typography color="textSecondary">
+              <Typography variant="caption" color="textSecondary" gutterBottom={true} style={{ marginLeft: "2em" }}>
                 <strong>Type:</strong> {this.props.dso.type} &nbsp;
                 <strong>Const:</strong> {this.props.dso.con} &nbsp;
                 <strong>Mag:</strong> {this.props.dso.mag} &nbsp;

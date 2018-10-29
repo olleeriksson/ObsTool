@@ -5,7 +5,7 @@ import { Theme } from "@material-ui/core/styles/createMuiTheme";
 // import Grid from "@material-ui/core/Grid";
 import { IDso } from "../types/Types";
 // import DsoExtended from "./DsoExtended";
-import DsoLabel from "./DsoLabel";
+import DsoSearchLabel from "./DsoSearchLabel";
 import Badge from "@material-ui/core/Badge";
 // import ObservationSecondary from "./ObservationSecondary";
 import IconButton from "@material-ui/core/IconButton";
@@ -36,7 +36,7 @@ const styles = (theme: Theme) => createStyles({
   },
 });
 
-interface IDynamicDsoLabelProps extends WithStyles<typeof styles> {
+interface IDynamicDsoSearchLabelProps extends WithStyles<typeof styles> {
   dso: IDso;
   showBadge: boolean;
   showObservations: boolean;
@@ -46,8 +46,8 @@ interface IDynamicDsoLabelState {
   isExpanded: boolean;
 }
 
-class DynamicDsoLabel extends React.Component<IDynamicDsoLabelProps, IDynamicDsoLabelState> {
-  constructor(props: IDynamicDsoLabelProps) {
+class DynamicDsoSearchLabel extends React.Component<IDynamicDsoSearchLabelProps, IDynamicDsoLabelState> {
+  constructor(props: IDynamicDsoSearchLabelProps) {
     super(props);
 
     this.state = {
@@ -82,7 +82,7 @@ class DynamicDsoLabel extends React.Component<IDynamicDsoLabelProps, IDynamicDso
       dsoLabel = (
         <div>
           <Badge className={classes.badge} badgeContent={this.props.dso.numObservations} color="secondary">
-            <DsoLabel dso={this.props.dso} />
+            <DsoSearchLabel dso={this.props.dso} />
           </Badge>
           {expandButton}
         </div>
@@ -90,7 +90,7 @@ class DynamicDsoLabel extends React.Component<IDynamicDsoLabelProps, IDynamicDso
     } else {
       dsoLabel = (
         <div>
-          <DsoLabel dso={this.props.dso} />
+          <DsoSearchLabel dso={this.props.dso} />
           {expandButton}
         </div>
       );
@@ -141,4 +141,4 @@ class DynamicDsoLabel extends React.Component<IDynamicDsoLabelProps, IDynamicDso
   }
 }
 
-export default withStyles(styles)(DynamicDsoLabel);
+export default withStyles(styles)(DynamicDsoSearchLabel);

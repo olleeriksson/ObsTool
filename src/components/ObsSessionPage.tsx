@@ -27,6 +27,7 @@ import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, IDataState } from "../types/Types";
 import * as obsSessionActions from "../actions/ObsSessionActions";
 import * as locationActions from "../actions/LocationActions";
+import * as utils from "../utils";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -277,8 +278,10 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             );
         }
 
-        const listTabLabel = "View observed objects (" +
-            (this.state.obsSession.observations && this.state.obsSession.observations.length || 0) + ")";
+        const numDsoObjects = this.state.obsSession.observations
+            && utils.flatMap(this.state.obsSession.observations, (obs: IObservation) => obs.dsoObservations);
+
+        const listTabLabel = "Observed Objects (" + (numDsoObjects && numDsoObjects.length || 0) + ")";
 
         const deleteDialogTitle = "Delete " + (this.state.obsSession && this.state.obsSession.title) + "?";
         const deleteDialogText = "Are you sure you want to delete the observation session titled " +
@@ -325,7 +328,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         fullWidth={true}
                         centered={true}
                     >
-                        <Tab label="Session data.." />
+                        <Tab label="Observation Form" />
                         <Tab label={listTabLabel} />
                     </Tabs>
                     <SwipeableViews
