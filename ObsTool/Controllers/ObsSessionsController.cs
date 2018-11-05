@@ -93,13 +93,26 @@ namespace ObsTool.Controllers
                 // We need to know which are the primary observation id's so we can filter them out
                 int[] primaryObservationIds = obsSession.Observations.Select(o => o.Id).ToArray();
 
-                var mapOfOtherObservations = _observationsService.GetAllObservationDtosForMultipleDsoIdsMappedByObsId(
+                var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(
                     dsoIds, exludeObservationIds: primaryObservationIds);
+                // OLLE
 
-                // Copy each list of observations (one list per DSO) to the primary observation
-                foreach (var primaryObservationDto in obsSessionDto.Observations)
+                // Go through each observation and..
+                foreach (var observationDto in obsSessionDto.Observations)
                 {
-                    primaryObservationDto.OtherObservations = mapOfOtherObservations[primaryObservationDto.Id];
+                    observationDto.OtherObservations = new List<ObservationDto>();
+
+                    // ..and each DsoObservation (observed object)..
+                    foreach (var dsoObservation in observationDto.DsoObservations)
+                    {
+                        // ..and add any other observations for that DSO object to this observation
+                        if (mapOfOtherObservations.ContainsKey(dsoObservation.DsoId))
+                        {
+                            var allObservationsOfDso = mapOfOtherObservations[dsoObservation.DsoId];
+                            observationDto.OtherObservations.AddRange(allObservationsOfDso);
+                        }
+                    }
+                    int b = 4;
                 }
             }
 
@@ -149,7 +162,7 @@ namespace ObsTool.Controllers
                 return BadRequest();
             }
 
-            ObsSession obsSessionEntity = _obsSessionsRepository.GetObsSession(id);
+            ObsSession obsSessionEntity = _obsSessionsRepository.GetObsSession(id, true, true, true);
             if (obsSessionEntity == null)
             {
                 return NotFound();

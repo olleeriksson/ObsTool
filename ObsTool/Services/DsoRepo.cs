@@ -105,7 +105,11 @@ namespace ObsTool.Services
 
         public ICollection<string> GetAllCatalogs()
         {
-            return _dbContext.Dso.Select(dso => dso.Catalog).Distinct().ToList();
+            return _dbContext.Dso
+                .Where(dso => dso.Catalog != "")  // had to be added after I added the custom object with empty catalog
+                .Select(dso => dso.Catalog)
+                .Distinct()
+                .ToList();
         }
     }
 }

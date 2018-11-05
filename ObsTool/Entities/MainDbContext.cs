@@ -51,7 +51,17 @@ namespace ObsTool.Entities
         {
             modelBuilder.Entity<ArticleConstellations>().HasKey(ac => new { ac.ArticleId, ac.ConstellationId });
             modelBuilder.Entity<ArticleDsoObjects>().HasKey(ad => new { ad.ArticleId, ad.DsoId});
-            modelBuilder.Entity<DsoObservation>().HasKey(ad => new { ad.ObservationId, ad.DsoId });
+            modelBuilder.Entity<DsoObservation>().HasKey(ad => new { ad.ObservationId, ad.DsoId, ad.CustomObjectName });
+
+            modelBuilder.Entity<DsoObservation>()
+                .HasOne(dsoObs => dsoObs.Observation)
+                .WithMany(obs => obs.DsoObservations)
+               .HasForeignKey(dsoObs => dsoObs.ObservationId);
+
+            modelBuilder.Entity<DsoObservation>()
+                .HasOne(dsoObs => dsoObs.Dso)
+                .WithMany(dso => dso.DsoObservations)
+               .HasForeignKey(dsoObs => dsoObs.DsoId);
         }
 
         //protected override OnConfiguring(DbContextOptionsBuilder optionsBuilder)

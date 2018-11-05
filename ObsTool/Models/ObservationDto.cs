@@ -19,7 +19,7 @@ namespace ObsTool.Models
 
         public string Identifier { get; set; }
 
-        public ICollection<DsoObservationDto> DsoObservations { get; set; }
+        public List<DsoObservationDto> DsoObservations { get; set; }
 
         //public string CustomObjectName { get; set; }
 
@@ -30,8 +30,8 @@ namespace ObsTool.Models
 
         public int? DisplayOrder { get; set; }
 
-        public ICollection<ObservationDto> OtherObservations { get; set; } = null;
+        public List<ObservationDto> OtherObservations { get; set; } = null;
 
-        public ICollection<ObsResourceDto> ObsResources { get; set; } = null;
+        public List<ObsResourceDto> ObsResources { get; set; } = null;
     }
 }

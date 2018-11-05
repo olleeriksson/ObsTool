@@ -71,8 +71,9 @@ namespace ObsTool.Services
             }
             else if (includeObservations)
             {
-                query = query.Include(s => s.Observations)
-                    .ThenInclude(o => o.ObsResources);
+                query = query
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                    .Include(s => s.Observations).ThenInclude(o => o.ObsResources);
             }
 
             ObsSession obsSession = query.FirstOrDefault();

@@ -80,3 +80,63 @@ inner join (
 	stellarium.name = allnames.name
 inner join (select min(Id) as Id from StellariumCommonNames group by Name) stellarium_primary on
 	stellarium.Id = stellarium_primary.Id;
+
+
+-- Adding a 'custom' object at Id 0
+-- -------------------------------------------------
+SET Identity_insert dbo.SacDeepSkyObjects ON
+GO
+INSERT INTO [dbo].[SacDeepSkyObjects]
+           ([Id]
+           ,[Catalog]
+           ,[Catalog_number]
+           ,[Name]
+           ,[Other_names]
+           ,[Common_name]
+           ,[All_common_names]
+           ,[Type]
+           ,[Con]
+           ,[RA]
+           ,[DEC]
+           ,[Mag]
+           ,[SB]
+           ,[U2K]
+           ,[TI]
+           ,[Size_max]
+           ,[Size_min]
+           ,[PA]
+           ,[Class]
+           ,[NSTS]
+           ,[BRSTR]
+           ,[BCHM]
+           ,[Dreyer_desc]
+           ,[Notes])
+     VALUES
+           (0
+           ,''
+           ,NULL
+           ,'custom'
+           ,NULL
+           ,NULL
+           ,NULL
+           ,''
+           ,''
+           ,''
+           ,''
+           ,''
+           ,''
+           ,''
+           ,''
+           ,NULL
+           ,NULL
+           ,NULL
+           ,NULL
+           ,NULL
+           ,NULL
+           ,NULL
+           ,NULL
+           ,NULL)
+GO
+SET Identity_insert dbo.SacDeepSkyObjects OFF
+GO
+

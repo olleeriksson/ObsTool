@@ -48,13 +48,15 @@ namespace ObsTool
                 IEnumerable<DsoDto> truncatedDsoDtoList = Mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
 
                 int[] dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToArray();
-                var observationsMap = _observationsService.GetAllObservationDtosForMultipleDsoIdsMappedByObsId(dsoIds);
+
+                var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(dsoIds);
+                // OLLE
 
                 foreach (DsoDto dso in truncatedDsoDtoList)
                 {
-                    if (observationsMap.ContainsKey(dso.Id))
+                    if (observationsMapByDsoId.ContainsKey(dso.Id))
                     {
-                        var observations = observationsMap[dso.Id];
+                        var observations = observationsMapByDsoId[dso.Id];
                         dso.NumObservations = observations.Count;
                         dso.Observations = observations.ToArray();
                     }

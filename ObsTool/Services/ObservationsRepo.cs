@@ -38,6 +38,7 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))
                 .Include(o => o.ObsResources)
+                .Include(o => o.DsoObservations)
                 .ToList();
         }
 

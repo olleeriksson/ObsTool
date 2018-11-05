@@ -22,14 +22,16 @@ namespace ObsTool.Controllers
         private ILogger<ObservationsController> _logger;
         private IObsSessionsRepository _obsSessionsRepository;
         private ObservationsRepo _observationsRepo;
+        private DsoObservationsRepo _dsoObservationsRepo;
         private ObservationsService _observationsService;
 
         public ObservationsController(ILogger<ObservationsController> logger, MainDbContext mainDbContext, IObsSessionsRepository obsSessionRepository, 
-            ObservationsRepo observationsRepo, ObservationsService observationsService)
+            ObservationsRepo observationsRepo, DsoObservationsRepo dsoObservationsRepo, ObservationsService observationsService)
         {
             _logger = logger;
             _obsSessionsRepository = obsSessionRepository;
             _observationsRepo = observationsRepo;
+            _dsoObservationsRepo = dsoObservationsRepo;
             _observationsService = observationsService;
         }
 
@@ -74,6 +76,37 @@ namespace ObsTool.Controllers
 
             ObservationDto observationDto = Mapper.Map<ObservationDto>(observation);
             return Ok(observationDto);
+        }
+
+        [HttpGet("observations/{id}/dso/{dsoId}")]
+        public IActionResult GetDsoObservation(int id, int dsoId)
+        {
+            DsoObservation dsoObservation = _dsoObservationsRepo.GetDsoObservation(id, dsoId);
+            if (dsoObservation == null)
+            {
+                return NotFound();
+            }
+
+            DsoObservationDto dsoObservationDto = Mapper.Map<DsoObservationDto>(dsoObservation);
+            return Ok(dsoObservationDto);
+        }
+
+        [HttpDelete("observations/{id}/dso/{dsoId}")]
+        public IActionResult DeleteDsoObservation(int id, int dsoId)
+        {
+            DsoObservation dsoObservation = _dsoObservationsRepo.GetDsoObservation(id, dsoId);
+            if (dsoObservation == null)
+            {
+                return NotFound();
+            }
+
+            bool result = _dsoObservationsRepo.DeleteDsoObservation(dsoObservation);
+            if (!result)
+            {
+                return StatusCode(500, "Something went wrong deleting the observation session");
+            }
+
+            return Ok();
         }
     }
 }

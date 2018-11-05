@@ -18,13 +18,16 @@ namespace ObsTool.Services
         private ObservationsRepo _observationsRepo;
         private DsoRepo _dsoRepo;
         private ILogger<ReportTextManager> _logger;
+        private DsoObservationsRepo _dsoObservationsRepo;
 
-        public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, DsoRepo dsoRepo, ILogger<ReportTextManager> logger)
+        public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, DsoRepo dsoRepo, 
+            ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
         {
             _dbContext = dbContext;
             _observationsRepo = observationsRepo;
             _dsoRepo = dsoRepo;
             _logger = logger;
+            _dsoObservationsRepo = dsoObservationsRepo;
         }
 
         public void DisplayName() => Console.WriteLine(ToString());
@@ -34,7 +37,9 @@ namespace ObsTool.Services
         public void ParseAndStoreObservations(ObsSession obsSession)
         {
             // Parse
-            IDictionary<string, Observation> updatedObservations = Parse(obsSession.ReportText);
+            IDictionary<string, Observation> updatedObservations = Parse(obsSession);
+            // All returned observations are to be either updated or added, that is decided further down
+            // by looking at the currently stored observations.
 
             // Replace list of Observations on the ObsSession
             _dbContext.Entry(obsSession).Collection("Observations").Load();
@@ -60,7 +65,7 @@ namespace ObsTool.Services
 
                 // Load the Observations' DsoObservations and remove them
                 _dbContext.Entry(observationToDelete).Collection("DsoObservations").Load();
-                //observationToDelete.DsoObservations.RemoveAll(dsoObs => true);  // doesn't seem needed, just loading them
+                //observationToDelete.DsoObservations.RemoveAll(dsoObs => true);  // doesn't seam needed, just loading them
 
                 // Then delete them
                 Debug.WriteLine("Deleting observation with identifier " + observationToDelete.Identifier);
@@ -80,10 +85,21 @@ namespace ObsTool.Services
                 if (updatedObservations.ContainsKey(existingObservation.Identifier))
                 {
                     Observation updatedObservation = updatedObservations[existingObservation.Identifier];
-                    Debug.WriteLine("Updating the existing observation for observation with Identifier " + updatedObservation.Identifier);
+
                     // Transfer/update the observation
                     existingObservation.Text = updatedObservation.Text;
                     existingObservation.DisplayOrder = updatedObservation.DisplayOrder;
+
+                    _dbContext.Entry(existingObservation).Collection("DsoObservations").Load();
+
+                    // Set the existing observation id or we get duplicate errors etc when persisting.
+                    // During the Parse() stage above we are not aware of the existing observations' ids.
+                    foreach (DsoObservation dsoObservation in updatedObservation.DsoObservations)
+                    {
+                        dsoObservation.ObservationId = existingObservation.Id;
+                    }
+
+                    updateDsoObservations(existingObservation, updatedObservation);
                 }
             }
 
@@ -101,14 +117,55 @@ namespace ObsTool.Services
             SaveChanges();
         }
 
-        private IDictionary<string, Observation> Parse(string reportText)
+        /// <summary>
+        /// Updates the existing list of DsoObservations for the current Observation with
+        /// a new list of DsoObservations, which might contain new, some updated, and some removed.
+        /// </summary>
+        private void updateDsoObservations(Observation existingObservation, Observation updatedObservation)
         {
-            IDictionary<string, Observation> observationsDictionary = new Dictionary<string, Observation>();
+            List<DsoObservation> existingDsoObservations = existingObservation.DsoObservations;
+            List<DsoObservation> updatedDsoObservations = updatedObservation.DsoObservations;
+
+            // Remove all DsoObservations that aren't in the updatedObservation
+            var toRemove = new List<DsoObservation>();
+            foreach (DsoObservation existingDsoObservation in existingDsoObservations)
+            {
+                if (!updatedDsoObservations.Contains(existingDsoObservation))
+                {
+                    toRemove.Add(existingDsoObservation);  // mark for removal
+                }
+            }
+            // Delayed remove because we can't modify a list we're iterating over
+            foreach (DsoObservation dsoObsToRemove in toRemove)
+            {
+                // Setting the foreign key resolved entities to null was the key to actually
+                // having EF core delete these.
+                dsoObsToRemove.Observation = null;
+                dsoObsToRemove.Dso = null;
+
+                existingDsoObservations.Remove(dsoObsToRemove);
+            }
+
+            // Add all new in replacement list (and only those, keep the others put)
+            foreach (DsoObservation newDsoObservation in updatedDsoObservations)
+            {
+                if (!existingDsoObservations.Contains(newDsoObservation))
+                {
+                    existingDsoObservations.Add(newDsoObservation);
+                }
+            }
+        }
+
+        private IDictionary<string, Observation> Parse(ObsSession obsSession)
+        {
+            string reportText = obsSession.ReportText;
+            IDictionary<string, Observation> observationsDict = new Dictionary<string, Observation>();
+            IDictionary<Match, string> newSectionMatchesDict = new Dictionary<Match, string>();
 
             // If report text is empty, just return
             if (reportText == null)
             {
-                return observationsDictionary;
+                return observationsDict;
             }
 
             //string[] primaryCatalogs = { "M", "NGC", "IC", "Sh", "UGC", "PGC" };
@@ -122,14 +179,12 @@ namespace ObsTool.Services
             string startingParenthesisRegexp = @"(\()?";
             string endingParenthesisRegexp = @"(\))?";
             // The ?: at the start of one of the groups is to make that the group is non-capturing.
-            // This results in the fourth group always beeing the ending parenthesis.
+            // This results in the fourth group always beeing scthe ending parenthesis.
             string dsoNameRegexp = startingParenthesisRegexp + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-.]?[0-9]+)*)" + endingParenthesisRegexp;
             var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.IgnoreCase);
 
             // Regexp for finding text sections that include DSO names
             var findSectionsRegexp = new Regex(".*" + dsoNameRegexp + ".*", RegexOptions.IgnoreCase);
-
-
 
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
@@ -182,8 +237,16 @@ namespace ObsTool.Services
                         Debug.WriteLine("---------------------------------------------------------");
                     }
 
-                    // Create observations identifier based on the DSO objects the observation contains
-                    var observationsIdentifier = CreateDsoObservationsIdentifier(dsosInSection);
+                    string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
+
+                    // Find any existing observations identifier based on the DSO objects the observation contains
+                    var observationsIdentifier = FindExistingObsIdentifier(sectionText);
+                    if (string.IsNullOrEmpty(observationsIdentifier))
+                    {
+                        // If none was found in the section text, create one and remember it
+                        observationsIdentifier = CreateNewObsIdentifier(obsSession.Id, dsosInSection);
+                        newSectionMatchesDict.Add(sectionsMatch, observationsIdentifier);
+                    }
 
                     // Now, create the observation!
                     Observation observation = new Observation
@@ -200,19 +263,74 @@ namespace ObsTool.Services
                         // Remember all the DSOs in this section for the checks in the next section, and the next etc..
                         foundDsoIds.Add(dso.Id);
 
+                        var dsoObservation = new DsoObservation
+                        {
+                            Dso = dso,
+                            DsoId = dso.Id,
+                            // no need to add observation.Id since it's just a POCO anyway
+                        };
+
                         // Add the DSOs as DsoObservation's to the observation
-                        observation.DsoObservations.Add(new DsoObservation { Dso = dso });
+                        observation.DsoObservations.Add(dsoObservation);
                     }
 
-                    observationsDictionary.Add(observation.Identifier, observation);
+                    // Save observation to be returned
+                    observationsDict.Add(observation.Identifier, observation);
+                }
+
+                // Insert the identifier at the end of all new section matches in the report text.
+                // Do it from back to front to keep the match indices from becoming obsolete when you add to the text.
+                foreach (var sectionsMatch in sectionsMatches.Cast<Match>().Reverse())
+                {
+                    if (newSectionMatchesDict.ContainsKey(sectionsMatch))
+                    {
+                        string newObsIdentifier = newSectionMatchesDict[sectionsMatch];
+                        string decoratedIdentifier = DecorateObsIdentifier(newObsIdentifier);
+                        reportText = reportText.Replace(sectionsMatch.Index + sectionsMatch.Length, 0, decoratedIdentifier);
+                    }
                 }
             }
-            return observationsDictionary;
+
+            obsSession.ReportText = reportText;
+
+            return observationsDict;
         }
 
-        public string CreateDsoObservationsIdentifier(List<Dso> dsoList)
+        private string FindExistingObsIdentifier(string sectionText)
         {
-            return string.Join(",", dsoList.OrderBy(d => d.Name).Select(d => d.Name));
+            Match match = Regex.Match(sectionText, @"\s(#(\d*(-\d+)*))[\s\.$]?", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return match.Groups[2].Value;
+            }
+            return string.Empty;
+        }
+
+        private string ReplaceDeprecatedObsIdentifiers(string sectionText)
+        {
+            // Just for test right now
+            var deprecatedRegexes = new List<string> {
+                @"\s(##(\d*(-\d+)*))[\s\.$]?"
+            };
+
+            foreach (var deprecatedRegex in deprecatedRegexes)
+            {
+                sectionText = Regex.Replace(sectionText, deprecatedRegex, " #$2");
+            }
+
+            return sectionText;
+        }
+
+        private string CreateNewObsIdentifier(int obsSessionId, List<Dso> dsoList)
+        {
+            string dsoIds = string.Join("-", dsoList.OrderBy(d => d.Id).Select(d => d.Id));
+            string full = obsSessionId + "-" + dsoIds;
+            return full.Replace(" ", "");
+        }
+
+        private string DecorateObsIdentifier(string bareIdentifier)
+        {
+            return " #" + bareIdentifier;
         }
 
         public bool SaveChanges()

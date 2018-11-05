@@ -53,6 +53,7 @@ namespace ObsTool
             services.AddScoped<ReportTextManager>();
             services.AddScoped<ObservationsService>();
             services.AddScoped<ObsResourcesRepo>();
+            services.AddScoped<DsoObservationsRepo>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

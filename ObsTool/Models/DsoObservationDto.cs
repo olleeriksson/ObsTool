@@ -11,6 +11,8 @@ namespace ObsTool.Models
         // Must be populated manually becayse Observation has been removed from the entity
         //public ObservationDto Observation { get; set; }
 
+        public string CustomObjectName { get; set; }
+
         public int ObservationId { get; set; }
 
         public DsoDto Dso { get; set; }
