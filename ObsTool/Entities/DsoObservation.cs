@@ -22,6 +22,8 @@ namespace ObsTool.Entities
         //[ForeignKey("DsoId")]
         public int DsoId { get; set; }
 
+        public int DisplayOrder { get; set; }
+
         public override bool Equals(object obj)
         {
             var observation = obj as DsoObservation;

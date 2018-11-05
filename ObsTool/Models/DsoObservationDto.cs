@@ -18,5 +18,7 @@ namespace ObsTool.Models
         public DsoDto Dso { get; set; }
 
         public int DsoId { get; set; }
+
+        public int DisplayOrder { get; set; }
     }
 }

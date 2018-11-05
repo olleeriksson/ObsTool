@@ -146,12 +146,19 @@ namespace ObsTool.Services
                 existingDsoObservations.Remove(dsoObsToRemove);
             }
 
-            // Add all new in replacement list (and only those, keep the others put)
+            // Add all new DsoObservations, and update existing ones
             foreach (DsoObservation newDsoObservation in updatedDsoObservations)
             {
+                // Add new ones
                 if (!existingDsoObservations.Contains(newDsoObservation))
                 {
                     existingDsoObservations.Add(newDsoObservation);
+                }
+                else
+                {
+                    // Get the existing one and update it (only DisplayOrder as of now)
+                    var existingDsoObservation = existingDsoObservations.Find(i => i.Equals(newDsoObservation));  // compares the PK ids
+                    existingDsoObservation.DisplayOrder = newDsoObservation.DisplayOrder;
                 }
             }
         }
@@ -188,7 +195,7 @@ namespace ObsTool.Services
 
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
-                int matchNo = 0;
+                int obsIndex = 0;
                 ISet<int> foundDsoIds = new HashSet<int>();
 
                 MatchCollection sectionsMatches = findSectionsRegexp.Matches(reportText);  // matching on the whole report text
@@ -229,7 +236,7 @@ namespace ObsTool.Services
 
                         if (foundDsoIds.Contains(dso.Id))
                         {
-                            throw new Exception("DSO " + dso.ToString() + " found in more than one section of the report text!");
+                            throw new ObsToolException("DSO " + dso.ToString() + " found in more than one section of the report text!");
                         }
 
                         dsosInSection.Add(dso);
@@ -254,10 +261,11 @@ namespace ObsTool.Services
                         Text = sectionText,
                         Identifier = observationsIdentifier,
                         DsoObservations = new List<DsoObservation>(),
-                        DisplayOrder = matchNo++
+                        DisplayOrder = obsIndex++
                     };
 
                     // Then add all DSOs to the observation
+                    int dsoObsIndex = 0;
                     foreach (Dso dso in dsosInSection)
                     {
                         // Remember all the DSOs in this section for the checks in the next section, and the next etc..
@@ -267,7 +275,8 @@ namespace ObsTool.Services
                         {
                             Dso = dso,
                             DsoId = dso.Id,
-                            // no need to add observation.Id since it's just a POCO anyway
+                            DisplayOrder = dsoObsIndex++
+                            // no need to add observation.Id since it's just a POCO anyway ??????
                         };
 
                         // Add the DSOs as DsoObservation's to the observation
@@ -323,6 +332,7 @@ namespace ObsTool.Services
 
         private string CreateNewObsIdentifier(int obsSessionId, List<Dso> dsoList)
         {
+            //var result = Guid.NewGuid();
             string dsoIds = string.Join("-", dsoList.OrderBy(d => d.Id).Select(d => d.Id));
             string full = obsSessionId + "-" + dsoIds;
             return full.Replace(" ", "");

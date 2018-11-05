@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NLog.Extensions.Logging;
+using ObsTool.Utils;
 
 namespace ObsTool
 {
@@ -91,6 +92,8 @@ namespace ObsTool
             app.UseCors(options => options.WithOrigins(Configuration["CorsAllowedOrigins"])
                 .AllowAnyMethod()
                 .AllowAnyHeader());
+
+            app.ConfigureCustomExceptionMiddleware();
 
             app.UseMvc();
         }

@@ -95,7 +95,6 @@ namespace ObsTool.Controllers
 
                 var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(
                     dsoIds, exludeObservationIds: primaryObservationIds);
-                // OLLE
 
                 // Go through each observation and..
                 foreach (var observationDto in obsSessionDto.Observations)
