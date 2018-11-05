@@ -40,6 +40,15 @@ const styles = (theme: Theme) => createStyles({
     marginTop: theme.spacing.unit * 2,
     width: 100,
   },
+  singleDsoContainer: {
+    marginBottom: "0.5em",
+    marginTop: "0.5em"
+  },
+  multipleDsoContainer: {
+    border: "1px dashed lightgray",
+    marginBottom: "0.5em",
+    marginTop: "0.5em"
+  }
 });
 
 export interface IObsSessionFormProps extends WithStyles<typeof styles> {
@@ -119,9 +128,16 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
         .sort(this.sortByDisplayOrder)
         .map((o, index) => {
           if (o.dsoObservations) {
-            return o.dsoObservations.map(dsoObs =>
+            const dsoShortLabels = o.dsoObservations.map(dsoObs =>
               <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} />
             );
+            if (o.dsoObservations.length > 1) {
+              // Show many
+              return <div className={classes.multipleDsoContainer}>{dsoShortLabels}</div>;
+            } else {
+              // Show one
+              return <div className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
+            }
           } else {
             const errorText = "Err " + o.id;
             return <DsoShort key={index} error={errorText} />;

@@ -64,7 +64,7 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
             <Typography variant="body1">
               {this.state.dso.name === "custom" ? this.props.customObjectName : this.state.dso.name}
             </Typography>
-            <Typography color="textSecondary" variant="caption" gutterBottom={true}>
+            <Typography color="textSecondary" variant="caption" gutterBottom={false}>
               {this.state.dso.type}, {this.state.dso.con}
             </Typography>
           </div>
