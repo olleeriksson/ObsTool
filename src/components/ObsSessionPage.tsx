@@ -103,9 +103,11 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             Api.getLocations().then(
                 (response) => {
                     this.props.actions.getLocationsSuccess(response.data);
-                }).catch(
-                    (error) => this.props.actions.getLocationsFailure(error)
-                );
+                },
+                () => {
+                    this.indicateError();
+                }
+            );
         }
     }
 
@@ -148,7 +150,13 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                     this.props.actions.updateObsSessionSuccess(obsSession);
                 },
                 (response) => {
-                    this.indicateError();
+                    // The following could use a rewrite!
+                    const { data } = response.response;
+                    if (data.Message) {
+                        this.indicateError(data.Message);
+                    } else {
+                        this.indicateError();
+                    }
                 }
             );
         }

@@ -13,6 +13,7 @@ export interface IDsoObservation {
     dso: IDso;
     obsSession: IObsSession;
     customObjectName: string;
+    displayOrder: number;
 }
 
 export interface IObsResource {
@@ -117,4 +118,9 @@ export type ReadonlyDataState = Readonly<IReadonlyDataState>;
 
 export interface IAppState {
     data: IDataState;
+}
+
+export interface IErrorDetails {
+    Message: string;
+    StatusCode: number;
 }

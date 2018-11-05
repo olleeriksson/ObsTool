@@ -4,9 +4,8 @@ import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
-import "./ObsSessionForm.css";
 import DsoShort from "./DsoShort";
-import { IObsSession, ILocation, IObservation } from "../types/Types";
+import { IObsSession, ILocation, IObservation, IDsoObservation } from "../types/Types";
 import classNames from "classnames";
 import Grid from "@material-ui/core/Grid";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
@@ -115,8 +114,12 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     }));
   }
 
-  private sortByDisplayOrder = (observationA: IObservation, observationB: IObservation) => {
+  private sortObsByDisplayOrder = (observationA: IObservation, observationB: IObservation) => {
     return (observationA.displayOrder || 0) - (observationB.displayOrder || 0);
+  }
+
+  private sortDsoObsByDisplayOrder = (dsoObsA: IDsoObservation, dsoObsB: IDsoObservation) => {
+    return (dsoObsA.displayOrder || 0) - (dsoObsB.displayOrder || 0);
   }
 
   public render() {
@@ -125,18 +128,20 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     let dsoObjects: any = [];
     if (this.state.obsSession.observations) {
       dsoObjects = this.state.obsSession.observations
-        .sort(this.sortByDisplayOrder)
+        .sort(this.sortObsByDisplayOrder)
         .map((o, index) => {
           if (o.dsoObservations) {
-            const dsoShortLabels = o.dsoObservations.map(dsoObs =>
-              <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} />
-            );
+            const dsoShortLabels = o.dsoObservations
+              .sort(this.sortDsoObsByDisplayOrder)
+              .map(dsoObs =>
+                <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} />
+              );
             if (o.dsoObservations.length > 1) {
               // Show many
-              return <div className={classes.multipleDsoContainer}>{dsoShortLabels}</div>;
+              return <div key={o.id} className={classes.multipleDsoContainer}>{dsoShortLabels}</div>;
             } else {
               // Show one
-              return <div className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
+              return <div key={o.id} className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
             }
           } else {
             const errorText = "Err " + o.id;

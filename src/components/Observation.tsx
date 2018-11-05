@@ -148,13 +148,13 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                 </Grid>
               </Grid>
               <Grid item={true}>
-                <Grid container={true} direction="column">
-                  <Grid item={true}>
+                <Grid container={true} direction="column" style={{ flexGrow: 1 }}>
+                  <Grid item={true} style={{ flexGrow: 1 }}>
                     <IconButton onClick={this.handleClickOnObservation} >
                       <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
                     </IconButton>
                   </Grid>
-                  <Grid item={true}>
+                  <Grid item={true} style={{ flexGrow: 0 }}>
                     {expandButton}
                   </Grid>
                 </Grid>

@@ -4,7 +4,6 @@ import InputLabel from "@material-ui/core/InputLabel";
 import NativeSelect from "@material-ui/core/NativeSelect";
 import Input from "@material-ui/core/Input";
 import FormHelperText from "@material-ui/core/FormHelperText";
-import "./ObsSessionForm.css";
 
 export interface IKeyValuePair {
   key: string;

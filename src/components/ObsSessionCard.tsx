@@ -1,5 +1,5 @@
 import * as React from "react";
-import "./ObsSessionCard.css";
+//import "./ObsSessionCard.css";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
