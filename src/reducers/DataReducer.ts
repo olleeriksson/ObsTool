@@ -12,12 +12,18 @@ import {
 import {
     LocationAction,
     IGetLocationsSuccessAction,
-    IGetLocationsFailureAction
+    IGetLocationsFailureAction,
 } from "../actions/LocationActions";
 import {
     SearchAction,
     ISearchAction
 } from "../actions/SearchActions";
+import {
+    ObsResourceCheckAction,
+    IObsResourceCheckedAction,
+    IObsResourceUncheckedAction
+} from "../actions/ObsResourceCheckActions";
+
 import * as constants from "../types/Constants";
 // import { initialAppState, initialDataState } from "../store/AppStore";
 
@@ -30,9 +36,10 @@ const initialDataState: IDataState = {
     isLoadingLocations: false,
     isErrorLocations: undefined,
     searchQuery: "",
+    checkedObsResources: []
 };
 
-type DataAction = ObsSessionAction | LocationAction | SearchAction;
+type DataAction = ObsSessionAction | LocationAction | SearchAction | ObsResourceCheckAction;
 
 const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, action: DataAction) => {
 
@@ -139,6 +146,38 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             return {
                 ...state,
                 searchQuery: ""
+            };
+        case constants.RESOURCE_CHECKED:
+            const checkedAction = action as IObsResourceCheckedAction;
+            return {
+                ...state,
+                checkedObsResources: [...state.checkedObsResources, checkedAction.payload.obsResourceId]
+            };
+        // case constants.DELETE_OBSSESSION_SUCCESS: {
+        //     const deleteAction = action as IDeleteObsSessionSuccessAction;
+        //     const updatedObsSessionList2 = state.obsSessions.filter(s => {
+        //         return s.id !== deleteAction.payload.obsSessionId;  // filter in all except the one with the matching id
+        //     });
+        //     return {
+        //         ...state,
+        //         obsSessions: updatedObsSessionList2,
+        //         selectedObsSessionId: undefined,
+        //     };
+        //     return state;
+        // }
+        case constants.RESOURCE_UNCHECKED:
+            const uncheckedAction = action as IObsResourceUncheckedAction;
+            const updatedCheckedObsResources = state.checkedObsResources.filter(r => {
+                return r !== uncheckedAction.payload.obsResourceId;   // filter in all except the one with the matching id
+            });
+            return {
+                ...state,
+                checkedObsResources: updatedCheckedObsResources
+            };
+        case constants.RESOURCE_ALL_CLEARED:
+            return {
+                ...state,
+                checkedObsResources: []
             };
         default:
             return state;

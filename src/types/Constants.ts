@@ -52,3 +52,14 @@ export type SEARCH = typeof SEARCH;
 
 export const CLEAR_SEARCH = "CLEAR_SEARCH";
 export type CLEAR_SEARCH = typeof CLEAR_SEARCH;
+
+// Comparing images/sketches
+
+export const RESOURCE_CHECKED = "RESOURCE_CHECKED";
+export type RESOURCE_CHECKED = typeof RESOURCE_CHECKED;
+
+export const RESOURCE_UNCHECKED = "RESOURCE_UNCHECKED";
+export type RESOURCE_UNCHECKED = typeof RESOURCE_UNCHECKED;
+
+export const RESOURCE_ALL_CLEARED = "RESOURCE_ALL_CLEARED";
+export type RESOURCE_ALL_CLEARED = typeof RESOURCE_ALL_CLEARED;

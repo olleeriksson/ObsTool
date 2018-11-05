@@ -101,6 +101,7 @@ export interface IDataState {
     isLoadingLocations: boolean;
     isErrorLocations?: string;
     searchQuery?: string;
+    checkedObsResources: number[];
 }
 
 export interface IReadonlyDataState {
@@ -112,6 +113,7 @@ export interface IReadonlyDataState {
     isLoadingLocations: boolean;
     isErrorLocations?: string;
     searchQuery?: string;
+    checkedObsResources: number[];
 }
 
 export type ReadonlyDataState = Readonly<IReadonlyDataState>;

@@ -18,8 +18,15 @@ import GridList from "@material-ui/core/GridList";
 import GridListTile from "@material-ui/core/GridListTile";
 import GridListTileBar from "@material-ui/core/GridListTileBar";
 import Checkbox from "@material-ui/core/Checkbox";
+import IconButton from "@material-ui/core/IconButton";
+import CompareIcon from "@material-ui/icons/Compare";
+import ClearIcon from "@material-ui/icons/Clear";
 import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
+import * as obsResourceCheckActions from "../actions/ObsResourceCheckActions";
+import { IAppState, IDataState } from "../types/Types";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -56,11 +63,12 @@ const styles = (theme: Theme) => createStyles({
     border: "1px solid gray",
     width: 120,
   },
-  cb: {  // checkbox
+  iconButtonContainer: {  // The container around the checkboxes, clear checkbox button, compare button
     width: 30,
     height: 30,
+    color: "lightgray",
   },
-  cbIcon: {  // checkbox
+  iconButtonIcon: {  // Checkbox, clear checkboxes, compare
     fontSize: 20,
     color: "lightgray",
   },
@@ -75,6 +83,8 @@ const styles = (theme: Theme) => createStyles({
 export interface IImageListProps extends WithStyles<typeof styles> {
   observationId: number;
   resources?: IObsResource[];
+  store: IDataState;
+  actions: any;
 }
 
 export interface IImageListState {
@@ -84,34 +94,6 @@ export interface IImageListState {
   resources?: IObsResource[];
   selectedResource?: IObsResource;
 }
-
-// --------------------
-
-const cbStyles = (theme: Theme) => createStyles({
-  cb: {  // checkbox
-    width: 40,
-    height: 40,
-  },
-  cbIcon: {  // checkbox
-    fontSize: 20,
-  },
-});
-
-interface IImageCheckBoxProps extends WithStyles<typeof cbStyles> {
-  resourceId: number;
-  onSelected?: (resourceId: number) => void;
-}
-
-const ImageCheckBox: React.SFC<IImageCheckBoxProps> = (props: IImageCheckBoxProps) => {
-  const { classes } = props;
-
-  return <Checkbox
-    className={classes.cb}
-    icon={<CheckBoxOutlineBlankIcon className={classes.cbIcon} />}
-    checkedIcon={<CheckBoxIcon className={classes.cbIcon} />}
-    value="checked"
-  />;
-};
 
 // --------------------
 
@@ -143,6 +125,22 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
   private onClickAddResource = () => {
     this.setState({ selectedResource: undefined });
     this.setState({ isEditResourceDialogOpen: true });
+  }
+
+  private onCheckboxChanged = (obsResourceId: number) => (event: any) => {
+    if (event.target.checked) {
+      this.props.actions.checkObsResource(obsResourceId);
+    } else {
+      this.props.actions.uncheckObsResource(obsResourceId);
+    }
+  }
+
+  private onClickCompare = () => {
+    this.props.actions.clearCheckedObsResources();
+  }
+
+  private onClearCheckboxes = () => {
+    this.props.actions.clearCheckedObsResources();
   }
 
   private refreshResourcesListFromApi = () => {
@@ -204,18 +202,52 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     const links = this.state.resources && this.state.resources.length > 0
       && this.state.resources.filter(r => r.type === "link") || [];
 
-    const imageElements = images.map(r => (
-      <GridListTile key={r.id} className={classes.tile}>
+    const imageElements = images.map(r => {
+      let clearIcon;
+      if (this.props.store.checkedObsResources.length > 0) {
+        clearIcon = (
+          <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClearCheckboxes}>
+            <ClearIcon className={classes.iconButtonIcon} />
+          </IconButton>
+        );
+      }
+
+      let compareIcon;
+      if (this.props.store.checkedObsResources.length === 2) {
+        compareIcon = (
+          <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickCompare}>
+            <CompareIcon className={classes.iconButtonIcon} />
+          </IconButton>
+        );
+      }
+
+      const checkboxIcon = (
+        <Checkbox
+          className={classes.iconButtonContainer}
+          icon={<CheckBoxOutlineBlankIcon className={classes.iconButtonIcon} />}
+          checkedIcon={<CheckBoxIcon className={classes.iconButtonIcon} />}
+          checked={this.props.store.checkedObsResources.indexOf(r.id || -1) !== -1}
+          onChange={this.onCheckboxChanged(r.id || -1)}
+        />
+      );
+
+      const icons = <div>
+        {clearIcon}
+        {compareIcon}
+        {checkboxIcon}
+      </div>;
+
+      return <GridListTile key={r.id} className={classes.tile}>
         <div onClick={this.handleClickResource(r.id)} className={classes.imageContainer} >
           <ResourceImage type={r.type} url={r.url} name={r.name} driveMaxHeight="180" driveMaxWidth="180" />
         </div>
         <GridListTileBar
           title={r.type}
           classes={{ root: classes.titleBar, title: classes.title, titlePositionBottom: classes.titleWrap }}
-          actionIcon={<ImageCheckBox resourceId={r.id || 0} classes={{ cb: classes.cb, cbIcon: classes.cbIcon }} />}
+          actionIcon={icons}
         />
-      </GridListTile>
-    ));
+      </GridListTile>;
+    });
 
     const linkElements = links.map(r =>
       <Typography key={r.id} gutterBottom={false} variant="caption">
@@ -268,4 +300,19 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
   }
 }
 
-export default withStyles(styles)(ImageList);
+const mapStateToProps = (state: IAppState) => {
+  return {
+    store: state.data
+  };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<obsResourceCheckActions.ObsResourceCheckAction>) => {
+  return {
+    actions: bindActionCreators(
+      { ...obsResourceCheckActions },
+      dispatch
+    )
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(ImageList));

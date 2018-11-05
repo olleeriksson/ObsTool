@@ -16,6 +16,7 @@ const initialDataState: IDataState = {
     isLoadingLocations: false,
     isErrorLocations: undefined,
     searchQuery: "",
+    checkedObsResources: []
 };
 
 const initialAppState: IAppState = {
