@@ -21,6 +21,8 @@ export interface IObsResource {
     type: string;
     name?: string;
     url?: string;
+    inverted: boolean;
+    rotation: number;
 }
 
 export interface IDso {

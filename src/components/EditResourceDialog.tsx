@@ -22,6 +22,8 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import DeleteDialog from "./DeleteDialog";
 import Grid from "@material-ui/core/Grid";
 import ResourceImage from "./ResourceImage";
+import Slider from "@material-ui/lab/Slider";
+import Checkbox from "@material-ui/core/Checkbox";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -35,7 +37,7 @@ const styles = (theme: Theme) => createStyles({
         maxHeight: 550,
     },
     formControl: {
-        margin: theme.spacing.unit * 3,
+        margin: theme.spacing.unit,
     },
     group: {
         margin: `${theme.spacing.unit}px 0`,
@@ -56,6 +58,12 @@ const styles = (theme: Theme) => createStyles({
     expandOpen: {
         transform: "rotate(180deg)",
     },
+    sliderContainer: {
+        width: 150
+    },
+    slider: {
+        padding: "22px 0px",
+    },
 });
 
 interface IEditResourceDialogProps extends WithStyles<typeof styles> {
@@ -72,6 +80,8 @@ interface IEditResourceDialogState {
     type: string;
     name?: string;
     url?: string;
+    rotation: number;
+    inverted: boolean;
 }
 
 class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEditResourceDialogState> {
@@ -84,7 +94,9 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
             isConfirmDeleteDialogOpen: false,
             type: "image",
             name: "",
-            url: ""
+            url: "",
+            inverted: false,
+            rotation: 0
         };
     }
 
@@ -96,7 +108,9 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                 isConfirmDeleteDialogOpen: false,
                 type: "image",
                 name: "",
-                url: ""
+                url: "",
+                inverted: false,
+                rotation: 0
             });
         }
         if (nextProps.resource && this.props.resource !== nextProps.resource) {
@@ -105,6 +119,8 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                 type: nextProps.resource.type,
                 name: (nextProps.resource.name || undefined),
                 url: (nextProps.resource.url || undefined),
+                inverted: nextProps.resource.inverted,
+                rotation: nextProps.resource.rotation / 3.6
             });
         }
     }
@@ -117,6 +133,14 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         }));
     }
 
+    private handleCheckboxChange = (event: any, checked: boolean) => {
+        this.setState({ inverted: checked });
+    }
+
+    private handleSliderChange = (event: any, value: number) => {
+        this.setState({ rotation: value });
+    }
+
     private saveResource = () => {
         this.setState({ isLoading: true });
 
@@ -124,7 +148,9 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
             id: this.props.resource && this.props.resource.id,
             type: this.state.type,
             name: this.state.name,
-            url: this.state.url
+            url: this.state.url,
+            inverted: this.state.inverted,
+            rotation: Math.round(this.state.rotation * 3.6)
         };
 
         if (!this.props.resource || !this.props.resource.id) {
@@ -240,6 +266,8 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         const deleteDialogText = "Are you sure you want to delete the " + (this.props.resource && this.props.resource.type) +
             " " + (this.props.resource && this.props.resource.name) + "?";
 
+        const disableImageControls = this.state.type === "link";
+
         return <div>
             <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
             <Dialog
@@ -255,20 +283,48 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                         <Grid item={true} style={{ flex: 1 }}>
                             <Grid container={true} spacing={8} direction="row">
                                 <Grid item={true}>
-                                    <FormControl component="fieldset" className={classes.formControl}>
-                                        <FormLabel component="legend">Type</FormLabel>
-                                        <RadioGroup
-                                            aria-label="Type"
-                                            name="type"
-                                            className={classes.group}
-                                            value={this.state.type}
-                                            onChange={this.handleChange("type")}
-                                        >
-                                            <FormControlLabel value="image" control={<Radio />} label="Image" />
-                                            <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
-                                            <FormControlLabel value="link" control={<Radio />} label="Link" />
-                                        </RadioGroup>
-                                    </FormControl>
+                                    <Grid container={true} spacing={8} direction="column">
+                                        <Grid item={true}>
+                                            <FormControl component="fieldset" className={classes.formControl}>
+                                                <FormLabel component="legend">Type</FormLabel>
+                                                <RadioGroup
+                                                    aria-label="Type"
+                                                    name="type"
+                                                    className={classes.group}
+                                                    value={this.state.type}
+                                                    onChange={this.handleChange("type")}
+                                                >
+                                                    <FormControlLabel value="image" control={<Radio />} label="Image" />
+                                                    <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
+                                                    <FormControlLabel value="link" control={<Radio />} label="Link" />
+                                                </RadioGroup>
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item={true}>
+                                            <FormControl component="fieldset" className={classes.formControl}>
+                                                <FormLabel component="legend">Inverted</FormLabel>
+                                                <Checkbox
+                                                    checked={this.state.inverted}
+                                                    onChange={this.handleCheckboxChange}
+                                                    color="primary"
+                                                    disabled={disableImageControls}
+                                                />
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item={true}>
+                                            <FormControl component="fieldset" className={classes.formControl}>
+                                                <FormLabel component="legend">Rotation ({Math.round(this.state.rotation * 3.6)} deg)</FormLabel>
+                                                <div className={classes.sliderContainer}>
+                                                    <Slider
+                                                        className={classes.slider}
+                                                        value={this.state.rotation}
+                                                        onChange={this.handleSliderChange}
+                                                        disabled={disableImageControls}
+                                                    />
+                                                </div>
+                                            </FormControl>
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
                                 <Grid item={true} style={{ flex: 1 }}>
                                     <div className={classes.previewContainer}>
