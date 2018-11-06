@@ -23,5 +23,9 @@ namespace ObsTool.Entities
 
         [MaxLength(500)]
         public string Url { get; set; }
+
+        public int Rotation { get; set; } = 0;
+
+        public bool Inverted { get; set; } = false;
     }
 }

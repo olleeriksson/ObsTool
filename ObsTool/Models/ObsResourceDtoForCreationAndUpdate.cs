@@ -14,5 +14,9 @@ namespace ObsTool.Models
         public string Name { get; set; }
 
         public string Url { get; set; }
+
+        public int Rotation { get; set; } = 0;
+
+        public bool Inverted { get; set; } = false;
     }
 }
