@@ -46,7 +46,7 @@ const styles = (theme: Theme) => createStyles({
     color: "gray", // theme.palette.primary.light,
   },
   titleBar: {
-    background: "rgba(0, 0, 0, 0)",
+    backgroundColor: "black",
     padding: 0,
     height: 30,
   },
@@ -239,7 +239,16 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
       return <GridListTile key={r.id} className={classes.tile}>
         <div onClick={this.handleClickResource(r.id)} className={classes.imageContainer} >
-          <ResourceImage type={r.type} url={r.url} name={r.name} driveMaxHeight="180" driveMaxWidth="180" />
+          <ResourceImage
+            type={r.type}
+            url={r.url}
+            name={r.name}
+            inverted={r.inverted}
+            rotation={r.rotation}
+            backgroundColor={r.backgroundColor}
+            driveMaxHeight="180"
+            driveMaxWidth="180"
+          />
         </div>
         <GridListTileBar
           title={r.type}

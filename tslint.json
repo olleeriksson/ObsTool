@@ -29,7 +29,7 @@
     "new-parens": true,
     "trailing-comma": false,
     "no-arg": true,
-    "no-bitwise": true,
+    "no-bitwise": false, // has to be disabled
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": true,
     "no-console": {

@@ -23,6 +23,7 @@ export interface IObsResource {
     url?: string;
     inverted: boolean;
     rotation: number;
+    backgroundColor: number;
 }
 
 export interface IDso {

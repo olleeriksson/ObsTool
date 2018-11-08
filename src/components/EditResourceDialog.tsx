@@ -82,6 +82,7 @@ interface IEditResourceDialogState {
     url?: string;
     rotation: number;
     inverted: boolean;
+    backgroundColor: number;
 }
 
 class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEditResourceDialogState> {
@@ -96,7 +97,8 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
             name: "",
             url: "",
             inverted: false,
-            rotation: 0
+            rotation: 0,
+            backgroundColor: 0
         };
     }
 
@@ -110,7 +112,8 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                 name: "",
                 url: "",
                 inverted: false,
-                rotation: 0
+                rotation: 0,
+                backgroundColor: 0
             });
         }
         if (nextProps.resource && this.props.resource !== nextProps.resource) {
@@ -120,7 +123,8 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                 name: (nextProps.resource.name || undefined),
                 url: (nextProps.resource.url || undefined),
                 inverted: nextProps.resource.inverted,
-                rotation: nextProps.resource.rotation / 3.6
+                rotation: nextProps.resource.rotation,
+                backgroundColor: nextProps.resource.backgroundColor
             });
         }
     }
@@ -133,12 +137,17 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         }));
     }
 
-    private handleCheckboxChange = (event: any, checked: boolean) => {
+    private handleInvertedCheckboxChange = (event: any, checked: boolean) => {
         this.setState({ inverted: checked });
     }
 
+    private handleBackgroundCheckboxChange = (event: any, checked: boolean) => {
+        const color = (checked ? 256 : 0);
+        this.setState({ backgroundColor: color });
+    }
+
     private handleSliderChange = (event: any, value: number) => {
-        this.setState({ rotation: value });
+        this.setState({ rotation: value * 3.6 });
     }
 
     private saveResource = () => {
@@ -150,7 +159,8 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
             name: this.state.name,
             url: this.state.url,
             inverted: this.state.inverted,
-            rotation: Math.round(this.state.rotation * 3.6)
+            rotation: Math.round(this.state.rotation),
+            backgroundColor: this.state.backgroundColor
         };
 
         if (!this.props.resource || !this.props.resource.id) {
@@ -302,10 +312,10 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                                         </Grid>
                                         <Grid item={true}>
                                             <FormControl component="fieldset" className={classes.formControl}>
-                                                <FormLabel component="legend">Inverted</FormLabel>
+                                                <FormLabel component="legend">White background</FormLabel>
                                                 <Checkbox
-                                                    checked={this.state.inverted}
-                                                    onChange={this.handleCheckboxChange}
+                                                    checked={this.state.backgroundColor === 256}
+                                                    onChange={this.handleBackgroundCheckboxChange}
                                                     color="primary"
                                                     disabled={disableImageControls}
                                                 />
@@ -313,11 +323,22 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                                         </Grid>
                                         <Grid item={true}>
                                             <FormControl component="fieldset" className={classes.formControl}>
-                                                <FormLabel component="legend">Rotation ({Math.round(this.state.rotation * 3.6)} deg)</FormLabel>
+                                                <FormLabel component="legend">Inverted</FormLabel>
+                                                <Checkbox
+                                                    checked={this.state.inverted}
+                                                    onChange={this.handleInvertedCheckboxChange}
+                                                    color="primary"
+                                                    disabled={disableImageControls}
+                                                />
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item={true}>
+                                            <FormControl component="fieldset" className={classes.formControl}>
+                                                <FormLabel component="legend">Rotation ({Math.round(this.state.rotation)} deg)</FormLabel>
                                                 <div className={classes.sliderContainer}>
                                                     <Slider
                                                         className={classes.slider}
-                                                        value={this.state.rotation}
+                                                        value={Math.round(this.state.rotation / 3.6)}
                                                         onChange={this.handleSliderChange}
                                                         disabled={disableImageControls}
                                                     />
@@ -328,7 +349,16 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                                 </Grid>
                                 <Grid item={true} style={{ flex: 1 }}>
                                     <div className={classes.previewContainer}>
-                                        <ResourceImage type={this.state.type} url={this.state.url} name={this.state.name} driveMaxHeight="500" driveMaxWidth="500" />
+                                        <ResourceImage
+                                            type={this.state.type}
+                                            url={this.state.url}
+                                            name={this.state.name}
+                                            inverted={this.state.inverted}
+                                            rotation={this.state.rotation}
+                                            backgroundColor={this.state.backgroundColor}
+                                            driveMaxHeight="500"
+                                            driveMaxWidth="500"
+                                        />
                                     </div>
                                 </Grid>
                             </Grid>
