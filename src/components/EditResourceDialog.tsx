@@ -129,8 +129,32 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         }
     }
 
+    private matchGoogleDriveUrl = (value: string) => {
+        // Matches links like https://drive.google.com/open?id=1nze1eHCrwMMKVV6_ZR5iCRsV_FvhYFMw
+        if (value.startsWith("https://drive.google.com")) {
+            const regexp = /https:\/\/drive\.google\.com\/open\?id=(.*)/g;
+            const match = regexp.exec(value);
+            if (match) {
+                return match[1];
+            }
+
+            // Matches links like https://drive.google.com/file/d/1nze1eHCrwMMKVV6_ZR5iCRsV_FvhYFMw/view?usp=sharing
+            const regexp2 = /https:\/\/drive\.google\.com\/file\/d\/(.*)\/view.*/g;
+            const match2 = regexp2.exec(value);
+            if (match2) {
+                return match2[1];
+            }
+        }
+        return undefined;
+    }
+
     private handleChange = (name: string) => (event: any) => {
-        const newValue = event.target.value;
+        let newValue = event.target.value;
+
+        if (name === "url") {
+            newValue = this.matchGoogleDriveUrl(newValue) || newValue;
+        }
+
         this.setState((prevState, props) => ({
             ...prevState,
             [name]: newValue
