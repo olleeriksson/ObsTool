@@ -47,6 +47,10 @@ namespace ObsTool.Entities
 
         public DbSet<ObsResource> ObsResources { get; set; }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ArticleConstellations>().HasKey(ac => new { ac.ArticleId, ac.ConstellationId });

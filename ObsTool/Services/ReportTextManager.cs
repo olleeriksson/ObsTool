@@ -202,7 +202,7 @@ namespace ObsTool.Services
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
                     string sectionText = sectionsMatch.Value;
-                    var dsosInSection = new List<Dso>();
+                    var dsosInSection = new Dictionary<int, Dso>();
 
                     MatchCollection dsoNameMatches = findDsoNamesRegexp.Matches(sectionText);  // matching on a single section
                     foreach (Match dsoNameMatch in dsoNameMatches)
@@ -238,8 +238,12 @@ namespace ObsTool.Services
                         {
                             throw new ObsToolException("DSO " + dso.ToString() + " found in more than one section of the report text!");
                         }
+                        if (dsosInSection.ContainsKey(dso.Id))
+                        {
+                            continue;  // ignore when the same object is mentioned more than one
+                        }
 
-                        dsosInSection.Add(dso);
+                        dsosInSection.Add(dso.Id, dso);
 
                         Debug.WriteLine("---------------------------------------------------------");
                     }
@@ -251,7 +255,7 @@ namespace ObsTool.Services
                     if (string.IsNullOrEmpty(observationsIdentifier))
                     {
                         // If none was found in the section text, create one and remember it
-                        observationsIdentifier = CreateNewObsIdentifier(obsSession.Id, dsosInSection);
+                        observationsIdentifier = CreateNewObsIdentifier(obsSession.Id, dsosInSection.Values.ToList());
                         newSectionMatchesDict.Add(sectionsMatch, observationsIdentifier);
                     }
 
@@ -266,7 +270,7 @@ namespace ObsTool.Services
 
                     // Then add all DSOs to the observation
                     int dsoObsIndex = 0;
-                    foreach (Dso dso in dsosInSection)
+                    foreach (Dso dso in dsosInSection.Values)
                     {
                         // Remember all the DSOs in this section for the checks in the next section, and the next etc..
                         foundDsoIds.Add(dso.Id);
