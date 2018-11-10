@@ -20,5 +20,7 @@ namespace ObsTool.Models
         public int Rotation { get; set; } = 0;
 
         public bool Inverted { get; set; } = false;
+
+        public int BackgroundColor { get; set; } = 0;
     }
 }

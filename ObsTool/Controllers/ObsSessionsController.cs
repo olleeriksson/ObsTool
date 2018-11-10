@@ -111,7 +111,6 @@ namespace ObsTool.Controllers
                             observationDto.OtherObservations.AddRange(allObservationsOfDso);
                         }
                     }
-                    int b = 4;
                 }
             }
 
