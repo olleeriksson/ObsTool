@@ -8,7 +8,7 @@ import Typography from "@material-ui/core/Typography";
 // import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 // import classNames from "classnames";
 import EditIcon from "@material-ui/icons/Edit";
-import EditResourceDialog from "./EditResourceDialog";
+import ResourceDialog from "./ResourceDialog";
 import AddIcon from "@material-ui/icons/Add";
 import Api from "../api/Api";
 import ErrorIcon from "@material-ui/icons/Error";
@@ -42,7 +42,7 @@ const styles = (theme: Theme) => createStyles({
     transform: "translateZ(0)",
   },
   title: {
-    fontSize: "0.9rem",
+    fontSize: "0.8rem",
     color: "gray", // theme.palette.primary.light,
   },
   titleBar: {
@@ -58,14 +58,18 @@ const styles = (theme: Theme) => createStyles({
     margin: 3,
   },
   imageContainer: {
+    height: "auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   image: {
     border: "1px solid gray",
     width: 120,
   },
   iconButtonContainer: {  // The container around the checkboxes, clear checkbox button, compare button
-    width: 30,
-    height: 30,
+    width: 20,
+    height: 20,
     color: "lightgray",
   },
   iconButtonIcon: {  // Checkbox, clear checkboxes, compare
@@ -92,7 +96,8 @@ export interface IImageListState {
   isError: boolean;
   isEditResourceDialogOpen: boolean;
   resources?: IObsResource[];
-  selectedResource?: IObsResource;
+  clickedResource?: IObsResource;
+  displayMode?: string;
 }
 
 // --------------------
@@ -107,40 +112,53 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       // isExpanded: false,
       resources: [...this.props.resources || []],
       isEditResourceDialogOpen: false,
-      selectedResource: undefined
+      clickedResource: undefined,
+      displayMode: undefined
     };
-  }
-
-  private handleClickResource = (resourceId?: number) => (event: any) => {
-    event.preventDefault();
-    if (this.state.resources) {
-      const selectedResource = this.state.resources.find(r => r.id === resourceId);
-      if (selectedResource) {
-        this.setState({ selectedResource: selectedResource });
-        this.setState({ isEditResourceDialogOpen: true });
-      }
-    }
-  }
-
-  private onClickAddResource = () => {
-    this.setState({ selectedResource: undefined });
-    this.setState({ isEditResourceDialogOpen: true });
   }
 
   private onCheckboxChanged = (obsResourceId: number) => (event: any) => {
     if (event.target.checked) {
-      this.props.actions.checkObsResource(obsResourceId);
+      if (this.state.resources) {
+        const selectedObsResource = this.state.resources.find(r => r.id === obsResourceId);
+        if (selectedObsResource) {
+          // Add ObsResource to store
+          this.props.actions.checkObsResource(selectedObsResource);
+        }
+      }
     } else {
       this.props.actions.uncheckObsResource(obsResourceId);
     }
   }
 
-  private onClickCompare = () => {
+  private onClearCheckboxes = () => {
     this.props.actions.clearCheckedObsResources();
   }
 
-  private onClearCheckboxes = () => {
-    this.props.actions.clearCheckedObsResources();
+  private onClickCompare = () => {
+    if (this.props.store.checkedObsResources.length === 2) {
+      this.setState({ isEditResourceDialogOpen: true });
+      this.setState({ displayMode: "compare" });
+      //this.props.actions.clearCheckedObsResources();
+    }
+  }
+
+  private handleClickResource = (resourceId?: number) => (event: any) => {
+    event.preventDefault();
+    if (this.state.resources) {
+      const clickedResource = this.state.resources.find(r => r.id === resourceId);
+      if (clickedResource) {
+        this.setState({ clickedResource: clickedResource });
+        this.setState({ isEditResourceDialogOpen: true });
+        this.setState({ displayMode: "edit" });
+      }
+    }
+  }
+
+  private onClickAddResource = () => {
+    this.setState({ clickedResource: undefined });
+    this.setState({ isEditResourceDialogOpen: true });
+    this.setState({ displayMode: "edit" });
   }
 
   private refreshResourcesListFromApi = () => {
@@ -159,8 +177,10 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
   }
 
   private handleEditResourceDialogClosed = (confirm: boolean) => {
-    this.setState({ selectedResource: undefined }); // needed?
+    this.setState({ clickedResource: undefined }); // needed?
     this.setState({ isEditResourceDialogOpen: false });
+    this.setState({ displayMode: undefined });
+    this.props.actions.clearCheckedObsResources();
 
     // If the edit dialog was closed with a positive boolean that indicates that
     // some resource was added, updated, or deleted. Then we need to refresh the list
@@ -226,7 +246,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           className={classes.iconButtonContainer}
           icon={<CheckBoxOutlineBlankIcon className={classes.iconButtonIcon} />}
           checkedIcon={<CheckBoxIcon className={classes.iconButtonIcon} />}
-          checked={this.props.store.checkedObsResources.indexOf(r.id || -1) !== -1}
+          checked={this.props.store.checkedObsResources.some(storeRes => storeRes.id === r.id)}
           onChange={this.onCheckboxChanged(r.id || -1)}
         />
       );
@@ -281,14 +301,34 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       </Typography>
     );
 
-    return (
-      <div>
-        <EditResourceDialog
+    let resourceDialog;
+    if (this.state.displayMode === "edit") {
+      resourceDialog = (
+        <ResourceDialog
           isOpen={this.state.isEditResourceDialogOpen}
           observationId={this.props.observationId}
-          resource={this.state.selectedResource}
+          resource1={this.state.clickedResource}
           onHandleClose={this.handleEditResourceDialogClosed}
+          displayMode="edit"
         />
+      );
+    } else if (this.state.displayMode === "compare") {
+      resourceDialog = (
+        <ResourceDialog
+          isOpen={this.state.isEditResourceDialogOpen}
+          observationId={this.props.observationId}
+          resource1={this.props.store.checkedObsResources[0]}
+          resource2={this.props.store.checkedObsResources[1]}
+          onHandleClose={this.handleEditResourceDialogClosed}
+          displayMode="compare"
+        />
+      );
+    }
+
+    return (
+      <div>
+        {resourceDialog}
+
         <Grid container={true} spacing={8} direction="column">
           {imagesTitle}
           <GridList className={classes.gridList} cols={3.5}>

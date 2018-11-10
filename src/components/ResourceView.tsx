@@ -3,10 +3,6 @@ import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
 import { IObsResource } from "../types/Types";
 import TextField from "@material-ui/core/TextField";
 import Radio from "@material-ui/core/Radio";
@@ -28,13 +24,16 @@ import Checkbox from "@material-ui/core/Checkbox";
 const styles = (theme: Theme) => createStyles({
     root: {
     },
-    previewContainer: {
-        border: "2px dashed lightgray",
+    imageContainer: {
+        //border: "2px dashed lightgray",
         padding: 5,
-        minWidth: 400,
-        minHeight: 400,
+        minWidth: 550,
+        minHeight: 550,
         maxWidth: 550,
         maxHeight: 550,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     formControl: {
         margin: theme.spacing.unit,
@@ -66,16 +65,17 @@ const styles = (theme: Theme) => createStyles({
     },
 });
 
-interface IEditResourceDialogProps extends WithStyles<typeof styles> {
-    isOpen: boolean;
-    observationId: number;
+interface IResourceViewProps extends WithStyles<typeof styles> {
+    observationId: number;  // used when opening the dialog to create a new resource
     resource?: IObsResource;
+    displayMode?: string;
     onHandleClose: (confirm: boolean) => void;
 }
 
-interface IEditResourceDialogState {
+interface IResourceViewState {
     isLoading: boolean;
     isError: boolean;
+    displayMode: string;
     isConfirmDeleteDialogOpen: boolean;
     type: string;
     name?: string;
@@ -85,13 +85,14 @@ interface IEditResourceDialogState {
     backgroundColor: number;
 }
 
-class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEditResourceDialogState> {
-    constructor(props: IEditResourceDialogProps) {
+class ResourceView extends React.Component<IResourceViewProps, IResourceViewState> {
+    constructor(props: IResourceViewProps) {
         super(props);
 
         this.state = {
             isLoading: false,
             isError: false,
+            displayMode: this.props.displayMode || "left",
             isConfirmDeleteDialogOpen: false,
             type: "image",
             name: "",
@@ -102,32 +103,45 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         };
     }
 
-    public componentWillReceiveProps(nextProps: IEditResourceDialogProps) {
-        if (!nextProps.resource) {
+    public componentDidMount() {
+        if (this.props.resource) {
             this.setState({
-                isLoading: false,
-                isError: false,
-                isConfirmDeleteDialogOpen: false,
-                type: "image",
-                name: "",
-                url: "",
-                inverted: false,
-                rotation: 0,
-                backgroundColor: 0
-            });
-        }
-        if (nextProps.resource && this.props.resource !== nextProps.resource) {
-            // Load from new object
-            this.setState({
-                type: nextProps.resource.type,
-                name: (nextProps.resource.name || undefined),
-                url: (nextProps.resource.url || undefined),
-                inverted: nextProps.resource.inverted,
-                rotation: nextProps.resource.rotation,
-                backgroundColor: nextProps.resource.backgroundColor
+                type: this.props.resource.type,
+                name: (this.props.resource.name || undefined),
+                url: (this.props.resource.url || undefined),
+                inverted: this.props.resource.inverted,
+                rotation: this.props.resource.rotation,
+                backgroundColor: this.props.resource.backgroundColor
             });
         }
     }
+
+    // public componentWillReceiveProps(nextProps: IResourceViewProps) {
+    //     if (!nextProps.resource) {
+    //         this.setState({
+    //             isLoading: false,
+    //             isError: false,
+    //             isConfirmDeleteDialogOpen: false,
+    //             type: "image",
+    //             name: "",
+    //             url: "",
+    //             inverted: false,
+    //             rotation: 0,
+    //             backgroundColor: 0
+    //         });
+    //     }
+    //     if (nextProps.resource && this.props.resource !== nextProps.resource) {
+    //         // Load from new object
+    //         this.setState({
+    //             type: nextProps.resource.type,
+    //             name: (nextProps.resource.name || undefined),
+    //             url: (nextProps.resource.url || undefined),
+    //             inverted: nextProps.resource.inverted,
+    //             rotation: nextProps.resource.rotation,
+    //             backgroundColor: nextProps.resource.backgroundColor
+    //         });
+    //     }
+    // }
 
     private matchGoogleDriveUrl = (value: string) => {
         // Matches links like https://drive.google.com/open?id=1nze1eHCrwMMKVV6_ZR5iCRsV_FvhYFMw
@@ -240,10 +254,6 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
         this.saveResource();
     }
 
-    private handleCloseDiscard = () => {
-        this.props.onHandleClose(false);
-    }
-
     // private onBrowseFileSelected = (e: any) => {
     //     console.log(e.target.files[0]);
     //     if (e.target.files && e.target.files[0] && e.target.files[0].name) {
@@ -302,119 +312,117 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
 
         const disableImageControls = this.state.type === "link";
 
+        const gridViewContainer = (
+            <Grid item={true} >
+                <div className={classes.imageContainer}>
+                    <ResourceImage
+                        type={this.state.type}
+                        url={this.state.url}
+                        name={this.state.name}
+                        inverted={this.state.inverted}
+                        rotation={this.state.rotation}
+                        backgroundColor={this.state.backgroundColor}
+                        driveMaxHeight="500"
+                        driveMaxWidth="500"
+                    />
+                </div>
+            </Grid>
+        );
+
         return <div>
             <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
-            <Dialog
-                open={this.props.isOpen}
-                onClose={this.handleCloseDiscard}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-                maxWidth={false}
-            >
-                <DialogTitle id="alert-dialog-title">{this.props.resource ? "Edit" : "New"} Resource</DialogTitle>
-                <DialogContent>
-                    <Grid container={true} spacing={8} direction="column">
-                        <Grid item={true} style={{ flex: 1 }}>
-                            <Grid container={true} spacing={8} direction="row">
+            <Grid container={true} spacing={8} direction="column">
+                <Grid item={true} style={{ flex: 1 }}>
+                    <Grid container={true} spacing={8} direction="row">
+
+                        {this.state.displayMode === "right" && gridViewContainer}
+
+                        <Grid item={true}>
+                            <Grid container={true} spacing={8} direction="column">
                                 <Grid item={true}>
-                                    <Grid container={true} spacing={8} direction="column">
-                                        <Grid item={true}>
-                                            <FormControl component="fieldset" className={classes.formControl}>
-                                                <FormLabel component="legend">Type</FormLabel>
-                                                <RadioGroup
-                                                    aria-label="Type"
-                                                    name="type"
-                                                    className={classes.group}
-                                                    value={this.state.type}
-                                                    onChange={this.handleChange("type")}
-                                                >
-                                                    <FormControlLabel value="image" control={<Radio />} label="Image" />
-                                                    <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
-                                                    <FormControlLabel value="link" control={<Radio />} label="Link" />
-                                                </RadioGroup>
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item={true}>
-                                            <FormControl component="fieldset" className={classes.formControl}>
-                                                <FormLabel component="legend">White background</FormLabel>
-                                                <Checkbox
-                                                    checked={this.state.backgroundColor === 256}
-                                                    onChange={this.handleBackgroundCheckboxChange}
-                                                    color="primary"
-                                                    disabled={disableImageControls}
-                                                />
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item={true}>
-                                            <FormControl component="fieldset" className={classes.formControl}>
-                                                <FormLabel component="legend">Inverted</FormLabel>
-                                                <Checkbox
-                                                    checked={this.state.inverted}
-                                                    onChange={this.handleInvertedCheckboxChange}
-                                                    color="primary"
-                                                    disabled={disableImageControls}
-                                                />
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item={true}>
-                                            <FormControl component="fieldset" className={classes.formControl}>
-                                                <FormLabel component="legend">Rotation ({Math.round(this.state.rotation)} deg)</FormLabel>
-                                                <div className={classes.sliderContainer}>
-                                                    <Slider
-                                                        className={classes.slider}
-                                                        value={Math.round(this.state.rotation / 3.6)}
-                                                        onChange={this.handleSliderChange}
-                                                        disabled={disableImageControls}
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                        </Grid>
-                                    </Grid>
+                                    <FormControl component="fieldset" className={classes.formControl}>
+                                        <FormLabel component="legend">Type</FormLabel>
+                                        <RadioGroup
+                                            aria-label="Type"
+                                            name="type"
+                                            className={classes.group}
+                                            value={this.state.type}
+                                            onChange={this.handleChange("type")}
+                                        >
+                                            <FormControlLabel value="image" control={<Radio />} label="Image" />
+                                            <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
+                                            <FormControlLabel value="link" control={<Radio />} label="Link" />
+                                        </RadioGroup>
+                                    </FormControl>
                                 </Grid>
-                                <Grid item={true} style={{ flex: 1 }}>
-                                    <div className={classes.previewContainer}>
-                                        <ResourceImage
-                                            type={this.state.type}
-                                            url={this.state.url}
-                                            name={this.state.name}
-                                            inverted={this.state.inverted}
-                                            rotation={this.state.rotation}
-                                            backgroundColor={this.state.backgroundColor}
-                                            driveMaxHeight="500"
-                                            driveMaxWidth="500"
+                                <Grid item={true}>
+                                    <FormControl component="fieldset" className={classes.formControl}>
+                                        <FormLabel component="legend">White background</FormLabel>
+                                        <Checkbox
+                                            checked={this.state.backgroundColor === 256}
+                                            onChange={this.handleBackgroundCheckboxChange}
+                                            color="primary"
+                                            disabled={disableImageControls}
                                         />
-                                    </div>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item={true}>
+                                    <FormControl component="fieldset" className={classes.formControl}>
+                                        <FormLabel component="legend">Inverted</FormLabel>
+                                        <Checkbox
+                                            checked={this.state.inverted}
+                                            onChange={this.handleInvertedCheckboxChange}
+                                            color="primary"
+                                            disabled={disableImageControls}
+                                        />
+                                    </FormControl>
+                                </Grid>
+                                <Grid item={true}>
+                                    <FormControl component="fieldset" className={classes.formControl}>
+                                        <FormLabel component="legend">Rotation ({Math.round(this.state.rotation)} deg)</FormLabel>
+                                        <div className={classes.sliderContainer}>
+                                            <Slider
+                                                className={classes.slider}
+                                                value={Math.round(this.state.rotation / 3.6)}
+                                                onChange={this.handleSliderChange}
+                                                disabled={disableImageControls}
+                                            />
+                                        </div>
+                                    </FormControl>
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid item={true} xs={12}>
-                            <TextField
-                                autoFocus={true}
-                                margin="dense"
-                                label={this.state.type === "sketch" ? "Relative Google Drive path for easier identification" : "Name"}
-                                type="text"
-                                fullWidth={true}
-                                onChange={this.handleChange("name")}
-                                value={this.state.name}
-                            />
-                        </Grid>
-                        <Grid item={true} xs={12}>
-                            <TextField
-                                style={{ flex: 1 }}
-                                autoFocus={true}
-                                margin="dense"
-                                id="url"
-                                name="url"
-                                label={this.state.type === "sketch" ? "Google Drive image id" : "Url"}
-                                type="text"
-                                fullWidth={true}
-                                onChange={this.handleChange("url")}
-                                value={this.state.url}
-                            />
-                        </Grid>
+
+                        {this.state.displayMode === "left" && gridViewContainer}
+
                     </Grid>
-                </DialogContent>
-                <DialogActions>
+                </Grid>
+                <Grid item={true} xs={11}>
+                    <TextField
+                        autoFocus={true}
+                        margin="dense"
+                        label={this.state.type === "sketch" ? "Relative Google Drive path for easier identification" : "Name"}
+                        type="text"
+                        fullWidth={true}
+                        onChange={this.handleChange("name")}
+                        value={this.state.name}
+                    />
+                </Grid>
+                <Grid item={true} xs={11}>
+                    <TextField
+                        style={{ flex: 1 }}
+                        autoFocus={true}
+                        margin="dense"
+                        id="url"
+                        name="url"
+                        label={this.state.type === "sketch" ? "Google Drive image id" : "Url"}
+                        type="text"
+                        fullWidth={true}
+                        onChange={this.handleChange("url")}
+                        value={this.state.url}
+                    />
+                </Grid>
+                <Grid item={true} xs={12}>
                     <Grid container={true} spacing={8} direction="row">
                         <Grid item={true} style={{ flex: 1 }}>
                             <IconButton onClick={this.onClickDelete} >
@@ -427,15 +435,12 @@ class EditResourceDialog extends React.Component<IEditResourceDialogProps, IEdit
                             <Button onClick={this.handleCloseConfirm} variant="contained" color="primary" autoFocus={true}>
                                 {this.props.resource ? "Save changes" : "Add"}
                             </Button>
-                            <Button onClick={this.handleCloseDiscard} color="primary">
-                                Cancel
-                            </Button>
                         </Grid>
                     </Grid>
-                </DialogActions>
-            </Dialog>
+                </Grid>
+            </Grid>
         </div>;
     }
 }
 
-export default withStyles(styles)(EditResourceDialog);
+export default withStyles(styles)(ResourceView);

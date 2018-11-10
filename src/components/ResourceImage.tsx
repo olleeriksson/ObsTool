@@ -19,8 +19,10 @@ interface IResourceImageProps extends WithStyles<typeof styles> {
 const styles = (theme: Theme) => createStyles({
     imageContainer: {
         overflow: "hidden",
-        //backgroundColor: "rgb(0,0,0)"
-        // height: "auto"
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        alignSelf: "stretch"
     },
     image: {
         width: "100%",

@@ -151,7 +151,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             const checkedAction = action as IObsResourceCheckedAction;
             return {
                 ...state,
-                checkedObsResources: [...state.checkedObsResources, checkedAction.payload.obsResourceId]
+                checkedObsResources: [...state.checkedObsResources, checkedAction.payload.obsResource]
             };
         // case constants.DELETE_OBSSESSION_SUCCESS: {
         //     const deleteAction = action as IDeleteObsSessionSuccessAction;
@@ -168,7 +168,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
         case constants.RESOURCE_UNCHECKED:
             const uncheckedAction = action as IObsResourceUncheckedAction;
             const updatedCheckedObsResources = state.checkedObsResources.filter(r => {
-                return r !== uncheckedAction.payload.obsResourceId;   // filter in all except the one with the matching id
+                return r.id !== uncheckedAction.payload.obsResourceId;   // filter in all except the one with the matching id
             });
             return {
                 ...state,

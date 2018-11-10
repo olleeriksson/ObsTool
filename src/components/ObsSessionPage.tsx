@@ -295,11 +295,8 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         const deleteDialogText = "Are you sure you want to delete the observation session titled " +
             (this.state.obsSession && this.state.obsSession.title) + "?";
 
-        const numChecked = this.props.store.checkedObsResources.length;
-
         return (
             <div className="circularProgressSuperContainer">
-                <div>{numChecked} checked resources.</div>
                 {snackbar}
                 {circularProgress}
                 <DeleteDialog isOpen={this.state.isDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleDeleteDialogClosed} />

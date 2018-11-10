@@ -1,5 +1,6 @@
 import { ActionCreator, Action } from "redux";
 import * as constants from "../types/Constants";
+import { IObsResource } from "../types/Types";
 
 // Type these action creators with `: ActionCreator<ActionTypeYouWantToPass>`.
 // Remember, you can also pass parameters into an action creator. Make sure to
@@ -11,7 +12,7 @@ import * as constants from "../types/Constants";
 
 export interface IObsResourceCheckedAction extends Action {
     type: constants.RESOURCE_CHECKED;
-    payload: { obsResourceId: number };
+    payload: { obsResource: IObsResource };
 }
 
 export interface IObsResourceUncheckedAction extends Action {
@@ -35,9 +36,9 @@ export type ObsResourceCheckAction =
 // Action creators
 // ---------------------------------------------------------------
 
-export const checkObsResource: ActionCreator<IObsResourceCheckedAction> = (obsResourceId: number) => ({
+export const checkObsResource: ActionCreator<IObsResourceCheckedAction> = (obsResource: IObsResource) => ({
     type: constants.RESOURCE_CHECKED,
-    payload: { obsResourceId: obsResourceId },
+    payload: { obsResource: obsResource },
 });
 
 export const uncheckObsResource: ActionCreator<IObsResourceUncheckedAction> = (obsResourceId: number) => ({
