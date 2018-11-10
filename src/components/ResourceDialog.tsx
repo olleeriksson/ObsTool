@@ -40,12 +40,16 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
 
     // When the closing comes from the inner ResourceView (really only from saving)
     private handleCloseConfirm = (confirm: boolean) => {
-        this.props.onHandleClose(confirm);
+        if (this.props.displayMode === "edit") {
+            this.props.onHandleClose(confirm);
+        }
     }
 
     // When this component is closed
     private handleClose = () => {
-        this.props.onHandleClose(false);
+        // The flag that says true to reload the resources only actually reaches the resources in this
+        // image list. Need to find a way to reload the others.
+        this.props.onHandleClose(true);
     }
 
     public render() {

@@ -12,6 +12,7 @@ import FormControl from "@material-ui/core/FormControl";
 import FormLabel from "@material-ui/core/FormLabel";
 import Api from "../api/Api";
 import DeleteIcon from "@material-ui/icons/Delete";
+import CheckIcon from "@material-ui/icons/Check";
 import ErrorIcon from "@material-ui/icons/Error";
 import IconButton from "@material-ui/core/IconButton";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -63,6 +64,14 @@ const styles = (theme: Theme) => createStyles({
     slider: {
         padding: "22px 0px",
     },
+    circularProgress: {
+    },
+    circularProgressContainer: {
+    },
+    saveSuccess: {
+        color: "green",
+        margin: "5px 20px"
+    }
 });
 
 interface IResourceViewProps extends WithStyles<typeof styles> {
@@ -73,6 +82,7 @@ interface IResourceViewProps extends WithStyles<typeof styles> {
 }
 
 interface IResourceViewState {
+    saveSuccess?: boolean;
     isLoading: boolean;
     isError: boolean;
     displayMode: string;
@@ -90,6 +100,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         super(props);
 
         this.state = {
+            saveSuccess: undefined,
             isLoading: false,
             isError: false,
             displayMode: this.props.displayMode || "left",
@@ -190,6 +201,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
     private saveResource = () => {
         this.setState({ isLoading: true });
+        this.setState({ isError: false });
+        this.setState({ saveSuccess: undefined });
 
         const newResource = {
             id: this.props.resource && this.props.resource.id,
@@ -205,6 +218,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
             Api.addResource(this.props.observationId, newResource).then(
                 () => {
                     this.setState({ isLoading: false });
+                    this.setState({ isError: false });
                     this.props.onHandleClose(true);
                 },
                 () => this.indicateError()
@@ -213,6 +227,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
             Api.updateResource(newResource).then(
                 () => {
                     this.setState({ isLoading: false });
+                    this.setState({ isError: false });
+                    this.setState({ saveSuccess: true });
                     this.props.onHandleClose(true);
                 },
                 () => this.indicateError()
@@ -248,6 +264,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
     private indicateError = () => {
         this.setState({ isLoading: false });
         this.setState({ isError: true });
+        this.setState({ saveSuccess: false });
     }
 
     private handleCloseConfirm = () => {
@@ -273,18 +290,27 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         let error;
         if (this.state.isError) {
             error = (
-                <div className={classes.error}>
+                <span className={classes.error}>
                     <ErrorIcon color="error" /> Something went wrong!
-                </div>
+                </span>
             );
         }
 
         let circularProgress;
         if (this.state.isLoading) {
             circularProgress = (
-                <div className="circularProgressContainer">
+                <span className={classes.circularProgressContainer}>
                     <CircularProgress className="circularProgress" />
-                </div>
+                </span>
+            );
+        }
+
+        let saveSuccess;
+        if (this.state.saveSuccess) {
+            saveSuccess = (
+                <span className={classes.saveSuccess}>
+                    <CheckIcon /> Changes saved!
+                </span>
             );
         }
 
@@ -424,12 +450,13 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                 </Grid>
                 <Grid item={true} xs={12}>
                     <Grid container={true} spacing={8} direction="row">
-                        <Grid item={true} style={{ flex: 1 }}>
+                        <Grid item={true}>
                             <IconButton onClick={this.onClickDelete} >
                                 <DeleteIcon />
                             </IconButton>
                         </Grid>
-                        <Grid item={true}>
+                        <Grid item={true} style={{ flex: 1, textAlign: "right" }}>
+                            {saveSuccess}
                             {error}
                             {circularProgress}
                             <Button onClick={this.handleCloseConfirm} variant="contained" color="primary" autoFocus={true}>
