@@ -97,8 +97,11 @@ class Layout extends React.Component<ILayoutProps> {
             <footer className={classNames(classes.footer, classes.layout)}>
                 <Grid container={true} spacing={32} direction="column" justify="space-evenly">
                     <Grid item={true} xs={true}>
-                        <Typography variant="title" align="center" color="textPrimary" gutterBottom={true}>
+                        <Typography variant="title" align="center" color="textPrimary">
                             Created with React + TypeScript and ASP.NET Core
+                        </Typography>
+                        <Typography variant="caption" align="center" color="textSecondary" gutterBottom={true}>
+                            2018-11-10
                         </Typography>
                         <Typography variant="subheading" align="center" color="textSecondary">
                             Copyright Olle Eriksson

@@ -10,6 +10,7 @@ import classNames from "classnames";
 import Grid from "@material-ui/core/Grid";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
 import Typography from "@material-ui/core/Typography";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 const styles = (theme: Theme) => createStyles({
   form: {
@@ -54,6 +55,7 @@ export interface IObsSessionFormProps extends WithStyles<typeof styles> {
   obsSession: IObsSession;
   locations?: ILocation[];
   onSaveObsSession: (obsSession: IObsSession) => void;
+  isLoading: boolean;
 }
 
 export interface IObsSessionFormState {
@@ -166,6 +168,13 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     const transparencyOptions: IKeyValuePair[] = [{ key: "", value: "n/a" }];
     transparencyOptions.push(...transparencyOptionValues);
 
+    let circularProgress;
+    if (this.props.isLoading) {
+      circularProgress = (
+        <CircularProgress className="circularProgress" style={{ marginLeft: 20 }} />
+      );
+    }
+
     return (
       <div className="obsSessionForm">
         <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
@@ -275,6 +284,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                       >
                         Save
                       </Button>
+                      {circularProgress}
                     </Grid>
                   </Grid>
                 </Grid>

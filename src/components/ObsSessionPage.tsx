@@ -11,7 +11,7 @@ import Tab from "@material-ui/core/Tab";
 import ObservationList from "./ObservationList";
 import ObsSessionForm from "./ObsSessionForm";
 import SwipeableViews from "react-swipeable-views";
-import CircularProgress from "@material-ui/core/CircularProgress";
+// import CircularProgress from "@material-ui/core/CircularProgress";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Redirect } from "react-router-dom";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
@@ -258,14 +258,15 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             observations = this.state.obsSession.observations;
         }
 
-        let circularProgress;
-        if (this.state.isLoading) {
-            circularProgress = (
-                <div className="circularProgressContainer">
-                    <CircularProgress className="circularProgress" />
-                </div>
-            );
-        }
+        // The overlaying circular progress in the middle of the screen.
+        // let circularProgress;
+        // if (this.state.isLoading) {
+        //     circularProgress = (
+        //         <div className="circularProgressContainer">
+        //             <CircularProgress className="circularProgress" />
+        //         </div>
+        //     );
+        // }
 
         let menu;
         if (this.state.obsSession.id) {
@@ -298,7 +299,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         return (
             <div className="circularProgressSuperContainer">
                 {snackbar}
-                {circularProgress}
+                {/* {circularProgress} */}
                 <DeleteDialog isOpen={this.state.isDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleDeleteDialogClosed} />
                 <div className={classes.root} >
                     <div className={classes.header}>
@@ -344,8 +345,16 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         index={this.state.activeTab}
                         onChangeIndex={this.handleChangeIndex}
                     >
-                        <ObsSessionForm obsSession={this.state.obsSession} locations={this.props.store.locations || []} onSaveObsSession={this.onSaveObsSession} />
-                        <ObservationList observations={observations} onSelectObservation={this.onSelectObservation} />
+                        <ObsSessionForm
+                            obsSession={this.state.obsSession}
+                            locations={this.props.store.locations || []}
+                            onSaveObsSession={this.onSaveObsSession}
+                            isLoading={this.state.isLoading}
+                        />
+                        <ObservationList
+                            observations={observations}
+                            onSelectObservation={this.onSelectObservation}
+                        />
                     </SwipeableViews>
                 </div>
             </div >
