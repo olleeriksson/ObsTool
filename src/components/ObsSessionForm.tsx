@@ -41,13 +41,13 @@ const styles = (theme: Theme) => createStyles({
     width: 100,
   },
   singleDsoContainer: {
-    marginBottom: "0.5em",
-    marginTop: "0.5em"
+    marginBottom: "0.7em",
+    marginTop: "0.7em"
   },
   multipleDsoContainer: {
-    border: "1px dashed lightgray",
-    marginBottom: "0.5em",
-    marginTop: "0.5em"
+    //border: "1px dashed lightgray",
+    marginBottom: "0.7em",
+    marginTop: "0.7em"
   }
 });
 

@@ -27,6 +27,7 @@ interface IResourceDialogProps extends WithStyles<typeof styles> {
 
 interface IResourceDialogState {
     fullscreen: boolean;
+    invertBoth: boolean;
 }
 
 class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDialogState> {
@@ -34,8 +35,23 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
         super(props);
 
         this.state = {
-            fullscreen: false
+            fullscreen: false,
+            invertBoth: false
         };
+    }
+
+    // private handleChange = (name: string) => (event: any) => {
+    //     const newValue = event.target.value;
+    //     this.setState((prevState, props) => ({
+    //         ...prevState,
+    //         [name]: newValue
+    //     }));
+    // }
+
+    private onClickInvertBoth = () => {
+        this.setState({
+            invertBoth: !this.state.invertBoth
+        });
     }
 
     // When the closing comes from the inner ResourceView (really only from saving)
@@ -98,6 +114,9 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
                             &nbsp;
                         </Grid>
                         <Grid item={true}>
+                            <Button onClick={this.onClickInvertBoth} color="primary">
+                                Invert both
+                            </Button>
                             <Button onClick={this.handleClose} color="primary">
                                 Close
                             </Button>

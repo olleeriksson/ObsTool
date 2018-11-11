@@ -205,7 +205,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
     }
 
     private handleSliderChange = (event: any, value: number) => {
-        this.setState({ rotation: value * 3.6 });
+        // this.setState({ rotation: (value - 50) * (2.7 * 2) });
+        this.setState({ rotation: value });
     }
 
     private saveResource = () => {
@@ -418,7 +419,11 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                         <div className={classes.sliderContainer}>
                                             <Slider
                                                 className={classes.slider}
-                                                value={Math.round(this.state.rotation / 3.6)}
+                                                min={-270}
+                                                max={270}
+                                                step={5}
+                                                value={this.state.rotation}
+                                                // value={Math.round((this.state.rotation / (2.7 * 2) + 50))}
                                                 onChange={this.handleSliderChange}
                                                 disabled={disableImageControls}
                                             />
