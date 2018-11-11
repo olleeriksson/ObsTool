@@ -183,11 +183,17 @@ namespace ObsTool.Services
 
             // Regexp for finding DSO names
             string regexpAllCatalogs = RegExpJoinCatalogs(allCatalogs);
+            string introRegexp = @"\s";
             string startingParenthesisRegexp = @"(\()?";
             string endingParenthesisRegexp = @"(\))?";
+            string outroRegexp = @"[\s.,]";
             // The ?: at the start of one of the groups is to make that the group is non-capturing.
             // This results in the fourth group always beeing scthe ending parenthesis.
-            string dsoNameRegexp = startingParenthesisRegexp + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-.]?[0-9]+)*)" + endingParenthesisRegexp;
+            string dsoNameRegexp = introRegexp
+                + startingParenthesisRegexp 
+                + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-.]?[0-9]+)*)"
+                + endingParenthesisRegexp
+                + outroRegexp;
             var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.IgnoreCase);
 
             // Regexp for finding text sections that include DSO names
@@ -217,7 +223,7 @@ namespace ObsTool.Services
                         //Debug.WriteLine($"Match: {sectionText}");
 
                         // Ignore pattern if it's surrounded by parenthesis
-                        if (startingParenthesis == "(" && endingParenthesis == ")") {
+                        if (startingParenthesis == "(" || endingParenthesis == ")") {
                             continue;
                         }
 
@@ -246,6 +252,13 @@ namespace ObsTool.Services
                         dsosInSection.Add(dso.Id, dso);
 
                         Debug.WriteLine("---------------------------------------------------------");
+                    }
+
+                    // If section contained matches regex'ly but that could not be matched against anything
+                    // in the DSO database
+                    if (dsosInSection.Count == 0)
+                    {
+                        continue;  
                     }
 
                     string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
