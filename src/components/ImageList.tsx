@@ -98,6 +98,8 @@ export interface IImageListState {
   resources?: IObsResource[];
   clickedResource?: IObsResource;
   displayMode?: string;
+  checkedResource1?: IObsResource;
+  checkedResource2?: IObsResource;
 }
 
 // --------------------
@@ -113,7 +115,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       resources: [...this.props.resources || []],
       isEditResourceDialogOpen: false,
       clickedResource: undefined,
-      displayMode: undefined
+      displayMode: undefined,
+      checkedResource1: undefined,
+      checkedResource2: undefined
     };
   }
 
@@ -137,10 +141,24 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
   private onClickCompare = () => {
     if (this.props.store.checkedObsResources.length === 2) {
+      // Get the selections from the store
+      this.setState({ checkedResource1: this.props.store.checkedObsResources[0] });
+      this.setState({ checkedResource2: this.props.store.checkedObsResources[1] });
+
       this.setState({ isEditResourceDialogOpen: true });
       this.setState({ displayMode: "compare" });
       //this.props.actions.clearCheckedObsResources();
     }
+  }
+
+  private onClickCompareTheseTwo = (resource1: IObsResource, resource2: IObsResource) => (event: any) => {
+    event.preventDefault();
+    // Get the selected resources from the event call
+    this.setState({ checkedResource1: resource1 });
+    this.setState({ checkedResource2: resource2 });
+
+    this.setState({ isEditResourceDialogOpen: true });
+    this.setState({ displayMode: "compare" });
   }
 
   private handleClickResource = (resourceId?: number) => (event: any) => {
@@ -233,7 +251,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       }
 
       let compareIcon;
-      if (this.props.store.checkedObsResources.length === 2) {
+      const checkedResources = this.props.store.checkedObsResources;
+      const thisResourceIsChecked = checkedResources.length === 2 && checkedResources.some(checkedRes => checkedRes.id === r.id);
+      if (checkedResources.length === 2 && thisResourceIsChecked) {
         compareIcon = (
           <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickCompare}>
             <CompareIcon className={classes.iconButtonIcon} />
@@ -317,11 +337,20 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
         <ResourceDialog
           isOpen={this.state.isEditResourceDialogOpen}
           observationId={this.props.observationId}
-          resource1={this.props.store.checkedObsResources[0]}
-          resource2={this.props.store.checkedObsResources[1]}
+          resource1={this.state.checkedResource1}
+          resource2={this.state.checkedResource2}
           onHandleClose={this.handleEditResourceDialogClosed}
           displayMode="compare"
         />
+      );
+    }
+
+    let compareTheseTwo;
+    if (images.length === 2) {
+      compareTheseTwo = (
+        <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickCompareTheseTwo(images[0], images[1])}>
+          <CompareIcon className={classes.iconButtonIcon} />
+        </IconButton>
       );
     }
 
@@ -340,8 +369,11 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           </Grid>
           {error}
           {circularProgress}
-          <Typography variant="caption" color="textSecondary">
-            <span onClick={this.onClickAddResource}><AddIcon style={{ fontSize: 14 }} /></span>
+          <Typography variant="body1" color="textSecondary">
+            {compareTheseTwo}
+            <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickAddResource}>
+              <AddIcon className={classes.iconButtonIcon} />
+            </IconButton>
           </Typography>
         </Grid>
       </div>

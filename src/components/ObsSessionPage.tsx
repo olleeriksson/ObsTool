@@ -131,32 +131,43 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         newObsSession.locationId = newObsSession.locationId ? Number(newObsSession.locationId) : undefined;
 
         if (!newObsSession.id) {
+            // Store away the report text and replace it with a placeholder until the ObsSession has been created
+            const reportText = newObsSession.reportText;
+            newObsSession.reportText = "Something went wrong saving the report text";
+
+            // Create the ObsSession
             Api.addObsSession(newObsSession).then(
                 (response) => {
-                    const { data } = response;
-                    const obsSession = data;
-                    this.handleSuccessDataFromApi(obsSession);
-                    this.props.actions.addObsSessionSuccess(obsSession);
-                    this.setState({ redirectToSingleSessionPage: true });
+                    const createdObsSession = response.data;
+                    this.handleSuccessDataFromApi(createdObsSession);
+                    this.props.actions.addObsSessionSuccess(createdObsSession);
+
+                    createdObsSession.reportText = reportText;
+                    Api.updateObsSession(createdObsSession).then(
+                        (response2) => {
+                            const obsSession = response2.data;
+                            this.handleSuccessDataFromApi(obsSession);
+                            this.props.actions.updateObsSessionSuccess(obsSession);
+                            // this.setState({ redirectToSingleSessionPage: true });
+                        },
+                        (response2) => {
+                            this.indicateError(response2.response);
+                        }
+                    );
                 },
-                () => this.indicateError()
+                (response) => {
+                    this.indicateError(response.response);
+                }
             );
         } else {
             Api.updateObsSession(newObsSession).then(
                 (response) => {
-                    const { data } = response;
-                    const obsSession = data;
+                    const obsSession = response.data;
                     this.handleSuccessDataFromApi(obsSession);
                     this.props.actions.updateObsSessionSuccess(obsSession);
                 },
                 (response) => {
-                    // The following could use a rewrite!
-                    const { data } = response.response;
-                    if (data.Message) {
-                        this.indicateError(data.Message);
-                    } else {
-                        this.indicateError();
-                    }
+                    this.indicateError(response.response);
                 }
             );
         }
@@ -168,7 +179,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 (response) => {
                     this.props.actions.deleteObsSessionSuccess(this.state.obsSession.id);
                 },
-                () => this.indicateError()
+                (response) => this.indicateError(response.response)
             );
         }
     }
@@ -183,10 +194,14 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ errorMsg: undefined });
     }
 
-    private indicateError = (errorMsg?: string) => {
+    private indicateError = (data?: any) => {
+        if (data && data.data && data.data.Message) {
+            this.setState({ errorMsg: data.data.Message });
+        } else {
+            this.setState({ errorMsg: "Something went wrong!" });
+        }
         this.setState({ isLoading: false });
         this.setState({ isError: true });
-        this.setState({ errorMsg: errorMsg });
     }
 
     private clearError = () => {

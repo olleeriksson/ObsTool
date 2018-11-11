@@ -104,7 +104,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
         } else {
             const invert = this.props.inverted ? "100" : "0";
             const rotation = this.props.rotation;
-            const backgroundColor = this.props.backgroundColor === 256 ? "white" : "black";
+            const backgroundColor = this.props.backgroundColor && this.props.backgroundColor >= 255 ? "white" : "black";
             let imgSrc;
 
             if (this.props.type === "sketch") {

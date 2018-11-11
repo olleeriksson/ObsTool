@@ -177,7 +177,16 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         let newValue = event.target.value;
 
         if (name === "url") {
-            newValue = this.matchGoogleDriveUrl(newValue) || newValue;
+            const googleDriveUrl = this.matchGoogleDriveUrl(newValue);
+            if (googleDriveUrl) {
+                newValue = this.matchGoogleDriveUrl(newValue) || newValue;
+
+                this.setState((prevState, props) => ({
+                    ...prevState,
+                    type: "sketch",
+                    backgroundColor: 255
+                }));
+            }
         }
 
         this.setState((prevState, props) => ({
@@ -191,7 +200,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
     }
 
     private handleBackgroundCheckboxChange = (event: any, checked: boolean) => {
-        const color = (checked ? 256 : 0);
+        const color = (checked ? 255 : 0);
         this.setState({ backgroundColor: color });
     }
 
@@ -385,7 +394,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                     <FormControl component="fieldset" className={classes.formControl}>
                                         <FormLabel component="legend">White background</FormLabel>
                                         <Checkbox
-                                            checked={this.state.backgroundColor === 256}
+                                            checked={this.state.backgroundColor >= 255}
                                             onChange={this.handleBackgroundCheckboxChange}
                                             color="primary"
                                             disabled={disableImageControls}
