@@ -61,6 +61,7 @@ class Layout extends React.Component<ILayoutProps> {
         console.log(this.props.location);
 
         const LinkToHome = (props: any) => <Link to="/" {...props} />;
+        const LinkToObservedDsos = (props: any) => <Link to="/observations" {...props} />;
         const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
         const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
         const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
@@ -85,6 +86,7 @@ class Layout extends React.Component<ILayoutProps> {
                         <SearchInput onSearchView={weAreOnSearchView} />
                     </div>
                     <Button component={LinkToHome}><FontAwesomeIcon icon="home" className="faSpaceAfter" />Home</Button>
+                    <Button component={LinkToObservedDsos}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observed objects</Button>
                     <Button component={LinkToSessions}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions</Button>
                     <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session</Button>
                     <Button component={LinkToSearch}><FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search</Button>

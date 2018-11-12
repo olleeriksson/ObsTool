@@ -3,6 +3,7 @@ import { Route } from "react-router-dom";
 import Layout from "./Layout";
 import Home from "./Home";
 import ListView from "./ListView";
+import ObservedDsos from "./ObservedDsos";
 import NewObsSessionView from "./NewObsSessionView";
 import SingleObsSessionView from "./SingleObsSessionView";
 import SearchView from "./SearchView";
@@ -16,6 +17,10 @@ const home = (props: any) => <Layout {...props}>
 
 const singleObsSessionView = (props: any) => <Layout {...props}>
     <SingleObsSessionView {...props} />
+</Layout>;
+
+const observedDsos = (props: any) => <Layout {...props}>
+    <ObservedDsos {...props} />
 </Layout>;
 
 const listView = (props: any) => <Layout {...props}>
@@ -33,6 +38,7 @@ const searchView = (props: any) => <Layout {...props}>
 export const routes = <div>
     <Route exact={true} path="/" component={home} />
     <Route path="/session/:obsSessionId" component={singleObsSessionView} />
+    <Route path="/observations" component={observedDsos} />
     <Route path="/sessions" component={listView} />
     <Route path="/newsession" component={newObsSessionView} />
     <Route path="/search" component={searchView} />

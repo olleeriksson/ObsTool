@@ -39,6 +39,10 @@ class Api {
         return axios.get<IPagedDsoList>(process.env.REACT_APP_API_URL + "/dso?query=" + query);
     }
 
+    public static getAllDsosAndTheirObservations() {
+        return axios.get<IPagedDsoList>(process.env.REACT_APP_API_URL + "/dso/observed");
+    }
+
     // public static getDsoById(dsoId: number) {
     //     return axios.get<IPagedDsoList>(process.env.REACT_APP_API_URL + "/dso/" + dsoId);
     // }

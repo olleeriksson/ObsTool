@@ -139,16 +139,10 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
                         </Typography>
                     </Grid>
                 );
-            } else if (this.state.dsoList.length === 1) {  // Exactly one match
+            } else {
                 searchResult = this.state.dsoList.map(dso => (
                     <Grid key={dso.id} item={true} xs={12}>
                         <DynamicDsoSearchLabel dso={dso} showBadge={true} showObservations={true} />
-                    </Grid>
-                ));
-            } else {   // Several matches
-                searchResult = this.state.dsoList.map(dso => (
-                    <Grid key={dso.id} item={true} xs={12}>
-                        <DynamicDsoSearchLabel dso={dso} showBadge={true} showObservations={false} />
                     </Grid>
                 ));
             }

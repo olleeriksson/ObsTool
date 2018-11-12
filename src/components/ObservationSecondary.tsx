@@ -71,6 +71,18 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
   public render() {
     const { classes } = this.props;
 
+    let expandButton;
+    if (this.props.observation.obsResources && this.props.observation.obsResources.length > 0) {
+      expandButton = (
+        <IconButton
+          className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
+          onClick={this.handleExpandClick}
+        >
+          <ExpandMoreIcon />
+        </IconButton>
+      );
+    }
+
     let expandedGridItem;
     if (this.state.isExpanded) {
       expandedGridItem = (
@@ -108,14 +120,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
             <Grid item={true}>
               <Grid container={true} direction="column">
                 <Grid item={true}>
-                  <IconButton
-                    className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
-                    onClick={this.handleExpandClick}
-                    aria-expanded={this.state.isExpanded}
-                    aria-label="Show more"
-                  >
-                    <ExpandMoreIcon />
-                  </IconButton>
+                  {expandButton}
                 </Grid>
               </Grid>
             </Grid>
