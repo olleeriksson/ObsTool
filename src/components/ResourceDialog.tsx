@@ -10,6 +10,8 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Grid from "@material-ui/core/Grid";
 import { IObsResource } from "../types/Types";
 import ResourceView from "./ResourceView";
+import Switch from "@material-ui/core/Switch";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -40,15 +42,7 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
         };
     }
 
-    // private handleChange = (name: string) => (event: any) => {
-    //     const newValue = event.target.value;
-    //     this.setState((prevState, props) => ({
-    //         ...prevState,
-    //         [name]: newValue
-    //     }));
-    // }
-
-    private onClickInvertBoth = () => {
+    private onHandleInvertBoth = () => {
         this.setState({
             invertBoth: !this.state.invertBoth
         });
@@ -77,6 +71,7 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
                 resource={this.props.resource1}
                 onHandleClose={this.handleCloseConfirm}
                 displayMode="left"
+                inverted={this.state.invertBoth}
             />
         );
 
@@ -86,8 +81,19 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
                 resource={this.props.resource2}
                 onHandleClose={this.handleCloseConfirm}
                 displayMode="right"
+                inverted={this.state.invertBoth}
             />
         );
+
+        let invertBothControl;
+        if (resource1 && resource2) {
+            invertBothControl = (
+                <FormControlLabel
+                    control={<Switch checked={this.state.invertBoth} onChange={this.onHandleInvertBoth} value="checkedB" color="primary" />}
+                    label="View inverted"
+                />
+            );
+        }
 
         return <div className={classes.root}>
             <Dialog
@@ -114,9 +120,7 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
                             &nbsp;
                         </Grid>
                         <Grid item={true}>
-                            <Button onClick={this.onClickInvertBoth} color="primary">
-                                Invert both
-                            </Button>
+                            {invertBothControl}
                             <Button onClick={this.handleClose} color="primary">
                                 Close
                             </Button>

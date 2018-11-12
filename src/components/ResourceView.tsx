@@ -79,6 +79,7 @@ interface IResourceViewProps extends WithStyles<typeof styles> {
     resource?: IObsResource;
     displayMode?: string;
     onHandleClose: (confirm: boolean) => void;
+    inverted: boolean;
 }
 
 interface IResourceViewState {
@@ -348,6 +349,11 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
         const disableImageControls = this.state.type === "link";
 
+        // Simulates an XOR operator to invert the inverted value and background color
+        const invertedInverted = (this.state.inverted && !this.props.inverted) || (!this.state.inverted && this.props.inverted);
+        const invertedBackGroundColor = this.state.backgroundColor >= 255 ? 0 : 255;
+        const backGroundColorToUse = this.props.inverted ? invertedBackGroundColor : this.state.backgroundColor;
+
         const gridViewContainer = (
             <Grid item={true} >
                 <div className={classes.imageContainer}>
@@ -355,9 +361,9 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         type={this.state.type}
                         url={this.state.url}
                         name={this.state.name}
-                        inverted={this.state.inverted}
+                        inverted={invertedInverted}
                         rotation={this.state.rotation}
-                        backgroundColor={this.state.backgroundColor}
+                        backgroundColor={backGroundColorToUse}
                         driveMaxHeight="500"
                         driveMaxWidth="500"
                     />
