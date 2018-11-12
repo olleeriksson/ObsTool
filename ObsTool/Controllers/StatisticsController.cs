@@ -18,17 +18,21 @@ namespace ObsTool.Controllers
     [Route("api/statistics")]
     public class StatisticsController : Controller
     {
-        private IObsSessionsRepository _obsSessionsRepository;
-        private ILocationsRepository _locationsRepository;
+        private ObsSessionsRepo _obsSessionsRepository;
+        private LocationsRepo _locationsRepository;
         private DsoRepo _dsoRepo;
         private ObservationsRepo _observationsRepo;
+        private ObsResourcesRepo _obsResourceRepo;
 
-        public StatisticsController(MainDbContext mainDbContext, IObsSessionsRepository obsSessionRepository, ILocationsRepository locationsRepository, DsoRepo dsoRepo, ObservationsRepo observationsRepo)
+        public StatisticsController(MainDbContext mainDbContext, ObsSessionsRepo obsSessionRepository, 
+            LocationsRepo locationsRepository, DsoRepo dsoRepo, ObservationsRepo observationsRepo,
+            ObsResourcesRepo obsResourceRepo)
         {
             _obsSessionsRepository = obsSessionRepository;
             _locationsRepository = locationsRepository;
             _dsoRepo = dsoRepo;
             _observationsRepo = observationsRepo;
+            _obsResourceRepo = obsResourceRepo;
         }
 
         [HttpGet()]
@@ -39,7 +43,8 @@ namespace ObsTool.Controllers
                 NumObservations = _observationsRepo.GetNumObservations(),
                 NumObservedObjects = _observationsRepo.GetNumObservedObjects(),
                 NumLocations = _locationsRepository.GetNumLocations(),
-                NumDsoInDatabase = _dsoRepo.GetNumDsoInDatabase()
+                NumDsoInDatabase = _dsoRepo.GetNumDsoInDatabase(),
+                NumSketches = _obsResourceRepo.GetNumSketches()
             };
 
             return Ok(statsDto);

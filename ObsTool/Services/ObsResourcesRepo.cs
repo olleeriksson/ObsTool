@@ -10,11 +10,18 @@ namespace ObsTool.Services
 {
     public class ObsResourcesRepo
     {
-        private MainDbContext _dbContext;
+        private Entities.MainDbContext _dbContext;
 
-        public ObsResourcesRepo(MainDbContext dbContext)
+        public ObsResourcesRepo(Entities.MainDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public int GetNumSketches()
+        {
+            return _dbContext.ObsResources
+                .Where(r => r.Type == "sketch")
+                .Count();
         }
 
         public ICollection<ObsResource> GetAllResources()

@@ -44,17 +44,24 @@ namespace ObsTool
                 if (observationsMapByDsoId.ContainsKey(dso.Id))
                 {
                     var observations = observationsMapByDsoId[dso.Id];
+
+                    // Order observations by date
+                    var sortedObservations = observations.OrderByDescending(o => DateTime.Parse(o.ObsSession.Date));
+
                     dso.NumObservations = observations.Count;
-                    dso.Observations = observations.ToArray();
+                    dso.Observations = sortedObservations.ToArray();
                 }
             }
+
+            // Order DSOs by number of observations
+            var orderedDsoList = truncatedDsoDtoList.OrderByDescending(d => d.NumObservations);
 
             PagedResultDto<DsoDto> pagedResult = new PagedResultDto<DsoDto>();
             int count = dsoList.Count;
             pagedResult.Count = count > maxCount ? maxCount : count;
             pagedResult.Total = count;
             pagedResult.More = count > maxCount ? count - maxCount : 0;
-            pagedResult.Data = truncatedDsoDtoList.ToArray();
+            pagedResult.Data = orderedDsoList.ToArray();
 
             return Ok(pagedResult);
         }

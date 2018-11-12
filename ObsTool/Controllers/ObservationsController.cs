@@ -20,12 +20,12 @@ namespace ObsTool.Controllers
     public class ObservationsController : Controller
     {
         private ILogger<ObservationsController> _logger;
-        private IObsSessionsRepository _obsSessionsRepository;
+        private ObsSessionsRepo _obsSessionsRepository;
         private ObservationsRepo _observationsRepo;
         private DsoObservationsRepo _dsoObservationsRepo;
         private ObservationsService _observationsService;
 
-        public ObservationsController(ILogger<ObservationsController> logger, MainDbContext mainDbContext, IObsSessionsRepository obsSessionRepository, 
+        public ObservationsController(ILogger<ObservationsController> logger, MainDbContext mainDbContext, ObsSessionsRepo obsSessionRepository, 
             ObservationsRepo observationsRepo, DsoObservationsRepo dsoObservationsRepo, ObservationsService observationsService)
         {
             _logger = logger;

@@ -13,5 +13,6 @@ namespace ObsTool.Models
         public int NumObservations { get; set; }
         public int NumLocations { get; set; }
         public int NumDsoInDatabase { get; set; }
+        public int NumSketches { get; set; }
     }
 }

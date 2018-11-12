@@ -11,7 +11,7 @@ using System;
 
 namespace ObsTool.Migrations
 {
-    [DbContext(typeof(MainDbContext))]
+    [DbContext(typeof(Entities.MainDbContext))]
     [Migration("20181024061818_InitialMigration")]
     partial class InitialMigration
     {

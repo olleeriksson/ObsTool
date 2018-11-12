@@ -11,9 +11,9 @@ namespace ObsTool.Services
 {
     public class DsoObservationsRepo
     {
-        private MainDbContext _dbContext;
+        private Entities.MainDbContext _dbContext;
 
-        public DsoObservationsRepo(MainDbContext dbContext)
+        public DsoObservationsRepo(Entities.MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }

@@ -45,10 +45,9 @@ namespace ObsTool
             services.AddMvc();
             services.AddCors();
 
-            services.AddDbContext<MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
-            services.AddTransient<ILocalMailService, LocalMailServiceTest>();
-            services.AddScoped<IObsSessionsRepository, ObsSessionsRepository>();
-            services.AddScoped<ILocationsRepository, LocationsRepository>();
+            services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
+            services.AddScoped<ObsSessionsRepo>();
+            services.AddScoped<LocationsRepo>();
             services.AddScoped<DsoRepo, DsoRepo>();
             services.AddScoped<ObservationsRepo>();
             services.AddScoped<ReportTextManager>();

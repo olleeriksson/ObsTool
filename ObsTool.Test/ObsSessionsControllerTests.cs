@@ -14,7 +14,7 @@ namespace TestProject
         {
             string expected = "dummy";
 
-            ObsSessionsController obsSessionsController = new ObsSessionsController(null, null, null, null, null, null, null, null);
+            ObsSessionsController obsSessionsController = new ObsSessionsController(null, null, null, null, null, null, null);
             string result = obsSessionsController.dummyMethod();
 
             Assert.AreEqual(expected, result);

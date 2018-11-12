@@ -20,20 +20,18 @@ namespace ObsTool.Controllers
     public class ObsSessionsController : Controller
     {
         private ILogger<ObsSessionsController> _logger;
-        private ILocalMailService _localMailService;
         private MainDbContext _mainDbContext;
-        private IObsSessionsRepository _obsSessionsRepository;
-        private ILocationsRepository _locationsRepository;
+        private ObsSessionsRepo _obsSessionsRepository;
+        private LocationsRepo _locationsRepository;
         private DsoRepo _dsoRepo;
         private ReportTextManager _reportTextManager;
         ObservationsService _observationsService;
 
-        public ObsSessionsController(ILogger<ObsSessionsController> logger, ILocalMailService localMailService, MainDbContext mainDbContext, 
-            IObsSessionsRepository obsSessionRepository, ILocationsRepository locationsRepository, DsoRepo dsoRepo, 
+        public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext, 
+            ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, DsoRepo dsoRepo, 
             ReportTextManager reportTextManager, ObservationsService observationsService)
         {
             _logger = logger;
-            _localMailService = localMailService;
             _mainDbContext = mainDbContext;
             _obsSessionsRepository = obsSessionRepository;
             _locationsRepository = locationsRepository;

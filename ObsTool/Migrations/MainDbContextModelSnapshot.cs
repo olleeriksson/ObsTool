@@ -11,7 +11,7 @@ using System;
 
 namespace ObsTool.Migrations
 {
-    [DbContext(typeof(MainDbContext))]
+    [DbContext(typeof(Entities.MainDbContext))]
     partial class MainDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

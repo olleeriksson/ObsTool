@@ -6,11 +6,11 @@ using ObsTool.Entities;
 
 namespace ObsTool.Services
 {
-    public class LocationsRepository : ILocationsRepository
+    public class LocationsRepo
     {
         private MainDbContext _dbContext;
 
-        public LocationsRepository(MainDbContext dbContext)
+        public LocationsRepo(MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }

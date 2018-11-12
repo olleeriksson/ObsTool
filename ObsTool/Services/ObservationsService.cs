@@ -11,10 +11,10 @@ namespace ObsTool.Services
     public class ObservationsService
     {
         private ObservationsRepo _observationsRepo;
-        private IObsSessionsRepository _obsSessionsRepository;
+        private ObsSessionsRepo _obsSessionsRepository;
         private MainDbContext _dbContext;
 
-        public ObservationsService(ObservationsRepo observationsRepo, IObsSessionsRepository obsSessionsRepository, MainDbContext dbContext)
+        public ObservationsService(ObservationsRepo observationsRepo, ObsSessionsRepo obsSessionsRepository, MainDbContext dbContext)
         {
             _observationsRepo = observationsRepo;
             _obsSessionsRepository = obsSessionsRepository;
@@ -107,7 +107,7 @@ namespace ObsTool.Services
             {
                 obsSessionDto.Observations = null;
                 obsSessionDto.ReportText = null;
-                obsSessionDto.Location = null;
+                //obsSessionDto.Location = null;
             }
 
             // Put the newly stripped ObsSessionDto's in a lookup map

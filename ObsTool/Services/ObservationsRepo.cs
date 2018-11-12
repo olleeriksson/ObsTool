@@ -10,9 +10,9 @@ namespace ObsTool.Services
 {
     public class ObservationsRepo
     {
-        private MainDbContext _dbContext;
+        private Entities.MainDbContext _dbContext;
 
-        public ObservationsRepo(MainDbContext dbContext)
+        public ObservationsRepo(Entities.MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -57,11 +57,10 @@ namespace ObsTool.Services
 
         public int GetNumObservedObjects()
         {
-            /*
-             * TO BE IMPLEMENTED!!!!!!!!
-             */
-            // return _dbContext.Observations.Select<Dso>(o => o.Dso).Distinct();
-            return _dbContext.Observations.Count();
+            return _dbContext.Observations
+                .SelectMany(o => o.DsoObservations)
+                .Select(dsoObs => dsoObs.Dso)
+                .Count();
         }
 
         public Observation AddObservation(Observation observation)

@@ -15,10 +15,10 @@ namespace ObsTool.Controllers
     [Route("api/Locations")]
     public class LocationsController : Controller
     {
-        private ILocationsRepository _locationsRepository;
-        private IObsSessionsRepository _obsSessionsRepository;
+        private LocationsRepo _locationsRepository;
+        private ObsSessionsRepo _obsSessionsRepository;
 
-        public LocationsController(ILocationsRepository locationsRepository, IObsSessionsRepository obsSessionsRepository)
+        public LocationsController(LocationsRepo locationsRepository, ObsSessionsRepo obsSessionsRepository)
         {
             _locationsRepository = locationsRepository;
             _obsSessionsRepository = obsSessionsRepository;

@@ -14,13 +14,13 @@ namespace ObsTool.Services
 {
     public class ReportTextManager
     {
-        private MainDbContext _dbContext;
+        private Entities.MainDbContext _dbContext;
         private ObservationsRepo _observationsRepo;
         private DsoRepo _dsoRepo;
         private ILogger<ReportTextManager> _logger;
         private DsoObservationsRepo _dsoObservationsRepo;
 
-        public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, DsoRepo dsoRepo, 
+        public ReportTextManager(Entities.MainDbContext dbContext, ObservationsRepo observationsRepo, DsoRepo dsoRepo, 
             ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
         {
             _dbContext = dbContext;

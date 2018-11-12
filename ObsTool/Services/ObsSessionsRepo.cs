@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ObsTool.Services
 {
-    public class ObsSessionsRepository : IObsSessionsRepository
+    public class ObsSessionsRepo
     {
-        private MainDbContext _dbContext;
+        private Entities.MainDbContext _dbContext;
 
-        public ObsSessionsRepository(MainDbContext dbContext)
+        public ObsSessionsRepo(Entities.MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -111,6 +111,7 @@ namespace ObsTool.Services
 
             List<ObsSession> list = _dbContext.ObsSessions
                 .Where(s => ids.Contains(s.Id))
+                .Include(s => s.Location)
                 .ToList();
             return list;
         }
