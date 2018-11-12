@@ -25,16 +25,23 @@ namespace ObsTool.Services
         /// Passing in a list of DSO ids this method returns all observations of those DSO's, mapped by the observation id
         /// in which they were observed.
         /// </summary>
-        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(int[] dsoIds, int[] exludeObservationIds = null)
+        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(int[] dsoIds = null, int[] exludeObservationIds = null)
         {
             int[] exludeObservationIdList = exludeObservationIds != null ? exludeObservationIds : new int[] { };
 
             // Get the corresponding ObservationDto's
-            var allObservations = GetAllObservationDtosForMultipleDsoIds(dsoIds);
+            IEnumerable<ObservationDto> observations;
+            if (dsoIds == null)
+            {
+                observations = GetAllObservationDtos();
+            }
+            else {
+                observations = GetAllObservationDtosForMultipleDsoIds(dsoIds);
+            }
 
             // Put them in a dictionary of arrays for faster lookup, mapped by the observation id
             var mapOfOtherObservations = new Dictionary<int, ICollection<ObservationDto>>();
-            foreach (var observationDto in allObservations)
+            foreach (var observationDto in observations)
             {
                 // If the object is in the list of excluded obs ids, then it's not an "other" observation
                 if (exludeObservationIdList.Contains(observationDto.Id))
@@ -42,7 +49,6 @@ namespace ObsTool.Services
                     continue;
                 }
 
-                // OLLE
                 foreach (var dsoObservation in observationDto.DsoObservations)
                 {
                     int dsoId = dsoObservation.DsoId;
@@ -59,11 +65,24 @@ namespace ObsTool.Services
             return mapOfOtherObservations;
         }
 
+        public IEnumerable<ObservationDto> GetAllObservationDtos()
+        {
+            // Get all observations every done on the provided list of DSOs
+            ICollection<Observation> observations = _observationsRepo.GetAllObservations();
+
+            return GetAllObservationDtosForObservations(observations);
+        }
+
         public IEnumerable<ObservationDto> GetAllObservationDtosForMultipleDsoIds(ICollection<int> dsoIds)
         {
             // Get all observations every done on the provided list of DSOs
             ICollection<Observation> observations = _observationsRepo.GetObservationsByMultipleDsoIds(dsoIds);
 
+            return GetAllObservationDtosForObservations(observations);
+        }
+
+        public IEnumerable<ObservationDto> GetAllObservationDtosForObservations(ICollection<Observation> observations)
+        {
             // Get all unique observation session ids from the observations
             // This should really not be necessary since you can't very well have an observation of the same DSO
             // several times in the same session, and really so what if it does.

@@ -25,6 +25,40 @@ namespace ObsTool
             _observationsService = observationsService;
         }
 
+        [HttpGet("observed")]
+        public IActionResult GetAllObservedDso()
+        {
+            // Get all observations in the whole database, mapped by DSO id
+            var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds();
+
+            // Secondly, get the DSOs
+            var dsoIds = observationsMapByDsoId.Keys.ToList();
+            ICollection<Dso> dsoList = _dsoRepo.GetMultipleDsoByIds(dsoIds);
+
+            int maxCount = 2000;
+            var truncatedDsoList = dsoList.Take(maxCount);
+            IEnumerable<DsoDto> truncatedDsoDtoList = Mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
+
+            foreach (DsoDto dso in truncatedDsoDtoList)
+            {
+                if (observationsMapByDsoId.ContainsKey(dso.Id))
+                {
+                    var observations = observationsMapByDsoId[dso.Id];
+                    dso.NumObservations = observations.Count;
+                    dso.Observations = observations.ToArray();
+                }
+            }
+
+            PagedResultDto<DsoDto> pagedResult = new PagedResultDto<DsoDto>();
+            int count = dsoList.Count;
+            pagedResult.Count = count > maxCount ? maxCount : count;
+            pagedResult.Total = count;
+            pagedResult.More = count > maxCount ? count - maxCount : 0;
+            pagedResult.Data = truncatedDsoDtoList.ToArray();
+
+            return Ok(pagedResult);
+        }
+
         [HttpGet()]
         public IActionResult GetDso([FromQuery] string query, [FromQuery] string name)
         {
@@ -50,8 +84,7 @@ namespace ObsTool
                 int[] dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToArray();
 
                 var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(dsoIds);
-                // OLLE
-
+                
                 foreach (DsoDto dso in truncatedDsoDtoList)
                 {
                     if (observationsMapByDsoId.ContainsKey(dso.Id))

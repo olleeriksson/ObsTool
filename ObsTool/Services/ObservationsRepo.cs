@@ -17,6 +17,14 @@ namespace ObsTool.Services
             _dbContext = dbContext;
         }
 
+        public ICollection<Observation> GetAllObservations()
+        {
+            return _dbContext.Observations
+                .Include(o => o.ObsResources)
+                .Include(o => o.DsoObservations)
+                .ToList();
+        }
+
         public Observation GetObservationById(int id)
         {
             return _dbContext.Observations.Where(o => o.Id == id)

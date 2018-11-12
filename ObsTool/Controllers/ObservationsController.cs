@@ -38,15 +38,22 @@ namespace ObsTool.Controllers
         [HttpGet("observations/", Name = "GetAllForDsos")]
         public IActionResult GetAllForDsos([FromQuery] string dsoIds, [FromQuery] string dsoName)
         {
-            if ((dsoIds == null && dsoName == null) || (dsoIds != null && dsoName != null))
+            IEnumerable<ObservationDto> observationDtos;
+
+            if (dsoIds == null && dsoName == null)  // searching for all
             {
-                return BadRequest("Can't specify neither or both of DSO id and a DSO name. Specify one or the other!");
+                observationDtos = _observationsService.GetAllObservationDtos();
             }
+            else  // searching for specific DSO ids or names
+            {
+                if (dsoIds != null && dsoName != null)
+                {
+                    return BadRequest("Can't specify neither or both of DSO id and a DSO name. Specify one or the other!");
+                }
 
-            // Split and convert to an int array
-            int[] dsoIdsInt = dsoIds.Split(new char[] { ',', ' ' }).Select(id => int.Parse(id)).ToArray();
-
-            IEnumerable<ObservationDto> observationDtos = _observationsService.GetAllObservationDtosForMultipleDsoIds(dsoIdsInt);
+                int[] dsoIdsInt = dsoIds.Split(new char[] { ',', ' ' }).Select(id => int.Parse(id)).ToArray();
+                observationDtos = _observationsService.GetAllObservationDtosForMultipleDsoIds(dsoIdsInt);
+            }
 
             return Ok(observationDtos);
         }

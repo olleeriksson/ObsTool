@@ -16,6 +16,16 @@ namespace ObsTool.Services
             _dbContext = dbContext;
         }
 
+        public ICollection<Dso> GetMultipleDsoByIds(ICollection<int> dsoIds)
+        {
+            ICollection<Dso> foundDso = null;
+
+            // Look for the normalized name in Name and OtherNames
+            foundDso = _dbContext.Dso.Where(dso => dsoIds.Contains(dso.Id)).ToList();
+
+            return foundDso;
+        }
+
         public ICollection<Dso> GetMultipleDsoByQueryString(string queryString, bool normalize = true)
         {
             // Normalize if needed
