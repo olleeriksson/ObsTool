@@ -1,3 +1,6 @@
+/*
+ * Component for an observation, when it's listed under a DSO component, so not listed on its own.
+ */
 import * as React from "react";
 import "./Observation.css";
 import { withStyles } from "@material-ui/core/styles";
@@ -15,9 +18,10 @@ import ImageList from "./ImageList";
 
 const styles = (theme: Theme) => createStyles({
   root: {
-    flexGrow: 1,
-    maxWidth: "100 %",
-    padding: theme.spacing.unit * 1,
+    border: "1px dashed lightgray",
+    margin: "0.5em",
+    padding: "0.3em"
+    //padding: theme.spacing.unit * 1,
   },
   image: {
     border: 1,
@@ -58,7 +62,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     super(props);
 
     this.state = {
-      isExpanded: false,
+      isExpanded: true,
     };
 
     this.handleExpandClick = this.handleExpandClick.bind(this);
@@ -83,17 +87,30 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
       );
     }
 
+    let imageListTeaser;
+    if (this.props.observation.obsResources && this.props.observation.obsResources.length > 0 && !this.state.isExpanded) {
+      imageListTeaser = (
+        <Typography variant="caption" onClick={this.handleExpandClick} style={{ cursor: "pointer" }} >
+          ({this.props.observation.obsResources.length} resource{this.props.observation.obsResources.length > 1 && "s"}..)
+        </Typography>
+      );
+    }
+
     let expandedGridItem;
     if (this.state.isExpanded) {
       expandedGridItem = (
         <Grid item={true} xs={12}>
-          <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} />
+          <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={false} />
         </Grid>
       );
     }
 
+    const obsSessionDate = this.props.observation.obsSession && this.props.observation.obsSession.date;
+    const obsSessionTitle = this.props.observation.obsSession && this.props.observation.obsSession.title && this.props.observation.obsSession.title;
+    const obsSessionLocation = this.props.observation.obsSession && this.props.observation.obsSession.location && "(" + this.props.observation.obsSession.location.name + ")";
+
     return (
-      <Grid container={true} spacing={0} direction="column">
+      <Grid container={true} spacing={0} direction="column" className={classes.root}>
         <Grid item={true} xs={12}>
           <Grid container={true} spacing={0} direction="row">
             <Grid item={true}>
@@ -106,13 +123,15 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
             <Grid item={true} xs={12} sm={true}>
               <Grid container={true} direction="column" spacing={16}>
                 <Grid item={true} xs={true}>
-                  <Typography >
-                    {this.props.observation.obsSession && this.props.observation.obsSession.date}
-                    {this.props.observation.obsSession && this.props.observation.obsSession.location && this.props.observation.obsSession.location.name}
+                  <Typography variant="body2">
+                    {obsSessionDate} &nbsp;
+                    {obsSessionTitle} &nbsp;
+                    {obsSessionLocation}
                   </Typography>
                   <Typography >
                     {this.props.observation.text}
                   </Typography>
+                  {imageListTeaser}
                 </Grid>
                 {expandedGridItem}
               </Grid>

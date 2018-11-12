@@ -1,3 +1,6 @@
+/*
+ * Component for an observation, when it's listed on its own, which means it also has to say what DSO it belongs to.
+ */
 import * as React from "react";
 import "./Observation.css";
 import { withStyles } from "@material-ui/core/styles";
@@ -92,7 +95,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       expandedGridItem = (
         <Grid item={true} xs={12}>
           <Typography gutterBottom={true} variant="subheading">
-            <strong>Other (earlier) observations</strong>
+            <strong>Other observations</strong>
           </Typography>
           {otherObservations}
         </Grid>
@@ -142,7 +145,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                       </Typography>
                     </div>
                     <div style={{ marginTop: 5 }}>
-                      <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} />
+                      <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={true} />
                     </div>
                   </Grid>
                 </Grid>

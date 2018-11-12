@@ -48,7 +48,7 @@ class Home extends React.Component<IHomeProps> {
 
         const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
         const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
-        const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
+        const LinkToObservedObjects = (props: any) => <Link to="/observations" {...props} />;
 
         return <div>
             {/* Header */}
@@ -80,6 +80,23 @@ class Home extends React.Component<IHomeProps> {
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="title" color="textSecondary" align="center">
+                                <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observations
+                            </Typography>
+                            <Typography variant="subheading" align="center">
+                                View all recorded observations
+                            </Typography>
+                        </CardContent>
+                        <CardActions className={classes.cardActions}>
+                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToObservedObjects}>
+                                Observations
+                            </Button>
+                        </CardActions>
+                    </Card>
+                </Grid>
+                <Grid item={true} xs={12} className={classes.cardGridItem}>
+                    <Card>
+                        <CardContent className={classes.cardContent}>
+                            <Typography variant="title" color="textSecondary" align="center">
                                 <FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions
                             </Typography>
                             <Typography variant="subheading" align="center">
@@ -106,23 +123,6 @@ class Home extends React.Component<IHomeProps> {
                         <CardActions className={classes.cardActions}>
                             <Button fullWidth={true} variant="outlined" color="primary" component={LinkToNewSession}>
                                 New session
-                            </Button>
-                        </CardActions>
-                    </Card>
-                </Grid>
-                <Grid item={true} xs={12} className={classes.cardGridItem}>
-                    <Card>
-                        <CardContent className={classes.cardContent}>
-                            <Typography variant="title" color="textSecondary" align="center">
-                                <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search
-                            </Typography>
-                            <Typography variant="subheading" align="center">
-                                Search existing observations or deepsky objects
-                            </Typography>
-                        </CardContent>
-                        <CardActions className={classes.cardActions}>
-                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToSearch}>
-                                Search
                             </Button>
                         </CardActions>
                     </Card>

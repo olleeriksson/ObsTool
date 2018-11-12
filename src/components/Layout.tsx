@@ -86,7 +86,7 @@ class Layout extends React.Component<ILayoutProps> {
                         <SearchInput onSearchView={weAreOnSearchView} />
                     </div>
                     <Button component={LinkToHome}><FontAwesomeIcon icon="home" className="faSpaceAfter" />Home</Button>
-                    <Button component={LinkToObservedDsos}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observed objects</Button>
+                    <Button component={LinkToObservedDsos}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observations</Button>
                     <Button component={LinkToSessions}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions</Button>
                     <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session</Button>
                     <Button component={LinkToSearch}><FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search</Button>

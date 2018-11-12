@@ -9,7 +9,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Api from "../api/Api";
 import { IDso, IPagedDsoList } from "../types/Types";
 import { debounce } from "lodash";
-import DynamicDsoSearchLabel from "./DynamicDsoSearchLabel";
+import BadgedDsoWithObservations from "./BadgedDsoWithObservations";
 import { Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
@@ -53,7 +53,7 @@ function renderSuggestion(suggestion: ISuggestion, param: Autosuggest.RenderSugg
     if (suggestion.dso) {
         return (
             <MenuItem selected={isHighlighted} component="div">
-                <DynamicDsoSearchLabel dso={suggestion.dso} showBadge={true} showObservations={false} />
+                <BadgedDsoWithObservations dso={suggestion.dso} showBadge={true} showObservations={false} />
             </MenuItem>
         );
     } else {

@@ -82,6 +82,7 @@ export interface IStatistics {
     numObservedObjects: number;
     numObservations: number;
     numLocations: number;
+    numSketches: number;
     numDsoInDatabase: number;
 }
 

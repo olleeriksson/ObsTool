@@ -89,6 +89,7 @@ export interface IImageListProps extends WithStyles<typeof styles> {
   resources?: IObsResource[];
   store: IDataState;
   actions: any;
+  showAddButton: boolean;
 }
 
 export interface IImageListState {
@@ -117,7 +118,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       clickedResource: undefined,
       displayMode: undefined,
       checkedResource1: undefined,
-      checkedResource2: undefined
+      checkedResource2: undefined,
     };
   }
 
@@ -354,6 +355,15 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       );
     }
 
+    let addButton;
+    if (this.props.showAddButton) {
+      addButton = (
+        <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickAddResource}>
+          <AddIcon className={classes.iconButtonIcon} />
+        </IconButton>
+      );
+    }
+
     return (
       <div>
         {resourceDialog}
@@ -371,9 +381,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           {circularProgress}
           <Typography variant="body1" color="textSecondary">
             {compareTheseTwo}
-            <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickAddResource}>
-              <AddIcon className={classes.iconButtonIcon} />
-            </IconButton>
+            {addButton}
           </Typography>
         </Grid>
       </div>

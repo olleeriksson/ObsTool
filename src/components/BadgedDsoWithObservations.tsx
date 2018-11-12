@@ -1,11 +1,12 @@
 import * as React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
+import Grid from "@material-ui/core/Grid";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 // import Grid from "@material-ui/core/Grid";
 import { IDso } from "../types/Types";
-// import DsoExtended from "./DsoExtended";
-import DsoSearchLabel from "./DsoSearchLabel";
+import DsoExtra from "./DsoExtra";
+import DsoRegular from "./DsoRegular";
 import Badge from "@material-ui/core/Badge";
 // import ObservationSecondary from "./ObservationSecondary";
 import IconButton from "@material-ui/core/IconButton";
@@ -36,7 +37,7 @@ const styles = (theme: Theme) => createStyles({
   },
 });
 
-interface IDynamicDsoSearchLabelProps extends WithStyles<typeof styles> {
+interface IBadgedDsoWithObservationsProps extends WithStyles<typeof styles> {
   dso: IDso;
   showBadge: boolean;
   showObservations: boolean;
@@ -46,8 +47,8 @@ interface IDynamicDsoLabelState {
   isExpanded: boolean;
 }
 
-class DynamicDsoSearchLabel extends React.Component<IDynamicDsoSearchLabelProps, IDynamicDsoLabelState> {
-  constructor(props: IDynamicDsoSearchLabelProps) {
+class BadgedDsoWithObservations extends React.Component<IBadgedDsoWithObservationsProps, IDynamicDsoLabelState> {
+  constructor(props: IBadgedDsoWithObservationsProps) {
     super(props);
 
     this.state = {
@@ -80,17 +81,24 @@ class DynamicDsoSearchLabel extends React.Component<IDynamicDsoSearchLabelProps,
     let dsoLabel;
     if (this.props.showBadge && this.props.dso.numObservations && this.props.dso.numObservations > 0) {
       dsoLabel = (
-        <div>
-          <Badge className={classes.badge} badgeContent={this.props.dso.numObservations} color="secondary">
-            <DsoSearchLabel dso={this.props.dso} />
-          </Badge>
-          {expandButton}
-        </div>
+        <Grid container={true}>
+          <Grid item={true} xs={11}>
+            <Badge className={classes.badge} badgeContent={this.props.dso.numObservations} color="secondary">
+              <DsoRegular dso={this.props.dso} />
+            </Badge>
+            <div style={{ marginLeft: 8 }} >
+              <DsoExtra dso={this.props.dso} />
+            </div>
+          </Grid>
+          <Grid item={true} xs={1}>
+            {expandButton}
+          </Grid>
+        </Grid>
       );
     } else {
       dsoLabel = (
         <div>
-          <DsoSearchLabel dso={this.props.dso} />
+          <DsoRegular dso={this.props.dso} />
           {expandButton}
         </div>
       );
@@ -141,4 +149,4 @@ class DynamicDsoSearchLabel extends React.Component<IDynamicDsoSearchLabelProps,
   }
 }
 
-export default withStyles(styles)(DynamicDsoSearchLabel);
+export default withStyles(styles)(BadgedDsoWithObservations);

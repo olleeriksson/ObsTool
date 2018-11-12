@@ -31,6 +31,9 @@ const styles = (theme: Theme) => createStyles({
   },
   header: {
     flexGrow: 1,
+    maxHeight: 100,
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
   buttons: {
   },
@@ -126,7 +129,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
     return (
       <Paper className={classes.paper}>
         <Grid container={true} spacing={8}>
-          <Grid item={true} className={classes.mainRowItem}>
+          <Grid item={true} xs={12} className={classes.mainRowItem}>
             <Grid container={true} spacing={8} className={classes.mainRowContainer}>
               <Grid item={true}>
                 <div className={classes.icon}>

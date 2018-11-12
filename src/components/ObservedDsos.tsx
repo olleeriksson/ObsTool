@@ -8,7 +8,7 @@ import Paper from "@material-ui/core/Paper";
 import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
 // import DsoExtended from "./DsoExtended";
-import DynamicDsoSearchLabel from "./DynamicDsoSearchLabel";
+import BadgedDsoWithObservations from "./BadgedDsoWithObservations";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
@@ -95,8 +95,10 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
             );
         } else {
             obsList = this.state.dsoList.map(dso => (
-                <Grid key={dso.id} item={true} xs={12}>
-                    <DynamicDsoSearchLabel dso={dso} showBadge={true} showObservations={true} />
+                <Grid item={true} key={dso.id} xs={12}>
+                    <Paper className={classes.textfieldPaper} elevation={1}>
+                        <BadgedDsoWithObservations dso={dso} showBadge={true} showObservations={true} />
+                    </Paper>
                 </Grid>
             ));
         }
@@ -106,12 +108,10 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
                 All observed objects
             </Typography>
             <Grid container={true} spacing={40} justify="center" direction="row">
-                <Grid item={true} xs={12} sm={8}>
-                    <Paper className={classes.textfieldPaper} elevation={1}>
-                        <Grid container={true} spacing={24} direction="column">
-                            {obsList}
-                        </Grid>
-                    </Paper>
+                <Grid item={true} xs={12} sm={7}>
+                    <Grid container={true} spacing={0} justify="center" direction="column">
+                        {obsList}
+                    </Grid>
                 </Grid>
             </Grid>
         </div>;

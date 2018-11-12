@@ -1,5 +1,4 @@
 import * as React from "react";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 import CosmosIcon from "../cosmos.svg";
@@ -11,33 +10,12 @@ export interface IDsoExtendedProps {
   dso?: IDso;
 }
 
-export interface IDsoExtendedState {
-  isMounted: boolean;
-  isLoading: boolean;
-  isError: boolean;
-  dso?: IDso;
-}
-
-export default class DsoExtended extends React.Component<IDsoExtendedProps, IDsoExtendedState> {
+export default class DsoExtended extends React.Component<IDsoExtendedProps> {
   constructor(props: IDsoExtendedProps) {
     super(props);
-    this.state = {
-      isMounted: false,
-      isLoading: true,
-      isError: false,
-      dso: undefined,
-    };
   }
 
   public componentDidMount() {
-    // If the object is provided, don't load anything.
-    if (this.props.dso) {
-      this.setState({ isLoading: false });
-      this.setState({ isError: false });
-    } else {
-      this.setState({ isLoading: false });
-      this.setState({ isError: true });
-    }
   }
 
   public render() {
@@ -47,22 +25,8 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
           {this.props.error}
         </Typography>
       );
-    } else if (this.state.isLoading) {
-      return (
-        <div>
-          <CircularProgress />Loading DSO object
-        </div>
-      );
-    } else if (this.state.isError) {
-      return (
-        <Typography color="textSecondary" gutterBottom={true}>
-          Error!
-        </Typography>
-      );
     } else {
       if (this.props.dso) {
-        const otherNames = this.props.dso.otherNames && this.props.dso.otherNames.trim() !== "" && "(" + this.props.dso.otherNames + ")";
-        const commonName = this.props.dso.commonName && (" - " + this.props.dso.commonName);
         const sizeSeparator = this.props.dso.sizeMax && this.props.dso.sizeMax.trim() !== "" && this.props.dso.sizeMin && this.props.dso.sizeMin.trim() !== "" && " - ";
 
         if (this.props.dso.name === "custom") {
@@ -76,9 +40,6 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
         } else {
           return (
             <div className="dsoExtended">
-              <Typography variant="body2" gutterBottom={false}>
-                <img src={CosmosIcon} width="18" height="18" /> {this.props.dso.name} {otherNames} {commonName}
-              </Typography>
               <Typography variant="caption" color="textSecondary" gutterBottom={true} style={{ marginLeft: "1.8em" }}>
                 <strong>Type:</strong> {this.props.dso.type} &nbsp;
                 <strong>Const:</strong> {this.props.dso.con} &nbsp;
