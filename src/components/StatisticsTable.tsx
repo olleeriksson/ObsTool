@@ -75,7 +75,9 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         const rowsData = [];
         if (statistics) {
             rowsData.push(this.addRow(id++, "Number of observation sessions", statistics.numObsSessions));
-            rowsData.push(this.addRow(id++, "Number of recorderd observations", statistics.numObservations));
+            rowsData.push(this.addRow(id++, "Number of recorded observations", statistics.numObservations));
+            rowsData.push(this.addRow(id++, "Number of detections", statistics.numDetections));
+            rowsData.push(this.addRow(id++, "Number of non-detections", statistics.numNonDetections));
             rowsData.push(this.addRow(id++, "Number of observed objects", statistics.numObservedObjects));
             rowsData.push(this.addRow(id++, "Number of recorded sketches", statistics.numSketches));
             rowsData.push(this.addRow(id++, "Number of used locations", statistics.numLocations));

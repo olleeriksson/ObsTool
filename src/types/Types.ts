@@ -86,6 +86,8 @@ export interface IStatistics {
     numLocations: number;
     numSketches: number;
     numDsoInDatabase: number;
+    numDetections: number;
+    numNonDetections: number;
 }
 
 export interface ILocation {
