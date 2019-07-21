@@ -26,6 +26,8 @@ namespace ObsTool.Entities
 
         public int Rotation { get; set; } = 0;
 
+        public int ZoomLevel { get; set; } = 100;
+
         public bool Inverted { get; set; } = false;
 
         public int BackgroundColor { get; set; } = 0;

@@ -89,9 +89,10 @@ namespace ObsTool.Services
                     // Transfer/update the observation
                     existingObservation.Text = updatedObservation.Text;
                     existingObservation.DisplayOrder = updatedObservation.DisplayOrder;
+                    existingObservation.NonDetection = updatedObservation.NonDetection;
 
                     _dbContext.Entry(existingObservation).Collection("DsoObservations").Load();
-                    _dbContext.Entry(existingObservation).Collection("DsoObservations").Load();
+                    _dbContext.Entry(existingObservation).Collection("ObsResources").Load();
 
                     // Set the existing observation id or we get duplicate errors etc when persisting.
                     // During the Parse() stage above we are not aware of the existing observations' ids.
@@ -110,12 +111,12 @@ namespace ObsTool.Services
             {
                 if (!existingObservations.ContainsKey(updatedObservation.Identifier))  // it doesn't exists, add it!
                 {
-                    // TODO: Add new obs resources here too
-
                     var newObservation = updatedObservation;  // just to clearly indicate that it's a new one
                     // New obs resources will automatically tag along in this situation and get created.
                     Debug.WriteLine("Adding new observation for observation with Identifier " + newObservation.Identifier);
                     obsSession.Observations.Add(newObservation);
+
+                    // Any obs resources get automatically created.
                 }
             }
 
@@ -235,6 +236,17 @@ namespace ObsTool.Services
             string resourceRegexp = @"(Link|Image|Photo|Sketch):\s?(.*)";
             var findResourcesRegexp = new Regex(resourceRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+            string flagOutro = @"(?:\s|\.|$)";  // non-capturing group of \s or . or $
+
+            string nonDetectionRegexp = @"\s!!" + flagOutro;
+            var findNonDetectionRegexp = new Regex(nonDetectionRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            string ratingRegexp = @"\s(\*{1,4})" + flagOutro;
+            var findRatingRegexp = new Regex(ratingRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            string followUpRegexp = @"\s(re-?visit|come back|telescope)" + flagOutro;
+            var findFollowUpRegexp = new Regex(followUpRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
                 int obsIndex = 0;
@@ -295,7 +307,7 @@ namespace ObsTool.Services
                         Debug.WriteLine("---------------------------------------------------------");
                     }
 
-                    // Collect all the obs resources in the section text
+                    // Collect all the obs resources
                     MatchCollection resourceMatches = findResourcesRegexp.Matches(sectionText);  // matching on a single section
                     foreach (Match resourceMatch in resourceMatches)
                     {
@@ -310,6 +322,20 @@ namespace ObsTool.Services
                         };
                         obsResourcesInSection.Add(obsResource);
                     }
+
+                    // Collect non-detections
+                    bool nonDetection = findNonDetectionRegexp.IsMatch(sectionText);
+
+                    // Collect rating
+                    int rating = 0;  // TODO: Change this to nullable and null?
+                    if (findRatingRegexp.IsMatch(reportText))
+                    {
+                        Match lastMatch = findRatingRegexp.Matches(sectionText).Last();
+                        rating = lastMatch.Groups[1].Value.Length;  // count number of *(stars)
+                    }
+
+                    // Collect follow-up
+                    bool followUp = findFollowUpRegexp.IsMatch(sectionText);
 
                     // If section contained matches regex'ly but that could not be matched against anything
                     // in the DSO database
@@ -335,7 +361,8 @@ namespace ObsTool.Services
                         Text = sectionText,
                         Identifier = observationsIdentifier,
                         DsoObservations = new List<DsoObservation>(),
-                        DisplayOrder = obsIndex++
+                        DisplayOrder = obsIndex++,
+                        NonDetection = nonDetection
                     };
 
                     // Add all DSOs to the observation

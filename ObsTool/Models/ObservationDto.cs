@@ -33,5 +33,7 @@ namespace ObsTool.Models
         public List<ObservationDto> OtherObservations { get; set; } = null;
 
         public List<ObsResourceDto> ObsResources { get; set; } = null;
+
+        public bool NonDetection { get; set; } = false;
     }
 }

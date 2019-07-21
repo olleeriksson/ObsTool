@@ -38,5 +38,7 @@ namespace ObsTool.Entities
         public int? DisplayOrder { get; set; }
 
         public List<ObsResource> ObsResources { get; set; } = new List<ObsResource>();
+
+        public bool NonDetection { get; set; } = false;
     }
 }
