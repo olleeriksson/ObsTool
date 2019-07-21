@@ -108,6 +108,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     const obsSessionDate = this.props.observation.obsSession && this.props.observation.obsSession.date;
     const obsSessionTitle = this.props.observation.obsSession && this.props.observation.obsSession.title && this.props.observation.obsSession.title;
     const obsSessionLocation = this.props.observation.obsSession && this.props.observation.obsSession.location && "(" + this.props.observation.obsSession.location.name + ")";
+    const observationIcon = this.props.observation.nonDetection ? "eye-slash" : "binoculars";
 
     return (
       <Grid container={true} spacing={0} direction="column" className={classes.root}>
@@ -116,7 +117,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
             <Grid item={true}>
               <ButtonBase className={classes.image}>
                 <Typography gutterBottom={false} variant="title">
-                  <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" />
+                  <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                 </Typography>
               </ButtonBase>
             </Grid>

@@ -292,6 +292,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
             name={r.name}
             inverted={r.inverted}
             rotation={r.rotation}
+            zoomLevel={r.zoomLevel}
             backgroundColor={r.backgroundColor}
             driveMaxHeight="180"
             driveMaxWidth="180"

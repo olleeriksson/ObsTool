@@ -92,6 +92,7 @@ interface IResourceViewState {
     name?: string;
     url?: string;
     rotation: number;
+    zoomLevel: number;
     inverted: boolean;
     backgroundColor: number;
 }
@@ -111,6 +112,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
             url: "",
             inverted: false,
             rotation: 0,
+            zoomLevel: 100,
             backgroundColor: 0
         };
     }
@@ -123,6 +125,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                 url: (this.props.resource.url || undefined),
                 inverted: this.props.resource.inverted,
                 rotation: this.props.resource.rotation,
+                zoomLevel: this.props.resource.zoomLevel,
                 backgroundColor: this.props.resource.backgroundColor
             });
         }
@@ -205,9 +208,13 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         this.setState({ backgroundColor: color });
     }
 
-    private handleSliderChange = (event: any, value: number) => {
+    private handleRotationSliderChange = (event: any, value: number) => {
         // this.setState({ rotation: (value - 50) * (2.7 * 2) });
         this.setState({ rotation: value });
+    }
+
+    private handleZoomLevelSliderChange = (event: any, value: number) => {
+        this.setState({ zoomLevel: value });
     }
 
     private saveResource = () => {
@@ -215,13 +222,14 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         this.setState({ isError: false });
         this.setState({ saveSuccess: undefined });
 
-        const newResource = {
+        const newResource: IObsResource = {
             id: this.props.resource && this.props.resource.id,
             type: this.state.type,
             name: this.state.name,
             url: this.state.url,
             inverted: this.state.inverted,
             rotation: Math.round(this.state.rotation),
+            zoomLevel: this.state.zoomLevel,
             backgroundColor: this.state.backgroundColor
         };
 
@@ -363,6 +371,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         name={this.state.name}
                         inverted={invertedInverted}
                         rotation={this.state.rotation}
+                        zoomLevel={this.state.zoomLevel}
                         backgroundColor={backGroundColorToUse}
                         driveMaxHeight="500"
                         driveMaxWidth="500"
@@ -430,7 +439,23 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                                 step={5}
                                                 value={this.state.rotation}
                                                 // value={Math.round((this.state.rotation / (2.7 * 2) + 50))}
-                                                onChange={this.handleSliderChange}
+                                                onChange={this.handleRotationSliderChange}
+                                                disabled={disableImageControls}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item={true}>
+                                    <FormControl component="fieldset" className={classes.formControl}>
+                                        <FormLabel component="legend">Zoom Level ({Math.round(this.state.zoomLevel)}%)</FormLabel>
+                                        <div className={classes.sliderContainer}>
+                                            <Slider
+                                                className={classes.slider}
+                                                min={0}
+                                                max={200}
+                                                step={5}
+                                                value={this.state.zoomLevel}
+                                                onChange={this.handleZoomLevelSliderChange}
                                                 disabled={disableImageControls}
                                             />
                                         </div>

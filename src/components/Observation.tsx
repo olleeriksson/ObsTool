@@ -123,6 +123,8 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       );
     }
 
+    const observationIcon = this.props.observation.nonDetection ? "eye-slash" : "binoculars";
+
     return (
       <Paper className={classes.root}>
         <Grid container={true} spacing={16} direction="column">
@@ -131,7 +133,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
               <Grid item={true}>
                 <ButtonBase className={classes.image}>
                   <Typography gutterBottom={true} variant="display2">
-                    <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" />
+                    <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                   </Typography>
                 </ButtonBase>
               </Grid>

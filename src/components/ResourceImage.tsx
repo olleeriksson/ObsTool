@@ -11,6 +11,7 @@ interface IResourceImageProps extends WithStyles<typeof styles> {
     // In case of images/sketches:
     inverted?: boolean;
     rotation?: number;
+    zoomLevel: number;
     backgroundColor?: number;
     driveMaxWidth?: string;
     driveMaxHeight?: string;
@@ -105,6 +106,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
         } else {
             const invert = this.props.inverted ? "100" : "0";
             const rotation = this.props.rotation;
+            const scale = this.props.zoomLevel / 100;
             const backgroundColor = this.props.backgroundColor && this.props.backgroundColor >= 255 ? "white" : "black";
             let imgSrc;
 
@@ -129,7 +131,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
                         src={imgSrc}
                         title={this.props.name}
                         className={classes.image}
-                        style={{ transform: `rotate(${rotation}deg)`, filter: `invert(${invert}%)` }}
+                        style={{ transform: `rotate(${rotation}deg) scale(${scale})`, filter: `invert(${invert}%)` }}
                     />
                 </div>
             );

@@ -6,6 +6,7 @@ export interface IObservation {
     otherObservations?: IObservation[];
     obsResources?: IObsResource[];
     displayOrder: number;
+    nonDetection: boolean;
 }
 
 export interface IDsoObservation {
@@ -23,6 +24,7 @@ export interface IObsResource {
     url?: string;
     inverted: boolean;
     rotation: number;
+    zoomLevel: number;
     backgroundColor: number;
 }
 
