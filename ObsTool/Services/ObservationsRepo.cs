@@ -55,6 +55,20 @@ namespace ObsTool.Services
             return _dbContext.Observations.Count();
         }
 
+        public int GetNumDetections()
+        {
+            return _dbContext.Observations
+                .Where(o => !o.NonDetection)
+                .Count();
+        }
+
+        public int GetNumNonDetections()
+        {
+            return _dbContext.Observations
+                .Where(o => o.NonDetection)
+                .Count();
+        }
+
         public int GetNumObservedObjects()
         {
             return _dbContext.Observations

@@ -44,7 +44,9 @@ namespace ObsTool.Controllers
                 NumObservedObjects = _observationsRepo.GetNumObservedObjects(),
                 NumLocations = _locationsRepository.GetNumLocations(),
                 NumDsoInDatabase = _dsoRepo.GetNumDsoInDatabase(),
-                NumSketches = _obsResourceRepo.GetNumSketches()
+                NumSketches = _obsResourceRepo.GetNumSketches(),
+                NumDetections = _observationsRepo.GetNumDetections(),
+                NumNonDetections = _observationsRepo.GetNumNonDetections()
             };
 
             return Ok(statsDto);
