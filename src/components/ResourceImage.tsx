@@ -100,7 +100,8 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
         const { classes } = this.props;
 
         if (this.props.type === "url") {
-            return <a href={this.props.url} title={this.props.name}>{this.props.name} </a>;
+            const displayName = this.props.name || this.props.url;
+            return <a href={this.props.url} title={displayName}>{displayName} </a>;
         } else {
             const invert = this.props.inverted ? "100" : "0";
             const rotation = this.props.rotation;

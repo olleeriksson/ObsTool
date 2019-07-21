@@ -122,6 +122,12 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     };
   }
 
+  public componentWillReceiveProps(nextProps: IImageListProps) {
+    if (nextProps.resources && this.props.resources !== nextProps.resources) {
+      this.setState({ resources: nextProps.resources });
+    }
+  }
+
   private onCheckboxChanged = (obsResourceId: number) => (event: any) => {
     if (event.target.checked) {
       if (this.state.resources) {
@@ -301,7 +307,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
     const linkElements = links.map(r =>
       <Typography key={r.id} gutterBottom={false} variant="caption">
-        <a href={r.url}>{r.name}</a>&nbsp;
+        <a href={r.url}>{r.name || r.url}</a>&nbsp;
         <a href="" onClick={this.handleClickResource(r.id)}>
           <EditIcon style={{ fontSize: 14 }} />
         </a>
