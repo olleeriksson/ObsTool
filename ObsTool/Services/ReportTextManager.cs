@@ -20,7 +20,7 @@ namespace ObsTool.Services
         private ILogger<ReportTextManager> _logger;
         private DsoObservationsRepo _dsoObservationsRepo;
 
-        public ReportTextManager(Entities.MainDbContext dbContext, ObservationsRepo observationsRepo, DsoRepo dsoRepo, 
+        public ReportTextManager(Entities.MainDbContext dbContext, ObservationsRepo observationsRepo, DsoRepo dsoRepo,
             ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
         {
             _dbContext = dbContext;
@@ -79,7 +79,7 @@ namespace ObsTool.Services
                 existingObservations.Add(existingObservation.Identifier, existingObservation);
             }
 
-            // Now, go through observations that already existed, and that should be updated with the new data
+            // Then go through observations that already existed, and that should be updated with the new data
             foreach (Observation existingObservation in obsSession.Observations)
             {
                 if (updatedObservations.ContainsKey(existingObservation.Identifier))
@@ -91,6 +91,7 @@ namespace ObsTool.Services
                     existingObservation.DisplayOrder = updatedObservation.DisplayOrder;
 
                     _dbContext.Entry(existingObservation).Collection("DsoObservations").Load();
+                    _dbContext.Entry(existingObservation).Collection("DsoObservations").Load();
 
                     // Set the existing observation id or we get duplicate errors etc when persisting.
                     // During the Parse() stage above we are not aware of the existing observations' ids.
@@ -99,7 +100,8 @@ namespace ObsTool.Services
                         dsoObservation.ObservationId = existingObservation.Id;
                     }
 
-                    updateDsoObservations(existingObservation, updatedObservation);
+                    UpdateDsoObservations(existingObservation, updatedObservation);
+                    AddNewObsResources(existingObservation, updatedObservation);
                 }
             }
 
@@ -108,7 +110,10 @@ namespace ObsTool.Services
             {
                 if (!existingObservations.ContainsKey(updatedObservation.Identifier))  // it doesn't exists, add it!
                 {
+                    // TODO: Add new obs resources here too
+
                     var newObservation = updatedObservation;  // just to clearly indicate that it's a new one
+                    // New obs resources will automatically tag along in this situation and get created.
                     Debug.WriteLine("Adding new observation for observation with Identifier " + newObservation.Identifier);
                     obsSession.Observations.Add(newObservation);
                 }
@@ -121,7 +126,7 @@ namespace ObsTool.Services
         /// Updates the existing list of DsoObservations for the current Observation with
         /// a new list of DsoObservations, which might contain new, some updated, and some removed.
         /// </summary>
-        private void updateDsoObservations(Observation existingObservation, Observation updatedObservation)
+        private void UpdateDsoObservations(Observation existingObservation, Observation updatedObservation)
         {
             List<DsoObservation> existingDsoObservations = existingObservation.DsoObservations;
             List<DsoObservation> updatedDsoObservations = updatedObservation.DsoObservations;
@@ -163,6 +168,26 @@ namespace ObsTool.Services
             }
         }
 
+        /// <summary>
+        /// Updates the existing list of ObsResources for the current Observation with
+        /// a new list of DsoObservations, which might contain new, some updated, and some removed.
+        /// </summary>
+        private void AddNewObsResources(Observation existingObservation, Observation updatedObservation)
+        {
+            List<ObsResource> existingObsResources = existingObservation.ObsResources;
+            List<ObsResource> updatedObsResources = updatedObservation.ObsResources;
+
+            // Add all new DsoObservations, and update existing ones
+            foreach (ObsResource newObsResource in updatedObsResources)
+            {
+                // If a resource with the same type and url doesn't already exist, add it!
+                if (!existingObsResources.Any(obsRes => obsRes.Type == newObsResource.Type && obsRes.Url == newObsResource.Url))
+                {
+                    existingObsResources.Add(newObsResource);
+                }
+            }
+        }
+
         private IDictionary<string, Observation> Parse(ObsSession obsSession)
         {
             string reportText = obsSession.ReportText;
@@ -183,21 +208,32 @@ namespace ObsTool.Services
 
             // Regexp for finding DSO names
             string regexpAllCatalogs = RegExpJoinCatalogs(allCatalogs);
-            string introRegexp = @"\s";
+            string introRegexp = @"\s*";
             string startingParenthesisRegexp = @"(\()?";
             string endingParenthesisRegexp = @"(\))?";
-            string outroRegexp = @"[\s.,]";
+            string outroRegexp = @"[\s\.,]";
             // The ?: at the start of one of the groups is to make that the group is non-capturing.
-            // This results in the fourth group always beeing scthe ending parenthesis.
+            // This results in the fourth group always beeing the ending parenthesis.
             string dsoNameRegexp = introRegexp
-                + startingParenthesisRegexp 
-                + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-.]?[0-9]+)*)"
+                + startingParenthesisRegexp
+                + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-\.]?[0-9]+)*)"
                 + endingParenthesisRegexp
                 + outroRegexp;
-            var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.IgnoreCase);
+            var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             // Regexp for finding text sections that include DSO names
-            var findSectionsRegexp = new Regex(".*" + dsoNameRegexp + ".*", RegexOptions.IgnoreCase);
+            string sectionStart = @".*?";  // the ? after the * makes it non-greedy, or else it doesn't stop at the first section end in singleline (all text as one string) mode
+            string sectionEnding = @".*?(?:\n\n|\n$|$)";  // a section can end with \n\n, or \n$, or just $. The ?: after the parenthesis makes the group non-capturing.
+            string findSectionRegexp = sectionStart
+                + dsoNameRegexp
+                + sectionEnding;
+            // The RegexOptions.Singleline below is what makes it find sections that include a newline and then a Photo:/Link:/Sketch: tag.
+            // It also makes it necessary to use a ? in .*? to make it non-greedy.
+            var findSectionsRegexp = new Regex(findSectionRegexp,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+            string resourceRegexp = @"(Link|Image|Photo|Sketch):\s?(.*)";
+            var findResourcesRegexp = new Regex(resourceRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
@@ -207,10 +243,14 @@ namespace ObsTool.Services
                 MatchCollection sectionsMatches = findSectionsRegexp.Matches(reportText);  // matching on the whole report text
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
-                    string sectionText = sectionsMatch.Value;
-                    var dsosInSection = new Dictionary<int, Dso>();
+                    string sectionText = sectionsMatch.Value;  // the whole section, including resource links
 
-                    MatchCollection dsoNameMatches = findDsoNamesRegexp.Matches(sectionText);  // matching on a single section
+                    string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
+                    var dsosInSection = new Dictionary<int, Dso>();
+                    var obsResourcesInSection = new List<ObsResource>();
+
+                    // Collect all the DSO's in the section text.
+                    MatchCollection dsoNameMatches = findDsoNamesRegexp.Matches(sectionObsText);  // matching on a single section
                     foreach (Match dsoNameMatch in dsoNameMatches)
                     {
                         string startingParenthesis = dsoNameMatch.Groups[1].Value;
@@ -223,7 +263,8 @@ namespace ObsTool.Services
                         //Debug.WriteLine($"Match: {sectionText}");
 
                         // Ignore pattern if it's surrounded by parenthesis
-                        if (startingParenthesis == "(" || endingParenthesis == ")") {
+                        if (startingParenthesis == "(" || endingParenthesis == ")")
+                        {
                             continue;
                         }
 
@@ -254,11 +295,27 @@ namespace ObsTool.Services
                         Debug.WriteLine("---------------------------------------------------------");
                     }
 
+                    // Collect all the obs resources in the section text
+                    MatchCollection resourceMatches = findResourcesRegexp.Matches(sectionText);  // matching on a single section
+                    foreach (Match resourceMatch in resourceMatches)
+                    {
+                        string resourceType = resourceMatch.Groups[1].Value;
+                        string resourceUrl = resourceMatch.Groups[2].Value;
+                        Debug.WriteLine($"Match: {resourceType} {resourceUrl}");
+
+                        var obsResource = new ObsResource
+                        {
+                            Type = resourceType.Replace("Photo", "Image").ToLower(),
+                            Url = resourceUrl
+                        };
+                        obsResourcesInSection.Add(obsResource);
+                    }
+
                     // If section contained matches regex'ly but that could not be matched against anything
                     // in the DSO database
                     if (dsosInSection.Count == 0)
                     {
-                        continue;  
+                        continue;
                     }
 
                     string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
@@ -281,7 +338,7 @@ namespace ObsTool.Services
                         DisplayOrder = obsIndex++
                     };
 
-                    // Then add all DSOs to the observation
+                    // Add all DSOs to the observation
                     int dsoObsIndex = 0;
                     foreach (Dso dso in dsosInSection.Values)
                     {
@@ -300,6 +357,9 @@ namespace ObsTool.Services
                         observation.DsoObservations.Add(dsoObservation);
                     }
 
+                    // Add all obs resources to the observation
+                    observation.ObsResources.AddRange(obsResourcesInSection);
+
                     // Save observation to be returned
                     observationsDict.Add(observation.Identifier, observation);
                 }
@@ -308,12 +368,24 @@ namespace ObsTool.Services
                 // Do it from back to front to keep the match indices from becoming obsolete when you add to the text.
                 foreach (var sectionsMatch in sectionsMatches.Cast<Match>().Reverse())
                 {
-                    if (newSectionMatchesDict.ContainsKey(sectionsMatch))
+                    if (newSectionMatchesDict.ContainsKey(sectionsMatch))  // only the new ones
                     {
+                        // Using the trimmed length to find the end position of the text to be replaced so that the
+                        // inserted obs identifier doesn't end up two newlines below, at the start of the next section.
+                        int trimmedLength = sectionsMatch.Value.Trim().Length;
+                        int sectionEndPos = sectionsMatch.Index + trimmedLength;
                         string newObsIdentifier = newSectionMatchesDict[sectionsMatch];
                         string decoratedIdentifier = DecorateObsIdentifier(newObsIdentifier);
-                        reportText = reportText.Replace(sectionsMatch.Index + sectionsMatch.Length, 0, decoratedIdentifier);
+                        reportText = reportText.Replace(sectionEndPos, 0, decoratedIdentifier);
                     }
+                }
+
+                // Remove all obs resource links.
+                // Do it from back to front to keep the match indices from becoming obsolete when you add to the text.
+                MatchCollection globalResourceMatches = findResourcesRegexp.Matches(reportText);
+                foreach (Match resourceMatch in globalResourceMatches.Cast<Match>().Reverse())
+                {
+                    reportText = reportText.Replace(resourceMatch.Index, resourceMatch.Length + 1, "");
                 }
             }
 
@@ -357,7 +429,13 @@ namespace ObsTool.Services
 
         private string DecorateObsIdentifier(string bareIdentifier)
         {
-            return " #" + bareIdentifier;
+            return "\n#" + bareIdentifier;
+        }
+
+        private string GetPartBeforeFirstNewlineIfAny(string text)
+        {
+            int indexOfNewline = text.IndexOf("\n");
+            return indexOfNewline == -1 ? text : text.Substring(0, indexOfNewline);
         }
 
         public bool SaveChanges()
