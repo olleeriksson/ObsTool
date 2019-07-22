@@ -28,6 +28,7 @@
     "classnames": "^2.2.6",
     "history": "^4.7.2",
     "lodash": "^4.17.10",
+    "rc-pagination": "^1.20.3",
     "react": "^16.4.2",
     "react-autosuggest": "^9.4.0",
     "react-dom": "^16.4.2",
