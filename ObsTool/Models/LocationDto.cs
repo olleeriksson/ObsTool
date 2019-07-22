@@ -9,8 +9,8 @@ namespace ObsTool.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public float? Longitude { get; set; } = null;
-        public float? Latitude { get; set; } = null;
+        public string Longitude { get; set; }
+        public string Latitude { get; set; }
         public string GoogleMapsAddress { get; set; }
     }
 }

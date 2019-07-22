@@ -8,8 +8,8 @@ namespace ObsTool.Models
     public class LocationDtoForCreation
     {
         public string Name { get; set; }
-        public float? Longitude { get; set; } = null;
-        public float? Latitude { get; set; } = null;
+        public string Longitude { get; set; }
+        public string Latitude { get; set; }
         public string GoogleMapsAddress { get; set; }
     }
 }

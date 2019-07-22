@@ -29,7 +29,8 @@ namespace ObsTool.Controllers
         public IActionResult Get()
         {
             var locations = _locationsRepository.GetLocations();
-            var results = Mapper.Map<IEnumerable<LocationDto>>(locations);
+            var sortedLocations = locations.OrderByDescending(loc => loc.Id);
+            var results = Mapper.Map<IEnumerable<LocationDto>>(sortedLocations);
             return Ok(results);
         }
 
@@ -73,6 +74,12 @@ namespace ObsTool.Controllers
             if (locationDto == null)
             {
                 return BadRequest();
+            }
+
+            if (string.IsNullOrEmpty(locationDto.Name) && string.IsNullOrEmpty(locationDto.Longitude)
+                && string.IsNullOrEmpty(locationDto.Latitude) && string.IsNullOrEmpty(locationDto.GoogleMapsAddress))
+            {
+                return StatusCode(500, "Must provide some data");
             }
 
             Location locationEntity = _locationsRepository.GetLocation(id);

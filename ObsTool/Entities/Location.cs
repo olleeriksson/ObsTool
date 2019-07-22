@@ -15,9 +15,11 @@ namespace ObsTool.Entities
         [MaxLength(250)]
         public string Name { get; set; }
 
-        public float? Longitude { get; set; } = null;
+        [MaxLength(250)]
+        public string Longitude { get; set; }
 
-        public float? Latitude { get; set; } = null;
+        [MaxLength(250)]
+        public string Latitude { get; set; }
 
         public string GoogleMapsAddress { get; set; }
     }
