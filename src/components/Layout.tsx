@@ -64,6 +64,7 @@ class Layout extends React.Component<ILayoutProps> {
         const LinkToObservedDsos = (props: any) => <Link to="/observations" {...props} />;
         const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
         const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
+        const LinkToLocations = (props: any) => <Link to="/locations" {...props} />;
         const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
 
         // const loginButton = (
@@ -89,6 +90,7 @@ class Layout extends React.Component<ILayoutProps> {
                     <Button component={LinkToObservedDsos}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observations</Button>
                     <Button component={LinkToSessions}><FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions</Button>
                     <Button component={LinkToNewSession}><FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session</Button>
+                    <Button component={LinkToLocations}><FontAwesomeIcon icon="map-marked" className="faSpaceAfter" /> Locations</Button>
                     <Button component={LinkToSearch}><FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search</Button>
                 </Toolbar>
             </AppBar>

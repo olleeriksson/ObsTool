@@ -7,6 +7,7 @@ import ObservedDsos from "./ObservedDsos";
 import NewObsSessionView from "./NewObsSessionView";
 import SingleObsSessionView from "./SingleObsSessionView";
 import SearchView from "./SearchView";
+import LocationsView from "./LocationsView";
 
 // This whole section below is a hack because I couldn't get withRouter() to work with Typescript
 // This passes the {match, location ... } object down to <Layout>, in which I then check if we are on
@@ -35,6 +36,10 @@ const searchView = (props: any) => <Layout {...props}>
     <SearchView {...props} />
 </Layout>;
 
+const locationsView = (props: any) => <Layout {...props}>
+    <LocationsView {...props} />
+</Layout>;
+
 export const routes = <div>
     <Route exact={true} path="/" component={home} />
     <Route path="/session/:obsSessionId" component={singleObsSessionView} />
@@ -42,6 +47,7 @@ export const routes = <div>
     <Route path="/sessions" component={listView} />
     <Route path="/newsession" component={newObsSessionView} />
     <Route path="/search" component={searchView} />
+    <Route path="/locations" component={locationsView} />
 </div>;
 
 // This was the non-hacky solution that worked

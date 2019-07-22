@@ -35,6 +35,18 @@ class Api {
         return axios.get<ILocation[]>(process.env.REACT_APP_API_URL + "/locations/");
     }
 
+    public static addLocation(newLocation: ILocation) {
+        return axios.post<ILocation>(process.env.REACT_APP_API_URL + "/locations/", newLocation);
+    }
+
+    public static updateLocation(updatedLocation: ILocation) {
+        return axios.put<ILocation>(process.env.REACT_APP_API_URL + "/locations/" + updatedLocation.id, updatedLocation);
+    }
+
+    public static deleteLocation(locationId: number) {
+        return axios.delete(process.env.REACT_APP_API_URL + "/locations/" + locationId);
+    }
+
     public static searchDso(query: string) {
         return axios.get<IPagedDsoList>(process.env.REACT_APP_API_URL + "/dso?query=" + query);
     }

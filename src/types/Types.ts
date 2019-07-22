@@ -91,10 +91,10 @@ export interface IStatistics {
 }
 
 export interface ILocation {
-    id: number;
+    id?: number;
     name: string;
-    longitude: number;
-    latitude: number;
+    longitude?: string;
+    latitude?: string;
     googleMapsAddress: string;
 }
 
