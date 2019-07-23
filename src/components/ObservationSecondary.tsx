@@ -105,6 +105,8 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
       );
     }
 
+    const obsSessionId = this.props.observation.obsSession && this.props.observation.obsSession.id;
+    const obsSessionUrl = "/session/" + obsSessionId;
     const obsSessionDate = this.props.observation.obsSession && this.props.observation.obsSession.date;
     const obsSessionTitle = this.props.observation.obsSession && this.props.observation.obsSession.title && this.props.observation.obsSession.title;
     const obsSessionLocation = this.props.observation.obsSession && this.props.observation.obsSession.location && "(" + this.props.observation.obsSession.location.name + ")";
@@ -125,9 +127,11 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
               <Grid container={true} direction="column" spacing={16}>
                 <Grid item={true} xs={true}>
                   <Typography variant="body2">
-                    {obsSessionDate} &nbsp;
-                    {obsSessionTitle} &nbsp;
-                    {obsSessionLocation}
+                    <a href={obsSessionUrl}>
+                      {obsSessionDate} &nbsp;
+                      {obsSessionTitle} &nbsp;
+                      {obsSessionLocation}
+                    </a>
                   </Typography>
                   <Typography >
                     {this.props.observation.text}

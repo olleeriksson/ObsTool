@@ -9,27 +9,18 @@ interface IDsoAnnotationsProps {
 const DsoAnnotations = (props: IDsoAnnotationsProps) => {
   let ratingIcons = null;
   switch (props.rating) {
-    case 1:
+    case -1:
       ratingIcons = <span title="Not a very interesting object!">
-        <FontAwesomeIcon icon="times" className="faSpaceAfter" />
+        <FontAwesomeIcon icon="thumbs-down" className="faSpaceAfter" />
+      </span>;
+      break;
+    case 1:
+      ratingIcons = <span title="Nice object!">
+        <FontAwesomeIcon icon="star" className="faSpaceAfter" />
       </span>;
       break;
     case 2:
-      ratingIcons = <span title="Nothing special..">
-        <FontAwesomeIcon icon="star-half-alt" className="faSpaceAfter" />
-      </span>;
-      break;
-    case 3:
-      ratingIcons = <span title="Nice object!">
-        <FontAwesomeIcon icon="star" className="faSpaceAfter" />
-        <FontAwesomeIcon icon="star" className="faSpaceAfter" />
-        <FontAwesomeIcon icon="star" className="faSpaceAfter" />
-      </span>;
-      break;
-    case 4:
       ratingIcons = <span title="Very nice object!">
-        <FontAwesomeIcon icon="star" className="faSpaceAfter" />
-        <FontAwesomeIcon icon="star" className="faSpaceAfter" />
         <FontAwesomeIcon icon="star" className="faSpaceAfter" />
         <FontAwesomeIcon icon="star" className="faSpaceAfter" />
       </span>;
@@ -38,7 +29,7 @@ const DsoAnnotations = (props: IDsoAnnotationsProps) => {
   }
 
   const followUpIcon = props.followUp ?
-    <span title="Should revisit object"><FontAwesomeIcon icon="undo-alt" className="faSpaceAfter" /></span>
+    <span title="Should revisit object"><FontAwesomeIcon icon="undo-alt" className="faSpaceAfter" style={{ marginLeft: "0.5em" }} /></span>
     : null;
 
   return <>
