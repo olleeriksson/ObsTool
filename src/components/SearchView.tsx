@@ -10,11 +10,11 @@ import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
 import { debounce } from "lodash";
 // import DsoExtended from "./DsoExtended";
-import BadgedDsoWithObservations from "./BadgedDsoWithObservations";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/SearchActions";
+import DsoBadgedWithObservations from "./DsoBadgedWithObservations";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -142,7 +142,7 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
             } else {
                 searchResult = this.state.dsoList.map(dso => (
                     <Grid key={dso.id} item={true} xs={12}>
-                        <BadgedDsoWithObservations dso={dso} showBadge={true} showObservations={true} />
+                        <DsoBadgedWithObservations dso={dso} showBadge={true} showObservations={true} />
                     </Grid>
                 ));
             }

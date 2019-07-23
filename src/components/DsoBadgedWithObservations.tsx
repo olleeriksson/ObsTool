@@ -14,6 +14,7 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import classNames from "classnames";
 import ObservationSecondary from "./ObservationSecondary";
 import Typography from "@material-ui/core/Typography";
+import DsoAnnotations from "./DsoAnnotations";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -37,7 +38,7 @@ const styles = (theme: Theme) => createStyles({
   },
 });
 
-interface IBadgedDsoWithObservationsProps extends WithStyles<typeof styles> {
+interface IDsoBadgedWithObservationsProps extends WithStyles<typeof styles> {
   dso: IDso;
   showBadge: boolean;
   showObservations: boolean;
@@ -47,8 +48,8 @@ interface IDynamicDsoLabelState {
   isExpanded: boolean;
 }
 
-class BadgedDsoWithObservations extends React.Component<IBadgedDsoWithObservationsProps, IDynamicDsoLabelState> {
-  constructor(props: IBadgedDsoWithObservationsProps) {
+class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservationsProps, IDynamicDsoLabelState> {
+  constructor(props: IDsoBadgedWithObservationsProps) {
     super(props);
 
     this.state = {
@@ -86,6 +87,13 @@ class BadgedDsoWithObservations extends React.Component<IBadgedDsoWithObservatio
             <Badge className={classes.badge} badgeContent={this.props.dso.numObservations} color="secondary">
               <DsoRegular dso={this.props.dso} />
             </Badge>
+            <span style={{ marginLeft: "1.2em" }} >
+              <DsoAnnotations
+                rating={this.props.dso.dsoExtra && this.props.dso.dsoExtra.rating}
+                followUp={this.props.dso.dsoExtra && this.props.dso.dsoExtra.followUp}
+              />
+            </span>
+
             <div style={{ marginLeft: 8 }} >
               <DsoExtra dso={this.props.dso} />
             </div>
@@ -149,4 +157,4 @@ class BadgedDsoWithObservations extends React.Component<IBadgedDsoWithObservatio
   }
 }
 
-export default withStyles(styles)(BadgedDsoWithObservations);
+export default withStyles(styles)(DsoBadgedWithObservations);

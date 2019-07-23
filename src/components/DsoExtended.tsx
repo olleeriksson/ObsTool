@@ -3,6 +3,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 import CosmosIcon from "../cosmos.svg";
+import DsoAnnotations from "./DsoAnnotations";
 
 export interface IDsoExtendedProps {
   id?: number;
@@ -78,6 +79,11 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
             <div className="dsoExtended">
               <Typography variant="body2" gutterBottom={false}>
                 <img src={CosmosIcon} width="18" height="18" /> {this.props.dso.name} {otherNames} {commonName}
+                <span style={{ marginLeft: "1em" }} />
+                <DsoAnnotations
+                  rating={this.props.dso.dsoExtra && this.props.dso.dsoExtra.rating}
+                  followUp={this.props.dso.dsoExtra && this.props.dso.dsoExtra.followUp}
+                />
               </Typography>
               <Typography variant="caption" color="textSecondary" gutterBottom={true} style={{ marginLeft: "1.8em" }}>
                 <strong>Type:</strong> {this.props.dso.type} &nbsp;

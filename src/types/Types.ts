@@ -53,6 +53,13 @@ export interface IDso {
     notes?: string;
     numObservations?: number;
     observations?: IObservation[];
+    dsoExtra?: IDsoExtra;
+}
+
+export interface IDsoExtra {
+    id: number;
+    rating: number;
+    followUp: boolean;
 }
 
 export interface IPagedDsoList {
