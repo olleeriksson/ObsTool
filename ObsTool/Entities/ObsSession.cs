@@ -38,6 +38,8 @@ namespace ObsTool.Entities
 
         public string ReportText { get; set; }
 
+        public ICollection<DsoExtra> DsoExtras { get; set; }
+
         public string ToText()
         {
             return $"Id: ";

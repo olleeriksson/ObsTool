@@ -51,7 +51,7 @@ namespace ObsTool.Models
         public string BCHM { get; set; }
         public string DreyerDesc { get; set; }
         public string Notes { get; set; }
-
+        public DsoExtraDto DsoExtra { get; set; }
         public int NumObservations { get; set; }
         public ObservationDto[] Observations { get; set; }
     }

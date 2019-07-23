@@ -66,13 +66,13 @@ namespace ObsTool.Services
             if (includeObservations && includeDso)
             {
                 query = query
-                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtra)
                     .Include(s => s.Observations).ThenInclude(o => o.ObsResources);
             }
             else if (includeObservations)
             {
                 query = query
-                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtra)
                     .Include(s => s.Observations).ThenInclude(o => o.ObsResources);
             }
 

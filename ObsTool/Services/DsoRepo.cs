@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using ObsTool.Entities;
 
 namespace ObsTool.Services
@@ -20,8 +21,13 @@ namespace ObsTool.Services
         {
             ICollection<Dso> foundDso = null;
 
+            var dsoExtras = _dbContext.DsoExtra.Include(x => x.Dso).ToList();
+
             // Look for the normalized name in Name and OtherNames
-            foundDso = _dbContext.Dso.Where(dso => dsoIds.Contains(dso.Id)).ToList();
+            foundDso = _dbContext.Dso
+                .Where(dso => dsoIds.Contains(dso.Id))
+                .Include(dso => dso.DsoExtra)
+                .ToList();
 
             return foundDso;
         }
@@ -39,6 +45,7 @@ namespace ObsTool.Services
                 dso.OtherNames.Contains(normalizedQueryString) ||
                 dso.CommonName.Contains(queryString)
                 )
+                .Include(dso => dso.DsoExtra)
                 .ToList();
 
             //// If not found, look for the query string in CommonName and AllCommonNames
@@ -63,14 +70,14 @@ namespace ObsTool.Services
             Dso foundDso = null;
 
             // Look for a perfect match with the normalized name
-            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.Name == normalizedName);
+            foundDso = _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.Name == normalizedName);
             if (foundDso != null)
             {
                 return foundDso;
             }
 
             // If no perfect match was found, look for other names that contain this name
-            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
+            foundDso = _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
             if (foundDso != null)
             {
                 return foundDso;
@@ -79,7 +86,7 @@ namespace ObsTool.Services
             // If not found, look for the query string in CommonName and AllCommonNames
             if (foundDso == null)
             {
-                foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.CommonName == nameString || dso.AllCommonNames.Contains(nameString));
+                foundDso = _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.CommonName == nameString || dso.AllCommonNames.Contains(nameString));
             }
 
             return foundDso;
@@ -87,13 +94,19 @@ namespace ObsTool.Services
 
         public Dso GetDsoByNumber(string catalogNo)
         {
-            return _dbContext.Dso.FirstOrDefault(dso => dso.CatalogNumber == catalogNo);
+            return _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.CatalogNumber == catalogNo);
         }
 
         public int GetNumDsoInDatabase()
         {
             return _dbContext.Dso.Count();
         }
+
+        public DsoExtra GetDsoExtraById(int id)
+        {
+            return _dbContext.DsoExtra.FirstOrDefault(dsoExtra => dsoExtra.Id == id);
+        }
+
 
         private string normalizeDsoString(string queryString)
         {
@@ -120,6 +133,20 @@ namespace ObsTool.Services
                 .Select(dso => dso.Catalog)
                 .Distinct()
                 .ToList();
+        }
+
+        public bool SaveChanges()
+        {
+            bool success = true;
+            try
+            {
+                _dbContext.SaveChanges();
+            }
+            catch (DbUpdateException)
+            {
+                throw;
+            }
+            return success;
         }
     }
 }

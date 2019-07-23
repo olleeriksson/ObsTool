@@ -83,6 +83,8 @@ namespace ObsTool
                 cfg.CreateMap<Entities.ObsResource, Models.ObsResourceDto>();
                 cfg.CreateMap<Models.ObsResourceDto, Entities.ObsResource>();
                 cfg.CreateMap<Models.ObsResourceDtoForCreationAndUpdate, Entities.ObsResource>();
+                cfg.CreateMap<Entities.DsoExtra, Models.DsoExtraDto>();
+                cfg.CreateMap<Models.DsoExtraDto, Entities.DsoExtra>();
             });
             //AutoMapper.Mapper.AssertConfigurationIsValid();
 

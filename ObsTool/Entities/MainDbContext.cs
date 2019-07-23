@@ -35,6 +35,8 @@ namespace ObsTool.Entities
 
         public DbSet<Dso> Dso { get; set; }
 
+        public DbSet<DsoExtra> DsoExtra { get; set; }
+
         public DbSet<ObsSession> ObsSessions { get; set; }
 
         public DbSet<Observation> Observations { get; set; }
@@ -60,12 +62,22 @@ namespace ObsTool.Entities
             modelBuilder.Entity<DsoObservation>()
                 .HasOne(dsoObs => dsoObs.Observation)
                 .WithMany(obs => obs.DsoObservations)
-               .HasForeignKey(dsoObs => dsoObs.ObservationId);
+                .HasForeignKey(dsoObs => dsoObs.ObservationId);
 
             modelBuilder.Entity<DsoObservation>()
                 .HasOne(dsoObs => dsoObs.Dso)
                 .WithMany(dso => dso.DsoObservations)
-               .HasForeignKey(dsoObs => dsoObs.DsoId);
+                .HasForeignKey(dsoObs => dsoObs.DsoId);
+
+            modelBuilder.Entity<DsoExtra>()
+                .HasOne(dsoExtra => dsoExtra.Dso)
+                .WithOne(dso => dso.DsoExtra)
+                .HasForeignKey<DsoExtra>(dsoExtra => dsoExtra.DsoId);
+
+            modelBuilder.Entity<DsoExtra>()
+                .HasOne(dsoExtra => dsoExtra.ObsSession)
+                .WithMany(obsSession => obsSession.DsoExtras)
+                .HasForeignKey(dsoExtra => dsoExtra.ObsSessionId);
         }
 
         //protected override OnConfiguring(DbContextOptionsBuilder optionsBuilder)

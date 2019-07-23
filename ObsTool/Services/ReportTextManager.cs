@@ -223,7 +223,7 @@ namespace ObsTool.Services
             var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             // Regexp for finding text sections that include DSO names
-            string sectionStart = @".*?";  // the ? after the * makes it non-greedy, or else it doesn't stop at the first section end in singleline (all text as one string) mode
+            string sectionStart = @"[^\n]*";  // the ? after the * makes it non-greedy, or else it doesn't stop at the first section end in singleline (all text as one string) mode
             string sectionEnding = @".*?(?:\n\n|\n$|$)";  // a section can end with \n\n, or \n$, or just $. The ?: after the parenthesis makes the group non-capturing.
             string findSectionRegexp = sectionStart
                 + dsoNameRegexp
@@ -328,7 +328,7 @@ namespace ObsTool.Services
 
                     // Collect rating
                     int rating = 0;  // TODO: Change this to nullable and null?
-                    if (findRatingRegexp.IsMatch(reportText))
+                    if (findRatingRegexp.IsMatch(sectionText))
                     {
                         Match lastMatch = findRatingRegexp.Matches(sectionText).Last();
                         rating = lastMatch.Groups[1].Value.Length;  // count number of *(stars)
@@ -342,6 +342,31 @@ namespace ObsTool.Services
                     if (dsosInSection.Count == 0)
                     {
                         continue;
+                    }
+
+                    // Add any ratings or follow up flags to the DSO's
+                    if (rating != 0 || followUp)
+                    {
+                        foreach (Dso dso in dsosInSection.Values)
+                        {
+                            bool noExistingDsoExtra = (dso.DsoExtra == null);
+                            if (noExistingDsoExtra)
+                            {
+                                dso.DsoExtra = new DsoExtra();
+                            }
+
+                            // If there is no existing DSO extra, or if this obs session is newer than the obs session used to store 
+                            // the existing DSO extra, then we replace the attributes in it.
+                            if (noExistingDsoExtra || (dso.DsoExtra != null && dso.DsoExtra.ObsSession != null && obsSession.Date >= dso.DsoExtra.ObsSession.Date))
+                            {
+                                dso.DsoExtra.ObsSession = obsSession;
+                                if (rating != 0)
+                                {
+                                    dso.DsoExtra.Rating = rating;
+                                }
+                                dso.DsoExtra.FollowUp = followUp;
+                            }
+                        }
                     }
 
                     string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
@@ -358,7 +383,7 @@ namespace ObsTool.Services
                     // Now, create the observation!
                     Observation observation = new Observation
                     {
-                        Text = sectionText,
+                        Text = sectionObsText,
                         Identifier = observationsIdentifier,
                         DsoObservations = new List<DsoObservation>(),
                         DisplayOrder = obsIndex++,

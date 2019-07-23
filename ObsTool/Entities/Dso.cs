@@ -102,6 +102,8 @@ namespace ObsTool.Entities
 
         public ICollection<ArticleDsoObjects> ReferringArticles { get; set; }
 
+        public DsoExtra DsoExtra { get; set; }
+
         public override string ToString()
         {
             return $"DSO[id: {Id}, name: {Name} ({OtherNames}), type: {Type} ]";
