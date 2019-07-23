@@ -62,11 +62,13 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         );
     }
 
-    private addRow(id: number, text: string, value: number) {
+    private addRow(id: number, text?: string, value?: string, text2?: string, value2?: string) {
         return {
             key: id,
             text: text,
-            value: value
+            value: value,
+            text2: text2,
+            value2: value2
         };
     }
 
@@ -74,13 +76,34 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         let id = 0;
         const rowsData = [];
         if (statistics) {
-            rowsData.push(this.addRow(id++, "Number of observation sessions", statistics.numObsSessions));
-            rowsData.push(this.addRow(id++, "Number of recorded observations", statistics.numObservations));
-            rowsData.push(this.addRow(id++, "Number of detections", statistics.numDetections));
-            rowsData.push(this.addRow(id++, "Number of non-detections", statistics.numNonDetections));
-            rowsData.push(this.addRow(id++, "Number of observed objects", statistics.numObservedObjects));
-            rowsData.push(this.addRow(id++, "Number of recorded sketches", statistics.numSketches));
-            rowsData.push(this.addRow(id++, "Number of used locations", statistics.numLocations));
+            rowsData.push(this.addRow(
+                id++,
+                "Number of observation sessions", statistics.numObsSessions.toString(),
+                "Number of observed Galaxies", statistics.numObservedGalaxies.toString()));
+            rowsData.push(this.addRow(
+                id++,
+                "Number of recorded observations", statistics.numObservations.toString(),
+                "Number of observed Bright Nebulae", statistics.numObservedBrightNebulae.toString()));
+            rowsData.push(this.addRow(
+                id++,
+                "Number of observed objects", statistics.numObservedObjects.toString(),
+                "Number of observed Open Clusters", statistics.numObservedOpenClusters.toString()));
+            rowsData.push(this.addRow(
+                id++,
+                "Number of detections (non-detections)", statistics.numDetections + " (" + statistics.numNonDetections + ")",
+                "Number of observed Planetary Nebulae", statistics.numObservedPlanetaryNebulae.toString()));
+            rowsData.push(this.addRow(
+                id++,
+                "Number of recorded sketches", statistics.numSketches.toString(),
+                "Number of observed Globular Clusters", statistics.numObservedGlobularClusters.toString()));
+            rowsData.push(this.addRow(
+                id++,
+                "Number of used locations", statistics.numLocations.toString(),
+                "Number of observed Dark Nebulae", statistics.numObservedDarkNebulae.toString()));
+            rowsData.push(this.addRow(
+                id++,
+                "Number of observed Messier objects", statistics.numObservedMessierObjects + " / 110",
+                "Number of observed NGC objects", statistics.numObservedNGCObjects.toString()));
         }
         return rowsData;
     }
@@ -94,6 +117,8 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 <TableRow key={row.key}>
                     <TableCell padding="dense" component="th" scope="row">{row.text}</TableCell>
                     <TableCell padding="dense" numeric={true}>{row.value}</TableCell>
+                    <TableCell padding="dense" component="th" scope="row">{row.text2}</TableCell>
+                    <TableCell padding="dense" numeric={true}>{row.value2}</TableCell>
                 </TableRow>
             );
         });
@@ -115,6 +140,8 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                         <TableHead>
                             <TableRow>
                                 <TableCell padding="dense">Statistics</TableCell>
+                                <TableCell padding="dense" numeric={true} />
+                                <TableCell padding="dense" />
                                 <TableCell padding="dense" numeric={true} />
                             </TableRow>
                         </TableHead>

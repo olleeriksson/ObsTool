@@ -82,6 +82,14 @@ export interface IObsSession {
 export interface IStatistics {
     numObsSessions: number;
     numObservedObjects: number;
+    numObservedGalaxies: number;
+    numObservedBrightNebulae: number;
+    numObservedDarkNebulae: number;
+    numObservedOpenClusters: number;
+    numObservedPlanetaryNebulae: number;
+    numObservedGlobularClusters: number;
+    numObservedMessierObjects: number;
+    numObservedNGCObjects: number;
     numObservations: number;
     numLocations: number;
     numSketches: number;

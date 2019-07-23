@@ -260,6 +260,16 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 margin="normal"
                 style={{ width: 150 }}
               />
+              <Grid item={true}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                >
+                  Save
+                </Button>
+                {circularProgress}
+              </Grid>
             </Grid>
             <Grid item={true}>
               <Grid container={true} direction="row">

@@ -59,10 +59,10 @@ class Home extends React.Component<IHomeProps> {
                             <img src={logo} className="App-logo" alt="logo" />
                         </Typography>
                         <Typography variant="display1" align="center" color="textPrimary" gutterBottom={true}>
-                            ObsTool
+                            <strong>ObsTool</strong>
                         </Typography>
                         <Typography variant="title" align="center" color="textSecondary" component="p">
-                            A tool for recording and keeping track of deepsky observations.
+                            A tool for recording and keeping track of deepsky observations
                         </Typography>
                     </div>
                 </Grid>
@@ -130,7 +130,7 @@ class Home extends React.Component<IHomeProps> {
             </Grid>
             {/* Second/third row */}
             <Grid container={true} alignItems="flex-start" justify="center">
-                <Grid item={true} xs={12} sm={6} md={4}>
+                <Grid item={true} xs={12} sm={7} md={7}>
                     <StatisticsTable />
                 </Grid>
             </Grid>
