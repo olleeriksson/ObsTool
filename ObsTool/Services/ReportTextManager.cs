@@ -241,7 +241,7 @@ namespace ObsTool.Services
             string nonDetectionRegexp = @"\s!!" + flagOutro;
             var findNonDetectionRegexp = new Regex(nonDetectionRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            string ratingRegexp = @"\s(\*{1,4})" + flagOutro;
+            string ratingRegexp = @"\s(-1|\+1|\+2|\*|\*\*)" + flagOutro;
             var findRatingRegexp = new Regex(ratingRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             string followUpRegexp = @"\s(re-?visit|come back|telescope)" + flagOutro;
@@ -323,7 +323,7 @@ namespace ObsTool.Services
                         obsResourcesInSection.Add(obsResource);
                     }
 
-                    // Collect non-detections
+                    // Collect non-detection
                     bool nonDetection = findNonDetectionRegexp.IsMatch(sectionText);
 
                     // Collect rating
@@ -331,7 +331,15 @@ namespace ObsTool.Services
                     if (findRatingRegexp.IsMatch(sectionText))
                     {
                         Match lastMatch = findRatingRegexp.Matches(sectionText).Last();
-                        rating = lastMatch.Groups[1].Value.Length;  // count number of *(stars)
+                        string ratingString = lastMatch.Groups[1].Value;
+                        if (ratingString == "-1" || ratingString == "+1" || ratingString == "+2")
+                        {
+                            int.TryParse(ratingString, out rating);
+                        }
+                        else
+                        {
+                            rating = ratingString.Length;  // count number of *(stars)
+                        }
                     }
 
                     // Collect follow-up
@@ -345,27 +353,20 @@ namespace ObsTool.Services
                     }
 
                     // Add any ratings or follow up flags to the DSO's
-                    if (rating != 0 || followUp)
+                    foreach (Dso dso in dsosInSection.Values)
                     {
-                        foreach (Dso dso in dsosInSection.Values)
+                        bool noExistingDsoExtra = (dso.DsoExtra == null);
+                        if (noExistingDsoExtra)
                         {
-                            bool noExistingDsoExtra = (dso.DsoExtra == null);
-                            if (noExistingDsoExtra)
-                            {
-                                dso.DsoExtra = new DsoExtra();
-                            }
-
-                            // If there is no existing DSO extra, or if this obs session is newer than the obs session used to store 
-                            // the existing DSO extra, then we replace the attributes in it.
-                            if (noExistingDsoExtra || (dso.DsoExtra != null && dso.DsoExtra.ObsSession != null && obsSession.Date >= dso.DsoExtra.ObsSession.Date))
-                            {
-                                dso.DsoExtra.ObsSession = obsSession;
-                                if (rating != 0)
-                                {
-                                    dso.DsoExtra.Rating = rating;
-                                }
-                                dso.DsoExtra.FollowUp = followUp;
-                            }
+                            dso.DsoExtra = new DsoExtra();
+                        }
+                        // If there is no existing DSO extra, or if this obs session is newer than the obs session used to store 
+                        // the existing DSO extra, then we replace the attributes in it.
+                        if (noExistingDsoExtra || (dso.DsoExtra != null && dso.DsoExtra.ObsSession != null && obsSession.Date >= dso.DsoExtra.ObsSession.Date))
+                        {
+                            dso.DsoExtra.ObsSession = obsSession;
+                            dso.DsoExtra.Rating = rating;
+                            dso.DsoExtra.FollowUp = followUp;
                         }
                     }
 
