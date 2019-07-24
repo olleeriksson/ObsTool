@@ -80,6 +80,10 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.deleteObsSession = this.deleteObsSession.bind(this);
     }
 
+    private clearObsSession = () => {
+        this.setState({ obsSession: {} });
+    }
+
     public componentDidMount() {
         this.loadLocations();
         if (this.props.obsSessionId) {
@@ -87,12 +91,11 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
     }
 
-    public componentWillReceiveProps(nextProps: IObsSessionPageProps) {
-        // TODO: Maybe listen to changes here.
-        //
-        if (nextProps.obsSessionId && nextProps.obsSessionId !== this.props.obsSessionId) {
+    public componentDidUpdate(prevProps: IObsSessionPageProps) {
+        if (this.props.obsSessionId && this.props.obsSessionId !== prevProps.obsSessionId) {
             // New/different obsSessionId from the store -> load the full obssession from the API
-            this.loadObsSession(nextProps.obsSessionId);
+            // this.clearObsSession();  // prefer clearing disabled visually
+            this.loadObsSession(this.props.obsSessionId);
             return;
         }
     }
@@ -202,6 +205,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
         this.setState({ isLoading: false });
         this.setState({ isError: true });
+        this.clearObsSession();
     }
 
     private clearError = () => {

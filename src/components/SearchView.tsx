@@ -81,10 +81,10 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
         this.receiveAndResetSearchQueryFromRedux(this.props.store.searchQuery || "");
     }
 
-    public componentWillReceiveProps(nextProps: ISearchViewProps) {
+    public componentDidUpdate(prevProps: ISearchViewProps) {
         // If as new search query arrived from the redux store
-        const newQueryFromRedux = nextProps.store.searchQuery;
-        if (newQueryFromRedux && newQueryFromRedux !== this.props.store.searchQuery && newQueryFromRedux !== "") {
+        const newQueryFromRedux = this.props.store.searchQuery;
+        if (newQueryFromRedux && newQueryFromRedux !== prevProps.store.searchQuery && newQueryFromRedux !== "") {
             this.receiveAndResetSearchQueryFromRedux(newQueryFromRedux);
         }
     }

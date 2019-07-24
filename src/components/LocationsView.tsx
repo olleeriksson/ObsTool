@@ -75,9 +75,6 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         this.loadLocationsFromApi();
     }
 
-    public componentWillReceiveProps(nextProps: ILocationsViewProps) {
-    }
-
     private loadLocationsFromApi() {
         this.setState({ currentLocation: this.getEmptyLocation() });
         this.setState({ isLoading: true });

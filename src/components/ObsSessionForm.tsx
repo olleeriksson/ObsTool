@@ -87,10 +87,10 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  public componentWillReceiveProps(nextProps: IObsSessionFormProps) {
-    if (nextProps.obsSession && this.props.obsSession !== nextProps.obsSession) {
+  public componentDidUpdate(prevProps: IObsSessionFormProps) {
+    if (this.props.obsSession && this.props.obsSession !== prevProps.obsSession) {
       // Load from object
-      this.setState({ obsSession: nextProps.obsSession });
+      this.setState({ obsSession: this.props.obsSession });
     }
   }
 

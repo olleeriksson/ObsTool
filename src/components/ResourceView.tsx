@@ -131,6 +131,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         }
     }
 
+    // OLD, keeping it around.
     // public componentWillReceiveProps(nextProps: IResourceViewProps) {
     //     if (!nextProps.resource) {
     //         this.setState({

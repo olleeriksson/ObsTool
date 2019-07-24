@@ -122,9 +122,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     };
   }
 
-  public componentWillReceiveProps(nextProps: IImageListProps) {
-    if (nextProps.resources && this.props.resources !== nextProps.resources) {
-      this.setState({ resources: nextProps.resources });
+  public componentDidUpdate(prevProps: IImageListProps) {
+    if (this.props.resources && this.props.resources !== prevProps.resources) {
+      this.setState({ resources: this.props.resources });
     }
   }
 
