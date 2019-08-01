@@ -8,7 +8,7 @@ using ObsTool.Entities;
 
 namespace ObsTool.Services
 {
-    public class DsoRepo
+    public class DsoRepo : IDsoRepo
     {
         private MainDbContext _dbContext;
 

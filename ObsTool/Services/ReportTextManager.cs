@@ -16,11 +16,11 @@ namespace ObsTool.Services
     {
         private Entities.MainDbContext _dbContext;
         private ObservationsRepo _observationsRepo;
-        private DsoRepo _dsoRepo;
+        private IDsoRepo _dsoRepo;
         private ILogger<ReportTextManager> _logger;
         private DsoObservationsRepo _dsoObservationsRepo;
 
-        public ReportTextManager(Entities.MainDbContext dbContext, ObservationsRepo observationsRepo, DsoRepo dsoRepo,
+        public ReportTextManager(Entities.MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
             ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
         {
             _dbContext = dbContext;
@@ -189,7 +189,7 @@ namespace ObsTool.Services
             }
         }
 
-        private IDictionary<string, Observation> Parse(ObsSession obsSession)
+        public IDictionary<string, Observation> Parse(ObsSession obsSession)
         {
             string reportText = obsSession.ReportText;
             IDictionary<string, Observation> observationsDict = new Dictionary<string, Observation>();
@@ -209,7 +209,7 @@ namespace ObsTool.Services
 
             // Regexp for finding DSO names
             string regexpAllCatalogs = RegExpJoinCatalogs(allCatalogs);
-            string introRegexp = @"\s*";
+            string introRegexp = @"(?:\s|\G)";  // non-capturing group of \s or end-of-previous-match (for when the designator starts at the beginning of the line)
             string startingParenthesisRegexp = @"(\()?";
             string endingParenthesisRegexp = @"(\))?";
             string outroRegexp = @"[\s\.,]";
@@ -224,7 +224,7 @@ namespace ObsTool.Services
 
             // Regexp for finding text sections that include DSO names
             string sectionStart = @"[^\n]*";  // the ? after the * makes it non-greedy, or else it doesn't stop at the first section end in singleline (all text as one string) mode
-            string sectionEnding = @".*?(?:\n\n|\n$|$)";  // a section can end with \n\n, or \n$, or just $. The ?: after the parenthesis makes the group non-capturing.
+            string sectionEnding = @".*?(?:\n\n|\r\n\r\n|\n$|\r\n$|$)";  // a section can end with \n\n, or \n$, or just $. The ?: after the parenthesis makes the group non-capturing.
             string findSectionRegexp = sectionStart
                 + dsoNameRegexp
                 + sectionEnding;
@@ -238,7 +238,7 @@ namespace ObsTool.Services
 
             string flagOutro = @"(?:\s|\.|$)";  // non-capturing group of \s or . or $
 
-            string nonDetectionRegexp = @"\s!!" + flagOutro;
+            string nonDetectionRegexp = @"!!" + flagOutro;
             var findNonDetectionRegexp = new Regex(nonDetectionRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             string ratingRegexp = @"\s(-1|\+1|\+2|\*|\*\*)" + flagOutro;
@@ -255,7 +255,7 @@ namespace ObsTool.Services
                 MatchCollection sectionsMatches = findSectionsRegexp.Matches(reportText);  // matching on the whole report text
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
-                    string sectionText = sectionsMatch.Value;  // the whole section, including resource links
+                    string sectionText = sectionsMatch.Value.Trim();  // the whole section, including resource links
 
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
                     var dsosInSection = new Dictionary<int, Dso>();

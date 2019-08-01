@@ -16,10 +16,10 @@ namespace ObsTool
     [Route("api/dso")]
     public class DsoController : Controller
     {
-        private DsoRepo _dsoRepo;
+        private IDsoRepo _dsoRepo;
         private ObservationsService _observationsService;
 
-        public DsoController(DsoRepo dsoRepo, ObservationsService observationsService)
+        public DsoController(IDsoRepo dsoRepo, ObservationsService observationsService)
         {
             _dsoRepo = dsoRepo;
             _observationsService = observationsService;

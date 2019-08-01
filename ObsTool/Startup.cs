@@ -48,7 +48,7 @@ namespace ObsTool
             services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
             services.AddScoped<ObsSessionsRepo>();
             services.AddScoped<LocationsRepo>();
-            services.AddScoped<DsoRepo, DsoRepo>();
+            services.AddScoped<IDsoRepo, DsoRepo>();
             services.AddScoped<ObservationsRepo>();
             services.AddScoped<ReportTextManager>();
             services.AddScoped<ObservationsService>();

@@ -23,12 +23,12 @@ namespace ObsTool.Controllers
         private MainDbContext _mainDbContext;
         private ObsSessionsRepo _obsSessionsRepository;
         private LocationsRepo _locationsRepository;
-        private DsoRepo _dsoRepo;
+        private IDsoRepo _dsoRepo;
         private ReportTextManager _reportTextManager;
         ObservationsService _observationsService;
 
         public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext, 
-            ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, DsoRepo dsoRepo, 
+            ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IDsoRepo dsoRepo, 
             ReportTextManager reportTextManager, ObservationsService observationsService)
         {
             _logger = logger;

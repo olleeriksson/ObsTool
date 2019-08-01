@@ -20,12 +20,12 @@ namespace ObsTool.Controllers
     {
         private ObsSessionsRepo _obsSessionsRepository;
         private LocationsRepo _locationsRepository;
-        private DsoRepo _dsoRepo;
+        private IDsoRepo _dsoRepo;
         private ObservationsRepo _observationsRepo;
         private ObsResourcesRepo _obsResourceRepo;
 
         public StatisticsController(MainDbContext mainDbContext, ObsSessionsRepo obsSessionRepository, 
-            LocationsRepo locationsRepository, DsoRepo dsoRepo, ObservationsRepo observationsRepo,
+            LocationsRepo locationsRepository, IDsoRepo dsoRepo, ObservationsRepo observationsRepo,
             ObsResourcesRepo obsResourceRepo)
         {
             _obsSessionsRepository = obsSessionRepository;
