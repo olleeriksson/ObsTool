@@ -80,10 +80,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.deleteObsSession = this.deleteObsSession.bind(this);
     }
 
-    private clearObsSession = () => {
-        this.setState({ obsSession: {} });
-    }
-
     public componentDidMount() {
         this.loadLocations();
         if (this.props.obsSessionId) {
@@ -126,26 +122,31 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         );
     }
 
-    public onSaveObsSession(newObsSession: IObsSession) {
+    public onSaveObsSession(obsSessionToBeCreated: IObsSession) {
         this.setState({ isLoading: true });
+
+        // Make a copy, because I think we should, and to avoid flickering on the screen when we modify it below
+        const newObsSession = Object.assign({}, obsSessionToBeCreated);
 
         // Convert the "shadow" field locationId back to a number. The API expects a number,
         // but the SelectComponent requires a string backing field.
         newObsSession.locationId = newObsSession.locationId ? Number(newObsSession.locationId) : undefined;
 
         if (!newObsSession.id) {
-            // Store away the report text and replace it with a placeholder until the ObsSession has been created
-            const reportText = newObsSession.reportText;
+            const originalReportText = newObsSession.reportText;
             newObsSession.reportText = "Something went wrong saving the report text";
 
             // Create the ObsSession
             Api.addObsSession(newObsSession).then(
                 (response) => {
                     const createdObsSession = response.data;
+
+                    // Now fake the report text back to the original, although it hasn't been saved yet, but so it doesn't flicker.
+                    createdObsSession.reportText = originalReportText;
+
                     this.handleSuccessDataFromApi(createdObsSession);
                     this.props.actions.addObsSessionSuccess(createdObsSession);
 
-                    createdObsSession.reportText = reportText;
                     Api.updateObsSession(createdObsSession).then(
                         (response2) => {
                             const obsSession = response2.data;
@@ -205,7 +206,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
         this.setState({ isLoading: false });
         this.setState({ isError: true });
-        this.clearObsSession();
     }
 
     private clearError = () => {
