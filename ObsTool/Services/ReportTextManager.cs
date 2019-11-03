@@ -315,10 +315,13 @@ namespace ObsTool.Services
                         string resourceUrl = resourceMatch.Groups[2].Value;
                         Debug.WriteLine($"Match: {resourceType} {resourceUrl}");
 
+                        bool isGoogleDriveUrl = (resourceType == "Sketch" || resourceType == "Jot");
+                        string url = isGoogleDriveUrl ? GetFileIdFromGoogleDriveUrl(resourceUrl) : resourceUrl;
+
                         var obsResource = new ObsResource
                         {
                             Type = resourceType.Replace("Photo", "Image").ToLower(),
-                            Url = resourceUrl
+                            Url = url
                         };
                         obsResourcesInSection.Add(obsResource);
                     }
@@ -470,6 +473,27 @@ namespace ObsTool.Services
             }
 
             return sectionText;
+        }
+
+        private string GetFileIdFromGoogleDriveUrl(string url)
+        {
+            if (url.StartsWith("https://drive.google.com"))  // preemtive optimization
+            {
+                // Matches links like https://drive.google.com/open?id=1nze1eHCrwMMKVV6_ZR5iCRsV_FvhYFMw
+                Match match = Regex.Match(url, @"https:\/\/drive\.google\.com\/open\?id=(.*)", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    return match.Groups[1].Value;
+                }
+
+                // Matches links like https://drive.google.com/file/d/1nze1eHCrwMMKVV6_ZR5iCRsV_FvhYFMw/view?usp=sharing
+                match = Regex.Match(url, @"https:\/\/drive\.google\.com\/file\/d\/(.*)\/view.*", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    return match.Groups[1].Value;
+                }
+            }
+            return url;
         }
 
         private string CreateNewObsIdentifier(int obsSessionId, List<Dso> dsoList)
