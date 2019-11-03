@@ -45,8 +45,13 @@ const styles = (theme: Theme) => createStyles({
     fontSize: "0.8rem",
     color: "gray", // theme.palette.primary.light,
   },
-  titleBar: {
+  titleBarBlack: {
     backgroundColor: "black",
+    padding: 0,
+    height: 30,
+  },
+  titleBarWhite: {
+    backgroundColor: "white",
     padding: 0,
     height: 30,
   },
@@ -284,6 +289,8 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
         {checkboxIcon}
       </div>;
 
+      const titleBarClass = r.backgroundColor === 255 ? classes.titleBarWhite : classes.titleBarBlack;
+
       return <GridListTile key={r.id} className={classes.tile}>
         <div onClick={this.handleClickResource(r.id)} className={classes.imageContainer} >
           <ResourceImage
@@ -300,7 +307,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
         </div>
         <GridListTileBar
           title={r.type}
-          classes={{ root: classes.titleBar, title: classes.title, titlePositionBottom: classes.titleWrap }}
+          classes={{ root: titleBarClass, title: classes.title, titlePositionBottom: classes.titleWrap }}
           actionIcon={icons}
         />
       </GridListTile>;
