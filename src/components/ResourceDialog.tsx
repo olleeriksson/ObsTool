@@ -105,7 +105,7 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
             >
                 <DialogTitle id="alert-dialog-title">&nbsp;</DialogTitle>
                 <DialogContent>
-                    <Grid container={true} spacing={8} direction="row">
+                    <Grid container={true} direction="row" spacing={0} style={{ overflow: "hidden" }}>
                         <Grid item={true}>
                             {resource1}
                         </Grid>

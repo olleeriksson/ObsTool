@@ -4,6 +4,7 @@ import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
+import TextareaAutosize from "@material-ui/core/TextField";
 import DsoShort from "./DsoShort";
 import { IObsSession, ILocation, IObservation, IDsoObservation } from "../types/Types";
 import classNames from "classnames";
@@ -28,6 +29,7 @@ const styles = (theme: Theme) => createStyles({
     height: 100,
   },
   textFieldReportText: {
+    overflow: "hidden"  // gets rid of an annoying scroll bar in the report text form field
   },
   dateField: {
     width: 200,
@@ -275,15 +277,15 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               <Grid container={true} direction="row">
                 <Grid item={true} style={{ flex: 1 }}>
                   <Grid container={true} direction="column">
-                    <Grid item={true} xs={12}>
-                      <TextField
+                    <Grid item={true}>
+                      <TextareaAutosize
                         id="reportText"
                         label="Report Text"
                         multiline={true}
                         value={this.state.obsSession.reportText || ""}
                         onChange={this.handleChange("reportText")}
-                        className={classNames(classes.formControl, classes.textFieldReportText)}
-                        margin="normal"
+                        className={classNames(classes.formControl)}
+                        inputProps={{ className: classes.textFieldReportText }}
                       />
                     </Grid>
                     <Grid item={true}>
