@@ -70,7 +70,7 @@ namespace ObsTool.Controllers
             ObsResource newObsResource = Mapper.Map<ObsResource>(newObsResourceDto);
 
             // Verify the type
-            if (newObsResourceDto.Type != "sketch" && newObsResourceDto.Type != "image" && newObsResourceDto.Type != "link")
+            if (newObsResourceDto.Type != "sketch" && newObsResourceDto.Type != "jot" && newObsResourceDto.Type != "image" && newObsResourceDto.Type != "link")
             {
                 return BadRequest("Invalid type");
             }
@@ -113,7 +113,7 @@ namespace ObsTool.Controllers
             }
 
             // Verify the type
-            if (obsResourceDtoForUpdate.Type != "sketch" && obsResourceDtoForUpdate.Type != "image" && obsResourceDtoForUpdate.Type != "link")
+            if (obsResourceDtoForUpdate.Type != "sketch" && obsResourceDtoForUpdate.Type != "jot" && obsResourceDtoForUpdate.Type != "image" && obsResourceDtoForUpdate.Type != "link")
             {
                 return BadRequest("Invalid type");
             }

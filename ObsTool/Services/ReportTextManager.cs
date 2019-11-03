@@ -228,12 +228,12 @@ namespace ObsTool.Services
             string findSectionRegexp = sectionStart
                 + dsoNameRegexp
                 + sectionEnding;
-            // The RegexOptions.Singleline below is what makes it find sections that include a newline and then a Photo:/Link:/Sketch: tag.
+            // The RegexOptions.Singleline below is what makes it find sections that include a newline and then a Photo:/Link:/Sketch:/Jot: tag.
             // It also makes it necessary to use a ? in .*? to make it non-greedy.
             var findSectionsRegexp = new Regex(findSectionRegexp,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-            string resourceRegexp = @"(Link|Image|Photo|Sketch):\s?(.*)";
+            string resourceRegexp = @"(Link|Image|Photo|Sketch|Jot):\s?(.*)";
             var findResourcesRegexp = new Regex(resourceRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             string flagOutro = @"(?:\s|\.|$)";  // non-capturing group of \s or . or $
