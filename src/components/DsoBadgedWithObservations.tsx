@@ -52,8 +52,14 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
   constructor(props: IDsoBadgedWithObservationsProps) {
     super(props);
 
+    let startExpanded = false;
+    const startExpandedWhenMaximumNumObservations = 2;
+    if (this.props.showObservations && this.props.dso.observations) {
+      startExpanded = this.props.dso.observations.length > 0 && this.props.dso.observations.length <= startExpandedWhenMaximumNumObservations;
+    }
+
     this.state = {
-      isExpanded: false
+      isExpanded: startExpanded
     };
   }
 
