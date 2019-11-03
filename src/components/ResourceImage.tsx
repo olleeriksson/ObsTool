@@ -110,7 +110,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
             const backgroundColor = this.props.backgroundColor && this.props.backgroundColor >= 255 ? "white" : "black";
             let imgSrc;
 
-            if (this.props.type === "sketch") {
+            if (this.props.type === "sketch" || this.props.type === "jot") {
                 const imageId = this.props.url;  // the google image id is stored in the url field
                 const driveMaxWidth = this.props.driveMaxWidth || "100";
                 const driveMaxHeight = this.props.driveMaxHeight || "100";

@@ -242,7 +242,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     }
 
     const images = this.state.resources && this.state.resources.length > 0
-      && this.state.resources.filter(r => r.type === "sketch" || r.type === "image") || [];
+      && this.state.resources.filter(r => r.type === "sketch" || r.type === "jot" || r.type === "image") || [];
 
     const links = this.state.resources && this.state.resources.length > 0
       && this.state.resources.filter(r => r.type === "link") || [];

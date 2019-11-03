@@ -403,6 +403,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                         >
                                             <FormControlLabel value="image" control={<Radio />} label="Image" />
                                             <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
+                                            <FormControlLabel value="jot" control={<Radio />} label="Jot" />
                                             <FormControlLabel value="link" control={<Radio />} label="Link" />
                                         </RadioGroup>
                                     </FormControl>
@@ -473,7 +474,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                     <TextField
                         autoFocus={true}
                         margin="dense"
-                        label={this.state.type === "sketch" ? "Relative Google Drive path for easier identification" : "Name"}
+                        label={(this.state.type === "sketch" || this.state.type === "jot") ? "Relative Google Drive path for easier identification" : "Name"}
                         type="text"
                         fullWidth={true}
                         onChange={this.handleChange("name")}
@@ -487,7 +488,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         margin="dense"
                         id="url"
                         name="url"
-                        label={this.state.type === "sketch" ? "Google Drive image id" : "Url"}
+                        label={(this.state.type === "sketch" || this.state.type === "jot") ? "Google Drive image id" : "Url"}
                         type="text"
                         fullWidth={true}
                         onChange={this.handleChange("url")}
