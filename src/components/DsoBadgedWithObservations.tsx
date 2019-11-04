@@ -148,7 +148,7 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
     //     );
     //   });
     //   observations = (
-    //     <Grid container={true} spacing={8} direction="column">
+    //     <Grid container={true} spacing={1} direction="column">
     //       {observationItems}
     //     </Grid>
     //   );

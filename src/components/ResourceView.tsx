@@ -37,10 +37,10 @@ const styles = (theme: Theme) => createStyles({
         justifyContent: "center",
     },
     formControl: {
-        margin: theme.spacing.unit,
+        margin: theme.spacing(1),
     },
     group: {
-        margin: `${theme.spacing.unit}px 0`,
+        margin: `${theme.spacing(1)}px 0`,
     },
     error: {
         color: "red"
@@ -383,14 +383,14 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
         return <div>
             <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
-            <Grid container={true} spacing={8} direction="column">
+            <Grid container={true} spacing={1} direction="column">
                 <Grid item={true} style={{ flex: 1 }}>
-                    <Grid container={true} spacing={8} direction="row">
+                    <Grid container={true} spacing={1} direction="row">
 
                         {this.state.displayMode === "right" && gridViewContainer}
 
                         <Grid item={true}>
-                            <Grid container={true} spacing={8} direction="column">
+                            <Grid container={true} spacing={1} direction="column">
                                 <Grid item={true}>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel >Type</FormLabel>
@@ -496,7 +496,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                     />
                 </Grid>
                 <Grid item={true} xs={12}>
-                    <Grid container={true} spacing={8} direction="row">
+                    <Grid container={true} spacing={1} direction="row">
                         <Grid item={true}>
                             <IconButton onClick={this.onClickDelete} >
                                 <DeleteIcon />

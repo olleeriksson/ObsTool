@@ -21,7 +21,7 @@ const styles = (theme: Theme) => createStyles({
     border: "1px dashed lightgray",
     margin: "0.5em",
     padding: "0.3em"
-    //padding: theme.spacing.unit * 1,
+    //padding: theme.spacing(1),
   },
   image: {
     border: 1,
@@ -124,7 +124,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
               </ButtonBase>
             </Grid>
             <Grid item={true} xs={12} sm={true}>
-              <Grid container={true} direction="column" spacing={16}>
+              <Grid container={true} direction="column" spacing={2}>
                 <Grid item={true} xs={true}>
                   <Typography variant="body2">
                     <a href={obsSessionUrl}>
@@ -133,7 +133,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
                       {obsSessionLocation}
                     </a>
                   </Typography>
-                  <Typography >
+                  <Typography variant="body2">
                     {this.props.observation.text}
                   </Typography>
                   {imageListTeaser}

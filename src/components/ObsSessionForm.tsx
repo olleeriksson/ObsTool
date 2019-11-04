@@ -19,8 +19,8 @@ const styles = (theme: Theme) => createStyles({
     flexWrap: "wrap",
   },
   formControl: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
     width: "95%",
   },
   textField: {
@@ -32,14 +32,15 @@ const styles = (theme: Theme) => createStyles({
     overflow: "hidden"  // gets rid of an annoying scroll bar in the report text form field
   },
   dateField: {
+    marginTop: theme.spacing(2),
     width: 200,
   },
   selectLocation: {
-    marginTop: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
     width: 300,
   },
   select: {
-    marginTop: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
     width: 100,
   },
   singleDsoContainer: {
@@ -199,7 +200,6 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={this.state.obsSession.date}
                 onChange={this.handleChange("date")}
                 className={classNames(classes.formControl, classes.dateField)}
-                margin="dense"
               />
               <SelectComponent
                 classes={classNames(classes.formControl, classes.selectLocation)}

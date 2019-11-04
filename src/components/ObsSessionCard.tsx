@@ -15,8 +15,8 @@ import { IObsSession } from "../types/Types";
 
 const styles = (theme: Theme) => createStyles({
   paper: {
-    margin: theme.spacing.unit * 1,
-    padding: theme.spacing.unit * 1,
+    margin: theme.spacing(1),
+    padding: theme.spacing(1),
   },
   mainRowItem: {
     flexGrow: 1,
@@ -24,10 +24,10 @@ const styles = (theme: Theme) => createStyles({
   mainRowContainer: {
     flexGrow: 1,
     maxWidth: "100%",
-    padding: theme.spacing.unit * 1,
+    padding: theme.spacing(1),
   },
   icon: {
-    padding: theme.spacing.unit * 1,
+    padding: theme.spacing(1),
   },
   header: {
     flexGrow: 1,
@@ -38,7 +38,7 @@ const styles = (theme: Theme) => createStyles({
   buttons: {
   },
   summary: {
-    padding: theme.spacing.unit * 1,
+    padding: theme.spacing(1),
   },
   expand: {
     transform: "rotate(0deg)",
@@ -128,9 +128,9 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
 
     return (
       <Paper className={classes.paper}>
-        <Grid container={true} spacing={8}>
+        <Grid container={true} spacing={1}>
           <Grid item={true} xs={12} className={classes.mainRowItem}>
-            <Grid container={true} spacing={8} className={classes.mainRowContainer}>
+            <Grid container={true} spacing={1} className={classes.mainRowContainer}>
               <Grid item={true}>
                 <div className={classes.icon}>
                   <Typography gutterBottom={true} variant="h4">
@@ -139,7 +139,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                 </div>
               </Grid>
               <Grid item={true} xs={12} sm={true} className={classes.header}>
-                <Grid container={true} direction="column" spacing={8}>
+                <Grid container={true} direction="column" spacing={1}>
                   <Grid item={true} xs={true}>
                     <Typography variant="subtitle1">
                       {this.props.obsSession.title && this.props.obsSession.title.toString()}

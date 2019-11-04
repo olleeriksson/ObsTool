@@ -115,7 +115,7 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Grid container={true} spacing={8} direction="row">
+                    <Grid container={true} spacing={1} direction="row">
                         <Grid item={true} style={{ flex: 1 }}>
                             &nbsp;
                         </Grid>

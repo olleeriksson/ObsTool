@@ -14,7 +14,7 @@ import Api from "../api/Api";
 
 const styles = (theme: Theme) => createStyles({
     root: {
-        marginTop: theme.spacing.unit * 3,
+        marginTop: theme.spacing(3),
         overflowX: "auto",
     },
     table: {
@@ -115,10 +115,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         const tableRows = rowsData.map(row => {
             return (
                 <TableRow key={row.key}>
-                    <TableCell padding="dense" component="th" scope="row">{row.text}</TableCell>
-                    <TableCell padding="dense" numeric={true}>{row.value}</TableCell>
-                    <TableCell padding="dense" component="th" scope="row">{row.text2}</TableCell>
-                    <TableCell padding="dense" numeric={true}>{row.value2}</TableCell>
+                    <TableCell size="small" component="th" scope="row">{row.text}</TableCell>
+                    <TableCell size="small" align="right">{row.value}</TableCell>
+                    <TableCell size="small" component="th" scope="row">{row.text2}</TableCell>
+                    <TableCell size="small" align="right">{row.value2}</TableCell>
                 </TableRow>
             );
         });
@@ -139,10 +139,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                     <Table className={classes.table} >
                         <TableHead>
                             <TableRow>
-                                <TableCell padding="dense">Statistics</TableCell>
-                                <TableCell padding="dense" numeric={true} />
-                                <TableCell padding="dense" />
-                                <TableCell padding="dense" numeric={true} />
+                                <TableCell size="small" >Statistics</TableCell>
+                                <TableCell size="small" align="right" />
+                                <TableCell size="small" />
+                                <TableCell size="small" align="right" />
                             </TableRow>
                         </TableHead>
                         <TableBody>

@@ -34,7 +34,7 @@ const styles = (theme: Theme) => createStyles({
         backgroundColor: theme.palette.background.paper,
     },
     header: {
-        padding: theme.spacing.unit * 2,
+        padding: theme.spacing(2),
     }
 });
 
@@ -353,7 +353,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         onChange={this.handleChange}
                         indicatorColor="primary"
                         textColor="primary"
-                        fullWidth={true}
                         centered={true}
                     >
                         <Tab label="Observation Form" />

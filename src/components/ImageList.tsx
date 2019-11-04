@@ -382,7 +382,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       <div>
         {resourceDialog}
 
-        <Grid container={true} spacing={8} direction="column">
+        <Grid container={true} spacing={1} direction="column">
           {imagesTitle}
           <GridList className={classes.gridList} cols={3.5}>
             {imageElements}

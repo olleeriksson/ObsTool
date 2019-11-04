@@ -2,15 +2,23 @@ import * as React from "react";
 import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 import CosmosIcon from "../cosmos.svg";
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import { createStyles, WithStyles, withStyles } from "@material-ui/core";
 
-export interface IDsoExtendedProps {
+export interface IDsoExtendedProps extends WithStyles<typeof styles> {
   id?: number;
   customObjectName?: string;
   error?: string;
   dso?: IDso;
 }
 
-export default class DsoExtended extends React.Component<IDsoExtendedProps> {
+const styles = (theme: Theme) => createStyles({
+  dsoExtended: {
+    marginLeft: "1.5em"
+  },
+});
+
+class DsoExtended extends React.Component<IDsoExtendedProps> {
   constructor(props: IDsoExtendedProps) {
     super(props);
   }
@@ -19,6 +27,8 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps> {
   }
 
   public render() {
+    const { classes } = this.props;
+
     if (this.props.error) {
       return (
         <Typography color="error" gutterBottom={true}>
@@ -31,7 +41,7 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps> {
 
         if (this.props.dso.name === "custom") {
           return (
-            <div className="dsoExtended">
+            <div className={classes.dsoExtended}>
               <Typography variant="subtitle1">
                 <img src={CosmosIcon} width="20" height="20" /> Custom object: {this.props.customObjectName}
               </Typography>
@@ -39,8 +49,8 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps> {
           );
         } else {
           return (
-            <div className="dsoExtended">
-              <Typography variant="caption" color="textSecondary" gutterBottom={true} style={{ marginLeft: "1.8em" }}>
+            <div className={classes.dsoExtended}>
+              <Typography variant="caption" color="textSecondary" gutterBottom={true}>
                 <strong>Type:</strong> {this.props.dso.type} &nbsp;
                 <strong>Const:</strong> {this.props.dso.con} &nbsp;
                 <strong>Mag:</strong> {this.props.dso.mag} &nbsp;
@@ -63,3 +73,5 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps> {
     }
   }
 }
+
+export default withStyles(styles)(DsoExtended);

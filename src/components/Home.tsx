@@ -20,7 +20,7 @@ const styles = (theme: Theme) => createStyles({
         maxWidth: 600,
         margin: "0 auto",
         verticalAlign: "center",
-        padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`,
+        padding: `${theme.spacing(8)}px 0 ${theme.spacing(6)}px`,
     },
     cardGridItem: {
         maxWidth: 300,
@@ -29,7 +29,7 @@ const styles = (theme: Theme) => createStyles({
     },
     cardActions: {
         [theme.breakpoints.up("sm")]: {
-            paddingBottom: theme.spacing.unit * 2,
+            paddingBottom: theme.spacing(2),
         },
     },
 });
@@ -75,7 +75,7 @@ class Home extends React.Component<IHomeProps> {
                 </Grid>
             </Grid>
             {/* First/second row */}
-            <Grid container={true} spacing={40} justify="center">
+            <Grid container={true} spacing={5} justify="center">
                 <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>

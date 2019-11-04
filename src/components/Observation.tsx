@@ -23,7 +23,7 @@ const styles = (theme: Theme) => createStyles({
   root: {
     flexGrow: 1,
     maxWidth: "100 %",
-    padding: theme.spacing.unit * 1,
+    padding: theme.spacing(1),
   },
   image: {
     border: 1,
@@ -127,9 +127,9 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
     return (
       <Paper className={classes.root}>
-        <Grid container={true} spacing={16} direction="column">
+        <Grid container={true} spacing={2} direction="column">
           <Grid item={true} xs={12}>
-            <Grid container={true} spacing={16} wrap="nowrap">
+            <Grid container={true} spacing={2} wrap="nowrap">
               <Grid item={true}>
                 <ButtonBase className={classes.image}>
                   <Typography gutterBottom={true} variant="h3">
@@ -138,11 +138,11 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                 </ButtonBase>
               </Grid>
               <Grid item={true} xs={11} sm={true}>
-                <Grid container={true} direction="column" spacing={16}>
+                <Grid container={true} direction="column" spacing={2}>
                   <Grid item={true} xs={true}>
                     {dsoObjects}
                     <div style={{ marginTop: "1em", marginBottom: "1em" }}>
-                      <Typography gutterBottom={true}>
+                      <Typography variant="body2" gutterBottom={true}>
                         {this.props.observation.text}
                       </Typography>
                     </div>

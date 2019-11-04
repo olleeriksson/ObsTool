@@ -20,11 +20,11 @@ const styles = (theme: Theme) => createStyles({
     root: {
     },
     textfieldPaper: {
-        marginTop: theme.spacing.unit * 2,
-        padding: theme.spacing.unit * 2,
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(2),
     },
     textfield: {
-        margin: theme.spacing.unit * 1,
+        margin: theme.spacing(1),
         width: "95%"
     },
     badge: {
@@ -149,7 +149,7 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
 
             searchResultPaper = (
                 <Paper className={classes.textfieldPaper} elevation={1}>
-                    <Grid container={true} spacing={24} direction="column">
+                    <Grid container={true} spacing={3} direction="column">
                         {searchResult}
                     </Grid>
                     {moreHits}
@@ -158,7 +158,7 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
         }
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={40} justify="center" direction="row">
+            <Grid container={true} spacing={5} justify="center" direction="row">
                 <Grid item={true} xs={12} sm={8}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         <TextField

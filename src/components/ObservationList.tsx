@@ -42,7 +42,7 @@ class ObservationList extends React.Component<IObservationListProps> {
     if (this.props.observations) {
       if (this.props.observations.length > 0) {
         return <div className="observationList">
-          <Grid container={true} direction="column" spacing={8}>
+          <Grid container={true} direction="column" spacing={1}>
             {observations}
           </Grid>
         </div>;

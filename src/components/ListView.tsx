@@ -19,18 +19,18 @@ import Api from "../api/Api";
 
 const styles = (theme: Theme) => createStyles({
     root: {
-        marginTop: theme.spacing.unit * 1,
+        marginTop: theme.spacing(1),
     },
     column: {
-        marginTop: theme.spacing.unit * 2,
+        marginTop: theme.spacing(2),
         // padding: "1em !important",
     },
     sessionList: {
-        marginTop: theme.spacing.unit * 2,
+        marginTop: theme.spacing(2),
     },
     observationPaper: {
-        marginTop: theme.spacing.unit * 2,
-        padding: theme.spacing.unit * 2,
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(2),
     },
 });
 
@@ -110,7 +110,7 @@ class ListView extends React.Component<IListViewProps> {
         }
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={40} alignItems="flex-start">
+            <Grid container={true} spacing={5} alignItems="flex-start">
                 <Grid item={true} xs={12} sm={4} className={classes.column}>
                     <Typography variant="h6" align="center" color="textPrimary" component="p">
                         <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" /> Sessions

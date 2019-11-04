@@ -85,16 +85,18 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
                   followUp={this.props.dso.dsoExtra && this.props.dso.dsoExtra.followUp}
                 />
               </Typography>
-              <Typography variant="caption" color="textSecondary" gutterBottom={true} style={{ marginLeft: "1.8em" }}>
-                <strong>Type:</strong> {this.props.dso.type} &nbsp;
-                <strong>Const:</strong> {this.props.dso.con} &nbsp;
-                <strong>Mag:</strong> {this.props.dso.mag} &nbsp;
-                <strong>SB:</strong> {this.props.dso.sb} &nbsp;
-                <strong>Class:</strong> {this.props.dso.class} &nbsp;
-                <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
-                <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
-                <strong>Notes:</strong> {this.props.dso.notes} &nbsp;
-              </Typography>
+              <div style={{ marginLeft: "1.5em" }}>
+                <Typography variant="caption" color="textSecondary" gutterBottom={true}>
+                  <strong>Type:</strong> {this.props.dso.type} &nbsp;
+                  <strong>Const:</strong> {this.props.dso.con} &nbsp;
+                  <strong>Mag:</strong> {this.props.dso.mag} &nbsp;
+                  <strong>SB:</strong> {this.props.dso.sb} &nbsp;
+                  <strong>Class:</strong> {this.props.dso.class} &nbsp;
+                  <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
+                  <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
+                  <strong>Notes:</strong> {this.props.dso.notes} &nbsp;
+                </Typography>
+              </div>
             </div>
           );
         }

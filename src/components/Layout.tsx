@@ -29,18 +29,18 @@ const styles = (theme: Theme) => createStyles({
     },
     layout: {
         width: "auto",
-        marginLeft: theme.spacing.unit * 3,
-        marginRight: theme.spacing.unit * 3,
-        [theme.breakpoints.up(1300 + theme.spacing.unit * 3 * 2)]: {
+        marginLeft: theme.spacing(3),
+        marginRight: theme.spacing(3),
+        [theme.breakpoints.up(1300 + theme.spacing(6))]: {
             width: 1300,
             marginLeft: "auto",
             marginRight: "auto",
         },
     },
     footer: {
-        marginTop: theme.spacing.unit * 8,
+        marginTop: theme.spacing(8),
         borderTop: `1px solid ${theme.palette.divider}`,
-        padding: `${theme.spacing.unit * 6}px 0`,
+        padding: `${theme.spacing(6)}px 0`,
     },
 });
 
@@ -99,7 +99,7 @@ class Layout extends React.Component<ILayoutProps> {
             </main>
             {/* Footer */}
             <footer className={classNames(classes.footer, classes.layout)}>
-                <Grid container={true} spacing={32} direction="column" justify="space-evenly">
+                <Grid container={true} spacing={4} direction="column" justify="space-evenly">
                     <Grid item={true} xs={true}>
                         <Typography variant="subtitle1" align="center" color="textSecondary">
                             Copyright Olle Eriksson

@@ -14,11 +14,11 @@ const styles = (theme: Theme) => createStyles({
     root: {
     },
     textfieldPaper: {
-        marginTop: theme.spacing.unit * 2,
-        padding: theme.spacing.unit * 2,
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(2),
     },
     textfield: {
-        margin: theme.spacing.unit * 1,
+        margin: theme.spacing(1),
         width: "95%"
     },
     badge: {
@@ -87,7 +87,7 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
 
         if (this.state.isLoading) {
             return (
-                <Grid container={true} spacing={40} justify="center" direction="row">
+                <Grid container={true} spacing={5} justify="center" direction="row">
                     <Grid item={true} xs={12} sm={7} justify="center" >
                         <Typography variant="caption" color="textSecondary" gutterBottom={true}>
                             <CircularProgress />
@@ -106,7 +106,7 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
                 <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                     All observed objects
                 </Typography>
-                <Grid container={true} spacing={40} justify="center" direction="row">
+                <Grid container={true} spacing={5} justify="center" direction="row">
                     <Grid item={true} xs={12} sm={7}>
                         <Grid container={true} spacing={0} justify="center" direction="column">
                             {obsList}

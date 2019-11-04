@@ -8,15 +8,15 @@ import ObsSessionPage from "./ObsSessionPage";
 
 const styles = (theme: Theme) => createStyles({
     root: {
-        marginTop: theme.spacing.unit * 1,
+        marginTop: theme.spacing(1),
     },
     column: {
-        marginTop: theme.spacing.unit * 2,
+        marginTop: theme.spacing(1),
         // padding: "1em !important",
     },
     observationPaper: {
-        marginTop: theme.spacing.unit * 2,
-        padding: theme.spacing.unit * 2,
+        marginTop: theme.spacing(1),
+        padding: theme.spacing(1),
     },
 });
 
@@ -37,7 +37,7 @@ class SingleObsSessionView extends React.Component<ISingleObsSessionViewProps> {
         const { classes } = this.props;
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={40} justify="center">
+            <Grid container={true} spacing={5} justify="center">
                 <Grid item={true} xs={12} sm={8} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
                         <ObsSessionPage obsSessionId={this.props.match.params.obsSessionId} />
