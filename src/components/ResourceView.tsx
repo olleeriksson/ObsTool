@@ -392,8 +392,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         <Grid item={true}>
                             <Grid container={true} spacing={8} direction="column">
                                 <Grid item={true}>
-                                    <FormControl component="fieldset" className={classes.formControl}>
-                                        <FormLabel component="legend">Type</FormLabel>
+                                    <FormControl className={classes.formControl}>
+                                        <FormLabel >Type</FormLabel>
                                         <RadioGroup
                                             aria-label="Type"
                                             name="type"
@@ -409,8 +409,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                     </FormControl>
                                 </Grid>
                                 <Grid item={true}>
-                                    <FormControl component="fieldset" className={classes.formControl}>
-                                        <FormLabel component="legend">White background</FormLabel>
+                                    <FormControl className={classes.formControl}>
+                                        <FormLabel>White background</FormLabel>
                                         <Checkbox
                                             checked={this.state.backgroundColor >= 255}
                                             onChange={this.handleBackgroundCheckboxChange}
@@ -420,8 +420,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                     </FormControl>
                                 </Grid>
                                 <Grid item={true}>
-                                    <FormControl component="fieldset" className={classes.formControl}>
-                                        <FormLabel component="legend">Inverted</FormLabel>
+                                    <FormControl className={classes.formControl}>
+                                        <FormLabel>Inverted</FormLabel>
                                         <Checkbox
                                             checked={this.state.inverted}
                                             onChange={this.handleInvertedCheckboxChange}
@@ -431,8 +431,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                     </FormControl>
                                 </Grid>
                                 <Grid item={true}>
-                                    <FormControl component="fieldset" className={classes.formControl}>
-                                        <FormLabel component="legend">Rotation ({Math.round(this.state.rotation)} deg)</FormLabel>
+                                    <FormControl className={classes.formControl}>
+                                        <FormLabel>Rotation ({Math.round(this.state.rotation)} deg)</FormLabel>
                                         <div className={classes.sliderContainer}>
                                             <Slider
                                                 className={classes.slider}
@@ -448,8 +448,8 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                     </FormControl>
                                 </Grid>
                                 <Grid item={true}>
-                                    <FormControl component="fieldset" className={classes.formControl}>
-                                        <FormLabel component="legend">Zoom Level ({Math.round(this.state.zoomLevel)}%)</FormLabel>
+                                    <FormControl className={classes.formControl}>
+                                        <FormLabel>Zoom Level ({Math.round(this.state.zoomLevel)}%)</FormLabel>
                                         <div className={classes.sliderContainer}>
                                             <Slider
                                                 className={classes.slider}
