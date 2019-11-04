@@ -133,7 +133,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
             <Grid container={true} spacing={8} className={classes.mainRowContainer}>
               <Grid item={true}>
                 <div className={classes.icon}>
-                  <Typography gutterBottom={true} variant="display1">
+                  <Typography gutterBottom={true} variant="h4">
                     <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
                   </Typography>
                 </div>
@@ -141,7 +141,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
               <Grid item={true} xs={12} sm={true} className={classes.header}>
                 <Grid container={true} direction="column" spacing={8}>
                   <Grid item={true} xs={true}>
-                    <Typography variant="subheading">
+                    <Typography variant="subtitle1">
                       {this.props.obsSession.title && this.props.obsSession.title.toString()}
                     </Typography>
                     <Typography variant="caption">

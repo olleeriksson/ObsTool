@@ -80,7 +80,7 @@ class Layout extends React.Component<ILayoutProps> {
             <CssBaseline />
             <AppBar position="static" color="default" className={classes.appBar}>
                 <Toolbar className={classes.toolbar}>
-                    <Typography variant="display1" color="inherit" noWrap={false} className={classes.toolbarTitle}>
+                    <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
                         <img src={logo} className="logo-appbar" alt="logo" /> ObsTool
                     </Typography>
                     <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>
@@ -101,7 +101,7 @@ class Layout extends React.Component<ILayoutProps> {
             <footer className={classNames(classes.footer, classes.layout)}>
                 <Grid container={true} spacing={32} direction="column" justify="space-evenly">
                     <Grid item={true} xs={true}>
-                        <Typography variant="subheading" align="center" color="textSecondary">
+                        <Typography variant="subtitle1" align="center" color="textSecondary">
                             Copyright Olle Eriksson
                         </Typography>
                     </Grid>

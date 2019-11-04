@@ -130,7 +130,7 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
 
       observationsSection = (
         <div>
-          <Typography gutterBottom={true} variant="subheading">
+          <Typography gutterBottom={true} variant="subtitle1">
             <strong>Observations</strong>
           </Typography>
           {observations}

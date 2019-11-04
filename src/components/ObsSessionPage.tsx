@@ -329,15 +329,15 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                             <Grid item={true} xs={10}>
                                 <Grid container={true} direction="row" justify="center">
                                     <Grid item={true}>
-                                        <Typography gutterBottom={true} variant="display1">
+                                        <Typography gutterBottom={true} variant="h4">
                                             <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
                                         </Typography>
                                     </Grid>
                                     <Grid item={true}>
-                                        <Typography variant="title" align="center">
+                                        <Typography variant="h6" align="center">
                                             {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
                                         </Typography>
-                                        <Typography variant="subheading" align="center">
+                                        <Typography variant="subtitle1" align="center">
                                             {this.state.obsSession ? this.state.obsSession.date : ""}
                                         </Typography>
                                     </Grid>

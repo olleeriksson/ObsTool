@@ -19,7 +19,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import DeleteDialog from "./DeleteDialog";
 import Grid from "@material-ui/core/Grid";
 import ResourceImage from "./ResourceImage";
-import Slider from "@material-ui/lab/Slider";
+import Slider from "@material-ui/core/Slider";
 import Checkbox from "@material-ui/core/Checkbox";
 
 const styles = (theme: Theme) => createStyles({

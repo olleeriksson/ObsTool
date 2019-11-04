@@ -58,10 +58,10 @@ class Home extends React.Component<IHomeProps> {
                         <Typography align="center" gutterBottom={true}>
                             <img src={logo} className="App-logo" alt="logo" />
                         </Typography>
-                        <Typography variant="display1" align="center" color="textPrimary" gutterBottom={true}>
+                        <Typography variant="h4" align="center" color="textPrimary" gutterBottom={true}>
                             <strong>ObsTool</strong>
                         </Typography>
-                        <Typography variant="title" align="center" color="textSecondary" component="p">
+                        <Typography variant="h6" align="center" color="textSecondary" component="p">
                             A tool for recording and keeping track of deepsky observations
                         </Typography>
                     </div>
@@ -79,10 +79,10 @@ class Home extends React.Component<IHomeProps> {
                 <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
-                            <Typography variant="title" color="textSecondary" align="center">
+                            <Typography variant="h6" color="textSecondary" align="center">
                                 <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observations
                             </Typography>
-                            <Typography variant="subheading" align="center">
+                            <Typography variant="subtitle1" align="center">
                                 View all recorded observations
                             </Typography>
                         </CardContent>
@@ -96,10 +96,10 @@ class Home extends React.Component<IHomeProps> {
                 <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
-                            <Typography variant="title" color="textSecondary" align="center">
+                            <Typography variant="h6" color="textSecondary" align="center">
                                 <FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions
                             </Typography>
-                            <Typography variant="subheading" align="center">
+                            <Typography variant="subtitle1" align="center">
                                 List observation sessions
                             </Typography>
                         </CardContent>
@@ -113,10 +113,10 @@ class Home extends React.Component<IHomeProps> {
                 <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
-                            <Typography variant="title" color="textSecondary" align="center">
+                            <Typography variant="h6" color="textSecondary" align="center">
                                 <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
                             </Typography>
-                            <Typography variant="subheading" align="center">
+                            <Typography variant="subtitle1" align="center">
                                 Add a new observation session
                             </Typography>
                         </CardContent>

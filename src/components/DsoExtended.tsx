@@ -69,7 +69,7 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
         if (this.props.dso.name === "custom") {
           return (
             <div className="dsoExtended">
-              <Typography variant="subheading">
+              <Typography variant="subtitle1">
                 <img src={CosmosIcon} width="20" height="20" /> Custom object: {this.props.customObjectName}
               </Typography>
             </div>

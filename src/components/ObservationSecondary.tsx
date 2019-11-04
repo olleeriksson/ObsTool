@@ -118,7 +118,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
           <Grid container={true} spacing={0} direction="row">
             <Grid item={true}>
               <ButtonBase className={classes.image}>
-                <Typography gutterBottom={false} variant="title">
+                <Typography gutterBottom={false} variant="h6">
                   <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                 </Typography>
               </ButtonBase>

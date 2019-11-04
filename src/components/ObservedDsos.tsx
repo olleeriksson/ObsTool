@@ -103,7 +103,7 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
             );
         } else {
             return <div className={classes.root}>
-                <Typography variant="title" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
+                <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                     All observed objects
                 </Typography>
                 <Grid container={true} spacing={40} justify="center" direction="row">

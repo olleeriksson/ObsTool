@@ -94,7 +94,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
       expandedGridItem = (
         <Grid item={true} xs={12}>
-          <Typography gutterBottom={true} variant="subheading">
+          <Typography gutterBottom={true} variant="subtitle1">
             <strong>Other observations</strong>
           </Typography>
           {otherObservations}
@@ -132,7 +132,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
             <Grid container={true} spacing={16} wrap="nowrap">
               <Grid item={true}>
                 <ButtonBase className={classes.image}>
-                  <Typography gutterBottom={true} variant="display2">
+                  <Typography gutterBottom={true} variant="h3">
                     <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                   </Typography>
                 </ButtonBase>

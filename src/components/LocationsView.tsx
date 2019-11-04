@@ -251,7 +251,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
 
         const locations = this.state.locations.map(location => (
             <Grid key={location.id} item={true} xs={12}>
-                <Typography variant="subheading" gutterBottom={true}>
+                <Typography variant="subtitle1" gutterBottom={true}>
                     {location.name}
                     <a href="" onClick={this.handleClickResource(location.id)}>
                         <EditIcon style={{ fontSize: 16, marginLeft: "1em" }} />

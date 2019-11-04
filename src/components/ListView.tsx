@@ -103,7 +103,7 @@ class ListView extends React.Component<IListViewProps> {
             );
         } else { // empty view
             rightSideView = (
-                <Typography variant="title" align="center" color="textPrimary" component="p">
+                <Typography variant="h6" align="center" color="textPrimary" component="p">
                     <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" /> Observations
                 </Typography>
             );
@@ -112,7 +112,7 @@ class ListView extends React.Component<IListViewProps> {
         return <div className={classes.root}>
             <Grid container={true} spacing={40} alignItems="flex-start">
                 <Grid item={true} xs={12} sm={4} className={classes.column}>
-                    <Typography variant="title" align="center" color="textPrimary" component="p">
+                    <Typography variant="h6" align="center" color="textPrimary" component="p">
                         <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" /> Sessions
                     </Typography>
                     {leftSideView}
