@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlServer.Management.Smo;
+//using Microsoft.SqlServer.Management.Common;
+//using Microsoft.SqlServer.Management.Smo;
 
 namespace ObsTool.Entities
 {
@@ -24,9 +24,9 @@ namespace ObsTool.Entities
                     //string scriptContent = scriptContent.Replace("[databaseOldnameWhileSriptgenerate]", strdbname);
                     SqlConnection connection = new SqlConnection(Startup.Configuration["Db:ConnectionString"]);
                     connection.Open();
-                    Server server = new Server(new ServerConnection(connection));
-                    server.ConnectionContext.ExecuteNonQuery(scriptContent);
-                    //context.Database.ExecuteSqlCommand(File.ReadAllText(sqlFile));
+                    //Server server = new Server(new ServerConnection(connection));
+                    //server.ConnectionContext.ExecuteNonQuery(scriptContent);
+                    // // context.Database.ExecuteSqlCommand(File.ReadAllText(sqlFile));
                 }
             }
 

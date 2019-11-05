@@ -45,7 +45,12 @@ namespace ObsTool
             services.AddMvc();
             services.AddCors();
 
-            services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
+            // SQL Server
+            //services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
+
+            // Sqlite
+            services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlite(Configuration["Db:ConnectionString"]));
+
             services.AddScoped<ObsSessionsRepo>();
             services.AddScoped<LocationsRepo>();
             services.AddScoped<IDsoRepo, DsoRepo>();
