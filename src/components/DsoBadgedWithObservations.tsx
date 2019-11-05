@@ -42,6 +42,7 @@ interface IDsoBadgedWithObservationsProps extends WithStyles<typeof styles> {
   dso: IDso;
   showBadge: boolean;
   showObservations: boolean;
+  startWithObservationsExpanded: boolean;
 }
 
 interface IDynamicDsoLabelState {
@@ -52,14 +53,8 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
   constructor(props: IDsoBadgedWithObservationsProps) {
     super(props);
 
-    let startExpanded = false;
-    const startExpandedWhenMaximumNumObservations = 2;
-    if (this.props.showObservations && this.props.dso.observations) {
-      startExpanded = this.props.dso.observations.length > 0 && this.props.dso.observations.length <= startExpandedWhenMaximumNumObservations;
-    }
-
     this.state = {
-      isExpanded: startExpanded
+      isExpanded: this.props.startWithObservationsExpanded
     };
   }
 

@@ -140,9 +140,11 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
                     </Grid>
                 );
             } else {
+                // Start with observations expanded when there are only 1 match
+                const startWithObservationsExpanded = this.state.dsoList.length === 1;
                 searchResult = this.state.dsoList.map(dso => (
                     <Grid key={dso.id} item={true} xs={12}>
-                        <DsoBadgedWithObservations dso={dso} showBadge={true} showObservations={true} />
+                        <DsoBadgedWithObservations dso={dso} showBadge={true} showObservations={true} startWithObservationsExpanded={startWithObservationsExpanded} />
                     </Grid>
                 ));
             }

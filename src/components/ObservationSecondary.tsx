@@ -20,7 +20,7 @@ const styles = (theme: Theme) => createStyles({
   root: {
     border: "1px dashed lightgray",
     margin: "0.5em",
-    padding: "0.3em"
+    paddingTop: "0.3em"
     //padding: theme.spacing(1),
   },
   image: {
@@ -40,9 +40,6 @@ const styles = (theme: Theme) => createStyles({
       duration: theme.transitions.duration.shortest,
     }),
     marginLeft: "auto",
-    [theme.breakpoints.up("sm")]: {
-      marginRight: -8,
-    },
   },
   expandOpen: {
     transform: "rotate(180deg)",

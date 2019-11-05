@@ -34,9 +34,6 @@ function renderInputComponent(inputProps: any) {
             ref(node);
             inputRef(node);
         },
-        classes: {
-            input: classes.input,
-        },
     };
 
     return (
@@ -53,7 +50,7 @@ function renderSuggestion(suggestion: ISuggestion, param: Autosuggest.RenderSugg
     if (suggestion.dso) {
         return (
             <MenuItem selected={isHighlighted} component="div">
-                <DsoBadgedWithObservations dso={suggestion.dso} showBadge={true} showObservations={false} />
+                <DsoBadgedWithObservations dso={suggestion.dso} showBadge={true} showObservations={false} startWithObservationsExpanded={false} />
             </MenuItem>
         );
     } else {
@@ -93,9 +90,6 @@ const styles = (theme: Theme) => createStyles({
         padding: 0,
         listStyleType: "none",
     },
-    input: {
-        width: 100
-    }
 });
 
 interface ISearchInputProps extends WithStyles<typeof styles> {
