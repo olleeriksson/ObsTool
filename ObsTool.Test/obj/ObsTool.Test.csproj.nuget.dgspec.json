@@ -21,14 +21,14 @@
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp2.1"
+          "netcoreapp2.2"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp2.1": {
+          "netcoreapp2.2": {
             "projectReferences": {
               "C:\\Users\\Olle\\source\\repos\\ObsToolApi\\ObsTool\\ObsTool.csproj": {
                 "projectPath": "C:\\Users\\Olle\\source\\repos\\ObsToolApi\\ObsTool\\ObsTool.csproj"
@@ -43,7 +43,7 @@
         }
       },
       "frameworks": {
-        "netcoreapp2.1": {
+        "netcoreapp2.2": {
           "dependencies": {
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
@@ -52,7 +52,7 @@
             "Microsoft.NETCore.App": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[2.1.0, )",
+              "version": "[2.2.0, )",
               "autoReferenced": true
             },
             "NUnit": {
@@ -95,14 +95,14 @@
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp2.1"
+          "netcoreapp2.2"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp2.1": {
+          "netcoreapp2.2": {
             "projectReferences": {}
           }
         },
@@ -113,7 +113,7 @@
         }
       },
       "frameworks": {
-        "netcoreapp2.1": {
+        "netcoreapp2.2": {
           "dependencies": {
             "AutoMapper": {
               "target": "Package",
@@ -123,9 +123,11 @@
               "target": "Package",
               "version": "[7.0.0, )"
             },
-            "Microsoft.AspNetCore.All": {
+            "Microsoft.AspNetCore.App": {
+              "suppressParent": "All",
               "target": "Package",
-              "version": "[2.0.8, )"
+              "version": "[2.2.0, )",
+              "autoReferenced": true
             },
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
@@ -134,16 +136,20 @@
             "Microsoft.NETCore.App": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[2.1.0, )",
+              "version": "[2.2.0, )",
               "autoReferenced": true
             },
             "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
               "target": "Package",
-              "version": "[2.0.3, )"
+              "version": "[2.2.4, )"
             },
             "NLog.Extensions.Logging": {
               "target": "Package",
-              "version": "[1.6.1, )"
+              "version": "[1.5.0, )"
+            },
+            "Nlog.Web.AspNetCore": {
+              "target": "Package",
+              "version": "[4.8.2, )"
             },
             "moq": {
               "target": "Package",

@@ -51,7 +51,7 @@ namespace ObsTool
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddCors();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -84,7 +84,8 @@ namespace ObsTool
                 app.UseHsts();
             }
 
-            loggerFactory.AddNLog();
+            // Removed for 2.1
+            //loggerFactory.AddNLog();
 
             // New in 2.1 but I disabled it
             //app.UseHttpsRedirection();
