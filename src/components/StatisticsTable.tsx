@@ -1,6 +1,6 @@
 import * as React from "react";
 import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
+import { WithStyles, createStyles, Typography } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Table from "@material-ui/core/Table";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -11,10 +11,16 @@ import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import { IStatistics } from "../types/Types";
 import Api from "../api/Api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const styles = (theme: Theme) => createStyles({
     root: {
+        margin: "auto",
         marginTop: theme.spacing(3),
+        minHeight: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         overflowX: "auto",
     },
     table: {
@@ -125,13 +131,20 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
 
         if (this.state.isLoading) {
             return (
-                <div>
-                    <CircularProgress /> Loading statistics...
-              </div>
+                <Paper className={classes.root}>
+                    <CircularProgress className="faSpaceAfter" /> Loading...
+                </Paper>
             );
         } else if (this.state.isError) {
             return (
-                <p><strong>Error!</strong></p>
+                <Paper className={classes.root}>
+                    <p><strong>
+                        <Typography variant="subtitle1" align="center" color="error">
+                            <FontAwesomeIcon icon="exclamation-triangle" style={{ color: "red" }} className="faSpaceAfter" />
+                            Server is not responding!
+                        </Typography>
+                    </strong></p>
+                </Paper>
             );
         } else {
             return (
