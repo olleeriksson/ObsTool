@@ -14,12 +14,15 @@ using Microsoft.Extensions.Options;
 using NLog.Extensions.Logging;
 using ObsTool.Utils;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ObsTool
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env) // IConfiguration configuration) // old
+        // Old old:
+        //public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
             string environment = env.EnvironmentName;
             var builder = new ConfigurationBuilder()
@@ -33,9 +36,13 @@ namespace ObsTool
                 //.AddJsonFile("appsettings." + environment + ".json")
                 .AddEnvironmentVariables();
 
-            Configuration = builder.Build();
-
+            // Old old:
             //Configuration = configuration; // old
+
+            // Old 2.0
+            //Configuration = builder.Build();
+
+            Configuration = configuration;
         }
 
         public static IConfiguration Configuration { get; set; }
@@ -43,7 +50,8 @@ namespace ObsTool
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddCors();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -70,8 +78,16 @@ namespace ObsTool
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                // New in 2.1 but I disabled it
+                app.UseHsts();
+            }
 
             loggerFactory.AddNLog();
+
+            // New in 2.1 but I disabled it
+            //app.UseHttpsRedirection();
 
             app.UseCors(options => options.WithOrigins(Configuration["CorsAllowedOrigins"])
                 .AllowAnyMethod()

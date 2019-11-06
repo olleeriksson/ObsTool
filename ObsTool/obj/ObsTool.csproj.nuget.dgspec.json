@@ -49,9 +49,15 @@
               "target": "Package",
               "version": "[7.0.0, )"
             },
-            "Microsoft.AspNetCore.All": {
+            "Microsoft.AspNetCore.App": {
+              "suppressParent": "All",
               "target": "Package",
-              "version": "[2.0.8, )"
+              "version": "[2.1.1, )",
+              "autoReferenced": true
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[2.2.6, )"
             },
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",

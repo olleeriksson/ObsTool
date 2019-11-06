@@ -11,16 +11,16 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.6" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.6" />
     <PackageReference Include="moq" Version="4.13.1" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.6.1" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!--From 2.0<ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <Content Update="appsettings.Development.json">

@@ -15,15 +15,14 @@ namespace ObsTool
         public static void Main(string[] args)
         {
             // Old 2.0
-            BuildWebHost(args).Run();
+            //BuildWebHost(args).Run();
 
             // 2.1
-            //CreateWebHostBuilder(args).Build().Run();
+            CreateWebHostBuilder(args).Build().Run();
         }
 
-        public static IWebHost BuildWebHost(string[] args) =>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+                .UseStartup<Startup>();
     }
 }
