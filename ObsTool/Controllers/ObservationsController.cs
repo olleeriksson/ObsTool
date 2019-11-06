@@ -19,20 +19,22 @@ namespace ObsTool.Controllers
     [Route("api/")]
     public class ObservationsController : Controller
     {
-        private ILogger<ObservationsController> _logger;
+        private readonly ILogger<ObservationsController> _logger;
         private ObsSessionsRepo _obsSessionsRepository;
         private ObservationsRepo _observationsRepo;
         private DsoObservationsRepo _dsoObservationsRepo;
         private ObservationsService _observationsService;
+        private readonly IMapper _mapper;
 
         public ObservationsController(ILogger<ObservationsController> logger, MainDbContext mainDbContext, ObsSessionsRepo obsSessionRepository, 
-            ObservationsRepo observationsRepo, DsoObservationsRepo dsoObservationsRepo, ObservationsService observationsService)
+            ObservationsRepo observationsRepo, DsoObservationsRepo dsoObservationsRepo, ObservationsService observationsService, IMapper mapper)
         {
             _logger = logger;
             _obsSessionsRepository = obsSessionRepository;
             _observationsRepo = observationsRepo;
             _dsoObservationsRepo = dsoObservationsRepo;
             _observationsService = observationsService;
+            _mapper = mapper;
         }
 
         [HttpGet("observations/", Name = "GetAllForDsos")]
@@ -68,7 +70,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            IEnumerable<ObservationDto> observationDto = Mapper.Map<IEnumerable<ObservationDto>>(obsSession.Observations);
+            IEnumerable<ObservationDto> observationDto = _mapper.Map<IEnumerable<ObservationDto>>(obsSession.Observations);
             return Ok(observationDto);
         }
 
@@ -81,7 +83,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            ObservationDto observationDto = Mapper.Map<ObservationDto>(observation);
+            ObservationDto observationDto = _mapper.Map<ObservationDto>(observation);
             return Ok(observationDto);
         }
 
@@ -94,7 +96,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            DsoObservationDto dsoObservationDto = Mapper.Map<DsoObservationDto>(dsoObservation);
+            DsoObservationDto dsoObservationDto = _mapper.Map<DsoObservationDto>(dsoObservation);
             return Ok(dsoObservationDto);
         }
 

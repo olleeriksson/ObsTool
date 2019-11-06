@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NLog.Extensions.Logging;
 using ObsTool.Utils;
+using AutoMapper;
 
 namespace ObsTool
 {
@@ -44,6 +45,7 @@ namespace ObsTool
         {
             services.AddMvc();
             services.AddCors();
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // SQL Server
             //services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
@@ -68,30 +70,6 @@ namespace ObsTool
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            AutoMapper.Mapper.Initialize(cfg =>
-            {
-                // disabling because the full ObsSession object gives a recursive problem when asking for a dso's observations
-                cfg.CreateMap<Entities.DsoObservation, Models.DsoObservationDto>();
-                cfg.CreateMap<Entities.ObsSession, Models.ObsSessionDto>();
-                cfg.CreateMap<Entities.ObsSession, Models.ObsSessionDtoSimple>();
-                cfg.CreateMap<Models.ObsSessionDto, Entities.ObsSession>();
-                cfg.CreateMap<Models.ObsSessionDtoForUpdate, Entities.ObsSession>();
-                cfg.CreateMap<Models.ObsSessionDtoForCreation, Entities.ObsSession>();
-                cfg.CreateMap<Entities.Location, Models.LocationDto>();
-                cfg.CreateMap<Models.LocationDto, Entities.Location>();
-                cfg.CreateMap<Models.LocationDtoForCreation, Entities.Location>();
-                cfg.CreateMap<Models.LocationDtoForUpdate, Entities.Location>();
-                cfg.CreateMap<Entities.Dso, Models.DsoDto>();
-                cfg.CreateMap<Entities.Observation, Models.ObservationDto>();
-                cfg.CreateMap<Models.ObservationDto, Entities.Observation>();
-                cfg.CreateMap<Entities.ObsResource, Models.ObsResourceDto>();
-                cfg.CreateMap<Models.ObsResourceDto, Entities.ObsResource>();
-                cfg.CreateMap<Models.ObsResourceDtoForCreationAndUpdate, Entities.ObsResource>();
-                cfg.CreateMap<Entities.DsoExtra, Models.DsoExtraDto>();
-                cfg.CreateMap<Models.DsoExtraDto, Entities.DsoExtra>();
-            });
-            //AutoMapper.Mapper.AssertConfigurationIsValid();
 
             loggerFactory.AddNLog();
 

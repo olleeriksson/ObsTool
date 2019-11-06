@@ -17,11 +17,13 @@ namespace ObsTool.Controllers
     {
         private LocationsRepo _locationsRepository;
         private ObsSessionsRepo _obsSessionsRepository;
+        private readonly IMapper _mapper;
 
-        public LocationsController(LocationsRepo locationsRepository, ObsSessionsRepo obsSessionsRepository)
+        public LocationsController(LocationsRepo locationsRepository, ObsSessionsRepo obsSessionsRepository, IMapper mapper)
         {
             _locationsRepository = locationsRepository;
             _obsSessionsRepository = obsSessionsRepository;
+            _mapper = mapper;
         }
 
         // GET: api/Locations
@@ -30,7 +32,7 @@ namespace ObsTool.Controllers
         {
             var locations = _locationsRepository.GetLocations();
             var sortedLocations = locations.OrderByDescending(loc => loc.Id);
-            var results = Mapper.Map<IEnumerable<LocationDto>>(sortedLocations);
+            var results = _mapper.Map<IEnumerable<LocationDto>>(sortedLocations);
             return Ok(results);
         }
 
@@ -45,7 +47,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            var locationDto = Mapper.Map<LocationDto>(location);
+            var locationDto = _mapper.Map<LocationDto>(location);
 
             return Ok(locationDto);
         }
@@ -54,7 +56,7 @@ namespace ObsTool.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]LocationDtoForCreation locationDto)
         {
-            Location locationEntity = Mapper.Map<Location>(locationDto);
+            Location locationEntity = _mapper.Map<Location>(locationDto);
 
             Location addedLocation = _locationsRepository.AddLocation(locationEntity);
 
@@ -63,7 +65,7 @@ namespace ObsTool.Controllers
                 return StatusCode(500, "Something went wrong creating a location");
             }
 
-            LocationDto addedLocationDto = Mapper.Map<LocationDto>(addedLocation);
+            LocationDto addedLocationDto = _mapper.Map<LocationDto>(addedLocation);
             return CreatedAtRoute("GetOneLocation", new { id = addedLocationDto.Id }, addedLocationDto);
         }
         
@@ -88,7 +90,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            Mapper.Map(locationDto, locationEntity);
+            _mapper.Map(locationDto, locationEntity);
 
             var result = _locationsRepository.SaveChanges();
             if (!result)
@@ -96,7 +98,7 @@ namespace ObsTool.Controllers
                 return StatusCode(500, "Something went wrong updating the location");
             }
 
-            LocationDto locationDtoUpdated = Mapper.Map<LocationDto>(locationEntity);
+            LocationDto locationDtoUpdated = _mapper.Map<LocationDto>(locationEntity);
             return Ok(locationDtoUpdated);
         }
 

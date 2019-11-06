@@ -21,13 +21,15 @@ namespace ObsTool.Controllers
         //private IObsSessionsRepository _obsSessionsRepository;
         private ObservationsRepo _observationsRepo;
         private ILogger<ObsResourcesController> _logger;
+        private readonly IMapper _mapper;
 
-        public ObsResourcesController(ObsResourcesRepo obsResourceRepo, ObservationsRepo observationsRepo, ILogger<ObsResourcesController> logger)
+        public ObsResourcesController(ObsResourcesRepo obsResourceRepo, ObservationsRepo observationsRepo, ILogger<ObsResourcesController> logger, IMapper mapper)
         {
             _obsResourceRepo = obsResourceRepo;
             //_obsSessionsRepository = obsSessionsRepository;
             _observationsRepo = observationsRepo;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -35,7 +37,7 @@ namespace ObsTool.Controllers
         public IActionResult Get()
         {
             var resources = _obsResourceRepo.GetAllResources();
-            var results = Mapper.Map<IEnumerable<ObsResourceDto>>(resources);
+            var results = _mapper.Map<IEnumerable<ObsResourceDto>>(resources);
             return Ok(results);
         }
 
@@ -47,7 +49,7 @@ namespace ObsTool.Controllers
             {
                 return NotFound();
             }
-            return Ok(Mapper.Map<ObsResourceDto>(obsResource));
+            return Ok(_mapper.Map<ObsResourceDto>(obsResource));
         }
 
         [HttpGet("observations/{observationId}/resources", Name = "GetAllResourcesForObservation")]
@@ -60,14 +62,14 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            IEnumerable<ObsResourceDto> resourceDtos = Mapper.Map<IEnumerable<ObsResourceDto>>(observation.ObsResources);
+            IEnumerable<ObsResourceDto> resourceDtos = _mapper.Map<IEnumerable<ObsResourceDto>>(observation.ObsResources);
             return Ok(resourceDtos);
         }
 
         [HttpPost("observations/{observationId}/resources")]
         public IActionResult Post(int observationId, [FromBody] ObsResourceDtoForCreationAndUpdate newObsResourceDto)
         {
-            ObsResource newObsResource = Mapper.Map<ObsResource>(newObsResourceDto);
+            ObsResource newObsResource = _mapper.Map<ObsResource>(newObsResourceDto);
 
             // Verify the type
             if (newObsResourceDto.Type != "sketch" && newObsResourceDto.Type != "jot" && newObsResourceDto.Type != "image" && newObsResourceDto.Type != "link")
@@ -93,7 +95,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation("Created a resource:");
             _logger.LogInformation(PocoPrinter.ToString(addedObsResource));
 
-            ObsResourceDto addedObsResourceDto = Mapper.Map<ObsResourceDto>(addedObsResource);
+            ObsResourceDto addedObsResourceDto = _mapper.Map<ObsResourceDto>(addedObsResource);
 
             return CreatedAtRoute("GetOneObsResource", new { resourceId = addedObsResourceDto.Id }, addedObsResourceDto);
         }
@@ -118,7 +120,7 @@ namespace ObsTool.Controllers
                 return BadRequest("Invalid type");
             }
 
-            Mapper.Map(obsResourceDtoForUpdate, obsResourceEntity);
+            _mapper.Map(obsResourceDtoForUpdate, obsResourceEntity);
 
             _obsResourceRepo.SaveChanges();
 
@@ -126,7 +128,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation(PocoPrinter.ToString(obsResourceEntity));
 
             ObsResource freshObsResourceEntity = _obsResourceRepo.GetOneResource(resourceId);
-            var resultingDto = Mapper.Map<ObsResourceDto>(freshObsResourceEntity);
+            var resultingDto = _mapper.Map<ObsResourceDto>(freshObsResourceEntity);
 
             return Ok(resultingDto);
         }

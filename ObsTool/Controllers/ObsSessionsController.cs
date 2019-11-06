@@ -23,13 +23,14 @@ namespace ObsTool.Controllers
         private MainDbContext _mainDbContext;
         private ObsSessionsRepo _obsSessionsRepository;
         private LocationsRepo _locationsRepository;
-        private IDsoRepo _dsoRepo;
+        private readonly IDsoRepo _dsoRepo;
         private ReportTextManager _reportTextManager;
         ObservationsService _observationsService;
+        private readonly IMapper _mapper;
 
         public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext, 
             ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IDsoRepo dsoRepo, 
-            ReportTextManager reportTextManager, ObservationsService observationsService)
+            ReportTextManager reportTextManager, ObservationsService observationsService, IMapper mapper)
         {
             _logger = logger;
             _mainDbContext = mainDbContext;
@@ -38,10 +39,7 @@ namespace ObsTool.Controllers
             _dsoRepo = dsoRepo;
             _reportTextManager = reportTextManager;
             _observationsService = observationsService;
-        }
-
-        public string dummyMethod() {
-            return "dummy";
+            _mapper = mapper;
         }
 
         // GET: api/ObsSession
@@ -52,12 +50,12 @@ namespace ObsTool.Controllers
 
             if (simple)
             {
-                var results = Mapper.Map<IEnumerable<ObsSessionDtoSimple>>(obsSessions);
+                var results = _mapper.Map<IEnumerable<ObsSessionDtoSimple>>(obsSessions);
                 return Ok(results);
             }
             else
             {
-                var results = Mapper.Map<IEnumerable<ObsSessionDto>>(obsSessions);
+                var results = _mapper.Map<IEnumerable<ObsSessionDto>>(obsSessions);
                 return Ok(results);
             }
         }
@@ -80,7 +78,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            var obsSessionDto = Mapper.Map<ObsSessionDto>(obsSession);
+            var obsSessionDto = _mapper.Map<ObsSessionDto>(obsSession);
 
             // Retrieving also all the earlier/other observations of these objects will make this the biggest query ever :)
             if (includeOtherObservations)
@@ -118,7 +116,7 @@ namespace ObsTool.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]ObsSessionDtoForCreation newObsSessionDto)
         {
-            ObsSession obsSession = Mapper.Map<ObsSession>(newObsSessionDto);
+            ObsSession obsSession = _mapper.Map<ObsSession>(newObsSessionDto);
 
             // Lookup and verify the location id
             if (newObsSessionDto.LocationId != null)
@@ -145,7 +143,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation("Created an observation session:");
             _logger.LogInformation(PocoPrinter.ToString(addedObsSession));
 
-            ObsSessionDto addedObsSessionDto = Mapper.Map<ObsSessionDto>(addedObsSession);
+            ObsSessionDto addedObsSessionDto = _mapper.Map<ObsSessionDto>(addedObsSession);
 
             return CreatedAtRoute("GetOneObsSession", new { id = addedObsSessionDto.Id }, addedObsSessionDto);
         }
@@ -175,7 +173,7 @@ namespace ObsTool.Controllers
                 obsSessionEntity.Location = locationEntity;
             }
 
-            Mapper.Map(obsSessionDtoForUpdate, obsSessionEntity);
+            _mapper.Map(obsSessionDtoForUpdate, obsSessionEntity);
 
             _reportTextManager.ParseAndStoreObservations(obsSessionEntity);
 
@@ -189,7 +187,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation(PocoPrinter.ToString(obsSessionEntity));
 
             ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, true, true, true);
-            var resultingDto = Mapper.Map<ObsSessionDto>(freshObsSessionEntity);
+            var resultingDto = _mapper.Map<ObsSessionDto>(freshObsSessionEntity);
 
             return Ok(resultingDto);
         }
@@ -210,7 +208,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            ObsSessionDtoForUpdate obsSessionDtoToPatch = Mapper.Map<ObsSessionDtoForUpdate>(obsSessionEntity);
+            ObsSessionDtoForUpdate obsSessionDtoToPatch = _mapper.Map<ObsSessionDtoForUpdate>(obsSessionEntity);
             patchDoc.ApplyTo(obsSessionDtoToPatch, ModelState);
 
             if (!ModelState.IsValid)
@@ -218,7 +216,7 @@ namespace ObsTool.Controllers
                 return BadRequest(ModelState);
             }
 
-            Mapper.Map(obsSessionDtoToPatch, obsSessionEntity);
+            _mapper.Map(obsSessionDtoToPatch, obsSessionEntity);
 
             var result = _obsSessionsRepository.SaveChanges();
             if (!result)
@@ -227,7 +225,7 @@ namespace ObsTool.Controllers
             }
 
             ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, true, true, true);
-            var resultingDto = Mapper.Map<ObsSessionDto>(freshObsSessionEntity);
+            var resultingDto = _mapper.Map<ObsSessionDto>(freshObsSessionEntity);
 
             return Ok(resultingDto);
         }

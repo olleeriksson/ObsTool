@@ -13,12 +13,14 @@ namespace ObsTool.Services
         private ObservationsRepo _observationsRepo;
         private ObsSessionsRepo _obsSessionsRepository;
         private MainDbContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public ObservationsService(ObservationsRepo observationsRepo, ObsSessionsRepo obsSessionsRepository, MainDbContext dbContext)
+        public ObservationsService(ObservationsRepo observationsRepo, ObsSessionsRepo obsSessionsRepository, MainDbContext dbContext, IMapper mapper)
         {
             _observationsRepo = observationsRepo;
             _obsSessionsRepository = obsSessionsRepository;
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -27,7 +29,7 @@ namespace ObsTool.Services
         /// </summary>
         public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(int[] dsoIds = null, int[] exludeObservationIds = null)
         {
-            int[] exludeObservationIdList = exludeObservationIds != null ? exludeObservationIds : new int[] { };
+            int[] exludeObservationIdList = exludeObservationIds ?? (new int[] { });
 
             // Get the corresponding ObservationDto's
             IEnumerable<ObservationDto> observations;
@@ -35,7 +37,8 @@ namespace ObsTool.Services
             {
                 observations = GetAllObservationDtos();
             }
-            else {
+            else
+            {
                 observations = GetAllObservationDtosForMultipleDsoIds(dsoIds);
             }
 
@@ -102,7 +105,7 @@ namespace ObsTool.Services
             var obsSessions = _obsSessionsRepository.GetObsSessionsByMultipleIds(obsSessionIds);
 
             // Convert them to DTOs and then strip them of some fields we don't want
-            var obsSessionDtos = Mapper.Map<IEnumerable<ObsSessionDto>>(obsSessions);
+            var obsSessionDtos = _mapper.Map<IEnumerable<ObsSessionDto>>(obsSessions);
             foreach (var obsSessionDto in obsSessionDtos)
             {
                 obsSessionDto.Observations = null;
@@ -118,7 +121,7 @@ namespace ObsTool.Services
             }
 
             // Convert the Observation's to DTO's
-            IEnumerable<ObservationDto> observationDtos = Mapper.Map<IEnumerable<ObservationDto>>(observations);
+            IEnumerable<ObservationDto> observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
 
             // Then manually set the ObsSessionDto's on the ObservationDto's because automapper can't handle it
             // (it creates a self referencing loop). 

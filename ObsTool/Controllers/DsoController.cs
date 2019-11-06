@@ -18,11 +18,13 @@ namespace ObsTool
     {
         private IDsoRepo _dsoRepo;
         private ObservationsService _observationsService;
+        private readonly IMapper _mapper;
 
-        public DsoController(IDsoRepo dsoRepo, ObservationsService observationsService)
+        public DsoController(IDsoRepo dsoRepo, ObservationsService observationsService, IMapper mapper)
         {
             _dsoRepo = dsoRepo;
             _observationsService = observationsService;
+            _mapper = mapper;
         }
 
         [HttpGet("observed")]
@@ -37,7 +39,7 @@ namespace ObsTool
 
             int maxCount = 2000;
             var truncatedDsoList = dsoList.Take(maxCount);
-            IEnumerable<DsoDto> truncatedDsoDtoList = Mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
+            IEnumerable<DsoDto> truncatedDsoDtoList = _mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
 
             foreach (DsoDto dso in truncatedDsoDtoList)
             {
@@ -86,7 +88,7 @@ namespace ObsTool
 
                 int maxCount = 15;
                 var truncatedDsoList = dsoList.Take(maxCount);
-                IEnumerable<DsoDto> truncatedDsoDtoList = Mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
+                IEnumerable<DsoDto> truncatedDsoDtoList = _mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
 
                 int[] dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToArray();
 
@@ -122,7 +124,7 @@ namespace ObsTool
                 dsoList = new List<Dso>();
                 dsoList.Add(dso);
 
-                IEnumerable<DsoDto> result = Mapper.Map<IEnumerable<DsoDto>>(dsoList);
+                IEnumerable<DsoDto> result = _mapper.Map<IEnumerable<DsoDto>>(dsoList);
                 return Ok(result);
             }
         }
@@ -136,7 +138,7 @@ namespace ObsTool
             }
 
             Dso dso = _dsoRepo.GetDsoById(id);
-            DsoDto result = Mapper.Map<DsoDto>(dso);
+            DsoDto result = _mapper.Map<DsoDto>(dso);
 
             if (dso == null)
             {
