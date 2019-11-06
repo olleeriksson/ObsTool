@@ -5,4 +5,6 @@
 */**/obj/Debug
 */**/obj/Release
 */**/obj/netcoreapp*
+ObsTool/obstool_database_dev.db
+ObsTool/obstool_database.db
 
