@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
 using ObsTool.Entities;
 using ObsTool.Models;
 using ObsTool.Services;
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace ObsTool.Controllers
 {
@@ -24,7 +15,7 @@ namespace ObsTool.Controllers
         private ObservationsRepo _observationsRepo;
         private ObsResourcesRepo _obsResourceRepo;
 
-        public StatisticsController(MainDbContext mainDbContext, ObsSessionsRepo obsSessionRepository, 
+        public StatisticsController(MainDbContext mainDbContext, ObsSessionsRepo obsSessionRepository,
             LocationsRepo locationsRepository, IDsoRepo dsoRepo, ObservationsRepo observationsRepo,
             ObsResourcesRepo obsResourceRepo)
         {
@@ -38,7 +29,8 @@ namespace ObsTool.Controllers
         [HttpGet()]
         public IActionResult Get()
         {
-            StatisticsDto statsDto = new StatisticsDto {
+            StatisticsDto statsDto = new StatisticsDto
+            {
                 NumObsSessions = _obsSessionsRepository.GetNumObsSessions(),
                 NumObservations = _observationsRepo.GetNumObservations(),
                 NumObservedObjects = _observationsRepo.GetNumObservedObjects(),

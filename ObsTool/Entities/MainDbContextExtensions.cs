@@ -19,11 +19,11 @@ namespace ObsTool.Entities
                 var sqlFile = Path.Combine(AppContext.BaseDirectory, "Migrations\\SeedDatabase.sql");
                 if (File.Exists(sqlFile))
                 {
-                    FileInfo file = new FileInfo(sqlFile);
-                    string scriptContent = file.OpenText().ReadToEnd();
-                    //string scriptContent = scriptContent.Replace("[databaseOldnameWhileSriptgenerate]", strdbname);
-                    SqlConnection connection = new SqlConnection(Startup.Configuration["Db:ConnectionString"]);
-                    connection.Open();
+                    //FileInfo file = new FileInfo(sqlFile);
+                    //string scriptContent = file.OpenText().ReadToEnd();
+                    ////string scriptContent = scriptContent.Replace("[databaseOldnameWhileSriptgenerate]", strdbname);
+                    //SqlConnection connection = new SqlConnection(Startup.Configuration["Db:ConnectionString"]);
+                    //connection.Open();
                     //Server server = new Server(new ServerConnection(connection));
                     //server.ConnectionContext.ExecuteNonQuery(scriptContent);
                     // // context.Database.ExecuteSqlCommand(File.ReadAllText(sqlFile));

@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ObsTool.Entities;
 using ObsTool.Models;
 using ObsTool.Services;
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using ObsTool.Utils;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ObsTool.Controllers
 {
@@ -28,8 +23,8 @@ namespace ObsTool.Controllers
         ObservationsService _observationsService;
         private readonly IMapper _mapper;
 
-        public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext, 
-            ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IDsoRepo dsoRepo, 
+        public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext,
+            ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IDsoRepo dsoRepo,
             ReportTextManager reportTextManager, ObservationsService observationsService, IMapper mapper)
         {
             _logger = logger;
@@ -192,44 +187,6 @@ namespace ObsTool.Controllers
             return Ok(resultingDto);
         }
 
-
-        // PATCH: api/ObsSession/5
-        [HttpPatch("{id}")]
-        public IActionResult Patch(int id, [FromBody] JsonPatchDocument<ObsSessionDtoForUpdate> patchDoc)
-        {
-            if (patchDoc == null)
-            {
-                return NotFound();
-            }
-
-            ObsSession obsSessionEntity = _obsSessionsRepository.GetObsSession(id);
-            if (obsSessionEntity == null)
-            {
-                return NotFound();
-            }
-
-            ObsSessionDtoForUpdate obsSessionDtoToPatch = _mapper.Map<ObsSessionDtoForUpdate>(obsSessionEntity);
-            patchDoc.ApplyTo(obsSessionDtoToPatch, ModelState);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _mapper.Map(obsSessionDtoToPatch, obsSessionEntity);
-
-            var result = _obsSessionsRepository.SaveChanges();
-            if (!result)
-            {
-                return StatusCode(500, "Something went wrong updating the observation session");
-            }
-
-            ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, true, true, true);
-            var resultingDto = _mapper.Map<ObsSessionDto>(freshObsSessionEntity);
-
-            return Ok(resultingDto);
-        }
-        
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
