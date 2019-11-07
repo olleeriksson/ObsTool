@@ -101,7 +101,8 @@ namespace ObsTool.Services
             return query.OrderBy(s => s.Date);
         }
 
-        public ICollection<ObsSession> GetObsSessionsByMultipleIds(IList<int> ids)
+        // Note!! Changed from IList to List because of a bug in .NET Core 3.0 (https://github.com/aspnet/EntityFrameworkCore/issues/17342)
+        public ICollection<ObsSession> GetObsSessionsByMultipleIds(List<int> ids)
         {
             // With LINQ
             //IEnumerable<ObsSession> obsSessions = from s in _dbContext.ObsSessions

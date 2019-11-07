@@ -90,7 +90,7 @@ namespace ObsTool
                 var truncatedDsoList = dsoList.Take(maxCount);
                 IEnumerable<DsoDto> truncatedDsoDtoList = _mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
 
-                int[] dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToArray();
+                var dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToList<int>();
 
                 var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(dsoIds);
                 

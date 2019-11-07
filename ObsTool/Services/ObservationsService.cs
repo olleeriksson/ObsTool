@@ -27,7 +27,7 @@ namespace ObsTool.Services
         /// Passing in a list of DSO ids this method returns all observations of those DSO's, mapped by the observation id
         /// in which they were observed.
         /// </summary>
-        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(int[] dsoIds = null, int[] exludeObservationIds = null)
+        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(List<int> dsoIds = null, int[] exludeObservationIds = null)
         {
             int[] exludeObservationIdList = exludeObservationIds ?? (new int[] { });
 
@@ -76,7 +76,7 @@ namespace ObsTool.Services
             return GetAllObservationDtosForObservations(observations);
         }
 
-        public IEnumerable<ObservationDto> GetAllObservationDtosForMultipleDsoIds(ICollection<int> dsoIds)
+        public IEnumerable<ObservationDto> GetAllObservationDtosForMultipleDsoIds(List<int> dsoIds)
         {
             // Get all observations every done on the provided list of DSOs
             ICollection<Observation> observations = _observationsRepo.GetObservationsByMultipleDsoIds(dsoIds);

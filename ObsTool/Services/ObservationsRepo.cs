@@ -41,7 +41,9 @@ namespace ObsTool.Services
                 .ToList();
         }
 
-        public ICollection<Observation> GetObservationsByMultipleDsoIds(ICollection<int> dsoIds)
+        // Note!! Changed from ICollection to List because of a bug in .NET Core 3.0 (https://github.com/aspnet/EntityFrameworkCore/issues/17342)
+
+        public ICollection<Observation> GetObservationsByMultipleDsoIds(List<int> dsoIds)
         {
             return _dbContext.Observations
                 .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))

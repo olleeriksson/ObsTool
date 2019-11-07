@@ -17,7 +17,8 @@ namespace ObsTool.Services
             _dbContext = dbContext;
         }
 
-        public ICollection<Dso> GetMultipleDsoByIds(ICollection<int> dsoIds)
+        // Note!! Changed from ICollection to List because of a bug in .NET Core 3.0 (https://github.com/aspnet/EntityFrameworkCore/issues/17342)
+        public ICollection<Dso> GetMultipleDsoByIds(List<int> dsoIds)
         {
             ICollection<Dso> foundDso = null;
 

@@ -47,7 +47,7 @@ namespace ObsTool.Controllers
                     return BadRequest("Can't specify neither or both of DSO id and a DSO name. Specify one or the other!");
                 }
 
-                int[] dsoIdsInt = dsoIds.Split(new char[] { ',', ' ' }).Select(id => int.Parse(id)).ToArray();
+                List<int> dsoIdsInt = dsoIds.Split(new char[] { ',', ' ' }).Select(id => int.Parse(id)).ToList<int>();
                 observationDtos = _observationsService.GetAllObservationDtosForMultipleDsoIds(dsoIdsInt);
             }
 
