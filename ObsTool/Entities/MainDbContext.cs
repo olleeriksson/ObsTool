@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,8 @@ namespace ObsTool.Entities
 {
     public class MainDbContext : DbContext
     {
+        //public static readonly ILoggerFactory ConsoleLoggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+
         private ILogger<MainDbContext> _logger;
 
         public MainDbContext(DbContextOptions<MainDbContext> options, ILogger<MainDbContext> logger) : base(options)
@@ -51,7 +54,13 @@ namespace ObsTool.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.EnableSensitiveDataLogging();
+            optionsBuilder
+                .EnableSensitiveDataLogging()
+                //.UseLoggerFactory(ConsoleLoggerFactory);  // together with line at the top of the file
+
+                // Configure EF Core logging.
+                // This makes SQL queries being logged at Debug level. Change to info to see the SQL queries.
+                .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuting, LogLevel.Debug)));
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -79,12 +88,5 @@ namespace ObsTool.Entities
                 .WithMany(obsSession => obsSession.DsoExtras)
                 .HasForeignKey(dsoExtra => dsoExtra.ObsSessionId);
         }
-
-        //protected override OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    string connectionString = "";
-        //    optionsBuilder.UseSqlServer(connectionString);
-        //    base.OnConfiguring(optionsBuilder);
-        //}
     }
 }

@@ -15,28 +15,8 @@ namespace ObsTool
 {
     public class Startup
     {
-        // Old old:
-        //public Startup(IHostingEnvironment env)
         public Startup(IConfiguration configuration, IHostEnvironment env)
         {
-            string environment = env.EnvironmentName;
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json")
-#if DEBUG
-                .AddJsonFile("appsettings.Development.json")
-#else
-                .AddJsonFile("appsettings.Production.json")
-#endif
-                //.AddJsonFile("appsettings." + environment + ".json")
-                .AddEnvironmentVariables();
-
-            // Old old:
-            //Configuration = configuration; // old
-
-            // Old 2.0
-            //Configuration = builder.Build();
-
             Configuration = configuration;
         }
 
@@ -51,9 +31,6 @@ namespace ObsTool
 
             services.AddCors();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-            // SQL Server
-            //services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlServer(Configuration["Db:ConnectionString"]));
 
             // Sqlite
             services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlite(Configuration["Db:ConnectionString"]));
@@ -81,12 +58,6 @@ namespace ObsTool
                 app.UseHsts();
             }
 
-            // Removed for 2.1
-            //loggerFactory.AddNLog();
-
-            // New in 2.1 but I disabled it
-            //app.UseHttpsRedirection();
-
             app.UseRouting();
 
             app.UseCors(options => options.WithOrigins(Configuration["CorsAllowedOrigins"])
@@ -97,9 +68,6 @@ namespace ObsTool
             //app.UseAuthorization();
 
             app.ConfigureCustomExceptionMiddleware();
-
-            // Old 2.2
-            //app.UseMvc();
 
             app.UseEndpoints(endpoints =>
             {
