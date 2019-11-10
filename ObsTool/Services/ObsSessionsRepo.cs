@@ -4,14 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using ObsTool.Entities;
 using Microsoft.EntityFrameworkCore;
+using ObsTool.Database;
 
 namespace ObsTool.Services
 {
     public class ObsSessionsRepo
     {
-        private Entities.MainDbContext _dbContext;
+        private MainDbContext _dbContext;
 
-        public ObsSessionsRepo(Entities.MainDbContext dbContext)
+        public ObsSessionsRepo(MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }

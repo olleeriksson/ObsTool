@@ -5,10 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using ObsTool.Entities;
 //using Microsoft.SqlServer.Management.Common;
 //using Microsoft.SqlServer.Management.Smo;
 
-namespace ObsTool.Entities
+namespace ObsTool.Database
 {
     public static class MainDbContextExtensions
     {

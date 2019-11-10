@@ -6,14 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using ObsTool.Database;
 
 namespace ObsTool.Services
 {
     public class DsoObservationsRepo
     {
-        private Entities.MainDbContext _dbContext;
+        private MainDbContext _dbContext;
 
-        public DsoObservationsRepo(Entities.MainDbContext dbContext)
+        public DsoObservationsRepo(MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }

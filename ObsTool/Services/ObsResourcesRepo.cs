@@ -5,14 +5,15 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ObsTool.Entities;
 using Microsoft.EntityFrameworkCore;
+using ObsTool.Database;
 
 namespace ObsTool.Services
 {
     public class ObsResourcesRepo
     {
-        private Entities.MainDbContext _dbContext;
+        private MainDbContext _dbContext;
 
-        public ObsResourcesRepo(Entities.MainDbContext dbContext)
+        public ObsResourcesRepo(MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }

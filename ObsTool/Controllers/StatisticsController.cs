@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ObsTool.Database;
 using ObsTool.Entities;
 using ObsTool.Models;
 using ObsTool.Services;

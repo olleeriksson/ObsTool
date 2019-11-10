@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ObsTool.Database;
 using ObsTool.Entities;
 using ObsTool.Models;
 using ObsTool.Services;

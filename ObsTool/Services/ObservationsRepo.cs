@@ -5,14 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ObsTool.Database;
 
 namespace ObsTool.Services
 {
     public class ObservationsRepo
     {
-        private Entities.MainDbContext _dbContext;
+        private MainDbContext _dbContext;
 
-        public ObservationsRepo(Entities.MainDbContext dbContext)
+        public ObservationsRepo(MainDbContext dbContext)
         {
             _dbContext = dbContext;
         }

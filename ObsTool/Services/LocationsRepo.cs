@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ObsTool.Database;
 using ObsTool.Entities;
 
 namespace ObsTool.Services

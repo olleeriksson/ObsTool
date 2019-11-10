@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ObsTool.Services;
+using ObsTool.Database;
 using ObsTool.Utils;
 using System;
 
@@ -43,7 +44,7 @@ namespace ObsTool
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // Sqlite
-            services.AddDbContext<Entities.MainDbContext>(o => o.UseSqlite(Configuration["Db:ConnectionString"]));
+            services.AddDbContext<MainDbContext>(o => o.UseSqlite(Configuration["Db:ConnectionString"]));
 
             services.AddScoped<ObsSessionsRepo>();
             services.AddScoped<LocationsRepo>();

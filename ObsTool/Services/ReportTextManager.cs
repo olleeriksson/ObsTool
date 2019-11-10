@@ -9,18 +9,19 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ObsTool.Utils;
+using ObsTool.Database;
 
 namespace ObsTool.Services
 {
     public class ReportTextManager
     {
-        private Entities.MainDbContext _dbContext;
+        private MainDbContext _dbContext;
         private ObservationsRepo _observationsRepo;
         private IDsoRepo _dsoRepo;
         private ILogger<ReportTextManager> _logger;
         private DsoObservationsRepo _dsoObservationsRepo;
 
-        public ReportTextManager(Entities.MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
+        public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
             ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
         {
             _dbContext = dbContext;
