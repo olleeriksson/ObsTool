@@ -29,7 +29,17 @@ namespace ObsTool
             services.AddControllers()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("MyCorsPolicy",
+                builder =>
+                {
+                    builder.WithOrigins(Configuration["CorsAllowedOrigins"])
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // Sqlite
@@ -60,9 +70,7 @@ namespace ObsTool
 
             app.UseRouting();
 
-            app.UseCors(options => options.WithOrigins(Configuration["CorsAllowedOrigins"])
-                .AllowAnyMethod()
-                .AllowAnyHeader());
+            app.UseCors("MyCorsPolicy");
 
             //app.UseAuthentication();
             //app.UseAuthorization();
