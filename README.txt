@@ -1,0 +1,1 @@
+A web app for recording and keeping track of astronomical observations. React/TypeScript frontend, and .NET Core / C# backend.
