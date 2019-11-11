@@ -1,0 +1,12 @@
+.vs
+*/**/bin/Debug
+*/**/bin/Release
+*/**/bin/netcoreapp*
+*/**/obj/Debug
+*/**/obj/Release
+*/**/obj/netcoreapp*
+[Bb]in/
+[Oo]bj/
+ObsTool/obstool_database_dev.db
+ObsTool/obstool_database.db
+
