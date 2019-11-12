@@ -38,6 +38,7 @@ namespace ObsTool
                     builder.WithOrigins(Configuration["CorsAllowedOrigins"])
                         .AllowAnyHeader()
                         .AllowAnyMethod();
+                    builder.AllowCredentials();  // for CORS with cookies, only development;
                 });
             });
 
@@ -54,6 +55,12 @@ namespace ObsTool
             services.AddScoped<ObservationsService>();
             services.AddScoped<ObsResourcesRepo>();
             services.AddScoped<DsoObservationsRepo>();
+
+            // In production, the React files will be served from this directory
+            services.AddSpaStaticFiles(configuration =>
+            {
+                configuration.RootPath = "ObsToolClient/build";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,9 +72,12 @@ namespace ObsTool
             }
             else
             {
-                // New in 2.1 but I disabled it
+                // New in 2.1
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseStaticFiles();
 
             app.UseRouting();
 
@@ -78,9 +88,20 @@ namespace ObsTool
 
             app.ConfigureCustomExceptionMiddleware();
 
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "./ObsToolClient";
+
+                //if (env.IsDevelopment())
+                //{
+                //    spa.UseReactDevelopmentServer(npmScript: "start");
+                //}
+            });
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                //endpoints.MapFallbackToFile("index.html");
             });
         }
     }

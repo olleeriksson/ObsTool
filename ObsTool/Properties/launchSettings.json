@@ -17,7 +17,6 @@
     },
     "AspNetCoreWebApp": {
       "commandName": "Project",
-      "launchUrl": "api/obsSessions",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
