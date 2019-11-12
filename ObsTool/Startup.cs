@@ -26,7 +26,7 @@ namespace ObsTool
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddMvc();  // Old 2.2, still works though
+            //services.AddMvc();
             services.AddControllers()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
@@ -37,8 +37,8 @@ namespace ObsTool
                 {
                     builder.WithOrigins(Configuration["CorsAllowedOrigins"])
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
-                    builder.AllowCredentials();  // for CORS with cookies, only development;
+                        .AllowAnyMethod()
+                        .AllowCredentials();  // for CORS with cookies, only development;
                 });
             });
 
@@ -78,6 +78,7 @@ namespace ObsTool
             }
 
             app.UseStaticFiles();
+            app.UseSpaStaticFiles();
 
             app.UseRouting();
 
@@ -88,20 +89,21 @@ namespace ObsTool
 
             app.ConfigureCustomExceptionMiddleware();
 
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "./ObsToolClient";
-
-                //if (env.IsDevelopment())
-                //{
-                //    spa.UseReactDevelopmentServer(npmScript: "start");
-                //}
-            });
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 //endpoints.MapFallbackToFile("index.html");
+            });
+
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "./ObsToolClient";
+
+                // Disabled, I run npm start from VS Code for development
+                //if (env.IsDevelopment())
+                //{
+                //    spa.UseReactDevelopmentServer(npmScript: "start");
+                //}
             });
         }
     }

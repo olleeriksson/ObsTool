@@ -14,6 +14,7 @@
     <_SelectedScaffolderCategoryPath>root/Common/Api</_SelectedScaffolderCategoryPath>
     <WebStackScaffolding_DbContextTypeFullName>ObsTool.Entities.MainDbContext</WebStackScaffolding_DbContextTypeFullName>
     <ShowAllFiles>false</ShowAllFiles>
+    <NameOfLastUsedPublishProfile>Local publish folder</NameOfLastUsedPublishProfile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
