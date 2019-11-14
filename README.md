@@ -19,7 +19,7 @@ npm start
 Run the project from Visual Studio in Debug mode.
 ```
 
-### Production locally
+### PRODUCTION
 
 #### Build
 ```
@@ -32,9 +32,6 @@ dotnet publish -c Release
 cd <git root>\ObsTool\bin\Release\netcoreapp3.0\publish
 .\ObsTool.exe
 ```
-
-### Production locally
-
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
