@@ -54,6 +54,7 @@ const styles = (theme: Theme) => createStyles({
 export interface IObservationProps extends WithStyles<typeof styles> {
   observation: IObservation;
   onSelectObservation: (id: number) => void;
+  allowEditing: boolean;
 }
 
 export interface IObservationState {
@@ -147,7 +148,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                       </Typography>
                     </div>
                     <div style={{ marginTop: 5 }}>
-                      <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={true} />
+                      <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={this.props.allowEditing} />
                     </div>
                   </Grid>
                 </Grid>

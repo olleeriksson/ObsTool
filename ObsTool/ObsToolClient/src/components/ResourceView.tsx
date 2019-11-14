@@ -3,7 +3,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import Button from "@material-ui/core/Button";
-import { IObsResource } from "../types/Types";
+import { IObsResource, IDataState, IAppState } from "../types/Types";
 import TextField from "@material-ui/core/TextField";
 import Radio from "@material-ui/core/Radio";
 import RadioGroup from "@material-ui/core/RadioGroup";
@@ -21,6 +21,7 @@ import Grid from "@material-ui/core/Grid";
 import ResourceImage from "./ResourceImage";
 import Slider from "@material-ui/core/Slider";
 import Checkbox from "@material-ui/core/Checkbox";
+import { connect } from "react-redux";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -80,6 +81,7 @@ interface IResourceViewProps extends WithStyles<typeof styles> {
     displayMode?: string;
     onHandleClose: (confirm: boolean) => void;
     inverted: boolean;
+    store: IDataState;
 }
 
 interface IResourceViewState {
@@ -498,7 +500,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                 <Grid item={true} xs={12}>
                     <Grid container={true} spacing={1} direction="row">
                         <Grid item={true}>
-                            <IconButton onClick={this.onClickDelete} >
+                            <IconButton onClick={this.onClickDelete} disabled={!this.props.store.isLoggedIn}>
                                 <DeleteIcon />
                             </IconButton>
                         </Grid>
@@ -506,7 +508,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                             {saveSuccess}
                             {error}
                             {circularProgress}
-                            <Button onClick={this.handleCloseConfirm} variant="contained" color="primary" autoFocus={true}>
+                            <Button onClick={this.handleCloseConfirm} variant="contained" color="primary" autoFocus={true} disabled={!this.props.store.isLoggedIn}>
                                 {this.props.resource ? "Save changes" : "Add"}
                             </Button>
                         </Grid>
@@ -517,4 +519,11 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
     }
 }
 
-export default withStyles(styles)(ResourceView);
+const mapStateToProps = (state: IAppState) => {
+    return {
+        store: state.data
+    };
+};
+
+//export default withStyles(styles)(ResourceView);
+export default connect(mapStateToProps)(withStyles(styles)(ResourceView));

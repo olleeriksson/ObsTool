@@ -25,9 +25,11 @@ import {
 } from "../actions/ObsResourceCheckActions";
 
 import * as constants from "../types/Constants";
+import { AuthenticationAction } from "src/actions/AuthenticationActions";
 // import { initialAppState, initialDataState } from "../store/AppStore";
 
 const initialDataState: IDataState = {
+    isLoggedIn: false,
     obsSessions: [],
     isLoadingObsSessions: false,
     isErrorObsSessions: undefined,
@@ -39,11 +41,23 @@ const initialDataState: IDataState = {
     checkedObsResources: []
 };
 
-type DataAction = ObsSessionAction | LocationAction | SearchAction | ObsResourceCheckAction;
+type DataAction = AuthenticationAction | ObsSessionAction | LocationAction | SearchAction | ObsResourceCheckAction;
 
 const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, action: DataAction) => {
 
     switch (action.type) {
+        case constants.LOGGED_IN: {
+            return {
+                ...state,
+                isLoggedIn: true
+            };
+        }
+        case constants.LOGGED_OUT: {
+            return {
+                ...state,
+                isLoggedIn: false
+            };
+        }
         case constants.GET_OBSSESSIONS_BEGIN: {
             return {
                 ...state,

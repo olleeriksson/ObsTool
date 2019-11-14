@@ -8,6 +8,7 @@ using ObsTool.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ObsTool.Controllers
 {
@@ -27,6 +28,7 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/Locations
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult Get()
         {
@@ -37,6 +39,7 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/Locations/5
+        [AllowAnonymous]
         [HttpGet("{id}", Name = "GetOneLocation")]
         public IActionResult Get(int id)
         {

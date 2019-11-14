@@ -9,6 +9,7 @@ using ObsTool.Entities;
 using ObsTool.Services;
 using ObsTool.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ObsTool
 {
@@ -27,6 +28,7 @@ namespace ObsTool
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
         [HttpGet("observed")]
         public IActionResult GetAllObservedDso()
         {
@@ -68,6 +70,7 @@ namespace ObsTool
             return Ok(pagedResult);
         }
 
+        [AllowAnonymous]
         [HttpGet()]
         public IActionResult GetDso([FromQuery] string query, [FromQuery] string name)
         {
@@ -129,6 +132,7 @@ namespace ObsTool
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public IActionResult GetDso([FromRoute] int id)
         {
@@ -168,13 +172,9 @@ namespace ObsTool
         //}
 
 
-        private bool DsoExists(int id)
-        {
-            return _dsoRepo.GetDsoById(id) != null;
-        }
-    }
-
-    internal class PagedResult<T>
-    {
+        //private bool DsoExists(int id)
+        //{
+        //    return _dsoRepo.GetDsoById(id) != null;
+        //}
     }
 }

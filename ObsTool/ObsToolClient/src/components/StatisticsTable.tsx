@@ -57,7 +57,6 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         Api.getStatistics().then(
             (response) => {
                 const { data } = response;
-                console.log(data);
                 this.setState({ statistics: data });
                 this.setState({ isLoading: false });
             },

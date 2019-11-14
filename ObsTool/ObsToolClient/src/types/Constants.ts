@@ -1,3 +1,11 @@
+// Authentication
+
+export const LOGGED_IN = "LOGGED_IN";
+export type LOGGED_IN = typeof LOGGED_IN;
+
+export const LOGGED_OUT = "LOGGED_OUT";
+export type LOGGED_OUT = typeof LOGGED_OUT;
+
 // ObsSessions
 
 export const GET_OBSSESSIONS_BEGIN = "GET_OBSSESSIONS_BEGIN";

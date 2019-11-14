@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ObsTool.Utils;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ObsTool.Controllers
 {
@@ -32,6 +33,7 @@ namespace ObsTool.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("resources")]
         public IActionResult Get()
@@ -41,6 +43,7 @@ namespace ObsTool.Controllers
             return Ok(results);
         }
 
+        [AllowAnonymous]
         [HttpGet("resources/{resourceId}", Name = "GetOneObsResource")]
         public IActionResult Get(int resourceId)
         {
@@ -52,6 +55,7 @@ namespace ObsTool.Controllers
             return Ok(_mapper.Map<ObsResourceDto>(obsResource));
         }
 
+        [AllowAnonymous]
         [HttpGet("observations/{observationId}/resources", Name = "GetAllResourcesForObservation")]
         public IActionResult GetAllResourcesForObsSession(int observationId)
         {

@@ -1,3 +1,8 @@
+export interface ILoginInfo {
+    username: string;
+    password: string;
+}
+
 export interface IObservation {
     id: number;
     dsoObservations: IDsoObservation[];
@@ -116,6 +121,7 @@ export interface ILocation {
 // --------------------------------------------------------------------------
 
 export interface IDataState {
+    isLoggedIn: boolean;
     obsSessions: IObsSession[];
     isLoadingObsSessions: boolean;
     isErrorObsSessions?: string;

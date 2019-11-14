@@ -6,10 +6,11 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import Api from "../api/Api";
-import { ILocation } from "src/types/Types";
+import { ILocation, IAppState, IDataState } from "src/types/Types";
 import * as classNames from "classnames";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
+import { connect } from "react-redux";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -40,6 +41,7 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface ILocationsViewProps extends WithStyles<typeof styles> {
+    store: IDataState;
 }
 
 interface ILocationsViewState {
@@ -227,7 +229,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                         <Grid item={true}>
                             <Grid container={true} direction="row">
                                 <Grid item={true}>
-                                    <Button variant="contained" color="primary" type="submit">
+                                    <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn}>
                                         {this.state.currentLocation.id ? "Update" : "Save"}
                                     </Button>
                                     <Button color="primary" onClick={this.onClear}>
@@ -237,7 +239,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                     {this.state.isError ? <span style={{ color: "red", fontWeight: "bold" }}>Error saving!</span> : null}
                                 </Grid>
                                 <Grid item={true} style={{ flex: 1, textAlign: "right" }}>
-                                    <IconButton onClick={this.onClickDelete} disabled={!this.state.currentLocation.id} >
+                                    <IconButton onClick={this.onClickDelete} disabled={!this.props.store.isLoggedIn || !this.state.currentLocation.id} >
                                         <DeleteIcon />
                                     </IconButton>
                                 </Grid>
@@ -282,4 +284,11 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
     }
 }
 
-export default withStyles(styles)(LocationsView);
+const mapStateToProps = (state: IAppState) => {
+    return {
+        store: state.data
+    };
+};
+
+//export default withStyles(styles)(LocationsView);
+export default connect(mapStateToProps)(withStyles(styles)(LocationsView));

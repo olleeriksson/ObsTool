@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IPagedDsoList, IObsResource, IStatistics } from "../types/Types";
+import { IObsSession, ILocation, IPagedDsoList, IObsResource, IStatistics, ILoginInfo } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
@@ -6,6 +6,27 @@ import axios from "axios";
 // The Api is at 5000 from executing the deployed Exe
 
 class Api {
+
+    public static isLoggedIn() {
+        return axios.get(
+            process.env.REACT_APP_API_URL + "/authentication/loggedin/",
+            { withCredentials: true });  // for CORS with cookies, only development
+    }
+
+    public static login(loginInfo: ILoginInfo) {
+        return axios.post<ILoginInfo>(
+            process.env.REACT_APP_API_URL + "/authentication/login/",
+            loginInfo,
+            { withCredentials: true });  // for CORS with cookies, only development
+    }
+
+    public static logout() {
+        return axios.post(
+            process.env.REACT_APP_API_URL + "/authentication/logout/",
+            null,
+            { withCredentials: true });  // for CORS with cookies, only development
+    }
+
     public static getObsSessionsSimple() {
         return axios.get<IObsSession[]>(process.env.REACT_APP_API_URL + "/obsSessions/?includeLocation=true&simple=true");
     }

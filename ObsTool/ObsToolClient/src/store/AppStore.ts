@@ -8,6 +8,7 @@ import reduxImmutableStateInvariant from "redux-immutable-state-invariant";
 import thunk from "redux-thunk";
 
 const initialDataState: IDataState = {
+    isLoggedIn: false,
     obsSessions: [],
     isLoadingObsSessions: false,
     isErrorObsSessions: undefined,

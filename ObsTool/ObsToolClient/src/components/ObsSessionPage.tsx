@@ -368,10 +368,12 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                             locations={this.props.store.locations || []}
                             onSaveObsSession={this.onSaveObsSession}
                             isLoading={this.state.isLoading}
+                            allowEditing={this.props.store.isLoggedIn}
                         />
                         <ObservationList
                             observations={observations}
                             onSelectObservation={this.onSelectObservation}
+                            allowEditing={this.props.store.isLoggedIn}
                         />
                     </SwipeableViews>
                 </div>

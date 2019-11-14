@@ -59,6 +59,7 @@ export interface IObsSessionFormProps extends WithStyles<typeof styles> {
   locations?: ILocation[];
   onSaveObsSession: (obsSession: IObsSession) => void;
   isLoading: boolean;
+  allowEditing: boolean;
 }
 
 export interface IObsSessionFormState {
@@ -267,6 +268,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                   variant="contained"
                   color="primary"
                   type="submit"
+                  disabled={!this.props.allowEditing}
                 >
                   Save
                 </Button>
@@ -293,6 +295,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         variant="contained"
                         color="primary"
                         type="submit"
+                        disabled={!this.props.allowEditing}
                       >
                         Save
                       </Button>

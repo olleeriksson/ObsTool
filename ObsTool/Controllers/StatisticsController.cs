@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ObsTool.Database;
 using ObsTool.Entities;
 using ObsTool.Models;
@@ -27,6 +28,7 @@ namespace ObsTool.Controllers
             _obsResourceRepo = obsResourceRepo;
         }
 
+        [AllowAnonymous]
         [HttpGet()]
         public IActionResult Get()
         {

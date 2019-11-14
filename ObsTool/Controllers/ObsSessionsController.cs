@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ObsTool.Database;
@@ -39,6 +40,7 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/ObsSession
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult Get(bool includeLocation = false, bool simple = false)
         {
@@ -57,6 +59,7 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/ObsSession/5
+        [AllowAnonymous]
         [HttpGet("{id}", Name = "GetOneObsSession")]
         public IActionResult Get(int id, bool includeLocation = false, bool includeObservations = false,
             bool includeDso = false, bool includeOtherObservations = false)
