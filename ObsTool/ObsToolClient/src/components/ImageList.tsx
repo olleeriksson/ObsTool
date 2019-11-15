@@ -73,8 +73,6 @@ const styles = (theme: Theme) => createStyles({
     width: 120,
   },
   iconButtonContainer: {  // The container around the checkboxes, clear checkbox button, compare button
-    width: 20,
-    height: 20,
     color: "lightgray",
   },
   iconButtonIcon: {  // Checkbox, clear checkboxes, compare
@@ -372,7 +370,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     let addButton;
     if (this.props.showAddButton) {
       addButton = (
-        <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickAddResource}>
+        <IconButton color="secondary" className={classes.iconButtonContainer} size="small" onClick={this.onClickAddResource}>
           <AddIcon className={classes.iconButtonIcon} />
         </IconButton>
       );
