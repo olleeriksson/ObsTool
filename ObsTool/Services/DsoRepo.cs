@@ -38,14 +38,15 @@ namespace ObsTool.Services
         {
             // Normalize if needed
             string normalizedQueryString = normalize ? normalizeDsoString(queryString) : queryString;
+            normalizedQueryString = normalizedQueryString.ToLower();
 
             ICollection<Dso> foundDso = null;
 
             // Look for the normalized name in Name and OtherNames
             foundDso = _dbContext.Dso.Where(dso => 
-                dso.Name.Contains(normalizedQueryString) ||
-                dso.OtherNames.Contains(normalizedQueryString) ||
-                dso.CommonName.Contains(queryString)
+                dso.Name.ToLower().Contains(normalizedQueryString) ||
+                dso.OtherNames.ToLower().Contains(normalizedQueryString) ||
+                dso.CommonName.ToLower().Contains(queryString)
                 )
                 .Include(dso => dso.DsoExtra)
                 .ToList();
