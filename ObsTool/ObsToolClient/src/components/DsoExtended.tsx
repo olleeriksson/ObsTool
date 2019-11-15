@@ -4,6 +4,8 @@ import { IDso } from "../types/Types";
 import Typography from "@material-ui/core/Typography";
 import CosmosIcon from "../cosmos.svg";
 import DsoAnnotations from "./DsoAnnotations";
+import GoogleImagesLink from "./GoogleImagesLink";
+import * as obsToolUtils from "../obsToolUtils";
 
 export interface IDsoExtendedProps {
   id?: number;
@@ -66,6 +68,10 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
         const commonName = this.props.dso.commonName && (" - " + this.props.dso.commonName);
         const sizeSeparator = this.props.dso.sizeMax && this.props.dso.sizeMax.trim() !== "" && this.props.dso.sizeMin && this.props.dso.sizeMin.trim() !== "" && " - ";
 
+        // Prepare a search terms for Google image search
+        const translatedDsoType = obsToolUtils.translateDsoType(this.props.dso.type);
+        const searchTerms = [this.props.dso.name || "", translatedDsoType || ""];
+
         if (this.props.dso.name === "custom") {
           return (
             <div className="dsoExtended">
@@ -95,6 +101,7 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
                   <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
                   <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
                   <strong>Notes:</strong> {this.props.dso.notes} &nbsp;
+                  <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} />
                 </Typography>
               </div>
             </div>
