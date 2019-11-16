@@ -1,6 +1,6 @@
 @echo off
 echo ############################################################
-echo #          Deploying and running ObsToolClient API         #
+echo #               Deploying and running ObsTool              #
 echo ############################################################
 
 cd C:\Users\Olle\source\repos\ObsTool\ObsTool
