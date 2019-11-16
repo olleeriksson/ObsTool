@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "@material-ui/core";
 
 interface IGoogleImagesLinkProps {
   linkTitle: string;
@@ -13,8 +14,21 @@ const GoogleImagesLink = (props: IGoogleImagesLinkProps) => {
     .join("+");
 
   const url = "http://www.google.com/search?q=" + searchTerm + "&tbm=isch";
+
+  // Add this to the <Link> below:
+  //   onClick={onClickLink}
+  const onClickLink = () => {
+    window.open(url, "popup", "width=1000,height=700");
+    return false;
+  };
+
   return (
-    <a href={url}>{props.linkTitle}</a>
+    <>
+      {/* <a href={url}>{props.linkTitle}</a> */}
+      <Link href={url} variant="caption" target="_blank">
+        {props.linkTitle}
+      </Link>
+    </>
   );
 };
 

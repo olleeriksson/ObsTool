@@ -3,6 +3,7 @@ import * as React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import AladinLiteFrame from "./AladinLiteFrame";
 
 interface IResourceImageProps extends WithStyles<typeof styles> {
     type: string;
@@ -15,6 +16,7 @@ interface IResourceImageProps extends WithStyles<typeof styles> {
     backgroundColor?: number;
     driveMaxWidth?: string;
     driveMaxHeight?: string;
+    preview?: boolean;
 }
 
 const styles = (theme: Theme) => createStyles({
@@ -102,7 +104,19 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
 
         if (this.props.type === "url") {
             const displayName = this.props.name || this.props.url;
-            return <a href={this.props.url} title={displayName}>{displayName} </a>;
+            return (
+                <a href={this.props.url} title={displayName}>{displayName} </a>
+            );
+        } else if (this.props.type === "aladin") {
+            const aladinTargetName = this.props.url;  // the Aladin target name is stored in the url field
+            const driveMaxWidth = this.props.driveMaxWidth || "100";
+            const driveMaxHeight = this.props.driveMaxHeight || "100";
+            if (!!this.props.preview) {
+                return <img src="aladin.png" />;
+            }
+            return (
+                <AladinLiteFrame target={aladinTargetName} width={"550"} height={"550"} />
+            );
         } else {
             const invert = this.props.inverted ? "100" : "0";
             const rotation = this.props.rotation;

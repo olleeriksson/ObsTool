@@ -358,7 +358,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         const deleteDialogText = "Are you sure you want to delete the " + (this.props.resource && this.props.resource.type) +
             " " + (this.props.resource && this.props.resource.name) + "?";
 
-        const disableImageControls = this.state.type === "link";
+        const disableImageControls = this.state.type === "link" || this.state.type === "aladin";
 
         // Simulates an XOR operator to invert the inverted value and background color
         const invertedInverted = (this.state.inverted && !this.props.inverted) || (!this.state.inverted && this.props.inverted);
@@ -407,32 +407,40 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                             <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
                                             <FormControlLabel value="jot" control={<Radio />} label="Jot" />
                                             <FormControlLabel value="link" control={<Radio />} label="Link" />
+                                            <FormControlLabel value="aladin" control={<Radio />} label="Aladin" />
                                         </RadioGroup>
                                     </FormControl>
                                 </Grid>
-                                <Grid item={true}>
+                                <Grid item={true} hidden={disableImageControls}>
                                     <FormControl className={classes.formControl}>
-                                        <FormLabel>White background</FormLabel>
-                                        <Checkbox
-                                            checked={this.state.backgroundColor >= 255}
-                                            onChange={this.handleBackgroundCheckboxChange}
-                                            color="primary"
-                                            disabled={disableImageControls}
+                                        <FormLabel>Background</FormLabel>
+                                        <FormControlLabel
+                                            label="White background"
+                                            // tslint:disable-next-line:jsx-no-multiline-js
+                                            control={
+                                                <Checkbox
+                                                    checked={this.state.backgroundColor >= 255}
+                                                    onChange={this.handleBackgroundCheckboxChange}
+                                                    color="primary"
+                                                    disabled={disableImageControls}
+                                                />
+                                            }
+                                        />
+                                        <FormControlLabel
+                                            label="Inverted"
+                                            // tslint:disable-next-line:jsx-no-multiline-js
+                                            control={
+                                                <Checkbox
+                                                    checked={this.state.inverted}
+                                                    onChange={this.handleInvertedCheckboxChange}
+                                                    color="primary"
+                                                    disabled={disableImageControls}
+                                                />
+                                            }
                                         />
                                     </FormControl>
                                 </Grid>
-                                <Grid item={true}>
-                                    <FormControl className={classes.formControl}>
-                                        <FormLabel>Inverted</FormLabel>
-                                        <Checkbox
-                                            checked={this.state.inverted}
-                                            onChange={this.handleInvertedCheckboxChange}
-                                            color="primary"
-                                            disabled={disableImageControls}
-                                        />
-                                    </FormControl>
-                                </Grid>
-                                <Grid item={true}>
+                                <Grid item={true} hidden={disableImageControls}>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel>Rotation ({Math.round(this.state.rotation)} deg)</FormLabel>
                                         <div className={classes.sliderContainer}>
@@ -449,7 +457,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                         </div>
                                     </FormControl>
                                 </Grid>
-                                <Grid item={true}>
+                                <Grid item={true} hidden={disableImageControls}>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel>Zoom Level ({Math.round(this.state.zoomLevel)}%)</FormLabel>
                                         <div className={classes.sliderContainer}>

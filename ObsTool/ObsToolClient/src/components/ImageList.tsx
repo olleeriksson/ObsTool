@@ -245,7 +245,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     }
 
     const images = this.state.resources && this.state.resources.length > 0
-      && this.state.resources.filter(r => r.type === "sketch" || r.type === "jot" || r.type === "image") || [];
+      && this.state.resources.filter(r => r.type === "sketch" || r.type === "jot" || r.type === "image" || r.type === "aladin") || [];
 
     const links = this.state.resources && this.state.resources.length > 0
       && this.state.resources.filter(r => r.type === "link") || [];
@@ -301,6 +301,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
             backgroundColor={r.backgroundColor}
             driveMaxHeight="180"
             driveMaxWidth="180"
+            preview={true}
           />
         </div>
         <GridListTileBar
@@ -361,7 +362,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     let compareTheseTwo;
     if (images.length === 2) {
       compareTheseTwo = (
-        <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickCompareTheseTwo(images[0], images[1])}>
+        <IconButton color="secondary" className={classes.iconButtonContainer} size="small" onClick={this.onClickCompareTheseTwo(images[0], images[1])}>
           <CompareIcon className={classes.iconButtonIcon} />
         </IconButton>
       );

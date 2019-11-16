@@ -31,6 +31,9 @@ const styles = (theme: Theme) => createStyles({
   textFieldReportText: {
     overflow: "hidden"  // gets rid of an annoying scroll bar in the report text form field
   },
+  saveButton: {
+    marginRight: 30
+  },
   dateField: {
     marginTop: theme.spacing(2),
     width: 200,
@@ -263,22 +266,24 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 margin="normal"
                 style={{ width: 150 }}
               />
-              <Grid item={true}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  type="submit"
-                  disabled={!this.props.allowEditing}
-                >
-                  Save
-                </Button>
-                {circularProgress}
-              </Grid>
             </Grid>
             <Grid item={true}>
               <Grid container={true} direction="row">
                 <Grid item={true} style={{ flex: 1 }}>
                   <Grid container={true} direction="column">
+                    <Grid item={true}>
+                      <Grid container={true} direction="row" justify="flex-end">
+                        {circularProgress}
+                        <Button
+                          variant="contained"
+                          type="submit"
+                          disabled={!this.props.allowEditing}
+                          className={classes.saveButton}
+                        >
+                          Save
+                        </Button>
+                      </Grid>
+                    </Grid>
                     <Grid item={true}>
                       <TextareaAutosize
                         id="reportText"
@@ -288,18 +293,24 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         onChange={this.handleChange("reportText")}
                         className={classNames(classes.formControl)}
                         inputProps={{ className: classes.textFieldReportText }}
+                        margin="dense"
+                        variant="outlined"
                       />
                     </Grid>
                     <Grid item={true}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        type="submit"
-                        disabled={!this.props.allowEditing}
-                      >
-                        Save
-                      </Button>
-                      {circularProgress}
+                      <Grid container={true} direction="row" justify="flex-end">
+                        <Grid item={true}>
+                          {circularProgress}
+                          <Button
+                            variant="contained"
+                            type="submit"
+                            disabled={!this.props.allowEditing}
+                            className={classes.saveButton}
+                          >
+                            Save
+                          </Button>
+                        </Grid>
+                      </Grid>
                     </Grid>
                   </Grid>
                 </Grid>

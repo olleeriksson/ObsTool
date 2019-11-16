@@ -119,7 +119,11 @@ namespace ObsTool.Controllers
             }
 
             // Verify the type
-            if (obsResourceDtoForUpdate.Type != "sketch" && obsResourceDtoForUpdate.Type != "jot" && obsResourceDtoForUpdate.Type != "image" && obsResourceDtoForUpdate.Type != "link")
+            if (obsResourceDtoForUpdate.Type != "sketch" &&
+                obsResourceDtoForUpdate.Type != "jot" &&
+                obsResourceDtoForUpdate.Type != "image" &&
+                obsResourceDtoForUpdate.Type != "link" &&
+                obsResourceDtoForUpdate.Type != "aladin")
             {
                 return BadRequest("Invalid type");
             }

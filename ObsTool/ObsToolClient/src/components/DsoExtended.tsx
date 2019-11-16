@@ -6,6 +6,7 @@ import CosmosIcon from "../cosmos.svg";
 import DsoAnnotations from "./DsoAnnotations";
 import GoogleImagesLink from "./GoogleImagesLink";
 import * as obsToolUtils from "../obsToolUtils";
+import AladinLiteLink from "./AladinLiteLink";
 
 export interface IDsoExtendedProps {
   id?: number;
@@ -100,8 +101,9 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
                   <strong>Class:</strong> {this.props.dso.class} &nbsp;
                   <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
                   <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
-                  <strong>Notes:</strong> {this.props.dso.notes} &nbsp;
-                  <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} />
+                  <strong>Notes:</strong> {this.props.dso.notes} &nbsp;|&nbsp;
+                  <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} /> &nbsp;|&nbsp;
+                  <AladinLiteLink linkTitle="Aladin Lite" searchTerm={this.props.dso.name} />
                 </Typography>
               </div>
             </div>

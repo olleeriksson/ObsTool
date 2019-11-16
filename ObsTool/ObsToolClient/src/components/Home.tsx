@@ -14,6 +14,7 @@ import logo from "./../obstool-logo.png";
 import "./Layout.css";
 import { Link } from "react-router-dom";
 import SearchInput from "./SearchInput";
+import AladinFrame from "./AladinLiteFrame";
 
 const styles = (theme: Theme) => createStyles({
     header: {
