@@ -27,6 +27,10 @@ Backend & Frontend together
     1. cd <git root>\ObsTool\bin\Release\netcoreapp3.0\publish
     2. .\ObsTool.exe
 
+	Had som problems with this in sep 2021, but changed the REACT_APP_API_URL in 
+	ObsToolClient/.env.production from REACT_APP_API_URL=https://localhost:5001/api to
+	REACT_APP_API_URL=http://localhost:5000/api and then I could run production locally.
+
 ====================================
 |      PRODUCTION EXTERNALLY       |
 ====================================
