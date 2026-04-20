@@ -1,0 +1,761 @@
+{
+  "settings": {
+    "components": {
+      "code": true,
+      "binaries": false
+    },
+    "targetId": "net10.0",
+    "targetDisplayName": ".NETCoreApp,Version=v10.0"
+  },
+  "analysisStartTime": "2026-04-20T20:58:37.688006Z",
+  "analysisEndTime": "2026-04-20T20:58:42.2316715Z",
+  "privacyModeHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2270980",
+  "stats": {
+    "summary": {
+      "projects": 2,
+      "issues": 6,
+      "incidents": 24,
+      "effort": 24
+    },
+    "charts": {
+      "severity": {
+        "Mandatory": 4,
+        "Optional": 2,
+        "Potential": 18,
+        "Information": 0
+      },
+      "category": {
+        "NuGet": 5,
+        "Project": 2,
+        "Api": 17
+      }
+    }
+  },
+  "projects": [
+    {
+      "path": "ObsTool\\ObsTool.csproj",
+      "startingProject": true,
+      "issues": 6,
+      "storyPoints": 23,
+      "properties": {
+        "appName": "ObsTool",
+        "projectKind": "AspNetCore",
+        "frameworks": [
+          "netcoreapp3.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 64,
+        "numberOfCodeFiles": 58,
+        "linesTotal": 3933,
+        "linesOfCode": 3848,
+        "totalApiScanned": 3905,
+        "minLinesOfCodeToChange": 17,
+        "maxLinesOfCodeToChange": 17
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "9c831d02-d937-44d2-bac2-1178debebf3b",
+          "ruleId": "NuGet.0002",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions 10.0.6",
+              "protected": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions 10.0.6"
+            },
+            "kind": "File",
+            "path": "ObsTool\\ObsTool.csproj",
+            "snippet": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions 10.0.6",
+            "protectedSnippet": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions 10.0.6",
+            "label": "Microsoft.AspNetCore.SpaServices.Extensions 3.0.0",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageVersion": "3.0.0",
+              "PackageNewVersion": "10.0.6",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "e09474f9-998c-40c0-82c8-88b4fb26dc99",
+          "ruleId": "NuGet.0002",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.VisualStudio.Web.CodeGeneration.Design, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.VisualStudio.Web.CodeGeneration.Design, and replace with new package Microsoft.VisualStudio.Web.CodeGeneration.Design 10.0.2",
+              "protected": "Microsoft.VisualStudio.Web.CodeGeneration.Design, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.VisualStudio.Web.CodeGeneration.Design, and replace with new package Microsoft.VisualStudio.Web.CodeGeneration.Design 10.0.2"
+            },
+            "kind": "File",
+            "path": "ObsTool\\ObsTool.csproj",
+            "snippet": "Microsoft.VisualStudio.Web.CodeGeneration.Design, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.VisualStudio.Web.CodeGeneration.Design, and replace with new package Microsoft.VisualStudio.Web.CodeGeneration.Design 10.0.2",
+            "protectedSnippet": "Microsoft.VisualStudio.Web.CodeGeneration.Design, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.VisualStudio.Web.CodeGeneration.Design, and replace with new package Microsoft.VisualStudio.Web.CodeGeneration.Design 10.0.2",
+            "label": "Microsoft.VisualStudio.Web.CodeGeneration.Design 3.0.0",
+            "properties": {
+              "PackageId": "Microsoft.VisualStudio.Web.CodeGeneration.Design",
+              "PackageVersion": "3.0.0",
+              "PackageNewVersion": "10.0.2",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "6dfe01f1-652c-4643-84c0-12ba4cfee939",
+          "ruleId": "NuGet.0002",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.EntityFrameworkCore.Sqlite, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.6",
+              "protected": "Microsoft.EntityFrameworkCore.Sqlite, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.6"
+            },
+            "kind": "File",
+            "path": "ObsTool\\ObsTool.csproj",
+            "snippet": "Microsoft.EntityFrameworkCore.Sqlite, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.6",
+            "protectedSnippet": "Microsoft.EntityFrameworkCore.Sqlite, 3.0.0\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.6",
+            "label": "Microsoft.EntityFrameworkCore.Sqlite 3.0.0",
+            "properties": {
+              "PackageId": "Microsoft.EntityFrameworkCore.Sqlite",
+              "PackageVersion": "3.0.0",
+              "PackageNewVersion": "10.0.6",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "aff32afb-3552-4457-bdeb-8289300453c1",
+          "ruleId": "NuGet.0004",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "AutoMapper, 9.0.0\n\nRecommendation:\n\nAutoMapper, 16.1.1",
+              "protected": "AutoMapper, 9.0.0\n\nRecommendation:\n\nAutoMapper, 16.1.1"
+            },
+            "kind": "File",
+            "path": "ObsTool\\ObsTool.csproj",
+            "snippet": "AutoMapper, 9.0.0\n\nRecommendation:\n\nAutoMapper, 16.1.1",
+            "protectedSnippet": "AutoMapper, 9.0.0\n\nRecommendation:\n\nAutoMapper, 16.1.1",
+            "label": "AutoMapper 9.0.0",
+            "properties": {
+              "PackageId": "AutoMapper",
+              "PackageVersion": "9.0.0",
+              "PackageNewVersion": "16.1.1",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "9d100708-4096-4b3d-bfd5-96f82a049af9",
+          "ruleId": "NuGet.0005",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions, 10.0.6",
+              "protected": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions, 10.0.6"
+            },
+            "kind": "File",
+            "path": "ObsTool\\ObsTool.csproj",
+            "snippet": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions, 10.0.6",
+            "protectedSnippet": "Microsoft.AspNetCore.SpaServices.Extensions, 3.0.0\n\nRecommendation:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove Microsoft.AspNetCore.SpaServices.Extensions, and replace with new package Microsoft.AspNetCore.SpaServices.Extensions, 10.0.6",
+            "label": "Microsoft.AspNetCore.SpaServices.Extensions 3.0.0",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageVersion": "3.0.0",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "65da4591-cba0-4785-bea7-d4727b47126a",
+          "ruleId": "Project.0002",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0",
+              "protected": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0"
+            },
+            "kind": "File",
+            "path": "ObsTool\\ObsTool.csproj",
+            "snippet": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0",
+            "protectedSnippet": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0",
+            "properties": {
+              "CurrentTargetFramework": "netcoreapp3.0",
+              "RecommendedTargetFramework": "net10.0"
+            }
+          }
+        },
+        {
+          "incidentId": "881efd56-2862-48b9-8490-71fa5daef957",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: DynamicallyAccessedMembers annotation removed from trim-unsafe configuration APIs ",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var cfgHashedPassword = _configuration.GetSection(\u0022AdminUser:HashedPassword\u0022).Get\u003Cstring\u003E();",
+              "protected": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration)"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Controllers\\AuthenticationController.cs",
+            "snippet": "var cfgHashedPassword = _configuration.GetSection(\u0022AdminUser:HashedPassword\u0022).Get\u003Cstring\u003E();",
+            "protectedSnippet": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration)",
+            "label": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/extensions/10.0/dynamically-accessed-members-configuration.md",
+                "isCustom": false
+              }
+            ],
+            "line": 35,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "060f07fd-9699-488e-b8a2-844bbc2eaf5b",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: DynamicallyAccessedMembers annotation removed from trim-unsafe configuration APIs ",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var cfgUsername = _configuration.GetSection(\u0022AdminUser:Username\u0022).Get\u003Cstring\u003E();",
+              "protected": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration)"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Controllers\\AuthenticationController.cs",
+            "snippet": "var cfgUsername = _configuration.GetSection(\u0022AdminUser:Username\u0022).Get\u003Cstring\u003E();",
+            "protectedSnippet": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration)",
+            "label": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/extensions/10.0/dynamically-accessed-members-configuration.md",
+                "isCustom": false
+              }
+            ],
+            "line": 34,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "053b3458-a0ab-4e98-b2f3-db7474ebd7e0",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "spa.Options.SourcePath = \u0022./ObsToolClient\u0022;",
+              "protected": "T:Microsoft.AspNetCore.SpaServices.SpaOptions"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "spa.Options.SourcePath = \u0022./ObsToolClient\u0022;",
+            "protectedSnippet": "T:Microsoft.AspNetCore.SpaServices.SpaOptions",
+            "label": "T:Microsoft.AspNetCore.SpaServices.SpaOptions",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 145,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "e7007211-56d0-4142-a7c6-ccec4cc4e097",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "spa.Options.SourcePath = \u0022./ObsToolClient\u0022;",
+              "protected": "P:Microsoft.AspNetCore.SpaServices.ISpaBuilder.Options"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "spa.Options.SourcePath = \u0022./ObsToolClient\u0022;",
+            "protectedSnippet": "P:Microsoft.AspNetCore.SpaServices.ISpaBuilder.Options",
+            "label": "P:Microsoft.AspNetCore.SpaServices.ISpaBuilder.Options",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 145,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "6da19e12-487e-443d-9e82-af3abfb943b8",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "spa.Options.SourcePath = \u0022./ObsToolClient\u0022;",
+              "protected": "P:Microsoft.AspNetCore.SpaServices.SpaOptions.SourcePath"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "spa.Options.SourcePath = \u0022./ObsToolClient\u0022;",
+            "protectedSnippet": "P:Microsoft.AspNetCore.SpaServices.SpaOptions.SourcePath",
+            "label": "P:Microsoft.AspNetCore.SpaServices.SpaOptions.SourcePath",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 145,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "a6cba625-9248-41be-9c1e-ead7c9c8b0e9",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "app.UseSpa(spa =\u003E\r\n            {\r\n                spa.Options.SourcePath = \u0022./ObsToolClient\u0022;\r\n\r\n                // Disabled, I run npm start from VS Code for development\r\n                //if (env.IsDevelopment())\r\n                //{\r\n                //    spa.UseReactDevelopmentServer(npmScript: \u0022start\u0022);\r\n                //}\r\n            });",
+              "protected": "T:Microsoft.AspNetCore.Builder.SpaApplicationBuilderExtensions"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "app.UseSpa(spa =\u003E\r\n            {\r\n                spa.Options.SourcePath = \u0022./ObsToolClient\u0022;\r\n\r\n                // Disabled, I run npm start from VS Code for development\r\n                //if (env.IsDevelopment())\r\n                //{\r\n                //    spa.UseReactDevelopmentServer(npmScript: \u0022start\u0022);\r\n                //}\r\n            });",
+            "protectedSnippet": "T:Microsoft.AspNetCore.Builder.SpaApplicationBuilderExtensions",
+            "label": "T:Microsoft.AspNetCore.Builder.SpaApplicationBuilderExtensions",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 143,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "90f3874d-7787-4f78-b18c-2a2e9ea450fc",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "app.UseSpa(spa =\u003E\r\n            {\r\n                spa.Options.SourcePath = \u0022./ObsToolClient\u0022;\r\n\r\n                // Disabled, I run npm start from VS Code for development\r\n                //if (env.IsDevelopment())\r\n                //{\r\n                //    spa.UseReactDevelopmentServer(npmScript: \u0022start\u0022);\r\n                //}\r\n            });",
+              "protected": "M:Microsoft.AspNetCore.Builder.SpaApplicationBuilderExtensions.UseSpa(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.Action{Microsoft.AspNetCore.SpaServices.ISpaBuilder})"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "app.UseSpa(spa =\u003E\r\n            {\r\n                spa.Options.SourcePath = \u0022./ObsToolClient\u0022;\r\n\r\n                // Disabled, I run npm start from VS Code for development\r\n                //if (env.IsDevelopment())\r\n                //{\r\n                //    spa.UseReactDevelopmentServer(npmScript: \u0022start\u0022);\r\n                //}\r\n            });",
+            "protectedSnippet": "M:Microsoft.AspNetCore.Builder.SpaApplicationBuilderExtensions.UseSpa(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.Action{Microsoft.AspNetCore.SpaServices.ISpaBuilder})",
+            "label": "M:Microsoft.AspNetCore.Builder.SpaApplicationBuilderExtensions.UseSpa(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.Action{Microsoft.AspNetCore.SpaServices.ISpaBuilder})",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 143,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "35a9352b-9299-45aa-af3c-a539982a0a95",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "app.UseSpaStaticFiles();",
+              "protected": "T:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "app.UseSpaStaticFiles();",
+            "protectedSnippet": "T:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions",
+            "label": "T:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 121,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "847402db-9d7d-4883-bb4b-de867884aa85",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "app.UseSpaStaticFiles();",
+              "protected": "M:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions.UseSpaStaticFiles(Microsoft.AspNetCore.Builder.IApplicationBuilder)"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "app.UseSpaStaticFiles();",
+            "protectedSnippet": "M:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions.UseSpaStaticFiles(Microsoft.AspNetCore.Builder.IApplicationBuilder)",
+            "label": "M:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions.UseSpaStaticFiles(Microsoft.AspNetCore.Builder.IApplicationBuilder)",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 121,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "711edcc5-e885-4588-8b53-80e8c3870b06",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "configuration.RootPath = \u0022ObsToolClient/build\u0022;",
+              "protected": "P:Microsoft.AspNetCore.SpaServices.StaticFiles.SpaStaticFilesOptions.RootPath"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "configuration.RootPath = \u0022ObsToolClient/build\u0022;",
+            "protectedSnippet": "P:Microsoft.AspNetCore.SpaServices.StaticFiles.SpaStaticFilesOptions.RootPath",
+            "label": "P:Microsoft.AspNetCore.SpaServices.StaticFiles.SpaStaticFilesOptions.RootPath",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 102,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "cf1293f3-0bf7-4023-a494-c6f10c784b35",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "services.AddSpaStaticFiles(configuration =\u003E\r\n            {\r\n                configuration.RootPath = \u0022ObsToolClient/build\u0022;\r\n            });",
+              "protected": "T:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "services.AddSpaStaticFiles(configuration =\u003E\r\n            {\r\n                configuration.RootPath = \u0022ObsToolClient/build\u0022;\r\n            });",
+            "protectedSnippet": "T:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions",
+            "label": "T:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 100,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "358fa212-9cda-4fed-b343-876e0a833ab5",
+          "ruleId": "Api.0002",
+          "description": "API is available in package Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6. Add package reference to Microsoft.AspNetCore.SpaServices.Extensions, 8.0.6",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "services.AddSpaStaticFiles(configuration =\u003E\r\n            {\r\n                configuration.RootPath = \u0022ObsToolClient/build\u0022;\r\n            });",
+              "protected": "M:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions.AddSpaStaticFiles(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{Microsoft.AspNetCore.SpaServices.StaticFiles.SpaStaticFilesOptions})"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "services.AddSpaStaticFiles(configuration =\u003E\r\n            {\r\n                configuration.RootPath = \u0022ObsToolClient/build\u0022;\r\n            });",
+            "protectedSnippet": "M:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions.AddSpaStaticFiles(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{Microsoft.AspNetCore.SpaServices.StaticFiles.SpaStaticFilesOptions})",
+            "label": "M:Microsoft.Extensions.DependencyInjection.SpaStaticFilesExtensions.AddSpaStaticFiles(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{Microsoft.AspNetCore.SpaServices.StaticFiles.SpaStaticFilesOptions})",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.SpaServices.Extensions",
+              "PackageNewVersion": "8.0.6"
+            },
+            "line": 100,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "463c9ebb-5fd0-4e2c-be2f-d3c9e7c498c2",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "cookieOptions.ExpireTimeSpan = TimeSpan.FromMinutes(30);",
+              "protected": "M:System.TimeSpan.FromMinutes(System.Double)"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "cookieOptions.ExpireTimeSpan = TimeSpan.FromMinutes(30);",
+            "protectedSnippet": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "label": "M:System.TimeSpan.FromMinutes(System.Double)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 72,
+            "column": 20
+          }
+        },
+        {
+          "incidentId": "bc00868c-c509-475f-b51d-88f975c817e0",
+          "ruleId": "Api.0002",
+          "description": "This API is obsolete and will be removed in a future version. Consider removing usages. ",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+              "protected": "T:Microsoft.AspNetCore.Mvc.CompatibilityVersion"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+            "protectedSnippet": "T:Microsoft.AspNetCore.Mvc.CompatibilityVersion",
+            "label": "T:Microsoft.AspNetCore.Mvc.CompatibilityVersion",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://aka.ms/aspnetcore-warnings/ASP5001",
+                "isCustom": false
+              }
+            ],
+            "line": 36,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "7e181fc0-25fb-4be1-9c5a-ad7fa41c1410",
+          "ruleId": "Api.0002",
+          "description": "This API is obsolete and will be removed in a future version. Consider removing usages. ",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+              "protected": "T:Microsoft.AspNetCore.Mvc.CompatibilityVersion"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+            "protectedSnippet": "T:Microsoft.AspNetCore.Mvc.CompatibilityVersion",
+            "label": "T:Microsoft.AspNetCore.Mvc.CompatibilityVersion",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://aka.ms/aspnetcore-warnings/ASP5001",
+                "isCustom": false
+              }
+            ],
+            "line": 36,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "daef70b0-3a81-47a4-b3da-8fe284e44fca",
+          "ruleId": "Api.0002",
+          "description": "This CompatibilityVersion value is obsolete. ",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+              "protected": "F:Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+            "protectedSnippet": "F:Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0",
+            "label": "F:Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0",
+            "line": 36,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "5f3cac13-f564-40b2-83f2-f0b95bff8fa6",
+          "ruleId": "Api.0002",
+          "description": "This API is obsolete and will be removed in a future version. Consider removing usages. ",
+          "projectPath": "ObsTool\\ObsTool.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+              "protected": "M:Microsoft.Extensions.DependencyInjection.MvcCoreMvcBuilderExtensions.SetCompatibilityVersion(Microsoft.Extensions.DependencyInjection.IMvcBuilder,Microsoft.AspNetCore.Mvc.CompatibilityVersion)"
+            },
+            "kind": "File",
+            "path": "ObsTool\\Startup.cs",
+            "snippet": "services.AddControllers(config =\u003E\r\n            {\r\n                // For default lock-down and then opt out with AllowAnonymous annotations\r\n                if (bool.Parse(Configuration[\u0022EnableAuthentication\u0022]))\r\n                {\r\n                    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();\r\n                    config.Filters.Add(new AuthorizeFilter(policy));\r\n                }\r\n            })\r\n            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);",
+            "protectedSnippet": "M:Microsoft.Extensions.DependencyInjection.MvcCoreMvcBuilderExtensions.SetCompatibilityVersion(Microsoft.Extensions.DependencyInjection.IMvcBuilder,Microsoft.AspNetCore.Mvc.CompatibilityVersion)",
+            "label": "M:Microsoft.Extensions.DependencyInjection.MvcCoreMvcBuilderExtensions.SetCompatibilityVersion(Microsoft.Extensions.DependencyInjection.IMvcBuilder,Microsoft.AspNetCore.Mvc.CompatibilityVersion)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://aka.ms/aspnetcore-warnings/ASP5001",
+                "isCustom": false
+              }
+            ],
+            "line": 36,
+            "column": 12
+          }
+        }
+      ],
+      "features": []
+    },
+    {
+      "path": "ObsTool.Test\\ObsTool.Test.csproj",
+      "startingProject": true,
+      "issues": 1,
+      "storyPoints": 1,
+      "properties": {
+        "appName": "ObsTool.Test",
+        "projectKind": "DotNetCoreApp",
+        "frameworks": [
+          "netcoreapp3.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 9,
+        "numberOfCodeFiles": 3,
+        "linesTotal": 13143,
+        "linesOfCode": 248,
+        "totalApiScanned": 167,
+        "minLinesOfCodeToChange": 0,
+        "maxLinesOfCodeToChange": 0
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "72fc28aa-26cb-42a6-b963-e85f9ba05a68",
+          "ruleId": "Project.0002",
+          "projectPath": "ObsTool.Test\\ObsTool.Test.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0",
+              "protected": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0"
+            },
+            "kind": "File",
+            "path": "ObsTool.Test\\ObsTool.Test.csproj",
+            "snippet": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0",
+            "protectedSnippet": "Current target framework: netcoreapp3.0\nRecommended target framework: net10.0",
+            "properties": {
+              "CurrentTargetFramework": "netcoreapp3.0",
+              "RecommendedTargetFramework": "net10.0"
+            }
+          }
+        }
+      ],
+      "features": []
+    }
+  ],
+  "rules": {
+    "NuGet.0002": {
+      "id": "NuGet.0002",
+      "isFeature": false,
+      "description": "NuGet package upgrade is recommended for selected target framework.\n\nStandard .NET packages are recommended to have versions matching version of .NET that project targets.\n\nSome other packages also are known to work better for selected target frameworks.",
+      "label": "NuGet package upgrade is recommended",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262530",
+          "isCustom": false
+        }
+      ]
+    },
+    "NuGet.0004": {
+      "id": "NuGet.0004",
+      "isFeature": false,
+      "description": "NuGet package contains security vulnerabilities.\n\nPackage needs to be upgraded to a newer version that addresses known security vulnerabilities.",
+      "label": "NuGet package contains security vulnerability",
+      "severity": "Optional",
+      "effort": 1
+    },
+    "NuGet.0005": {
+      "id": "NuGet.0005",
+      "isFeature": false,
+      "description": "NuGet package is deprecated.\n\nGo to its documentation and if there is a guidance for replacement of functionality provided by this package.",
+      "label": "NuGet package is deprecated",
+      "severity": "Optional",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262531",
+          "isCustom": false
+        }
+      ]
+    },
+    "Project.0002": {
+      "id": "Project.0002",
+      "isFeature": false,
+      "description": "Project\u0027s target framework(s) needs to be changed to the new target framework that you selected for this upgrade.\n\nDuring upgrade target framework will be adjusted to corresponding platform when applicable. In some cases project would result in multiple target frameworks after the upgrade if it was using features that now have their own platforms in modern .NET frameworks (windows, iOS, Android etc).",
+      "label": "Project\u0027s target framework(s) needs to be changed",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Overview of porting from .NET Framework to .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265227",
+          "isCustom": false
+        },
+        {
+          "title": ".NET project SDKs",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265226",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0001": {
+      "id": "Api.0001",
+      "isFeature": false,
+      "description": "API is binary incompatible for selected .NET version: affects existing binaries, often requiring recompilation, because the API has changed in a way that prevents older binaries from loading or executing.",
+      "label": "Binary incompatible for selected .NET version",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0002": {
+      "id": "Api.0002",
+      "isFeature": false,
+      "description": "API is source incompatible for selected .NET version: requires code changes to compile successfully when targeting a new version, such as removing obsolete APIs or changing method signatures.",
+      "label": "Source incompatible for selected .NET version",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    }
+  }
+}
