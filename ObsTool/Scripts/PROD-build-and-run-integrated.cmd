@@ -3,9 +3,9 @@ echo ############################################################
 echo #               Deploying and running ObsTool              #
 echo ############################################################
 
-cd C:\Users\Olle\source\repos\ObsTool\ObsTool
+cd C:\Users\Olle\source\repos\olleeriksson\ObsTool\ObsTool
 dotnet publish -c Release 
 :: --self-contained :: /p:PublishSingleFile=true
 
-cd C:\Users\Olle\source\repos\ObsTool\ObsTool\bin\Release\netcoreapp3.0\publish
+cd C:\Users\Olle\source\repos\olleeriksson\ObsTool\ObsTool\bin\Release\netcoreapp3.0\publish
 .\ObsTool.exe

@@ -51,7 +51,7 @@
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
     "eject": "react-scripts-ts eject",
-    "deploy": ".\\scripts\\deploy.cmd"
+    "deploy": "call .\\scripts\\deploy.cmd"
   },
   "devDependencies": {
     "@types/jest": "^24.0.21",

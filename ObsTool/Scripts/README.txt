@@ -1,6 +1,15 @@
+
+
+Usually what you do is build the frontend with npm run build and then deploy it with npm run deploy. But right now the
+deploy command does nothing. Instead, everything is built using dotnet publish and the Visual Studio project file.
+
+
 ====================================
 |            DEVELOPMENT           |
 ====================================
+
+For development it seems the integrated solution in Visual Studio with dotnet publish doesn't run the frontend.
+So you have to run the frontend manually with npm start, but the backend can be run from the Play button in Visual Studio.
 
 Frontend
 ---------------------
@@ -13,9 +22,9 @@ Backend
   Run:
     1. Run the project from Visual Studio in Debug mode.
 
-====================================
-|        PRODUCTION LOCALLY        |
-====================================
+========================================================================
+|  PRODUCTION LOCALLY INTEGRATED IN VISUAL STUDIO / VIA DOTNET PUBLISH |
+========================================================================
 
 Backend & Frontend together
 ----------------------------
@@ -56,5 +65,3 @@ Backend & Frontend together
     3. cd ObsToolWebserver
     4. npm start
 
-Usually what you do is build the frontend with npm run build and then deploy it with npm run deploy. But right now the
-deploy command does nothing. Instead, everything is built using dotnet publish and the Visual Studio project file.

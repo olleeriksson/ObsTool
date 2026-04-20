@@ -1,5 +1,5 @@
-rmdir /s /q ..\..\..\ObsToolWebserver\build 
-xcopy /ievy build ..\..\..\ObsToolWebserver\build
+rmdir /s /q C:\Users\Olle\source\ObsToolWebserver\build 
+xcopy /ievy build C:\Users\Olle\source\ObsToolWebserver\build
 
 :: Disable the lines above and enable the lines below to change so that frontend deployment is taken care
 :: of by running "npm run deploy" instead of through dotnet publish and special commands in the .csproj file.
