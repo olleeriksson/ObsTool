@@ -82,7 +82,7 @@ namespace ObsTool
             );
             services.AddAuthorization();
 
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddAutoMapper(typeof(AutoMapperProfile));
 
             // Sqlite
             services.AddDbContext<MainDbContext>(o => o.UseSqlite(Configuration["Db:ConnectionString"]));
@@ -94,8 +94,14 @@ namespace ObsTool
             services.AddScoped<ReportTextManager>();
             services.AddScoped<ObservationsService>();
             services.AddScoped<ObsResourcesRepo>();
-                services.AddScoped<DsoObservationsRepo>();
-            }
+            services.AddScoped<DsoObservationsRepo>();
+
+            // In production, the React files will be served from this directory
+            services.AddSpaStaticFiles(configuration =>
+            {
+                configuration.RootPath = "ObsToolClient/build";
+            });
+        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostEnvironment env, ILoggerFactory loggerFactory)
@@ -123,11 +129,20 @@ namespace ObsTool
 
             app.ConfigureCustomExceptionMiddleware();
 
-                        app.UseEndpoints(endpoints =>
-                        {
-                            endpoints.MapControllers();
-                            //endpoints.MapFallbackToFile("index.html");
-                        });
-                    }
-                }
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            // In production, serve the React SPA files alongside the API
+            if (!env.IsDevelopment())
+            {
+                app.UseSpaStaticFiles();
+                app.UseSpa(spa =>
+                {
+                    spa.Options.SourcePath = "./ObsToolClient";
+                });
             }
+        }
+    }
+}
