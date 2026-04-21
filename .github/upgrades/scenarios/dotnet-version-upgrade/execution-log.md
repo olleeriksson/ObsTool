@@ -55,3 +55,18 @@ Fixed all API breaking changes for .NET 10.0:
 
 **Progress**: 3/4 tasks complete (75%)
 
+
+## [2026-04-21 18:53] 02-update-nuget-packages
+
+**Task 02-update-nuget-packages completed** ✅
+
+Updated NuGet package versions to .NET 10.0 compatible versions:
+- AutoMapper: 9.0.0 → 16.1.1 (includes security fix)
+- Microsoft.AspNetCore.SpaServices.Extensions: 3.0.0 → 10.0.6
+- Microsoft.EntityFrameworkCore.Sqlite: 3.0.0 → 10.0.6
+- Microsoft.VisualStudio.Web.CodeGeneration.Design: 3.0.0 → 10.0.2
+
+Restore completed successfully with no dependency conflicts. Test packages remain at current versions (all compatible).
+
+**Progress**: 2/4 tasks complete (50%)
+
