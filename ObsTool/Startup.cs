@@ -42,8 +42,7 @@ namespace ObsTool
                     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                     config.Filters.Add(new AuthorizeFilter(policy));
                 }
-            })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            });
 
             services.AddCors(options =>
             {
@@ -95,14 +94,8 @@ namespace ObsTool
             services.AddScoped<ReportTextManager>();
             services.AddScoped<ObservationsService>();
             services.AddScoped<ObsResourcesRepo>();
-            services.AddScoped<DsoObservationsRepo>();
-
-            // In production, the React files will be served from this directory
-            services.AddSpaStaticFiles(configuration =>
-            {
-                configuration.RootPath = "ObsToolClient/build";
-            });
-        }
+                services.AddScoped<DsoObservationsRepo>();
+            }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostEnvironment env, ILoggerFactory loggerFactory)
@@ -119,7 +112,6 @@ namespace ObsTool
             }
 
             app.UseStaticFiles();
-            app.UseSpaStaticFiles();
 
             app.UseRouting();
 
@@ -131,26 +123,11 @@ namespace ObsTool
 
             app.ConfigureCustomExceptionMiddleware();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                //endpoints.MapFallbackToFile("index.html");
-            });
-
-            // There is a little bit of magic in here that serves the front end files from GET /.
-            // The .csproj file contains commands to build the frontend.
-            // Then a combination of AddSpaStaticFiles(), UseSpa(), UseStaticFiles(), UseSpaStaticFiles()
-            // serves the frontend app from that directory while also serving the API controllers.
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "./ObsToolClient";
-
-                // Disabled, I run npm start from VS Code for development
-                //if (env.IsDevelopment())
-                //{
-                //    spa.UseReactDevelopmentServer(npmScript: "start");
-                //}
-            });
-        }
-    }
-}
+                        app.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
+                            //endpoints.MapFallbackToFile("index.html");
+                        });
+                    }
+                }
+            }

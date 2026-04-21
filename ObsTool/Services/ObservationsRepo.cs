@@ -74,7 +74,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedObjects()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Select(dsoObs => dsoObs.Dso.Id)
                 .Distinct()
@@ -83,7 +83,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedGalaxies()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Type == "GALXY")
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -93,7 +93,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedBrightNebulae()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Type == "BRTNB")
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -103,7 +103,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedDarkNebulae()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Type == "DRKNB")
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -113,7 +113,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedPlanetaryNebulae()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Type == "PLNNB")
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -123,7 +123,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedOpenClusters()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Type == "OPNCL")
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -133,7 +133,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedGlobularClusters()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Type == "GLOCL")
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -143,7 +143,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedMessierObjects()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Catalog == "M")
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -153,7 +153,7 @@ namespace ObsTool.Services
 
         public int GetNumObservedNGCObjects()
         {
-            return _dbContext.Observations
+            return _dbContext.Observations.AsQueryable()
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Catalog == "NGC")
                 .Select(dsoObs => dsoObs.Dso.Id)
