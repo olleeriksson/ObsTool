@@ -33,7 +33,7 @@ Backend & Frontend together
     2. dotnet publish -c Release        (or Publish to a directory from Visual Studio)
   
   Run (BE & hosted FE together):
-    1. cd <git root>\ObsTool\bin\Release\netcoreapp3.0\publish
+    1. cd <git root>\ObsTool\bin\Release\net10.0\publish
     2. .\ObsTool.exe
 
 	Had som problems with this in sep 2021, but changed the REACT_APP_API_URL in 
