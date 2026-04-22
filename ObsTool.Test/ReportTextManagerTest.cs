@@ -37,7 +37,7 @@ namespace TestProject
                 "dsflksd j M12 dsfklfsdfs",
             };
             IDictionary<string, Observation> observationsMap = reportTextManager.Parse(obsSession);
-            Assert.AreEqual(2, observationsMap.Count);
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace TestProject
 dsflksd j M12 dsfklfsdfs",
             };
             IDictionary<string, Observation> observationsMap = reportTextManager.Parse(obsSession);
-            Assert.AreEqual(2, observationsMap.Count);
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -103,7 +103,7 @@ NGC 6374 is completely different in the eyepiece. One pretty bright star and the
 
             IDictionary<string, Observation> observationsMap = reportTextManager.Parse(obsSession);
 
-            Assert.AreEqual(16, observationsMap.Count);
+            Assert.That(observationsMap.Count, Is.EqualTo(16));
         }
 
         [Test]
@@ -139,7 +139,7 @@ This oneNGC 123 should not match.
 ",
             };
             IDictionary<string, Observation> observationsMap = reportTextManager.Parse(obsSession);
-            Assert.AreEqual(7, observationsMap.Count);
+            Assert.That(observationsMap.Count, Is.EqualTo(7));
         }
 
         [Test]
@@ -159,7 +159,7 @@ NGC 6374 This one should match
 ",
             };
             IDictionary<string, Observation> observationsMap = reportTextManager.Parse(obsSession);
-            Assert.AreEqual(3, observationsMap.Count);
+            Assert.That(observationsMap.Count, Is.EqualTo(3));
         }
     }
 }
