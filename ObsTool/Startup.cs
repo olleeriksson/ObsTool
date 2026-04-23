@@ -82,7 +82,7 @@ namespace ObsTool
             );
             services.AddAuthorization();
 
-            services.AddAutoMapper(typeof(AutoMapperProfile));
+            services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfile>());
 
             // Sqlite
             services.AddDbContext<MainDbContext>(o => o.UseSqlite(Configuration["Db:ConnectionString"]));
