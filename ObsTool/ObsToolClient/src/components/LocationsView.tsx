@@ -7,7 +7,7 @@ import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import Api from "../api/Api";
 import { ILocation, IAppState, IDataState } from "src/types/Types";
-import * as classNames from "classnames";
+import classNames from "classnames";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { connect } from "react-redux";

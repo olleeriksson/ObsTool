@@ -74,13 +74,14 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 isErrorObsSessions: undefined,
             };
         }
-        case constants.GET_OBSSESSIONS_FAILURE:
+        case constants.GET_OBSSESSIONS_FAILURE: {
             const action2: IGetObsSessionsFailureAction = action as IGetObsSessionsFailureAction;
             return {
                 ...state,
                 isLoadingObsSessions: false,
                 isErrorObsSessions: action2.payload.error,
             };
+        }
         case constants.SELECT_OBSSESSION: {
             const selectAction = action as ISelectObsSessionAction;
             return {
@@ -142,7 +143,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 isErrorLocations: undefined,
             };
         }
-        case constants.GET_LOCATIONS_FAILURE:
+        case constants.GET_LOCATIONS_FAILURE: {
             const action11 = action as IGetLocationsFailureAction;
             return {
                 ...state,
@@ -150,23 +151,26 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 isLoadingLocations: false,
                 isErrorLocations: action11.payload.error,
             };
-        case constants.SEARCH:
+        }
+        case constants.SEARCH: {
             const searchAction = action as ISearchAction;
             return {
                 ...state,
                 searchQuery: searchAction.payload.query
             };
+        }
         case constants.CLEAR_SEARCH:
             return {
                 ...state,
                 searchQuery: ""
             };
-        case constants.RESOURCE_CHECKED:
+        case constants.RESOURCE_CHECKED: {
             const checkedAction = action as IObsResourceCheckedAction;
             return {
                 ...state,
                 checkedObsResources: [...state.checkedObsResources, checkedAction.payload.obsResource]
             };
+        }
         // case constants.DELETE_OBSSESSION_SUCCESS: {
         //     const deleteAction = action as IDeleteObsSessionSuccessAction;
         //     const updatedObsSessionList2 = state.obsSessions.filter(s => {
@@ -179,7 +183,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
         //     };
         //     return state;
         // }
-        case constants.RESOURCE_UNCHECKED:
+        case constants.RESOURCE_UNCHECKED: {
             const uncheckedAction = action as IObsResourceUncheckedAction;
             const updatedCheckedObsResources = state.checkedObsResources.filter(r => {
                 return r.id !== uncheckedAction.payload.obsResourceId;   // filter in all except the one with the matching id
@@ -188,6 +192,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 ...state,
                 checkedObsResources: updatedCheckedObsResources
             };
+        }
         case constants.RESOURCE_ALL_CLEARED:
             return {
                 ...state,

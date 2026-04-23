@@ -7,7 +7,7 @@ interface IAladinLiteLinkProps {
 }
 
 const AladinLiteLink = (props: IAladinLiteLinkProps) => {
-  const searchTerm = props.searchTerm.replace(/\ /g, "+");  // replace all empty spaces with +'es
+  const searchTerm = props.searchTerm.replace(/ /g, "+");  // replace all empty spaces with +'es
   const url = "http://aladin.unistra.fr/AladinLite/?target=" + searchTerm + "&fov=2.27&survey=P%2FDSS2%2Fcolor";
 
   // Add this to the <Link> below:

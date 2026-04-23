@@ -111,7 +111,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
             const aladinTargetName = this.props.url;  // the Aladin target name is stored in the url field
             const driveMaxWidth = this.props.driveMaxWidth || "100";
             const driveMaxHeight = this.props.driveMaxHeight || "100";
-            if (!!this.props.preview) {
+            if (this.props.preview) {
                 return <img src="aladin.png" />;
             }
             return (

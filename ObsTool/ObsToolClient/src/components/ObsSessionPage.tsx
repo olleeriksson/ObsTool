@@ -13,7 +13,7 @@ import ObsSessionForm from "./ObsSessionForm";
 import SwipeableViews from "react-swipeable-views";
 // import CircularProgress from "@material-ui/core/CircularProgress";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -255,9 +255,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         // ----------------------------------------
         if (this.state.redirectToSingleSessionPage) {
             const url = "/session/" + this.state.obsSession.id;
-            return <Redirect to={url} />;
+            return <Navigate to={url} replace />;
         } else if (this.state.redirectToListView) {
-            return <Redirect to={"/sessions"} />;
+            return <Navigate to="/sessions" replace />;
         }
 
         const snackbar = <Snackbar

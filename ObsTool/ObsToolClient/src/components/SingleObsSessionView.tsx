@@ -22,7 +22,6 @@ const styles = (theme: Theme) => createStyles({
 
 interface ISingleObsSessionViewProps extends WithStyles<typeof styles> {
     obsSessionId: number;
-    match: { params: any };
 }
 
 class SingleObsSessionView extends React.Component<ISingleObsSessionViewProps> {
@@ -40,7 +39,7 @@ class SingleObsSessionView extends React.Component<ISingleObsSessionViewProps> {
             <Grid container={true} spacing={5} justify="center">
                 <Grid item={true} xs={12} sm={8} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
-                        <ObsSessionPage obsSessionId={this.props.match.params.obsSessionId} />
+                        <ObsSessionPage obsSessionId={this.props.obsSessionId} />
                     </Paper>
                 </Grid>
             </Grid>
