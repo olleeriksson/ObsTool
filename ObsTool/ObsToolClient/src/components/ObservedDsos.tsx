@@ -28,11 +28,6 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface IObservedDsosProps extends WithStyles<typeof styles> {
-    obsSessionId: number;
-
-    // Routing
-    match: { params: any };
-    location: any;
 }
 
 interface IObservedDsosState {

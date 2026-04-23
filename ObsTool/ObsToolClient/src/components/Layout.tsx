@@ -12,7 +12,7 @@ import classNames from "classnames";
 import logo from "./../obstool-logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Layout.css";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import SearchInput from "./SearchInput";
 import Api from "src/api/Api";
 import LoginDialog from "./LoginDialog";
@@ -60,7 +60,7 @@ export interface ILayoutState {
 
 export interface ILayoutProps extends WithStyles<typeof styles> {
     children?: React.ReactNode;
-    location?: any;
+    onSearchView?: boolean;
     actions: any;
     store: IDataState;
 }
@@ -153,8 +153,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             );
         }
 
-        // Hack because I couldn't get withRouter() to work with Typescript
-        const weAreOnSearchView = this.props.location.pathname === "/search";
+        const weAreOnSearchView = this.props.onSearchView ?? false;
 
         const loginDialog = (
             <LoginDialog isOpen={this.state.isShowingLoginDialog} onLogin={this.handleLoginSuccess} onCancel={this.handleLoginCancelled} />
@@ -226,4 +225,13 @@ const mapDispatchToProps = (dispatch: Dispatch<authenticationAction.ILoggedInAct
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Layout));
+const LayoutConnected = connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Layout));
+
+export default function LayoutWithRouter({ children }: { children?: React.ReactNode }) {
+    const location = useLocation();
+    return (
+        <LayoutConnected onSearchView={location.pathname === "/search"}>
+            {children}
+        </LayoutConnected>
+    );
+}

@@ -34,16 +34,8 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface ISearchViewProps extends WithStyles<typeof styles> {
-    obsSessionId: number;
-
-    // Routing
-    match: { params: any };
-    location: any;
-
-    // Redux
     store: ReadonlyDataState;
     actions: any;
-    dispatch?: any;
 }
 
 interface ISearchViewState {

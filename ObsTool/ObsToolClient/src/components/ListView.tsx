@@ -39,7 +39,6 @@ interface IListViewProps extends WithStyles<typeof styles> {
     onDecrement?: () => void;
     store: ReadonlyDataState;
     actions: any;
-    dispatch: any;
 }
 
 class ListView extends React.Component<IListViewProps> {

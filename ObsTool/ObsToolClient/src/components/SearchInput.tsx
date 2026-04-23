@@ -9,7 +9,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Api from "../api/Api";
 import { IDso, IPagedDsoList } from "../types/Types";
 import { debounce } from "lodash";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
@@ -202,7 +202,7 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
         // Redirects
         //-----------------------------------
         if (this.state.redirectToSearchPage && !this.props.onSearchView) {
-            return <Redirect to="/search" />;
+            return <Navigate to="/search" replace />;
         }
 
         const autosuggestProps = {

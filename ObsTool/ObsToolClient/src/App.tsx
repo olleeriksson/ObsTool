@@ -29,7 +29,7 @@ class App extends React.Component<{}, {}> {
       <Provider store={store}>
         <div className="App">
           <CssBaseline />
-          <BrowserRouter children={Routes.routes} />
+          <BrowserRouter>{Routes.routes}</BrowserRouter>
         </div>
       </Provider>
     );
