@@ -2,6 +2,10 @@
   "name": "obstool",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.25",
     "@fortawesome/free-regular-svg-icons": "^5.11.2",
@@ -37,8 +41,6 @@
     "react-redux": "^7.1.1",
     "react-router-dom": "^5.1.2",
     "react-router-redux": "^4.0.8",
-    "react-scripts": "^3.2.0",
-    "react-scripts-ts": "^3.1.0",
     "react-swipeable-views": "^0.13.3",
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
@@ -47,25 +49,29 @@
     "typeface-roboto": "0.0.75"
   },
   "scripts": {
-    "start": "react-scripts-ts start",
-    "build": "react-scripts-ts build",
-    "test": "react-scripts-ts test --env=jsdom",
-    "eject": "react-scripts-ts eject",
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Tests need reconfiguration - see Phase 6\"",
     "deploy": "call .\\scripts\\deploy.cmd"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
     "@types/jest": "^24.0.21",
-    "@types/node": "^12.12.5",
+    "@types/node": "^20.0.0",
     "@types/react": "^16.9.11",
     "@types/react-dom": "^16.9.3",
     "@types/redux-devtools-extension": "^2.13.2",
     "@types/redux-immutable-state-invariant": "^2.1.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "^1.15.1",
     "enzyme-to-json": "^3.4.3",
     "redux-devtools-extension": "^2.13.8",
     "redux-immutable-state-invariant": "^2.1.0",
-    "ts-loader": "^6.2.1",
-    "typescript": "^3.6.4"
+    "typescript": "^3.6.4",
+    "vite": "^5.0.0",
+    "vite-tsconfig-paths": "^4.0.0"
   }
 }

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\(\\\\\\\\.nvmrc|\\\\\\\\.node-version|tslint\\\\\\\\.json|tsconfig\\)\")",
+      "Bash(xargs grep *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3001/)",
+      "Bash(npm uninstall *)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/@vitejs/plugin-react-swc/package.json'\\).version\\)\")",
+      "Bash(node *)",
+      "Bash(powershell.exe -Command \"& 'C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe' --headless=new --disable-gpu --dump-dom --virtual-time-budget=5000 'http://localhost:3000/' 2>&1\")",
+      "Bash(powershell.exe -Command \" Start-Process -FilePath 'C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe' -ArgumentList '--headless=new --disable-gpu --virtual-time-budget=10000 --dump-dom http://localhost:3000/' -Wait -NoNewWindow -RedirectStandardOutput 'C:\\\\Temp\\\\dom.txt' -RedirectStandardError 'C:\\\\Temp\\\\dom-err.txt' \")"
+    ]
+  }
+}

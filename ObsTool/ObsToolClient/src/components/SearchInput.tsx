@@ -2,7 +2,7 @@ import * as React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles } from "@material-ui/core";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import * as Autosuggest from "react-autosuggest";
+import Autosuggest from "react-autosuggest";
 import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
 import MenuItem from "@material-ui/core/MenuItem";
