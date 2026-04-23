@@ -84,7 +84,7 @@ class Api {
                 () => {
                     const indexOfObsSession = obsSessions.findIndex((s) => s.id === obsSession.id);
                     obsSessions.splice(indexOfObsSession, 1);
-                    resolve();
+                    resolve(undefined);
                 },
                 delay
             );

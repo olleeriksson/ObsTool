@@ -4,7 +4,7 @@ import viteTsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
   plugins: [
-    react({ jsxRuntime: 'classic' }),
+    react(),
     viteTsconfigPaths(),
   ],
   build: {
