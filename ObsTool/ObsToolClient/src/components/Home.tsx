@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import logo from "./../obstool-logo.png";
 import "./Layout.css";
@@ -53,8 +53,8 @@ class Home extends React.Component<IHomeProps> {
 
         return <div>
             {/* Header */}
-            <Grid container={true} justifyContent="center">
-                <Grid item={true} md={12}>
+            <Grid container justifyContent="center">
+                <Grid size={{ md: 12 }}>
                     <div className={classes.header}>
                         <Typography align="center" gutterBottom={true}>
                             <img src={logo} className="App-logo" alt="logo" />
@@ -68,16 +68,16 @@ class Home extends React.Component<IHomeProps> {
                     </div>
                 </Grid>
             </Grid>
-            <Grid container={true} alignItems="flex-start" justifyContent="center">
-                <Grid item={true} xs={12} sm={6} md={3}>
+            <Grid container alignItems="flex-start" justifyContent="center">
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <div style={{ height: 70 }}>
                         <SearchInput />
                     </div>
                 </Grid>
             </Grid>
             {/* First/second row */}
-            <Grid container={true} spacing={5} justifyContent="center">
-                <Grid item={true} xs="auto" className={classes.cardGridItem}>
+            <Grid container spacing={5} justifyContent="center">
+                <Grid size="auto" className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="h6" color="textSecondary" align="center">
@@ -94,7 +94,7 @@ class Home extends React.Component<IHomeProps> {
                         </CardActions>
                     </Card>
                 </Grid>
-                <Grid item={true} xs="auto" className={classes.cardGridItem}>
+                <Grid size="auto" className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="h6" color="textSecondary" align="center">
@@ -111,7 +111,7 @@ class Home extends React.Component<IHomeProps> {
                         </CardActions>
                     </Card>
                 </Grid>
-                <Grid item={true} xs="auto" className={classes.cardGridItem}>
+                <Grid size="auto" className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="h6" color="textSecondary" align="center">
@@ -130,8 +130,8 @@ class Home extends React.Component<IHomeProps> {
                 </Grid>
             </Grid>
             {/* Second/third row */}
-            <Grid container={true} alignItems="flex-start" justifyContent="center">
-                <Grid item={true} xs={12} sm={7} md={7}>
+            <Grid container alignItems="flex-start" justifyContent="center">
+                <Grid size={{ xs: 12, sm: 7 }}>
                     <StatisticsTable />
                 </Grid>
             </Grid>

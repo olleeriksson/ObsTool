@@ -8,7 +8,7 @@ import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IObservation } from "../types/Types";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
@@ -94,7 +94,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       }
 
       expandedGridItem = (
-        <Grid item={true} xs={12}>
+        <Grid size={12}>
           <Typography gutterBottom={true} variant="subtitle1">
             <strong>Other observations</strong>
           </Typography>
@@ -128,19 +128,19 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
     return (
       <Paper className={classes.root}>
-        <Grid container={true} spacing={2} direction="column">
-          <Grid item={true} xs={12}>
-            <Grid container={true} spacing={2} wrap="nowrap">
-              <Grid item={true}>
+        <Grid container spacing={2} direction="column">
+          <Grid size={12}>
+            <Grid container spacing={2} wrap="nowrap">
+              <Grid>
                 <ButtonBase className={classes.image}>
                   <Typography gutterBottom={true} variant="h3">
                     <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                   </Typography>
                 </ButtonBase>
               </Grid>
-              <Grid item={true} xs={11} sm={true}>
-                <Grid container={true} direction="column" spacing={2}>
-                  <Grid item={true} xs={true}>
+              <Grid size={{ xs: 11, sm: "grow" }}>
+                <Grid container direction="column" spacing={2}>
+                  <Grid size="grow">
                     {dsoObjects}
                     <div style={{ marginTop: "1em", marginBottom: "1em" }}>
                       <Typography variant="body2" gutterBottom={true}>
@@ -153,14 +153,14 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                   </Grid>
                 </Grid>
               </Grid>
-              <Grid item={true}>
-                <Grid container={true} direction="column" style={{ flexGrow: 1 }}>
-                  <Grid item={true} style={{ flexGrow: 1 }}>
+              <Grid>
+                <Grid container direction="column" style={{ height: "100%" }}>
+                  <Grid size="grow">
                     <IconButton onClick={this.handleClickOnObservation} >
                       <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
                     </IconButton>
                   </Grid>
-                  <Grid item={true} style={{ flexGrow: 0 }}>
+                  <Grid>
                     {expandButton}
                   </Grid>
                 </Grid>

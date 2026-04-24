@@ -3,7 +3,7 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -94,7 +94,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
     let expandedGridItem;
     if (this.state.isExpanded) {
       expandedGridItem = (
-        <Grid item={true}>
+        <Grid>
           <Typography variant="body1">
             <strong>Summary:</strong>
           </Typography>
@@ -128,19 +128,19 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
 
     return (
       <Paper className={classes.paper}>
-        <Grid container={true} spacing={1}>
-          <Grid item={true} xs={12} className={classes.mainRowItem}>
-            <Grid container={true} spacing={1} className={classes.mainRowContainer}>
-              <Grid item={true}>
+        <Grid container spacing={1}>
+          <Grid size={12} className={classes.mainRowItem}>
+            <Grid container spacing={1} className={classes.mainRowContainer}>
+              <Grid>
                 <div className={classes.icon}>
                   <Typography gutterBottom={true} variant="h4">
                     <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
                   </Typography>
                 </div>
               </Grid>
-              <Grid item={true} xs={12} sm={true} className={classes.header}>
-                <Grid container={true} direction="column" spacing={1}>
-                  <Grid item={true} xs={true}>
+              <Grid size={{ xs: 12, sm: "grow" }} className={classes.header}>
+                <Grid container direction="column" spacing={1}>
+                  <Grid size="grow">
                     <Typography variant="subtitle1">
                       {this.props.obsSession.title && this.props.obsSession.title.toString()}
                     </Typography>
@@ -150,23 +150,23 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                       {this.props.obsSession.location && this.props.obsSession.location.name}
                     </Typography>
                   </Grid>
-                  <Grid item={true} xs={true} className={classes.summary}>
+                  <Grid size="grow" className={classes.summary}>
                     <Typography variant="caption">
                       {this.props.obsSession.summary && this.props.obsSession.summary.toString()}
                     </Typography>
                   </Grid>
                 </Grid>
               </Grid>
-              <Grid item={true} className={classes.buttons}>
-                <Grid container={true} direction="column" spacing={0}>
-                  <Grid item={true}>
+              <Grid className={classes.buttons}>
+                <Grid container direction="column" spacing={0}>
+                  <Grid>
                     <IconButton
                       onClick={this.handleClickOnObsSession}
                     >
                       <VisibilityIcon />
                     </IconButton>
                   </Grid>
-                  <Grid item={true}>
+                  <Grid>
                     <IconButton
                       className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
                       onClick={this.handleExpandClick}

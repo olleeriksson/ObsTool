@@ -5,7 +5,7 @@ import type { WithStyles } from "src/muiCompat";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import classNames from "classnames";
@@ -169,7 +169,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
                         <span style={{ whiteSpace: "nowrap" }}><img src={logo} className="logo-appbar" alt="logo" /> ObsTool</span>
                     </Typography>
-                    <Grid container={true} spacing={4} direction="row" wrap="wrap" justifyContent="flex-end">
+                    <Grid container spacing={4} direction="row" justifyContent="flex-end">
                         <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>
                             <SearchInput onSearchView={weAreOnSearchView} />
                         </div>
@@ -200,8 +200,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             </main>
             {/* Footer */}
             <footer className={classNames(classes.footer, classes.layout)}>
-                <Grid container={true} spacing={4} direction="column" justifyContent="space-evenly">
-                    <Grid item={true} xs={true}>
+                <Grid container spacing={4} direction="column" justifyContent="space-evenly">
+                    <Grid size="grow">
                         <Typography variant="subtitle1" align="center" color="textSecondary">
                             Copyright Olle Eriksson
                         </Typography>

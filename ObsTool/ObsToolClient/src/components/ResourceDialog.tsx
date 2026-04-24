@@ -7,7 +7,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import { IObsResource } from "../types/Types";
 import ResourceView from "./ResourceView";
 import Switch from "@mui/material/Switch";
@@ -105,21 +105,21 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
             >
                 <DialogTitle id="alert-dialog-title">&nbsp;</DialogTitle>
                 <DialogContent>
-                    <Grid container={true} direction="row" spacing={0} style={{ overflow: "hidden" }}>
-                        <Grid item={true}>
+                    <Grid container direction="row" spacing={0} style={{ overflow: "hidden" }}>
+                        <Grid>
                             {resource1}
                         </Grid>
-                        <Grid item={true} >
+                        <Grid>
                             {resource2 || undefined}
                         </Grid>
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Grid container={true} spacing={1} direction="row">
-                        <Grid item={true} style={{ flex: 1 }}>
+                    <Grid container spacing={1} direction="row">
+                        <Grid size="grow">
                             &nbsp;
                         </Grid>
-                        <Grid item={true}>
+                        <Grid>
                             {invertBothControl}
                             <Button onClick={this.handleClose} color="primary">
                                 Close

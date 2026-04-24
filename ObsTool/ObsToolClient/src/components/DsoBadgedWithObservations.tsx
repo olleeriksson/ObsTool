@@ -2,8 +2,7 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Grid from "@mui/material/Grid";
-// import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import { IDso } from "../types/Types";
 import DsoExtra from "./DsoExtra";
 import DsoRegular from "./DsoRegular";
@@ -83,8 +82,8 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
     let dsoLabel;
     if (this.props.showBadge && this.props.dso.numObservations && this.props.dso.numObservations > 0) {
       dsoLabel = (
-        <Grid container={true}>
-          <Grid item={true} xs={11}>
+        <Grid container>
+          <Grid size={11}>
             <Badge className={classes.badge} badgeContent={this.props.dso.numObservations} color="secondary">
               <DsoRegular dso={this.props.dso} />
             </Badge>
@@ -99,7 +98,7 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
               <DsoExtra dso={this.props.dso} />
             </div>
           </Grid>
-          <Grid item={true} xs={1}>
+          <Grid size={1}>
             {expandButton}
           </Grid>
         </Grid>

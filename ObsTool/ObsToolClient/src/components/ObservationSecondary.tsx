@@ -8,7 +8,7 @@ import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IObservation } from "../types/Types";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
@@ -96,7 +96,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     let expandedGridItem;
     if (this.state.isExpanded) {
       expandedGridItem = (
-        <Grid item={true} xs={12}>
+        <Grid size={12}>
           <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={false} />
         </Grid>
       );
@@ -110,19 +110,19 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     const observationIcon = this.props.observation.nonDetection ? "eye-slash" : "binoculars";
 
     return (
-      <Grid container={true} spacing={0} direction="column" className={classes.root}>
-        <Grid item={true} xs={12}>
-          <Grid container={true} spacing={0} direction="row">
-            <Grid item={true}>
+      <Grid container spacing={0} direction="column" className={classes.root}>
+        <Grid size={12}>
+          <Grid container spacing={0} direction="row">
+            <Grid>
               <ButtonBase className={classes.image}>
                 <Typography gutterBottom={false} variant="h6">
                   <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                 </Typography>
               </ButtonBase>
             </Grid>
-            <Grid item={true} xs={12} sm={true}>
-              <Grid container={true} direction="column" spacing={2}>
-                <Grid item={true} xs={true}>
+            <Grid size={{ xs: 12, sm: "grow" }}>
+              <Grid container direction="column" spacing={2}>
+                <Grid size="grow">
                   <Typography variant="body2">
                     <a href={obsSessionUrl}>
                       {obsSessionDate} &nbsp;
@@ -138,9 +138,9 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
                 {expandedGridItem}
               </Grid>
             </Grid>
-            <Grid item={true}>
-              <Grid container={true} direction="column">
-                <Grid item={true}>
+            <Grid>
+              <Grid container direction="column">
+                <Grid>
                   {expandButton}
                 </Grid>
               </Grid>

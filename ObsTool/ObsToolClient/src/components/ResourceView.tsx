@@ -17,7 +17,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
 import DeleteDialog from "./DeleteDialog";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import ResourceImage from "./ResourceImage";
 import Slider from "@mui/material/Slider";
 import Checkbox from "@mui/material/Checkbox";
@@ -366,7 +366,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         const backGroundColorToUse = this.props.inverted ? invertedBackGroundColor : this.state.backgroundColor;
 
         const gridViewContainer = (
-            <Grid item={true} >
+            <Grid>
                 <div className={classes.imageContainer}>
                     <ResourceImage
                         type={this.state.type}
@@ -385,15 +385,15 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
         return <div>
             <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
-            <Grid container={true} spacing={1} direction="column">
-                <Grid item={true} style={{ flex: 1 }}>
-                    <Grid container={true} spacing={1} direction="row">
+            <Grid container spacing={1} direction="column">
+                <Grid size="grow">
+                    <Grid container spacing={1} direction="row">
 
                         {this.state.displayMode === "right" && gridViewContainer}
 
-                        <Grid item={true}>
-                            <Grid container={true} spacing={1} direction="column">
-                                <Grid item={true}>
+                        <Grid>
+                            <Grid container spacing={1} direction="column">
+                                <Grid>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel >Type</FormLabel>
                                         <RadioGroup
@@ -411,7 +411,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                         </RadioGroup>
                                     </FormControl>
                                 </Grid>
-                                <Grid item={true} hidden={disableImageControls}>
+                                <Grid sx={{ display: disableImageControls ? "none" : undefined }}>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel>Background</FormLabel>
                                         <FormControlLabel
@@ -440,7 +440,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                         />
                                     </FormControl>
                                 </Grid>
-                                <Grid item={true} hidden={disableImageControls}>
+                                <Grid sx={{ display: disableImageControls ? "none" : undefined }}>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel>Rotation ({Math.round(this.state.rotation)} deg)</FormLabel>
                                         <div className={classes.sliderContainer}>
@@ -457,7 +457,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                         </div>
                                     </FormControl>
                                 </Grid>
-                                <Grid item={true} hidden={disableImageControls}>
+                                <Grid sx={{ display: disableImageControls ? "none" : undefined }}>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel>Zoom Level ({Math.round(this.state.zoomLevel)}%)</FormLabel>
                                         <div className={classes.sliderContainer}>
@@ -480,7 +480,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
                     </Grid>
                 </Grid>
-                <Grid item={true} xs={11}>
+                <Grid size="grow">
                     <TextField
                         autoFocus={true}
                         margin="dense"
@@ -491,7 +491,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         value={this.state.name}
                     />
                 </Grid>
-                <Grid item={true} xs={11}>
+                <Grid size="grow">
                     <TextField
                         style={{ flex: 1 }}
                         autoFocus={true}
@@ -505,14 +505,14 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         value={this.state.url}
                     />
                 </Grid>
-                <Grid item={true} xs={12}>
-                    <Grid container={true} spacing={1} direction="row">
-                        <Grid item={true}>
+                <Grid size={12}>
+                    <Grid container spacing={1} direction="row">
+                        <Grid>
                             <IconButton onClick={this.onClickDelete} disabled={!this.props.store.isLoggedIn}>
                                 <DeleteIcon />
                             </IconButton>
                         </Grid>
-                        <Grid item={true} style={{ flex: 1, textAlign: "right" }}>
+                        <Grid size="grow" style={{ textAlign: "right" }}>
                             {saveSuccess}
                             {error}
                             {circularProgress}

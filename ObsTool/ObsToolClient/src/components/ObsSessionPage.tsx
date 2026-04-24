@@ -3,7 +3,7 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import "./ObsSessionPage.css";
 import { IObsSession, IObservation } from "../types/Types";
 import Tabs from "@mui/material/Tabs";
@@ -322,18 +322,18 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 <DeleteDialog isOpen={this.state.isDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleDeleteDialogClosed} />
                 <div className={classes.root} >
                     <div className={classes.header}>
-                        <Grid container={true} direction="row">
-                            <Grid item={true} xs={1}>
+                        <Grid container direction="row">
+                            <Grid size={1}>
                                 <Typography />
                             </Grid>
-                            <Grid item={true} xs={10}>
-                                <Grid container={true} direction="row" justifyContent="center">
-                                    <Grid item={true}>
+                            <Grid size={10}>
+                                <Grid container direction="row" justifyContent="center">
+                                    <Grid>
                                         <Typography gutterBottom={true} variant="h4">
                                             <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
                                         </Typography>
                                     </Grid>
-                                    <Grid item={true}>
+                                    <Grid>
                                         <Typography variant="h6" align="center">
                                             {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
                                         </Typography>
@@ -343,7 +343,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     </Grid>
                                 </Grid>
                             </Grid>
-                            <Grid item={true} xs={1}>
+                            <Grid size={1}>
                                 {menu}
                             </Grid>
                         </Grid>

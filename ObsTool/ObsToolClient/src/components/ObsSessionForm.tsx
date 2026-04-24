@@ -8,7 +8,7 @@ import TextareaAutosize from "@mui/material/TextField";
 import DsoShort from "./DsoShort";
 import { IObsSession, ILocation, IObservation, IDsoObservation } from "../types/Types";
 import classNames from "classnames";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -32,7 +32,7 @@ const styles = (theme: Theme) => createStyles({
     overflow: "hidden"  // gets rid of an annoying scroll bar in the report text form field
   },
   saveButton: {
-    marginRight: 30
+    marginRight: 150,
   },
   dateField: {
     width: 200,
@@ -184,8 +184,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     return (
       <div className="obsSessionForm">
         <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
-          <Grid container={true} direction="column">
-            <Grid item={true} >
+          <Grid size="grow" container direction="column">
+            <Grid>
               <TextField
                 id="title"
                 label="Title"
@@ -196,7 +196,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 variant="outlined"
               />
             </Grid>
-            <Grid item={true}>
+            <Grid>
               <TextField
                 id="date"
                 label="Date"
@@ -216,7 +216,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 options={locationOptions}
               />
             </Grid>
-            <Grid item={true}>
+            <Grid>
               <TextField
                 id="summary"
                 label="Summary"
@@ -229,7 +229,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 variant="outlined"
               />
             </Grid>
-            <Grid item={true}>
+            <Grid>
               <TextField
                 id="conditions"
                 label="Conditions"
@@ -242,8 +242,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 variant="outlined"
               />
             </Grid>
-            <Grid item={true}>
-              <SelectComponent 
+            <Grid>
+              <SelectComponent
                 classes={classNames(classes.formControl, classes.select)}
                 label="Seeing"
                 name="seeing"
@@ -269,15 +269,15 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 className={classNames(classes.formControl)}
                 margin="normal"
                 variant="outlined"
-                style={{ width: 150 }}
+                style={{ width: 180 }}
               />
             </Grid>
-            <Grid item={true}>
-              <Grid container={true} direction="row">
-                <Grid item={true} style={{ flex: 1 }}>
-                  <Grid container={true} direction="column">
-                    <Grid item={true}>
-                      <Grid container={true} direction="row" justifyContent="flex-end">
+            <Grid>
+              <Grid container direction="row">
+                <Grid size="grow">
+                  <Grid container direction="column">
+                    <Grid size="grow">
+                      <Grid container direction="row" justifyContent="flex-end">
                         {circularProgress}
                         <Button
                           variant="contained"
@@ -289,7 +289,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         </Button>
                       </Grid>
                     </Grid>
-                    <Grid item={true}>
+                    <Grid>
                       <TextareaAutosize
                         id="reportText"
                         label="Report Text"
@@ -302,9 +302,9 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         variant="outlined"
                       />
                     </Grid>
-                    <Grid item={true}>
-                      <Grid container={true} direction="row" justifyContent="flex-end">
-                        <Grid item={true}>
+                    <Grid>
+                      <Grid container direction="row" justifyContent="flex-end">
+                        <Grid>
                           {circularProgress}
                           <Button
                             variant="contained"
@@ -319,7 +319,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     </Grid>
                   </Grid>
                 </Grid>
-                <Grid item={true} xs={1}>
+                <Grid size={1}>
                   {dsoList}
                 </Grid>
               </Grid>

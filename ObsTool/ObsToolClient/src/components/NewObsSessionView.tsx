@@ -2,7 +2,7 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Paper from "@mui/material/Paper";
 import ObsSessionPage from "./ObsSessionPage";
 
@@ -32,8 +32,8 @@ class NewObsSessionView extends React.Component<INewObsSessionViewProps> {
         const { classes } = this.props;
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={5} justifyContent="center">
-                <Grid item={true} xs={12} sm={8} className={classes.column}>
+            <Grid container spacing={5} justifyContent="center">
+                <Grid size={{ xs: 12, sm: 8 }} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
                         <ObsSessionPage />
                     </Paper>

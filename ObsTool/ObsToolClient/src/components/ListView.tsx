@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
@@ -109,14 +109,14 @@ class ListView extends React.Component<IListViewProps> {
         }
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={5} alignItems="flex-start">
-                <Grid item={true} xs={12} sm={4} className={classes.column}>
+            <Grid container spacing={5} alignItems="flex-start">
+                <Grid size={{ xs: 12, sm: 4 }} className={classes.column}>
                     <Typography variant="h6" align="center" color="textPrimary" component="p">
                         <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" /> Sessions
                     </Typography>
                     {leftSideView}
                 </Grid>
-                <Grid item={true} xs={12} sm={8} className={classes.column}>
+                <Grid size={{ xs: 12, sm: 8 }} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
                         {rightSideView}
                     </Paper>

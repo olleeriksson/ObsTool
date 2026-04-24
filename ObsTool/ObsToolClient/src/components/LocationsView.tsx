@@ -6,7 +6,7 @@ import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Api from "../api/Api";
@@ -187,8 +187,8 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         const locationForm = (
             <div className="">
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
-                    <Grid container={true} direction="column">
-                        <Grid item={true} >
+                    <Grid container direction="column" size="grow">
+                        <Grid>
                             <TextField
                                 id="name"
                                 label="Name"
@@ -198,7 +198,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                 margin="dense"
                             />
                         </Grid>
-                        <Grid item={true}>
+                        <Grid>
                             <TextField
                                 id="longitude"
                                 label="Longitude"
@@ -218,7 +218,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                 margin="dense"
                             />
                         </Grid>
-                        <Grid item={true}>
+                        <Grid>
                             <TextField
                                 id="googelMapsAddress"
                                 label="Google Maps address"
@@ -230,9 +230,9 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                 margin="dense"
                             />
                         </Grid>
-                        <Grid item={true}>
-                            <Grid container={true} direction="row">
-                                <Grid item={true}>
+                        <Grid>
+                            <Grid container direction="row">
+                                <Grid>
                                     <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn}>
                                         {this.state.currentLocation.id ? "Update" : "Save"}
                                     </Button>
@@ -242,7 +242,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                     {circularProgress}
                                     {this.state.isError ? <span style={{ color: "red", fontWeight: "bold" }}>Error saving!</span> : null}
                                 </Grid>
-                                <Grid item={true} style={{ flex: 1, textAlign: "right" }}>
+                                <Grid size="grow" style={{ textAlign: "right" }}>
                                     <IconButton onClick={this.onClickDelete} disabled={!this.props.store.isLoggedIn || !this.state.currentLocation.id} >
                                         <DeleteIcon />
                                     </IconButton>
@@ -256,7 +256,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         );
 
         const locations = this.state.locations.map(location => (
-            <Grid key={location.id} item={true} xs={12}>
+            <Grid key={location.id} size={12}>
                 <Typography variant="subtitle1" gutterBottom={true}>
                     {location.name}
                     <a href="" onClick={this.handleClickResource(location.id)}>
@@ -272,13 +272,13 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         ));
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={5} justifyContent="center" direction="row">
-                <Grid item={true} xs={12} sm={8}>
+            <Grid container spacing={5} justifyContent="center" direction="row">
+                <Grid size={{ xs: 12, sm: 8 }}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         {locationForm}
                     </Paper>
                     <Paper className={classes.textfieldPaper} elevation={1}>
-                        <Grid container={true} spacing={3} direction="column">
+                        <Grid container spacing={3} direction="column">
                             {locations}
                         </Grid>
                     </Paper>
