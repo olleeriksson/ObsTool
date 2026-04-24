@@ -35,16 +35,15 @@ const styles = (theme: Theme) => createStyles({
     marginRight: 30
   },
   dateField: {
-    marginTop: theme.spacing(2),
     width: 200,
   },
   selectLocation: {
-    marginTop: theme.spacing(2),
     width: 300,
+    marginRight: theme.spacing(2),
   },
   select: {
-    marginTop: theme.spacing(2),
     width: 100,
+    marginRight: theme.spacing(2),
   },
   singleDsoContainer: {
     marginBottom: "0.7em",
@@ -193,7 +192,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={this.state.obsSession.title || ""}
                 onChange={this.handleChange("title")}
                 className={classNames(classes.formControl, classes.textField)}
-                margin="dense"
+                margin="normal"
+                variant="outlined"
               />
             </Grid>
             <Grid item={true}>
@@ -204,6 +204,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={this.state.obsSession.date}
                 onChange={this.handleChange("date")}
                 className={classNames(classes.formControl, classes.dateField)}
+                margin="normal"
+                variant="outlined"
               />
               <SelectComponent
                 classes={classNames(classes.formControl, classes.selectLocation)}
@@ -223,7 +225,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={this.state.obsSession.summary || ""}
                 onChange={this.handleChange("summary")}
                 className={classNames(classes.formControl, classes.textField)}
-                margin="dense"
+                margin="normal"
+                variant="outlined"
               />
             </Grid>
             <Grid item={true}>
@@ -235,11 +238,12 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={this.state.obsSession.conditions || ""}
                 onChange={this.handleChange("conditions")}
                 className={classNames(classes.formControl, classes.textField)}
-                margin="dense"
+                margin="normal"
+                variant="outlined"
               />
             </Grid>
             <Grid item={true}>
-              <SelectComponent
+              <SelectComponent 
                 classes={classNames(classes.formControl, classes.select)}
                 label="Seeing"
                 name="seeing"
@@ -264,6 +268,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 error={this.state.errorOnControl.limitingMagnitude !== undefined}
                 className={classNames(classes.formControl)}
                 margin="normal"
+                variant="outlined"
                 style={{ width: 150 }}
               />
             </Grid>
@@ -293,7 +298,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         onChange={this.handleChange("reportText")}
                         className={classNames(classes.formControl)}
                         inputProps={{ className: classes.textFieldReportText }}
-                        margin="dense"
+                        margin="normal"
                         variant="outlined"
                       />
                     </Grid>

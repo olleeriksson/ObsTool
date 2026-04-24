@@ -29,7 +29,9 @@
       "mcp__ide__getDiagnostics",
       "Bash(curl -s \"http://localhost:3002/src/index.tsx\")",
       "Bash(curl -s \"http://localhost:3002/src/muiCompat.ts\")",
-      "Bash(curl -s \"http://localhost:3002/node_modules/.vite/deps/@mui_styles.js?v=f07ae569\")"
+      "Bash(curl -s \"http://localhost:3002/node_modules/.vite/deps/@mui_styles.js?v=f07ae569\")",
+      "Read(//c/Users/Olle/.npm-cache/**)",
+      "Read(//c/Users/Olle/AppData/Local/npm-cache/_npx/**)"
     ]
   }
 }

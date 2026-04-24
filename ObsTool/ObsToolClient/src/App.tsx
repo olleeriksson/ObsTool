@@ -13,7 +13,13 @@ import * as Routes from "./components/Routes";
 import { Provider } from "react-redux";
 import initStore from "./store/AppStore";
 
-const theme = createTheme();
+const theme = createTheme({
+  palette: {
+    background: {
+      default: "#fafafa",
+    },
+  },
+});
 
 class App extends React.Component<{}, {}> {
   constructor(props: any) {

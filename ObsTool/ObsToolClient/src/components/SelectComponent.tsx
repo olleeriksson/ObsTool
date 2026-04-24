@@ -1,9 +1,5 @@
 import * as React from "react";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import NativeSelect from "@mui/material/NativeSelect";
-import Input from "@mui/material/Input";
-import FormHelperText from "@mui/material/FormHelperText";
+import TextField from "@mui/material/TextField";
 
 export interface IKeyValuePair {
   key: string;
@@ -39,21 +35,22 @@ class SelectComponent extends React.Component<ISelectComponentProps> {
         {o.value}
       </option>;
     });
+
     return (
-      <FormControl className={classes}>
-        <InputLabel shrink={true} htmlFor={this.props.name + "-label-placeholder"}>
-          {this.props.label}
-        </InputLabel>
-        <NativeSelect
-          value={this.props.value}
-          onChange={this.handleChange}
-          input={<Input name="seeing" id={this.props.name + "-select-placeholder"} />}
-          name={this.props.name}
-        >
-          {options}
-        </NativeSelect>
-        {this.props.helperText && <FormHelperText>{this.props.helperText}</FormHelperText>}
-      </FormControl>
+      <TextField
+        select
+        SelectProps={{ native: true }}
+        label={this.props.label}
+        value={this.props.value}
+        onChange={this.handleChange}
+        className={classes}
+        variant="outlined"
+        margin="normal"
+        InputLabelProps={{ shrink: true }}
+        helperText={this.props.helperText}
+      >
+        {options}
+      </TextField>
     );
   }
 }

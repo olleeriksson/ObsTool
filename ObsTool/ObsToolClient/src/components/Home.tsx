@@ -77,7 +77,7 @@ class Home extends React.Component<IHomeProps> {
             </Grid>
             {/* First/second row */}
             <Grid container={true} spacing={5} justifyContent="center">
-                <Grid item={true} xs={12} className={classes.cardGridItem}>
+                <Grid item={true} xs="auto" className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="h6" color="textSecondary" align="center">
@@ -94,7 +94,7 @@ class Home extends React.Component<IHomeProps> {
                         </CardActions>
                     </Card>
                 </Grid>
-                <Grid item={true} xs={12} className={classes.cardGridItem}>
+                <Grid item={true} xs="auto" className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="h6" color="textSecondary" align="center">
@@ -111,7 +111,7 @@ class Home extends React.Component<IHomeProps> {
                         </CardActions>
                     </Card>
                 </Grid>
-                <Grid item={true} xs={12} className={classes.cardGridItem}>
+                <Grid item={true} xs="auto" className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
                             <Typography variant="h6" color="textSecondary" align="center">
