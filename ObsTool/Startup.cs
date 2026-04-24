@@ -49,10 +49,14 @@ namespace ObsTool
                 options.AddPolicy("MyCorsPolicy",
                 builder =>
                 {
-                    builder.WithOrigins(Configuration["CorsAllowedOrigins"])
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();  // for CORS with cookies, only development;
+                    var origins = Configuration["CorsAllowedOrigins"]?.Split(" ") ?? Array.Empty<string>();
+                    if (origins.Length > 0)
+                    {
+                        builder.WithOrigins(origins)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();  // for CORS with cookies, only development;
+                    }
                 });
             });
 
