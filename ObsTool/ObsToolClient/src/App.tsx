@@ -7,8 +7,6 @@ import { faCalendarAlt, faEdit } from "@fortawesome/free-regular-svg-icons";
 import CssBaseline from "@mui/material/CssBaseline";
 import { createTheme } from "@mui/material/styles";
 import { ThemeProvider } from "@mui/styles";
-import "typeface-roboto";
-//import "typeface-open-sans";
 import * as Routes from "./components/Routes";
 import { Provider } from "react-redux";
 import initStore from "./store/AppStore";
@@ -22,10 +20,12 @@ const theme = createTheme({
 });
 
 class App extends React.Component<{}, {}> {
+  private store = initStore();
+
   constructor(props: any) {
     super(props);
 
-    // Fone awesome
+    // Font awesome
     library.add(
       faHome, faPlus, faSearch, faTable, faCalendarAlt, faBinoculars, faEdit, faEyeSlash, faMapMarked, faThumbsUp, faThumbsDown, faStar,
       faStarHalfAlt, faUndoAlt, faTimes, faExclamationTriangle, faKey);
@@ -33,7 +33,7 @@ class App extends React.Component<{}, {}> {
 
   public render() {
     // basename={baseUrl}
-    const store = initStore();
+    const store = this.store;
 
     return (
       <ThemeProvider theme={theme}>
