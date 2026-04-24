@@ -1,7 +1,7 @@
 import * as React from "react";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import { IDso } from "../types/Types";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 
 export interface IDsoShortProps {
   id?: number;

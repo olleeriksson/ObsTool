@@ -1,17 +1,17 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Grid from "@material-ui/core/Grid";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Grid from "@mui/material/Grid";
 import { IObsResource } from "../types/Types";
 import ResourceView from "./ResourceView";
-import Switch from "@material-ui/core/Switch";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
 
 const styles = (theme: Theme) => createStyles({
     root: {

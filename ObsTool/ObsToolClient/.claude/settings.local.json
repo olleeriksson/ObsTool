@@ -24,7 +24,12 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
       "Bash(dotnet restore *)",
       "Bash(dotnet build *)",
-      "Bash(dotnet list *)"
+      "Bash(dotnet list *)",
+      "Bash(npm info *)",
+      "mcp__ide__getDiagnostics",
+      "Bash(curl -s \"http://localhost:3002/src/index.tsx\")",
+      "Bash(curl -s \"http://localhost:3002/src/muiCompat.ts\")",
+      "Bash(curl -s \"http://localhost:3002/node_modules/.vite/deps/@mui_styles.js?v=f07ae569\")"
     ]
   }
 }

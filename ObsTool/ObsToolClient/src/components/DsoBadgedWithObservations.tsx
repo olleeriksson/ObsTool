@@ -1,19 +1,19 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import Grid from "@material-ui/core/Grid";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-// import Grid from "@material-ui/core/Grid";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Grid from "@mui/material/Grid";
+// import Grid from "@mui/material/Grid";
 import { IDso } from "../types/Types";
 import DsoExtra from "./DsoExtra";
 import DsoRegular from "./DsoRegular";
-import Badge from "@material-ui/core/Badge";
+import Badge from "@mui/material/Badge";
 // import ObservationSecondary from "./ObservationSecondary";
-import IconButton from "@material-ui/core/IconButton";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import IconButton from "@mui/material/IconButton";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import classNames from "classnames";
 import ObservationSecondary from "./ObservationSecondary";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 import DsoAnnotations from "./DsoAnnotations";
 
 const styles = (theme: Theme) => createStyles({

@@ -1,13 +1,13 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import AppBar from "@material-ui/core/AppBar";
-import Button from "@material-ui/core/Button";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import Grid from "@material-ui/core/Grid";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import AppBar from "@mui/material/AppBar";
+import Button from "@mui/material/Button";
+import CssBaseline from "@mui/material/CssBaseline";
+import Grid from "@mui/material/Grid";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
 import classNames from "classnames";
 import logo from "./../obstool-logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -37,7 +37,7 @@ const styles = (theme: Theme) => createStyles({
         width: "auto",
         marginLeft: theme.spacing(3),
         marginRight: theme.spacing(3),
-        [theme.breakpoints.up(1300 + theme.spacing(6))]: {
+        [theme.breakpoints.up(1348)]: {
             width: 1300,
             marginLeft: "auto",
             marginRight: "auto",
@@ -46,12 +46,21 @@ const styles = (theme: Theme) => createStyles({
     footer: {
         marginTop: theme.spacing(8),
         borderTop: `1px solid ${theme.palette.divider}`,
-        padding: `${theme.spacing(6)}px 0`,
+        padding: `${theme.spacing(6)} 0`,
     },
     appbarButton: {
         margin: 10
     }
 });
+
+// Defined at module level so React sees a stable component identity across renders.
+// MUI v6 ButtonBase requires the `component` prop to be a forwardRef-capable element.
+const LinkToHome = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/" ref={ref} {...props} />);
+const LinkToObservedDsos = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/observations" ref={ref} {...props} />);
+const LinkToSessions = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/sessions" ref={ref} {...props} />);
+const LinkToNewSession = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/newsession" ref={ref} {...props} />);
+const LinkToLocations = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/locations" ref={ref} {...props} />);
+const LinkToSearch = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/search" ref={ref} {...props} />);
 
 export interface ILayoutState {
     //isLoggedIn: boolean;  // in global state now
@@ -130,13 +139,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //console.log("Location found in Layout");
         //console.log(this.props.location);
 
-        const LinkToHome = (props: any) => <Link to="/" {...props} />;
-        const LinkToObservedDsos = (props: any) => <Link to="/observations" {...props} />;
-        const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
-        const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
-        const LinkToLocations = (props: any) => <Link to="/locations" {...props} />;
-        const LinkToSearch = (props: any) => <Link to="/search" {...props} />;
-
         let loginLogoutComponent;
         //if (this.state.isLoggedIn) {  // in global state now
         if (this.props.store.isLoggedIn) {
@@ -167,7 +169,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
                         <span style={{ whiteSpace: "nowrap" }}><img src={logo} className="logo-appbar" alt="logo" /> ObsTool</span>
                     </Typography>
-                    <Grid container={true} spacing={4} direction="row" wrap="wrap" justify="flex-end">
+                    <Grid container={true} spacing={4} direction="row" wrap="wrap" justifyContent="flex-end">
                         <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>
                             <SearchInput onSearchView={weAreOnSearchView} />
                         </div>
@@ -198,7 +200,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             </main>
             {/* Footer */}
             <footer className={classNames(classes.footer, classes.layout)}>
-                <Grid container={true} spacing={4} direction="column" justify="space-evenly">
+                <Grid container={true} spacing={4} direction="column" justifyContent="space-evenly">
                     <Grid item={true} xs={true}>
                         <Typography variant="subtitle1" align="center" color="textSecondary">
                             Copyright Olle Eriksson

@@ -1,7 +1,7 @@
 import * as React from "react";
 import ObsSessionCard from "./ObsSessionCard";
 import { IObsSession } from "../types/Types";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 import Pagination from "rc-pagination";
 import "rc-pagination/assets/index.css";
 

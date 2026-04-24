@@ -1,11 +1,11 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
 import Autosuggest from "react-autosuggest";
-import TextField from "@material-ui/core/TextField";
-import Paper from "@material-ui/core/Paper";
-import MenuItem from "@material-ui/core/MenuItem";
+import TextField from "@mui/material/TextField";
+import Paper from "@mui/material/Paper";
+import MenuItem from "@mui/material/MenuItem";
 import Api from "../api/Api";
 import { IDso, IPagedDsoList } from "../types/Types";
 import { debounce } from "lodash";

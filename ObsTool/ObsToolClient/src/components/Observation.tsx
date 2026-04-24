@@ -3,17 +3,17 @@
  */
 import * as React from "react";
 import "./Observation.css";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IObservation } from "../types/Types";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
-import ButtonBase from "@material-ui/core/ButtonBase";
-import IconButton from "@material-ui/core/IconButton";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import ButtonBase from "@mui/material/ButtonBase";
+import IconButton from "@mui/material/IconButton";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import classNames from "classnames";
 import DsoExtended from "./DsoExtended";
 import ObservationSecondary from "./ObservationSecondary";

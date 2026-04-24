@@ -1,17 +1,17 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import TextareaAutosize from "@material-ui/core/TextField";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import TextareaAutosize from "@mui/material/TextField";
 import DsoShort from "./DsoShort";
 import { IObsSession, ILocation, IObservation, IDsoObservation } from "../types/Types";
 import classNames from "classnames";
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
-import Typography from "@material-ui/core/Typography";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import Typography from "@mui/material/Typography";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const styles = (theme: Theme) => createStyles({
   form: {
@@ -219,7 +219,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 id="summary"
                 label="Summary"
                 multiline={true}
-                rowsMax="10"
+                maxRows={10}
                 value={this.state.obsSession.summary || ""}
                 onChange={this.handleChange("summary")}
                 className={classNames(classes.formControl, classes.textField)}
@@ -231,7 +231,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 id="conditions"
                 label="Conditions"
                 multiline={true}
-                rowsMax="10"
+                maxRows={10}
                 value={this.state.obsSession.conditions || ""}
                 onChange={this.handleChange("conditions")}
                 className={classNames(classes.formControl, classes.textField)}
@@ -258,7 +258,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               <TextField
                 id="lm"
                 label="Limiting magnitude"
-                rowsMax="10"
+                maxRows={10}
                 value={this.state.obsSession.limitingMagnitude || ""}
                 onChange={this.handleChange("limitingMagnitude")}
                 error={this.state.errorOnControl.limitingMagnitude !== undefined}
@@ -272,7 +272,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 <Grid item={true} style={{ flex: 1 }}>
                   <Grid container={true} direction="column">
                     <Grid item={true}>
-                      <Grid container={true} direction="row" justify="flex-end">
+                      <Grid container={true} direction="row" justifyContent="flex-end">
                         {circularProgress}
                         <Button
                           variant="contained"
@@ -298,7 +298,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                       />
                     </Grid>
                     <Grid item={true}>
-                      <Grid container={true} direction="row" justify="flex-end">
+                      <Grid container={true} direction="row" justifyContent="flex-end">
                         <Grid item={true}>
                           {circularProgress}
                           <Button

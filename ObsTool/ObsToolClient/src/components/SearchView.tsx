@@ -1,11 +1,11 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-import Paper from "@material-ui/core/Paper";
-import TextField from "@material-ui/core/TextField";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
+import TextField from "@mui/material/TextField";
 import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
 import { debounce } from "lodash";
@@ -152,7 +152,7 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
         }
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={5} justify="center" direction="row">
+            <Grid container={true} spacing={5} justifyContent="center" direction="row">
                 <Grid item={true} xs={12} sm={8}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         <TextField

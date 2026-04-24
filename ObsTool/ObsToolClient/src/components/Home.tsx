@@ -1,15 +1,15 @@
 import * as React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import StatisticsTable from "./StatisticsTable";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardContent from "@material-ui/core/CardContent";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardActions from "@mui/material/CardActions";
+import CardContent from "@mui/material/CardContent";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import logo from "./../obstool-logo.png";
 import "./Layout.css";
 import { Link } from "react-router-dom";
@@ -21,7 +21,7 @@ const styles = (theme: Theme) => createStyles({
         maxWidth: 600,
         margin: "0 auto",
         verticalAlign: "center",
-        padding: `${theme.spacing(8)}px 0 ${theme.spacing(6)}px`,
+        padding: `${theme.spacing(8)} 0 ${theme.spacing(6)}`,
     },
     cardGridItem: {
         maxWidth: 300,
@@ -35,6 +35,10 @@ const styles = (theme: Theme) => createStyles({
     },
 });
 
+const LinkToSessions = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/sessions" ref={ref} {...props} />);
+const LinkToNewSession = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/newsession" ref={ref} {...props} />);
+const LinkToObservedObjects = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/observations" ref={ref} {...props} />);
+
 export interface IHomeProps extends WithStyles<typeof styles> {
     children?: React.ReactNode;
 }
@@ -47,13 +51,9 @@ class Home extends React.Component<IHomeProps> {
     public render() {
         const { classes } = this.props;
 
-        const LinkToSessions = (props: any) => <Link to="/sessions" {...props} />;
-        const LinkToNewSession = (props: any) => <Link to="/newsession" {...props} />;
-        const LinkToObservedObjects = (props: any) => <Link to="/observations" {...props} />;
-
         return <div>
             {/* Header */}
-            <Grid container={true} justify="center">
+            <Grid container={true} justifyContent="center">
                 <Grid item={true} md={12}>
                     <div className={classes.header}>
                         <Typography align="center" gutterBottom={true}>
@@ -68,7 +68,7 @@ class Home extends React.Component<IHomeProps> {
                     </div>
                 </Grid>
             </Grid>
-            <Grid container={true} alignItems="flex-start" justify="center">
+            <Grid container={true} alignItems="flex-start" justifyContent="center">
                 <Grid item={true} xs={12} sm={6} md={3}>
                     <div style={{ height: 70 }}>
                         <SearchInput />
@@ -76,7 +76,7 @@ class Home extends React.Component<IHomeProps> {
                 </Grid>
             </Grid>
             {/* First/second row */}
-            <Grid container={true} spacing={5} justify="center">
+            <Grid container={true} spacing={5} justifyContent="center">
                 <Grid item={true} xs={12} className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
@@ -88,7 +88,7 @@ class Home extends React.Component<IHomeProps> {
                             </Typography>
                         </CardContent>
                         <CardActions className={classes.cardActions}>
-                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToObservedObjects}>
+                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToSessions}>
                                 Observations
                             </Button>
                         </CardActions>
@@ -130,7 +130,7 @@ class Home extends React.Component<IHomeProps> {
                 </Grid>
             </Grid>
             {/* Second/third row */}
-            <Grid container={true} alignItems="flex-start" justify="center">
+            <Grid container={true} alignItems="flex-start" justifyContent="center">
                 <Grid item={true} xs={12} sm={7} md={7}>
                     <StatisticsTable />
                 </Grid>

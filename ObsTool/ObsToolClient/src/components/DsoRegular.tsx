@@ -1,6 +1,6 @@
 import * as React from "react";
 import { IDso } from "../types/Types";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 import CosmosIcon from "../cosmos.svg";
 
 interface IDsoSearchLabelProps {

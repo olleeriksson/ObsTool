@@ -1,9 +1,9 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 import ObsSessionPage from "./ObsSessionPage";
 
 const styles = (theme: Theme) => createStyles({
@@ -36,7 +36,7 @@ class SingleObsSessionView extends React.Component<ISingleObsSessionViewProps> {
         const { classes } = this.props;
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={5} justify="center">
+            <Grid container={true} spacing={5} justifyContent="center">
                 <Grid item={true} xs={12} sm={8} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
                         <ObsSessionPage obsSessionId={this.props.obsSessionId} />

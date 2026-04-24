@@ -1,14 +1,15 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles, Typography } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Table from "@material-ui/core/Table";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Paper from "@material-ui/core/Paper";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Typography from "@mui/material/Typography";
+import Table from "@mui/material/Table";
+import CircularProgress from "@mui/material/CircularProgress";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
 import { IStatistics } from "../types/Types";
 import Api from "../api/Api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -137,12 +138,12 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         } else if (this.state.isError) {
             return (
                 <Paper className={classes.root}>
-                    <p><strong>
-                        <Typography variant="subtitle1" align="center" color="error">
+                    <Typography component="div" variant="subtitle1" align="center" color="error">
+                        <strong>
                             <FontAwesomeIcon icon="exclamation-triangle" style={{ color: "red" }} className="faSpaceAfter" />
                             Server is not responding!
-                        </Typography>
-                    </strong></p>
+                        </strong>
+                    </Typography>
                 </Paper>
             );
         } else {

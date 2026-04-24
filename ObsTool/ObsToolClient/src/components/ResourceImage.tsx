@@ -1,8 +1,8 @@
 import * as React from "react";
 //import GoogleDriveImage from "./GoogleDriveImage";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
 import AladinLiteFrame from "./AladinLiteFrame";
 
 interface IResourceImageProps extends WithStyles<typeof styles> {

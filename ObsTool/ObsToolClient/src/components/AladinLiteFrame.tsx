@@ -1,6 +1,6 @@
 import * as React from "react";
-import { WithStyles, withStyles } from "@material-ui/styles";
-import { createStyles } from "@material-ui/core/styles";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { WithStyles } from "src/muiCompat";
 
 const styles = () => createStyles({
     frame: {

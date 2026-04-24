@@ -1,28 +1,28 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
 import { IObsResource } from "../types/Types";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-// import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+// import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 // import classNames from "classnames";
-import EditIcon from "@material-ui/icons/Edit";
+import EditIcon from "@mui/icons-material/Edit";
 import ResourceDialog from "./ResourceDialog";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import Api from "../api/Api";
-import ErrorIcon from "@material-ui/icons/Error";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import ErrorIcon from "@mui/icons-material/Error";
+import CircularProgress from "@mui/material/CircularProgress";
 import ResourceImage from "./ResourceImage";
-import GridList from "@material-ui/core/GridList";
-import GridListTile from "@material-ui/core/GridListTile";
-import GridListTileBar from "@material-ui/core/GridListTileBar";
-import Checkbox from "@material-ui/core/Checkbox";
-import IconButton from "@material-ui/core/IconButton";
-import CompareIcon from "@material-ui/icons/Compare";
-import ClearIcon from "@material-ui/icons/Clear";
-import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@material-ui/icons/CheckBox";
+import MuiImageList from "@mui/material/ImageList";
+import ImageListItem from "@mui/material/ImageListItem";
+import ImageListItemBar from "@mui/material/ImageListItemBar";
+import Checkbox from "@mui/material/Checkbox";
+import IconButton from "@mui/material/IconButton";
+import CompareIcon from "@mui/icons-material/Compare";
+import ClearIcon from "@mui/icons-material/Clear";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import * as obsResourceCheckActions from "../actions/ObsResourceCheckActions";
 import { IAppState, IDataState } from "../types/Types";
 import { connect } from "react-redux";
@@ -289,7 +289,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
       const titleBarClass = r.backgroundColor === 255 ? classes.titleBarWhite : classes.titleBarBlack;
 
-      return <GridListTile key={r.id} className={classes.tile}>
+      return <ImageListItem key={r.id} className={classes.tile}>
         <div onClick={this.handleClickResource(r.id)} className={classes.imageContainer} >
           <ResourceImage
             type={r.type}
@@ -304,12 +304,12 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
             preview={true}
           />
         </div>
-        <GridListTileBar
+        <ImageListItemBar
           title={r.type}
-          classes={{ root: titleBarClass, title: classes.title, titlePositionBottom: classes.titleWrap }}
+          classes={{ root: titleBarClass, title: classes.title, positionBottom: classes.titleWrap }}
           actionIcon={icons}
         />
-      </GridListTile>;
+      </ImageListItem>;
     });
 
     const linkElements = links.map(r =>
@@ -383,9 +383,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
         <Grid container={true} spacing={1} direction="column">
           {imagesTitle}
-          <GridList className={classes.gridList} cols={3.5}>
+          <MuiImageList className={classes.gridList} cols={3.5}>
             {imageElements}
-          </GridList>
+          </MuiImageList>
           {linksTitle}
           <Grid item={true}>
             {linkElements}

@@ -1,15 +1,14 @@
 import * as React from "react";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import Api from "src/api/Api";
 import { ILoginInfo } from "src/types/Types";
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress } from "@mui/material";
 
 interface ILoginDialogProps {
     isOpen: boolean;
@@ -17,24 +16,12 @@ interface ILoginDialogProps {
     onCancel: () => void;
 }
 
-const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        container: {
-            display: "flex",
-            flexWrap: "wrap",
-        },
-        textField: {
-        },
-    }),
-);
-
 interface IFormFieldsState {
     username: string;
     password: string;
 }
 
 export default function LoginDialog(props: ILoginDialogProps) {
-    const classes = useStyles();
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [formFields, setFormFields] = React.useState<IFormFieldsState>({
         username: "test",
@@ -87,7 +74,6 @@ export default function LoginDialog(props: ILoginDialogProps) {
                     name="username"
                     autoFocus={true}
                     margin="normal"
-                    className={classes.textField}
                     label="Username"
                     fullWidth={true}
                     onChange={handleInputChange}
@@ -95,7 +81,6 @@ export default function LoginDialog(props: ILoginDialogProps) {
                 <TextField
                     name="password"
                     label="Password"
-                    className={classes.textField}
                     margin="normal"
                     fullWidth={true}
                     onChange={handleInputChange}

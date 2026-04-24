@@ -2,8 +2,8 @@ import * as React from "react";
 import { IObservation } from "../types/Types";
 import "./ObservationList.css";
 import Observation from "./Observation";
-import Typography from "@material-ui/core/Typography";
-import Grid from "@material-ui/core/Grid";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
 
 export interface IObservationListProps {
   observations: IObservation[];

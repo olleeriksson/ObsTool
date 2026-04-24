@@ -1,13 +1,13 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-import Paper from "@material-ui/core/Paper";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
 import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import DsoBadgedWithObservations from "./DsoBadgedWithObservations";
 
 const styles = (theme: Theme) => createStyles({
@@ -82,8 +82,8 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
 
         if (this.state.isLoading) {
             return (
-                <Grid container={true} spacing={5} justify="center" direction="row">
-                    <Grid item={true} xs={12} sm={7} justify="center" >
+                <Grid container={true} spacing={5} justifyContent="center" direction="row">
+                    <Grid item={true} xs={12} sm={7} justifyContent="center" >
                         <Typography variant="caption" color="textSecondary" gutterBottom={true}>
                             <CircularProgress />
                         </Typography>
@@ -101,9 +101,9 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
                 <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                     All observed objects
                 </Typography>
-                <Grid container={true} spacing={5} justify="center" direction="row">
+                <Grid container={true} spacing={5} justifyContent="center" direction="row">
                     <Grid item={true} xs={12} sm={7}>
-                        <Grid container={true} spacing={0} justify="center" direction="column">
+                        <Grid container={true} spacing={0} justifyContent="center" direction="column">
                             {obsList}
                         </Grid>
                     </Grid>

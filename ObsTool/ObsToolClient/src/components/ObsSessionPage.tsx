@@ -1,25 +1,25 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Typography from "@material-ui/core/Typography";
-import Grid from "@material-ui/core/Grid";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
 import "./ObsSessionPage.css";
 import { IObsSession, IObservation } from "../types/Types";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 import ObservationList from "./ObservationList";
 import ObsSessionForm from "./ObsSessionForm";
 import SwipeableViews from "react-swipeable-views";
 // import CircularProgress from "@material-ui/core/CircularProgress";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Navigate } from "react-router-dom";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import IconButton from "@material-ui/core/IconButton";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import IconButton from "@mui/material/IconButton";
 import DeleteDialog from "./DeleteDialog";
-import Snackbar from "@material-ui/core/Snackbar";
+import Snackbar from "@mui/material/Snackbar";
 import MySnackbar from "./MySnackbar";
 import Api from "../api/Api";
 import { connect } from "react-redux";
@@ -327,7 +327,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                 <Typography />
                             </Grid>
                             <Grid item={true} xs={10}>
-                                <Grid container={true} direction="row" justify="center">
+                                <Grid container={true} direction="row" justifyContent="center">
                                     <Grid item={true}>
                                         <Typography gutterBottom={true} variant="h4">
                                             <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />

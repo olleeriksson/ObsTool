@@ -1,15 +1,19 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles, TextField, CircularProgress, Button, IconButton } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-import Paper from "@material-ui/core/Paper";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import TextField from "@mui/material/TextField";
+import CircularProgress from "@mui/material/CircularProgress";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
 import Api from "../api/Api";
 import { ILocation, IAppState, IDataState } from "src/types/Types";
 import classNames from "classnames";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { connect } from "react-redux";
 
 const styles = (theme: Theme) => createStyles({
@@ -219,7 +223,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                 id="googelMapsAddress"
                                 label="Google Maps address"
                                 multiline={true}
-                                rowsMax="10"
+                                maxRows={10}
                                 value={this.state.currentLocation.googleMapsAddress || ""}
                                 onChange={this.handleFormChange("googleMapsAddress")}
                                 className={classNames(classes.formControl, classes.textField)}
@@ -268,7 +272,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         ));
 
         return <div className={classes.root}>
-            <Grid container={true} spacing={5} justify="center" direction="row">
+            <Grid container={true} spacing={5} justifyContent="center" direction="row">
                 <Grid item={true} xs={12} sm={8}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         {locationForm}

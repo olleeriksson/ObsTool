@@ -1,26 +1,26 @@
 import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles } from "@material-ui/core";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import Button from "@material-ui/core/Button";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
+import Button from "@mui/material/Button";
 import { IObsResource, IDataState, IAppState } from "../types/Types";
-import TextField from "@material-ui/core/TextField";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
-import FormLabel from "@material-ui/core/FormLabel";
+import TextField from "@mui/material/TextField";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
 import Api from "../api/Api";
-import DeleteIcon from "@material-ui/icons/Delete";
-import CheckIcon from "@material-ui/icons/Check";
-import ErrorIcon from "@material-ui/icons/Error";
-import IconButton from "@material-ui/core/IconButton";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CheckIcon from "@mui/icons-material/Check";
+import ErrorIcon from "@mui/icons-material/Error";
+import IconButton from "@mui/material/IconButton";
+import CircularProgress from "@mui/material/CircularProgress";
 import DeleteDialog from "./DeleteDialog";
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 import ResourceImage from "./ResourceImage";
-import Slider from "@material-ui/core/Slider";
-import Checkbox from "@material-ui/core/Checkbox";
+import Slider from "@mui/material/Slider";
+import Checkbox from "@mui/material/Checkbox";
 import { connect } from "react-redux";
 
 const styles = (theme: Theme) => createStyles({
@@ -41,7 +41,7 @@ const styles = (theme: Theme) => createStyles({
         margin: theme.spacing(1),
     },
     group: {
-        margin: `${theme.spacing(1)}px 0`,
+        margin: `${theme.spacing(1)} 0`,
     },
     error: {
         color: "red"
@@ -211,13 +211,13 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         this.setState({ backgroundColor: color });
     }
 
-    private handleRotationSliderChange = (event: any, value: number) => {
+    private handleRotationSliderChange = (_event: Event, value: number | number[]) => {
         // this.setState({ rotation: (value - 50) * (2.7 * 2) });
-        this.setState({ rotation: value });
+        this.setState({ rotation: value as number });
     }
 
-    private handleZoomLevelSliderChange = (event: any, value: number) => {
-        this.setState({ zoomLevel: value });
+    private handleZoomLevelSliderChange = (_event: Event, value: number | number[]) => {
+        this.setState({ zoomLevel: value as number });
     }
 
     private saveResource = () => {

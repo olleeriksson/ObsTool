@@ -1,9 +1,10 @@
 import * as React from "react";
 import { IDso } from "../types/Types";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 import CosmosIcon from "../cosmos.svg";
-import { Theme } from "@material-ui/core/styles/createMuiTheme";
-import { createStyles, WithStyles, withStyles } from "@material-ui/core";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
+import type { WithStyles } from "src/muiCompat";
 import * as obsToolUtils from "../obsToolUtils";
 import GoogleImagesLink from "./GoogleImagesLink";
 import AladinLiteLink from "./AladinLiteLink";
