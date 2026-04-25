@@ -2,10 +2,8 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Autosuggest from "react-autosuggest";
+import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
-import Paper from "@mui/material/Paper";
-import MenuItem from "@mui/material/MenuItem";
 import Api from "../api/Api";
 import { IDso, IPagedDsoList } from "../types/Types";
 import { debounce } from "lodash";
@@ -16,92 +14,27 @@ import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/SearchActions";
 import DsoBadgedWithObservations from "./DsoBadgedWithObservations";
 
-// #########################################################
-// Read more about Autosuggest here:
-//    https://github.com/moroshko/react-autosuggest
-// #########################################################
-
 interface ISuggestion {
     dso?: IDso;
     altText?: string;
 }
 
-function renderInputComponent(inputProps: any) {
-    const { classes, inputRef = () => { }, ref, ...other } = inputProps;
-
-    const inputPropsObj = {
-        inputRef: (node: any) => {
-            ref(node);
-            inputRef(node);
-        },
-    };
-
-    return (
-        <TextField
-            fullWidth={true}
-            InputProps={inputPropsObj}
-            {...other}
-        />
-    );
-}
-
-function renderSuggestion(suggestion: ISuggestion, param: Autosuggest.RenderSuggestionParams) {
-    const { isHighlighted } = param;
-    if (suggestion.dso) {
-        return (
-            <MenuItem selected={isHighlighted} component="div">
-                <DsoBadgedWithObservations dso={suggestion.dso} showBadge={true} showObservations={false} startWithObservationsExpanded={false} />
-            </MenuItem>
-        );
-    } else {
-        return <MenuItem selected={isHighlighted} component="div">
-            <div>
-                <strong style={{ fontWeight: 300 }}>
-                    {suggestion.altText}
-                </strong>
-            </div>
-        </MenuItem>;
-    }
-}
-
-function getSuggestionValue(suggestion: ISuggestion) {
-    return suggestion.dso ? suggestion.dso.name.toString() : "";
-}
-
-const styles = (theme: Theme) => createStyles({
+const styles = (_theme: Theme) => createStyles({
     root: {
         flexGrow: 1,
-    },
-    container: {
-        position: "relative",
-    },
-    suggestionsContainerOpen: {
-        position: "absolute",
-        zIndex: 1,
-        marginTop: theme.spacing(1),
-        left: 0,
-        right: 0,
-    },
-    suggestion: {
-        display: "block",
-    },
-    suggestionsList: {
-        margin: 0,
-        padding: 0,
-        listStyleType: "none",
     },
 });
 
 interface ISearchInputProps extends WithStyles<typeof styles> {
-    onSearchView?: boolean;  // hack since I can't get hold of react-router-dom's location parameter it seems
+    onSearchView?: boolean;
     store: ReadonlyDataState;
     actions: any;
     dispatch?: any;
 }
 
 interface ISearchInputState {
-    single: string;
-    suggestions: any;
+    inputValue: string;
+    options: ISuggestion[];
     redirectToSearchPage: boolean;
 }
 
@@ -110,140 +43,96 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
         super(props);
 
         this.state = {
-            single: "",
-            suggestions: [],
+            inputValue: "",
+            options: [],
             redirectToSearchPage: false
         };
-
-        this.loadDsoFromApi = debounce(this.loadDsoFromApi, 300);
     }
 
-    private toSuggestions(dsoList: IDso[]): ISuggestion[] {
-        return dsoList.map(dso => ({ dso: dso, altText: undefined }));
-    }
-
-    private loadDsoFromApi(query: string) {
+    private loadDsoFromApi = debounce((query: string) => {
         Api.searchDso(query).then(
             (response) => {
                 const pagedResult: IPagedDsoList = response.data;
-
-                const dsoList = pagedResult.data;
-                const suggestions = this.toSuggestions(dsoList);
-
-                // Push the 'and more' element if the list has been truncated
+                const options: ISuggestion[] = pagedResult.data.map(dso => ({ dso }));
                 if (pagedResult.more > 0) {
-                    const andMoreElem: ISuggestion = {
-                        dso: undefined,
-                        altText: "... and " + pagedResult.more + " more ..."
-                    };
-                    suggestions.push(andMoreElem);
+                    options.push({ altText: "... and " + pagedResult.more + " more ..." });
                 }
-
-                // Push to state
-                this.setState({ suggestions: suggestions });
-
-            }).catch(
-                (error) => {
-                    const errorElem: ISuggestion = {
-                        dso: undefined,
-                        altText: error
-                    };
-
-                    // Push a single error element to as the list of suggestions on the state
-                    this.setState({
-                        suggestions: [errorElem]
-                    });
-                }
-            );
-    }
-
-    private handleSuggestionsFetchRequested = (param: any) => {
-        const query = param.value;
-        this.loadDsoFromApi(query);
-    }
-
-    private handleSuggestionsClearRequested = () => {
-        this.setState({
-            suggestions: [],
-        });
-    }
-
-    private onSuggestionSelected = (event: any, params: Autosuggest.SuggestionSelectedEventData<ISuggestion>) => {
-        this.props.actions.search(params.suggestionValue);
-        this.setState({ redirectToSearchPage: true });
-    }
-
-    private onSuggestionHighlighted = (param: Autosuggest.SuggestionHighlightedParams) => {
-        if (param.suggestion && param.suggestion.dso) {
-            console.log(param.suggestion.dso.name);
-            this.setState({
-                single: param.suggestion.dso.name
+                this.setState({ options });
+            }).catch((error) => {
+                this.setState({ options: [{ altText: String(error) }] });
             });
+    }, 300);
+
+    private handleInputChange = (_event: any, newValue: string, reason: string) => {
+        this.setState({ inputValue: newValue });
+        if (reason === "input") {
+            if (newValue) {
+                this.loadDsoFromApi(newValue);
+            } else {
+                this.setState({ options: [] });
+            }
         }
     }
 
-    // When the input field changes by the user typing
-    private handleChange = (event: any) => {
-        this.setState({
-            single: event.target.value
-        });
+    private handleOptionSelected = (_event: any, value: ISuggestion | string | null) => {
+        if (value && typeof value !== "string" && value.dso) {
+            this.props.actions.search(value.dso.name);
+            this.setState({ redirectToSearchPage: true });
+        }
     }
 
-    private onFormSubmit = (e: any) => {
+    private onFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Clicking without actively selecting a suggestion also redirects
-        this.props.actions.search(this.state.single);
+        this.props.actions.search(this.state.inputValue);
         this.setState({ redirectToSearchPage: true });
     }
 
     public render() {
         const { classes } = this.props;
 
-        // Redirects
-        //-----------------------------------
         if (this.state.redirectToSearchPage && !this.props.onSearchView) {
             return <Navigate to="/search" replace />;
         }
 
-        const autosuggestProps = {
-            renderInputComponent,
-            suggestions: this.state.suggestions,
-            onSuggestionsFetchRequested: this.handleSuggestionsFetchRequested,
-            onSuggestionsClearRequested: this.handleSuggestionsClearRequested,
-            onSuggestionSelected: this.onSuggestionSelected,
-            onSuggestionHighlighted: this.onSuggestionHighlighted,
-            getSuggestionValue,
-            renderSuggestion,
-        };
-
-        const inputProps = {
-            classes,
-            placeholder: "Search for an object..",
-            value: this.state.single,
-            onChange: this.handleChange,
-        };
-
-        const theme = {
-            container: classes.container,
-            suggestionsContainerOpen: classes.suggestionsContainerOpen,
-            suggestionsList: classes.suggestionsList,
-            suggestion: classes.suggestion,
-        };
-
-        const renderSuggestionContainer = (options: any) => (
-            <Paper {...options.containerProps} square={true}>
-                {options.children}
-            </Paper>
-        );
-
         return (
             <div className={classes.root}>
                 <form onSubmit={this.onFormSubmit}>
-                    <Autosuggest
-                        {...autosuggestProps}
-                        inputProps={inputProps}
-                        theme={theme}
-                        renderSuggestionsContainer={renderSuggestionContainer}
+                    <Autocomplete<ISuggestion, false, false, true>
+                        freeSolo
+                        options={this.state.options}
+                        getOptionLabel={(option) => {
+                            if (typeof option === "string") return option;
+                            return option.dso ? option.dso.name : (option.altText ?? "");
+                        }}
+                        getOptionKey={(option) => {
+                            if (typeof option === "string") return option;
+                            return option.dso ? `dso-${option.dso.id}` : `alt-${option.altText ?? ""}`;
+                        }}
+                        filterOptions={(x) => x}
+                        inputValue={this.state.inputValue}
+                        onInputChange={this.handleInputChange}
+                        onChange={this.handleOptionSelected}
+                        renderOption={(props, option) => {
+                            const { key, ...restProps } = props as any;
+                            if (option.dso) {
+                                return (
+                                    <li key={key} {...restProps}>
+                                        <DsoBadgedWithObservations dso={option.dso} showBadge={true} showObservations={false} startWithObservationsExpanded={false} />
+                                    </li>
+                                );
+                            }
+                            return (
+                                <li key={key} {...restProps}>
+                                    <strong style={{ fontWeight: 300 }}>{option.altText}</strong>
+                                </li>
+                            );
+                        }}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                placeholder="Search for an object.."
+                            />
+                        )}
                     />
                 </form>
             </div>
@@ -267,5 +156,3 @@ const mapDispatchToProps = (dispatch: Dispatch<actions.SearchAction>) => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(SearchInput));
-// Non-redux way:
-//export default withStyles(styles)(SearchInput);
