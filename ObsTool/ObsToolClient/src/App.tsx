@@ -6,7 +6,7 @@ import { faHome, faPlus, faSearch, faTable, faBinoculars, faEyeSlash, faMapMarke
 import { faCalendarAlt, faEdit } from "@fortawesome/free-regular-svg-icons";
 import CssBaseline from "@mui/material/CssBaseline";
 import { createTheme } from "@mui/material/styles";
-import { ThemeProvider } from "@mui/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import * as Routes from "./components/Routes";
 import { Provider } from "react-redux";
 import initStore from "./store/AppStore";

@@ -32,7 +32,9 @@
       "Bash(curl -s \"http://localhost:3002/node_modules/.vite/deps/@mui_styles.js?v=f07ae569\")",
       "Read(//c/Users/Olle/.npm-cache/**)",
       "Read(//c/Users/Olle/AppData/Local/npm-cache/_npx/**)",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(npm ls *)",
+      "Bash(npx --no -- vite --version)"
     ]
   }
 }
