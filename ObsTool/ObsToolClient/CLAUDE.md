@@ -39,11 +39,17 @@ An old MUI v4 reference build runs separately on **http://localhost:5000** somet
 
 **`.npmrc`** — contains `legacy-peer-deps=true`. This is intentional; some dependencies still declare `react@16` as a peer dep. Remove only after Phase 6 is complete.
 
+## Testing
+
+- **Vitest** + **React Testing Library** (`@testing-library/react`, `@testing-library/jest-dom`)
+- `npm test` — runs all tests once (`vitest run`)
+- `npm run test:watch` — interactive watch mode
+- Test environment: `jsdom` (configured in `vite.config.ts`)
+- Setup file: `src/setupTests.ts` (imports jest-dom matchers)
+
 ## Modernization status
 
-All phases up to and including **Phase 5** (MUI v4 → v6) are complete. The remaining planned phase is:
-
-- **Phase 6** — Enzyme → React Testing Library
+All 6 phases complete. No deprecated items remain.
 
 ## Search input selectors (for Playwright)
 

@@ -1,55 +1,46 @@
 import * as React from "react";
-import * as enzyme from "enzyme";
-import { IDso } from "../types/Types";
+import { render, screen } from "@testing-library/react";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import DsoExtended from "./DsoExtended";
-import * as sinon from "sinon";
+import { IDso } from "../types/Types";
 
-const dso: IDso = {
-    id: 0,
-    catalog: "",
-    name: "",
-    commonName: "",
+const theme = createTheme();
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <ThemeProvider theme={theme}>{children}</ThemeProvider>
+);
+
+const baseDso: IDso = {
+    id: 1,
+    catalog: "NGC",
+    name: "NGC 224",
+    commonName: "Andromeda Galaxy",
     otherCommonNames: "",
-    type: "",
-    con: "",
-    mag: "",
+    type: "Gx",
+    con: "And",
+    mag: "3.4",
     sb: "",
     u2k: "",
-    ti: ""
+    ti: "",
 };
 
-it("renders the loading text", () => {
-    const object = enzyme.mount(<DsoExtended dso={dso} />);
-    expect(object.find("div").first().text()).toEqual("Loading DSO object");
+it("shows DSO content when dso prop is provided", () => {
+    render(<DsoExtended dso={baseDso} />, { wrapper });
+    expect(screen.getByText(/NGC 224/)).toBeInTheDocument();
 });
 
-it("logs to console, verified with sinon spy", () => {
-    const consoleSpy = sinon.spy(console, "log");
-
-    enzyme.shallow(<DsoExtended dso={dso} />);
-
-    // Using chai:
-    // consoleSpy.called.should.be.true;
-    // Using jest:
-    expect(consoleSpy.called).toEqual(true);
-
-    consoleSpy.restore();
+it("shows error state when no dso is provided", () => {
+    render(<DsoExtended />, { wrapper });
+    expect(screen.getByText("Error!")).toBeInTheDocument();
 });
 
-// Sinon:
-//  Spy - we can check that a method is called.
-//  Stub - A stub is a spy on which we may define its behaviour when it is called in a specific way.
-//    sinon.stub(userService, 'getUser').returns(new User(1, 'User1'));
-//    sinon.stub(userService, 'getUser').withArgs(1).returns(new User(1, 'User1'));
-//  Mock - a combination of spy and stub. We can verify afterwards that the contract was fulfilled.
-it("verifies sinon stubs", () => {
+it("shows error prop message", () => {
+    render(<DsoExtended error="DSO not found" />, { wrapper });
+    expect(screen.getByText("DSO not found")).toBeInTheDocument();
 });
 
-it("renders the correct text", () => {
-    const hello = enzyme.mount(<DsoExtended dso={dso} />);
-    const deb = hello.find("div").first();
-    console.log("---------------------------");
-    console.log(deb.text());
-    console.log("---------------------------");
-    expect(hello.find("div").first().text()).toEqual("Loading DSO object");
+it("shows custom object label when dso name is 'custom'", () => {
+    const customDso: IDso = { ...baseDso, name: "custom" };
+    render(<DsoExtended dso={customDso} customObjectName="My Star" />, { wrapper });
+    expect(screen.getByText(/Custom object: My Star/)).toBeInTheDocument();
 });
