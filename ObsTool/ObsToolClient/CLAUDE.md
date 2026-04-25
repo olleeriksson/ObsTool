@@ -25,7 +25,7 @@ npm run lint     # eslint
 
 ## Dev server ports
 
-Vite picks an available port in the **3000–3003** range — always check the terminal output for the exact URL.
+Vite picks an available port in the **30xx** range — always check the terminal output for the exact URL. If a dev server is running on any other 30xx port than 3000, then kill those servers so that the new one can start on 3000.
 
 An old MUI v4 reference build runs separately on **http://localhost:5000** sometimes (useful for visual comparison). It's very important that you never click on any Save button there, or anywhere for that matter.
 

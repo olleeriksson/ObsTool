@@ -4,7 +4,7 @@ import rootReducer from "../reducers/index";
 import { ObsSessionAction } from "../actions/ObsSessionActions";
 import { IAppState, IDataState } from "../types/Types";
 import reduxImmutableStateInvariant from "redux-immutable-state-invariant";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 
 const initialDataState: IDataState = {
     isLoggedIn: false,
