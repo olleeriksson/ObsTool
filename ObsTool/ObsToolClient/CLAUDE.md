@@ -5,6 +5,7 @@ A React/TypeScript frontend for recording and tracking amateur astronomy observa
 ## Rules / Restrictions
 
 - Never commit anything to git.
+- After making a change, as a last thing, always tell me what localhost address I can use to view the deployed change.
 
 ## Tech stack
 
@@ -46,10 +47,6 @@ An old MUI v4 reference build runs separately on **http://localhost:5000** somet
 - `npm run test:watch` — interactive watch mode
 - Test environment: `jsdom` (configured in `vite.config.ts`)
 - Setup file: `src/setupTests.ts` (imports jest-dom matchers)
-
-## Modernization status
-
-All 6 phases complete. No deprecated items remain.
 
 ## Search input selectors (for Playwright)
 

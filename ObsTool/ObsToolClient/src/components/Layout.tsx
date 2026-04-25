@@ -167,7 +167,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             <AppBar position="static" color="default" className={classes.appBar}>
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
-                        <span style={{ whiteSpace: "nowrap" }}><img src={logo} className="logo-appbar" alt="logo" /> ObsTool</span>
+                        <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+                            <span style={{ whiteSpace: "nowrap" }}><img src={logo} className="logo-appbar" alt="logo" /> ObsTool</span>
+                        </Link>
                     </Typography>
                     <Grid container spacing={4} direction="row" justifyContent="flex-end">
                         <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>

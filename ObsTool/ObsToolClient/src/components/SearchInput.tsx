@@ -133,6 +133,12 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
                                 placeholder="Search for an object.."
                             />
                         )}
+                        slotProps={{
+                            popper: {
+                                placement: "bottom-start",
+                                style: { width: 500 },
+                            },
+                        }}
                     />
                 </form>
             </div>
