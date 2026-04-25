@@ -223,6 +223,22 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ activeTab: value });
     }
 
+    private touchStartX = 0;
+
+    private handleTouchStart = (e: React.TouchEvent) => {
+        this.touchStartX = e.touches[0].clientX;
+    }
+
+    private handleTouchEnd = (e: React.TouchEvent) => {
+        const deltaX = e.changedTouches[0].clientX - this.touchStartX;
+        if (Math.abs(deltaX) > 50) {
+            const next = deltaX < 0
+                ? Math.min(this.state.activeTab + 1, 1)
+                : Math.max(this.state.activeTab - 1, 0);
+            this.setState({ activeTab: next });
+        }
+    }
+
     private handleOpenMenu = (event: any) => {
         this.setState({ menuAnchorEl: event.currentTarget });
     }
@@ -353,21 +369,35 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         <Tab label="Observation Form" />
                         <Tab label={listTabLabel} />
                     </Tabs>
-                    <div role="tabpanel" hidden={this.state.activeTab !== 0}>
-                        <ObsSessionForm
-                            obsSession={this.state.obsSession}
-                            locations={this.props.store.locations || []}
-                            onSaveObsSession={this.onSaveObsSession}
-                            isLoading={this.state.isLoading}
-                            allowEditing={this.props.store.isLoggedIn}
-                        />
-                    </div>
-                    <div role="tabpanel" hidden={this.state.activeTab !== 1}>
-                        <ObservationList
-                            observations={observations}
-                            onSelectObservation={this.onSelectObservation}
-                            allowEditing={this.props.store.isLoggedIn}
-                        />
+                    <div
+                        style={{ overflow: "hidden", width: "100%" }}
+                        onTouchStart={this.handleTouchStart}
+                        onTouchEnd={this.handleTouchEnd}
+                    >
+                        <div style={{
+                            display: "flex",
+                            width: "200%",
+                            transform: `translateX(${-this.state.activeTab * 50}%)`,
+                            transition: "transform 0.35s cubic-bezier(0.15, 0.3, 0.25, 1)",
+                            willChange: "transform",
+                        }}>
+                            <div role="tabpanel" style={{ width: "50%" }}>
+                                <ObsSessionForm
+                                    obsSession={this.state.obsSession}
+                                    locations={this.props.store.locations || []}
+                                    onSaveObsSession={this.onSaveObsSession}
+                                    isLoading={this.state.isLoading}
+                                    allowEditing={this.props.store.isLoggedIn}
+                                />
+                            </div>
+                            <div role="tabpanel" style={{ width: "50%" }}>
+                                <ObservationList
+                                    observations={observations}
+                                    onSelectObservation={this.onSelectObservation}
+                                    allowEditing={this.props.store.isLoggedIn}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div >
