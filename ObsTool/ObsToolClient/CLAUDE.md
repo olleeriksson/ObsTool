@@ -19,14 +19,19 @@ A React/TypeScript frontend for recording and tracking amateur astronomy observa
 ## Commands
 
 ```bash
-npm run dev      # start dev server (check terminal for actual port, usually 3000–3003)
+npm run dev      # start dev server
 npm run build    # tsc --noEmit + vite build
 npm run lint     # eslint
 ```
 
 ## Dev server ports
 
-Vite picks an available port in the **30xx** range — always check the terminal output for the exact URL. If a dev server is running on any other 30xx port than 3000, then kill those servers so that the new one can start on 3000.
+**Port 3000** is always manually started by the user — never kill it, never start anything on it.
+
+**Port 3001** is Claude's dedicated dev server port. When you need a dev server:
+1. Check if port 3000 is already running — if so, use `http://localhost:3000` directly.
+2. If port 3000 is not running, kill any servers on ports 3001–3020 (except 3000), then start your own with `npm run dev -- --port 3001` and use `http://localhost:3001`.
+3. Always use port 3001 for your own server — no other port.
 
 An old MUI v4 reference build runs separately on **http://localhost:5000** sometimes (useful for visual comparison). It's very important that you never click on any Save button there, or anywhere for that matter.
 
@@ -52,3 +57,32 @@ An old MUI v4 reference build runs separately on **http://localhost:5000** somet
 
 - Navbar autocomplete: `input[type=text]` (first input on page)
 - Page search field: `input[type=search]`
+
+## Observation listing components
+
+There are two distinct list patterns for observations, depending on entry point:
+
+**Pattern A — DSO-centric** (one card per DSO, observations nested below):
+- Renderer: `DsoBadgedWithObservations` → expands to a list of `ObservationSecondary` rows.
+- `ObservationSecondary` shows the obs-session date/title/location as a link back to `/session/:id`, plus the observation text and an `ImageList`.
+
+**Pattern B — Observation-centric** (one card per observation, DSO shown as the heading):
+- Renderer: `ObservationList` → maps each `IObservation` to an `Observation` card.
+- `Observation` renders `DsoExtended` for each DSO in `dsoObservations`, the observation text, an `ImageList`, and an expand button that reveals `ObservationSecondary` rows for the observation's `otherObservations`.
+
+### Entry-point → component map
+
+| Entry point | Route | Page component | List renderer | Item component |
+|---|---|---|---|---|
+| Navbar autocomplete (pick a DSO suggestion) | `/search` | `SearchView` (Redux query) | `DsoBadgedWithObservations` | `ObservationSecondary` |
+| Search page text field | `/search` | `SearchView` | `DsoBadgedWithObservations` | `ObservationSecondary` |
+| Navbar **Observations** button | `/observations` | `ObservedDsos` | `DsoBadgedWithObservations` | `ObservationSecondary` |
+| Obs session → **Observed Objects** tab | `/session/:id` | `SingleObsSessionView` → `ObsSessionPage` (tab index 1) | `ObservationList` | `Observation` (with nested `ObservationSecondary` for other observations) |
+
+### Wiring details
+
+- The navbar autocomplete (`SearchInput` in `Layout.tsx`) does not list observations itself — selecting a suggestion dispatches `actions.search()` and navigates to `/search`. `SearchView` then reads `state.data.searchQuery` from Redux and renders results.
+- `SearchView` uses `startWithObservationsExpanded={true}` only when there is exactly one match; otherwise the user must click the expand chevron on each `DsoBadgedWithObservations` to reveal the nested `ObservationSecondary` rows.
+- `ObservedDsos` always renders with `startWithObservationsExpanded={false}` and loads via `Api.getAllDsosAndTheirObservations()`.
+- `ObsSessionPage` derives the tab label `Observed Objects (N)` from `flatMap(observations, o => o.dsoObservations).length`. The tab panel is swiped/translated horizontally; the actual list is `ObservationList`.
+- `DsoBadgedWithObservations` is the only component that toggles between the two display modes via its `showDsoExtra` / `showObservations` / `startWithObservationsExpanded` props. It is also reused (with `showObservations={false}`) for rendering each suggestion row in the navbar autocomplete dropdown.
