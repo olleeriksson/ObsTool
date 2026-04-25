@@ -2,8 +2,7 @@ import * as React from "react";
 import ObsSessionCard from "./ObsSessionCard";
 import { IObsSession } from "../types/Types";
 import Typography from "@mui/material/Typography";
-import Pagination from "rc-pagination";
-import "rc-pagination/assets/index.css";
+import Pagination from "@mui/material/Pagination";
 
 export interface IObsSessionListProps {
   obsSessions: ReadonlyArray<IObsSession>;
@@ -33,11 +32,8 @@ class ObsSessionList extends React.Component<IObsSessionListProps, IObsSessionLi
     this.props.onSelectObsSession(obsSessionId);
   }
 
-  private onPaginationChange = (page: number, pageSize: number) => {
-    this.setState({
-      currentPage: page,
-      pageSize: pageSize
-    });
+  private onPaginationChange = (_event: React.ChangeEvent<unknown>, page: number) => {
+    this.setState({ currentPage: page });
   }
 
   private sortByDate(obsSessionA: IObsSession, obsSessionB: IObsSession) {
@@ -61,13 +57,9 @@ class ObsSessionList extends React.Component<IObsSessionListProps, IObsSessionLi
           ));
 
         const paginator = <Pagination
-          showQuickJumper={false}
-          showSizeChanger={false}
-          defaultPageSize={this.state.pageSize}
-          defaultCurrent={this.state.currentPage}
-          current={this.state.currentPage}
+          page={this.state.currentPage}
+          count={Math.ceil((this.props.obsSessions.length || 0) / this.state.pageSize)}
           onChange={this.onPaginationChange}
-          total={this.props.obsSessions.length || 0}
         />;
 
         return (

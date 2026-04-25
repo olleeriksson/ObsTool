@@ -3,7 +3,6 @@ import { createStore, applyMiddleware } from "redux";
 import rootReducer from "../reducers/index";
 import { ObsSessionAction } from "../actions/ObsSessionActions";
 import { IAppState, IDataState } from "../types/Types";
-// import { History } from "history";
 import reduxImmutableStateInvariant from "redux-immutable-state-invariant";
 import thunk from "redux-thunk";
 

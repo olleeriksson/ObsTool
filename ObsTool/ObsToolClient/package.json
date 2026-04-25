@@ -27,10 +27,8 @@
     "axios": "^1.15.2",
     "classnames": "^2.2.6",
     "es-abstract": "^1.24.2",
-    "history": "^4.10.1",
     "hoist-non-react-statics": "^3.3.0",
     "lodash": "^4.17.15",
-    "rc-pagination": "^1.20.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
@@ -39,9 +37,7 @@
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
     "sinon": "^7.5.0",
-    "tss-react": "^4.9.20",
-    "typeface-open-sans": "0.0.75",
-    "typeface-roboto": "0.0.75"
+    "tss-react": "^4.9.20"
   },
   "scripts": {
     "start": "vite",
