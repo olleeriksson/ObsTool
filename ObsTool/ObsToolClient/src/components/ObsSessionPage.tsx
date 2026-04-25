@@ -10,7 +10,6 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import ObservationList from "./ObservationList";
 import ObsSessionForm from "./ObsSessionForm";
-import SwipeableViews from "react-swipeable-views";
 // import CircularProgress from "@material-ui/core/CircularProgress";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Navigate } from "react-router-dom";
@@ -224,10 +223,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ activeTab: value });
     }
 
-    private handleChangeIndex = (index: number) => {
-        this.setState({ activeTab: index });
-    }
-
     private handleOpenMenu = (event: any) => {
         this.setState({ menuAnchorEl: event.currentTarget });
     }
@@ -358,11 +353,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         <Tab label="Observation Form" />
                         <Tab label={listTabLabel} />
                     </Tabs>
-                    <SwipeableViews
-                        axis={"x"}
-                        index={this.state.activeTab}
-                        onChangeIndex={this.handleChangeIndex}
-                    >
+                    <div role="tabpanel" hidden={this.state.activeTab !== 0}>
                         <ObsSessionForm
                             obsSession={this.state.obsSession}
                             locations={this.props.store.locations || []}
@@ -370,12 +361,14 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                             isLoading={this.state.isLoading}
                             allowEditing={this.props.store.isLoggedIn}
                         />
+                    </div>
+                    <div role="tabpanel" hidden={this.state.activeTab !== 1}>
                         <ObservationList
                             observations={observations}
                             onSelectObservation={this.onSelectObservation}
                             allowEditing={this.props.store.isLoggedIn}
                         />
-                    </SwipeableViews>
+                    </div>
                 </div>
             </div >
         );
