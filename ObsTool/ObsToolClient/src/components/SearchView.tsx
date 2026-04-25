@@ -136,7 +136,7 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
                 const startWithObservationsExpanded = this.state.dsoList.length === 1;
                 searchResult = this.state.dsoList.map(dso => (
                     <Grid key={dso.id} size={12}>
-                        <DsoBadgedWithObservations dso={dso} showBadge={true} showObservations={true} startWithObservationsExpanded={startWithObservationsExpanded} />
+                        <DsoBadgedWithObservations dso={dso} showBadge={true} showDsoExtra={true} showObservations={true} startWithObservationsExpanded={startWithObservationsExpanded} />
                     </Grid>
                 ));
             }

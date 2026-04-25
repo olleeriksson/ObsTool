@@ -40,6 +40,7 @@ const styles = (theme: Theme) => createStyles({
 interface IDsoBadgedWithObservationsProps extends WithStyles<typeof styles> {
   dso: IDso;
   showBadge: boolean;
+  showDsoExtra: boolean;
   showObservations: boolean;
   startWithObservationsExpanded: boolean;
 }
@@ -94,9 +95,11 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
               />
             </span>
 
-            <div style={{ marginLeft: 8 }} >
-              <DsoExtra dso={this.props.dso} />
-            </div>
+            {this.props.showDsoExtra && (
+              <div style={{ marginLeft: 8 }} >
+                <DsoExtra dso={this.props.dso} />
+              </div>
+            )}
           </Grid>
           <Grid size={1}>
             {expandButton}
