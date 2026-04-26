@@ -38,6 +38,8 @@ const styles = (theme: Theme) => createStyles({
   },
   gridList: {
     flexWrap: "wrap",
+    overflowY: "hidden",
+    margin: 0,
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
     transform: "translateZ(0)",
   },
@@ -51,19 +53,19 @@ const styles = (theme: Theme) => createStyles({
     height: 30,
   },
   titleBarWhite: {
-    backgroundColor: "white",
+    backgroundColor: "#f1f1f1",
     padding: 0,
     height: 30,
   },
   titleWrap: {
-    marginLeft: -8,
   },
   tile: {
     backgroundColor: "black",
     margin: 3,
   },
   imageContainer: {
-    height: "auto",
+    height: 140,
+    overflow: "hidden",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -305,7 +307,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           />
         </div>
         <ImageListItemBar
-          title={r.type}
+          title={r.type.charAt(0).toUpperCase() + r.type.slice(1)}
           classes={{ root: titleBarClass, title: classes.title, positionBottom: classes.titleWrap }}
           actionIcon={icons}
         />
@@ -381,10 +383,10 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       <div>
         {resourceDialog}
 
-        <Grid container spacing={1} direction="column">
+        <Grid container spacing={0} direction="column">
           {imagesTitle}
           {imageElements.length > 0 && (
-            <MuiImageList className={classes.gridList} cols={4}>
+            <MuiImageList className={classes.gridList} cols={4} rowHeight={140}>
               {imageElements}
             </MuiImageList>
           )}

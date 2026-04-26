@@ -57,6 +57,10 @@ export interface IObservationSecondaryState {
   isNextObservationExpanded: boolean;
 }
 
+/**
+ * This component is for when an observation is shown without the context of an ObsSession. Ie, when showing an observation
+ * for example when searching for an object.
+ */
 class ObservationSecondary extends React.Component<IObservationSecondaryProps, IObservationSecondaryState> {
   static defaultProps = {
     showPrevAndNextObservation: false,
