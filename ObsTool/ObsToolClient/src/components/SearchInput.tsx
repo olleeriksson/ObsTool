@@ -87,6 +87,14 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
         this.setState({ redirectToSearchPage: true });
     }
 
+    public componentDidUpdate(prevProps: ISearchInputProps) {
+        // Once we've arrived on the search page, clear the redirect flag so that
+        // navigating away later doesn't immediately bounce back to /search.
+        if (!prevProps.onSearchView && this.props.onSearchView && this.state.redirectToSearchPage) {
+            this.setState({ redirectToSearchPage: false });
+        }
+    }
+
     public render() {
         const { classes } = this.props;
 
