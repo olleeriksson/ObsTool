@@ -8,6 +8,7 @@ export interface IDsoShortProps {
   customObjectName?: string;
   error?: string;
   dso?: IDso;
+  nonDetection?: boolean;
 }
 
 export interface IDsoShortState {
@@ -61,10 +62,10 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
       if (this.state.dso) {
         return (
           <div className="dsoShort">
-            <Typography variant="body2">
+            <Typography variant="body2" style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
               {this.state.dso.name === "custom" ? this.props.customObjectName : this.state.dso.name}
             </Typography>
-            <Typography color="textSecondary" variant="caption" gutterBottom={false}>
+            <Typography color="textSecondary" variant="caption" gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
               {this.state.dso.type}, {this.state.dso.con}
             </Typography>
           </div>

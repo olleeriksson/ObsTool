@@ -142,7 +142,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
             const dsoShortLabels = o.dsoObservations
               .sort(this.sortDsoObsByDisplayOrder)
               .map(dsoObs =>
-                <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} />
+                <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} nonDetection={dsoObs.nonDetection || o.nonDetection} />
               );
             if (o.dsoObservations.length > 1) {
               // Show many

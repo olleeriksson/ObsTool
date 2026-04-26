@@ -37,7 +37,8 @@
       "Bash(npx --no -- vite --version)",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in {**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}.items\\(\\) if any\\(x in k.lower\\(\\) for x in ['enzyme','sinon','jest','test','vitest','react-testing']\\)}, indent=2\\)\\)\")",
       "Bash(python -c \"import json; d=json.load\\(open\\('package.json'\\)\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(dotnet test *)"
     ]
   }
 }

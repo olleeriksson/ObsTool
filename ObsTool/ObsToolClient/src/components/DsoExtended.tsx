@@ -13,6 +13,7 @@ export interface IDsoExtendedProps {
   customObjectName?: string;
   error?: string;
   dso?: IDso;
+  nonDetection?: boolean;
 }
 
 export interface IDsoExtendedState {
@@ -85,7 +86,11 @@ export default class DsoExtended extends React.Component<IDsoExtendedProps, IDso
           return (
             <div className="dsoExtended">
               <Typography variant="body2" gutterBottom={false}>
-                <img src={CosmosIcon} width="18" height="18" /> {this.props.dso.name} {otherNames} {commonName}
+                <img src={CosmosIcon} width="18" height="18" />{" "}
+                <span style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
+                  {this.props.dso.name}{" "}
+                  {otherNames} {commonName}
+                </span>
                 <span style={{ marginLeft: "1em" }} />
                 <DsoAnnotations
                   rating={this.props.dso.dsoExtra && this.props.dso.dsoExtra.rating}

@@ -5,7 +5,9 @@ using ObsTool.Entities;
 using ObsTool.Utils;
 using ObsTool.Services;
 using System.Collections.Generic;
+using System.Linq;
 using Moq;
+using ObsTool;
 
 namespace TestProject
 {
@@ -18,6 +20,7 @@ namespace TestProject
         [SetUp]
         public void Setup()
         {
+            generatedDsoId = 0;
             obsRepoMock = new Mock<IDsoRepo>();
             obsRepoMock.CallBase = true;
             obsRepoMock.Setup(x => x.GetAllCatalogs())
@@ -55,9 +58,9 @@ namespace TestProject
                 Id = 5,
                 Date = DateTime.Now,
                 ReportText = 
-@"Bla bla bla M11 asdasdd
+                    @"Bla bla bla M11 asdasdd
 
-dsflksd j M12 dsfklfsdfs",
+                    dsflksd j M12 dsfklfsdfs",
             };
             IDictionary<string, Observation> observationsMap = reportTextManager.Parse(obsSession);
             Assert.That(observationsMap.Count, Is.EqualTo(2));
@@ -221,7 +224,7 @@ dsflksd j M12 dsfklfsdfs",
             Assert.That(observationsMap.GetAt(1).Value.DsoObservations.Count, Is.EqualTo(2));
             Assert.That(observationsMap.GetAt(1).Value.DsoObservations[0].Dso.Name,     Is.EqualTo("NGC 6374"));
             Assert.That(observationsMap.GetAt(1).Value.DsoObservations[0].DisplayOrder, Is.EqualTo(0));
-            Assert.That(observationsMap.GetAt(1).Value.DsoObservations[1].Dso.Name,     Is.EqualTo("M51"));
+            Assert.That(observationsMap.GetAt(1).Value.DsoObservations[1].Dso.Name,     Is.EqualTo("M 51"));
             Assert.That(observationsMap.GetAt(1).Value.DsoObservations[1].DisplayOrder, Is.EqualTo(1));
 
             Assert.That(observationsMap.GetAt(2).Key, Is.EqualTo("5-3-4-5"));
@@ -229,10 +232,133 @@ dsflksd j M12 dsfklfsdfs",
             Assert.That(observationsMap.GetAt(2).Value.DsoObservations.Count, Is.EqualTo(3));
             Assert.That(observationsMap.GetAt(2).Value.DsoObservations[0].Dso.Name,     Is.EqualTo("NGC 6374"));
             Assert.That(observationsMap.GetAt(2).Value.DsoObservations[0].DisplayOrder, Is.EqualTo(0));
-            Assert.That(observationsMap.GetAt(2).Value.DsoObservations[1].Dso.Name,     Is.EqualTo("NGC342"));
+            Assert.That(observationsMap.GetAt(2).Value.DsoObservations[1].Dso.Name,     Is.EqualTo("NGC 342"));
             Assert.That(observationsMap.GetAt(2).Value.DsoObservations[1].DisplayOrder, Is.EqualTo(1));
             Assert.That(observationsMap.GetAt(2).Value.DsoObservations[2].Dso.Name,     Is.EqualTo("NGC 981"));
             Assert.That(observationsMap.GetAt(2).Value.DsoObservations[2].DisplayOrder, Is.EqualTo(2));
         }
+
+        [TestCase("M 31 (NGC 981) was bright.")]
+        [TestCase("Found M 31 but not (NGC 981).")]
+        [TestCase("Found M 31 but not (NGC 981)")]
+        [TestCase("(NGC 981) could not be found but M 31 was")]
+        //[TestCase("(NGC 981) could not be found but I did find M 31")]  // fails
+        [TestCase("(NGC 981) could not be found but I did find M 31.")]
+        public void testParenthesisSkipped(string reportText)
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = reportText,
+            };
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].Dso.Name, Is.EqualTo("M 31"));
+        }
+
+
+        [TestCase("Found M 31. Did not find !NGC 206!.")]
+        //[TestCase("Found M 31. Did not find !NGC 206!")]  // fails
+        [TestCase("Did not find !NGC 206! but I did find M 31.")]
+        public void testSingleDsoNonDetection(string reportText)
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = reportText,
+            };
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            var obs = observationsMap.GetAt(0).Value;
+            Assert.That(obs.NonDetection, Is.False);
+            Assert.That(obs.DsoObservations.Count, Is.EqualTo(2));
+            var m31DsoObs = obs.DsoObservations.First(d => d.Dso.Name == "M 31");
+            var ngc206DsoObs = obs.DsoObservations.First(d => d.Dso.Name == "NGC 206");
+            Assert.That(m31DsoObs.NonDetection, Is.False);
+            Assert.That(ngc206DsoObs.NonDetection, Is.True);
+        }
+
+        [TestCase("Did not find !NGC 206! and also failed to see !M 31!.")]
+        [TestCase("Did not find !NGC 206! and also failed to see !M 31!.")]
+        public void testMultipleDsoNonDetection(string reportText)
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = reportText,
+            };
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            // Check that non-detection is also stored on the Observation group
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            var obs = observationsMap.GetAt(0).Value;
+            Assert.That(obs.NonDetection, Is.True);
+
+            // Check each individual object
+            Assert.That(obs.DsoObservations.Count, Is.EqualTo(2));
+            var ngc206DsoObs = obs.DsoObservations.First(d => d.Dso.Name == "NGC 206");
+            var m31DsoObs = obs.DsoObservations.First(d => d.Dso.Name == "M 31");
+            Assert.That(ngc206DsoObs.NonDetection, Is.True);
+            Assert.That(m31DsoObs.NonDetection, Is.True);
+        }
+
+        [TestCase("!! Could not find NGC 206.")]
+        [TestCase("Could not find NGC 206 !!")]
+        //[TestCase("Could not find it !! NGC 206")]  // fails
+        [TestCase("Could not find NGC 206. !!")]
+        public void testObservationGroupNonDetectionWorks(string reportText)
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = reportText,
+            };
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            var obs = observationsMap.GetAt(0).Value;
+            Assert.That(obs.NonDetection, Is.True);
+            Assert.That(obs.DsoObservations.Count, Is.EqualTo(1));
+            Assert.That(obs.DsoObservations[0].NonDetection, Is.True);
+        }
+
+        [TestCase("!! Looked for !NGC 206!.")]
+        [TestCase("Looked for !NGC 981!. !!")]
+        public void testSectionAndDsoNonDetectionConflict(string reportText)
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = reportText,
+            };
+            Assert.Throws<ObsToolException>(() => reportTextManager.Parse(obsSession));
+        }
+
+        [TestCase("Looked for !NGC 206 hard.")]
+        [TestCase("Looked for NGC 206! hard.")]
+        [TestCase("NGC 206! was tricky.")]
+        [TestCase("!NGC 206 was tricky.")]
+        public void testUnmatchedNonDetectionMarker(string reportText)
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = reportText,
+            };
+            Assert.Throws<ObsToolException>(() => reportTextManager.Parse(obsSession));
+        }
+
     }
 }

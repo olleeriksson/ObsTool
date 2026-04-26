@@ -22,6 +22,7 @@ export interface IDsoObservation {
     obsSession: IObsSession;
     customObjectName: string;
     displayOrder: number;
+    nonDetection: boolean;
 }
 
 export interface IObsResource {

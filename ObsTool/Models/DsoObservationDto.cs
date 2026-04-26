@@ -20,5 +20,7 @@ namespace ObsTool.Models
         public int DsoId { get; set; }
 
         public int DisplayOrder { get; set; }
+
+        public bool NonDetection { get; set; }
     }
 }

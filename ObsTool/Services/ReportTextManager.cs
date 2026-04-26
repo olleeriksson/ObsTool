@@ -163,9 +163,10 @@ namespace ObsTool.Services
                 }
                 else
                 {
-                    // Get the existing one and update it (only DisplayOrder as of now)
+                    // Get the existing one and update it
                     var existingDsoObservation = existingDsoObservations.Find(i => i.Equals(newDsoObservation));  // compares the PK ids
                     existingDsoObservation.DisplayOrder = newDsoObservation.DisplayOrder;
+                    existingDsoObservation.NonDetection = newDsoObservation.NonDetection;
                 }
             }
         }
@@ -211,15 +212,16 @@ namespace ObsTool.Services
             // Regexp for finding DSO names
             string regexpAllCatalogs = RegExpJoinCatalogs(allCatalogs);
             string introRegexp = @"(?:\s|\G)";  // non-capturing group of \s or end-of-previous-match (for when the designator starts at the beginning of the line)
-            string startingParenthesisRegexp = @"(\()?";
-            string endingParenthesisRegexp = @"(\))?";
+            string startingMarkerRegexp = @"([(!])?";  // Start markers: ( and !
+            string endingMarkerRegexp = @"([)!])?";    // End markers: ) and !
             string outroRegexp = @"[\s\.,]";
+
             // The ?: at the start of one of the groups is to make that the group is non-capturing.
-            // This results in the fourth group always beeing the ending parenthesis.
+            // This results in the fourth group always being the ending marker (parenthesis or bang).
             string dsoNameRegexp = introRegexp
-                + startingParenthesisRegexp
+                + startingMarkerRegexp
                 + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-\.]?[0-9]+)*)"
-                + endingParenthesisRegexp
+                + endingMarkerRegexp
                 + outroRegexp;
             var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -229,6 +231,7 @@ namespace ObsTool.Services
             string findSectionRegexp = sectionStart
                 + dsoNameRegexp
                 + sectionEnding;
+
             // The RegexOptions.Singleline below is what makes it find sections that include a newline and then a Photo:/Link:/Sketch:/Jot: tag.
             // It also makes it necessary to use a ? in .*? to make it non-greedy.
             var findSectionsRegexp = new Regex(findSectionRegexp,
@@ -260,30 +263,41 @@ namespace ObsTool.Services
 
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
                     var dsosInSection = new Dictionary<int, Dso>();
+                    var nonDetectionDsosInSection = new Dictionary<int, bool>();
                     var obsResourcesInSection = new List<ObsResource>();
 
                     // Collect all the DSO's in the section text.
                     MatchCollection dsoNameMatches = findDsoNamesRegexp.Matches(sectionObsText);  // matching on a single section
                     foreach (Match dsoNameMatch in dsoNameMatches)
                     {
-                        string startingParenthesis = dsoNameMatch.Groups[1].Value;
+                        string startMarker = dsoNameMatch.Groups[1].Value;
                         string catalog = dsoNameMatch.Groups[2].Value;
                         string catalogNo = dsoNameMatch.Groups[3].Value;
-                        string endingParenthesis = dsoNameMatch.Groups[4].Value;
+                        string endMarker = dsoNameMatch.Groups[4].Value;
+                        string dsoName = $"{catalog} {catalogNo}";
 
                         Debug.WriteLine("---------------------------------------------------------");
                         Debug.WriteLine($"Match: {catalog} {catalogNo}");
                         //Debug.WriteLine($"Match: {sectionText}");
 
-                        // Ignore pattern if it's surrounded by parenthesis
-                        if (startingParenthesis == "(" || endingParenthesis == ")")
+                        bool startIsBang = startMarker == "!";
+                        bool endIsBang   = endMarker   == "!";
+
+                        // Unbalanced bang markers — surface as error so the user finds the typo
+                        if (startIsBang != endIsBang)
+                        {
+                            throw new ObsToolException(
+                                $"DSO {dsoName} has unmatched non-detection markers — wrap it on both sides: !{dsoName}!");
+                        }
+                        bool isNonDetectionDso = startIsBang && endIsBang;
+
+                        // Ignore pattern if it's surrounded by parenthesis (existing behaviour)
+                        if (startMarker == "(" || endMarker == ")")
                         {
                             continue;
                         }
 
-                        string dsoName = $"{catalog} {catalogNo}";
                         Dso dso = _dsoRepo.GetDsoByName(dsoName, normalize: false);
-
                         if (dso == null)
                         {
                             Debug.WriteLine("Could not match name");
@@ -304,6 +318,7 @@ namespace ObsTool.Services
                         }
 
                         dsosInSection.Add(dso.Id, dso);
+                        nonDetectionDsosInSection[dso.Id] = isNonDetectionDso;
 
                         Debug.WriteLine("---------------------------------------------------------");
                     }
@@ -328,7 +343,7 @@ namespace ObsTool.Services
                     }
 
                     // Collect non-detection
-                    bool nonDetection = findNonDetectionRegexp.IsMatch(sectionText);
+                    bool sectionNonDetection = findNonDetectionRegexp.IsMatch(sectionText);
 
                     // Collect rating
                     int rating = 0;  // TODO: Change this to nullable and null?
@@ -355,6 +370,15 @@ namespace ObsTool.Services
                     {
                         continue;
                     }
+
+                    if (sectionNonDetection && nonDetectionDsosInSection.Values.Any(isNonDet => isNonDet))
+                    {
+                        throw new ObsToolException(
+                            "A section is marked as a non-detection (!!) and also contains a DSO individually marked as a non-detection (!…!). Use one or the other.");
+                    }
+
+                    bool allDsosNonDetected = dsosInSection.Keys.All(id => nonDetectionDsosInSection.ContainsKey(id) && nonDetectionDsosInSection[id]);
+                    bool nonDetection = sectionNonDetection || allDsosNonDetected;
 
                     // Add any ratings or follow up flags to the DSO's
                     foreach (Dso dso in dsosInSection.Values)
@@ -406,7 +430,8 @@ namespace ObsTool.Services
                         {
                             Dso = dso,
                             DsoId = dso.Id,
-                            DisplayOrder = dsoObsIndex++
+                            DisplayOrder = dsoObsIndex++,
+                            NonDetection = (nonDetectionDsosInSection.ContainsKey(dso.Id) && nonDetectionDsosInSection[dso.Id]) || sectionNonDetection
                             // no need to add observation.Id since it's just a POCO anyway ??????
                         };
 

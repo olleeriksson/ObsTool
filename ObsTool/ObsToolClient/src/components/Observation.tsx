@@ -119,7 +119,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
     let dsoObjects;
     if (this.props.observation.dsoObservations) {
       dsoObjects = this.props.observation.dsoObservations.map(o =>
-        <DsoExtended key={o.dso.id} dso={o.dso} customObjectName={o.customObjectName} />
+        <DsoExtended key={o.dso.id} dso={o.dso} customObjectName={o.customObjectName} nonDetection={o.nonDetection || this.props.observation.nonDetection} />
       );
     }
 
