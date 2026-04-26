@@ -117,7 +117,7 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
                             if (option.dso) {
                                 return (
                                     <li key={key} {...restProps}>
-                                        <DsoBadgedWithObservations dso={option.dso} showBadge={true} showDsoExtra={false} showObservations={false} startWithObservationsExpanded={false} />
+                                        <DsoBadgedWithObservations dso={option.dso} showBadge={true} showDsoExtra={false} showObservations={false} startWithObservationsExpanded={false} showPrevAndNextObservation={true} />
                                     </li>
                                 );
                             }

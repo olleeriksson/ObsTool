@@ -38,7 +38,7 @@ namespace ObsTool.Services
         public void ParseAndStoreObservations(ObsSession obsSession)
         {
             // Parse
-            IDictionary<string, Observation> updatedObservations = Parse(obsSession);
+            OrderedDictionary<string, Observation> updatedObservations = Parse(obsSession);
             // All returned observations are to be either updated or added, that is decided further down
             // by looking at the currently stored observations.
 
@@ -190,10 +190,10 @@ namespace ObsTool.Services
             }
         }
 
-        public IDictionary<string, Observation> Parse(ObsSession obsSession)
+        public OrderedDictionary<string, Observation> Parse(ObsSession obsSession)
         {
             string reportText = obsSession.ReportText;
-            IDictionary<string, Observation> observationsDict = new Dictionary<string, Observation>();
+            OrderedDictionary<string, Observation> observationsDict = new OrderedDictionary<string, Observation>();
             IDictionary<Match, string> newSectionMatchesDict = new Dictionary<Match, string>();
 
             // If report text is empty, just return

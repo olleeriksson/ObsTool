@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import ImageList from "./ImageList";
 
@@ -48,18 +49,27 @@ const styles = (theme: Theme) => createStyles({
 
 export interface IObservationSecondaryProps extends WithStyles<typeof styles> {
   observation: IObservation;
+  showPrevAndNextObservation: boolean;
 }
 
 export interface IObservationSecondaryState {
   isExpanded: boolean;
+  isPrevObservationExpanded: boolean;
+  isNextObservationExpanded: boolean;
 }
 
 class ObservationSecondary extends React.Component<IObservationSecondaryProps, IObservationSecondaryState> {
+  static defaultProps = {
+    showPrevAndNextObservation: false,
+  };
+
   constructor(props: IObservationSecondaryProps) {
     super(props);
 
     this.state = {
       isExpanded: true,
+      isPrevObservationExpanded: false,
+      isNextObservationExpanded: false,
     };
 
     this.handleExpandClick = this.handleExpandClick.bind(this);
@@ -67,6 +77,14 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
 
   private handleExpandClick = () => {
     this.setState({ isExpanded: !this.state.isExpanded });
+  }
+
+  private handleExpandPrevObservationClick = () => {
+    this.setState({ isPrevObservationExpanded: !this.state.isPrevObservationExpanded });
+  }
+
+  private handleExpandNextObservationClick = () => {
+    this.setState({ isNextObservationExpanded: !this.state.isNextObservationExpanded });
   }
 
   public render() {
@@ -81,6 +99,24 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
         >
           <ExpandMoreIcon />
         </IconButton>
+      );
+    }
+
+    let expandPrevObservationButton;
+    if (this.props.showPrevAndNextObservation && this.props.observation.prevObservation && !this.state.isPrevObservationExpanded) {
+      expandPrevObservationButton = (
+        <Tooltip title="Click to show previous observation">
+          <span onClick={this.handleExpandPrevObservationClick} style={{ cursor: "pointer" }}>... </span>
+        </Tooltip>
+      );
+    }
+
+    let expandNextObservationButton;
+    if (this.props.showPrevAndNextObservation && this.props.observation.nextObservation && !this.state.isNextObservationExpanded) {
+      expandNextObservationButton = (
+        <Tooltip title="Click to show next observation">
+          <span onClick={this.handleExpandNextObservationClick} style={{ cursor: "pointer" }}> ...</span>
+        </Tooltip>
       );
     }
 
@@ -99,6 +135,26 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
         <Grid size={12}>
           <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={false} />
         </Grid>
+      );
+    }
+
+    let expandedPrevObservationItem;
+    if (this.state.isPrevObservationExpanded) {
+      expandedPrevObservationItem = (
+        <Typography variant="body2" color="text.secondary" style={{ marginBottom: "0.5em" }}>
+          <span onClick={this.handleExpandPrevObservationClick} style={{ cursor: "pointer" }}>... </span>
+          {this.props.observation.prevObservation && this.props.observation.prevObservation.text}
+        </Typography>
+      );
+    }
+
+    let expandedNextObservationItem;
+    if (this.state.isNextObservationExpanded) {
+      expandedNextObservationItem = (
+        <Typography variant="body2" color="text.secondary" style={{ marginTop: "0.5em" }}>
+          <span onClick={this.handleExpandNextObservationClick} style={{ cursor: "pointer" }}>... </span>
+          {this.props.observation.nextObservation && this.props.observation.nextObservation.text}
+        </Typography>
       );
     }
 
@@ -123,16 +179,20 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
             <Grid size={{ xs: 12, sm: "grow" }}>
               <Grid container direction="column" spacing={2}>
                 <Grid size="grow">
-                  <Typography variant="body2">
+                  <Typography variant="body2" style={{ marginBottom: "0.5em" }}>
                     <a href={obsSessionUrl}>
                       {obsSessionDate} &nbsp;
                       {obsSessionTitle} &nbsp;
                       {obsSessionLocation}
                     </a>
                   </Typography>
+                  {expandedPrevObservationItem}
                   <Typography variant="body2">
+                    {expandPrevObservationButton}
                     {this.props.observation.text}
+                    {expandNextObservationButton}
                   </Typography>
+                  {expandedNextObservationItem}
                   {imageListTeaser}
                 </Grid>
                 {expandedGridItem}

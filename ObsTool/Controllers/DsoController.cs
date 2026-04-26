@@ -70,6 +70,9 @@ namespace ObsTool
             return Ok(pagedResult);
         }
 
+        /// <summary>
+        /// Used both by the page listing all observations, and all the search pages/components.
+        /// </summary>
         [AllowAnonymous]
         [HttpGet()]
         public IActionResult GetDso([FromQuery] string query, [FromQuery] string name)
@@ -95,7 +98,8 @@ namespace ObsTool
 
                 var dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToList<int>();
 
-                var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(dsoIds);
+                bool includePrevAndNextObservations = true;  // This is the only place where we pass true to include prev and next observations
+                var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(dsoIds, null, includePrevAndNextObservations);
                 
                 foreach (DsoDto dso in truncatedDsoDtoList)
                 {

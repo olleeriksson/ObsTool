@@ -33,29 +33,31 @@ namespace ObsTool.Controllers
             _mapper = mapper;
         }
 
-        [AllowAnonymous]
-        [HttpGet("observations/", Name = "GetAllForDsos")]
-        public IActionResult GetAllForDsos([FromQuery] string dsoIds, [FromQuery] string dsoName)
-        {
-            IEnumerable<ObservationDto> observationDtos;
+        // Note!
+        //   Not used by anyone.
+        //[AllowAnonymous]
+        //[HttpGet("observations/", Name = "GetAllForDsos")]
+        //public IActionResult GetAllForDsos([FromQuery] string dsoIds, [FromQuery] string dsoName)
+        //{
+        //    IEnumerable<ObservationDto> observationDtos;
 
-            if (dsoIds == null && dsoName == null)  // searching for all
-            {
-                observationDtos = _observationsService.GetAllObservationDtos();
-            }
-            else  // searching for specific DSO ids or names
-            {
-                if (dsoIds != null && dsoName != null)
-                {
-                    return BadRequest("Can't specify neither or both of DSO id and a DSO name. Specify one or the other!");
-                }
+        //    if (dsoIds == null && dsoName == null)  // searching for all
+        //    {
+        //        observationDtos = _observationsService.GetAllObservationDtosEverMade();
+        //    }
+        //    else  // searching for specific DSO ids or names
+        //    {
+        //        if (dsoIds != null && dsoName != null)
+        //        {
+        //            return BadRequest("Can't specify neither or both of DSO id and a DSO name. Specify one or the other!");
+        //        }
 
-                List<int> dsoIdsInt = dsoIds.Split(new char[] { ',', ' ' }).Select(id => int.Parse(id)).ToList<int>();
-                observationDtos = _observationsService.GetAllObservationDtosForMultipleDsoIds(dsoIdsInt);
-            }
+        //        List<int> dsoIdsInt = dsoIds.Split(new char[] { ',', ' ' }).Select(id => int.Parse(id)).ToList<int>();
+        //        observationDtos = _observationsService.GetAllObservationDtosForMultipleDsoIds(dsoIdsInt);
+        //    }
 
-            return Ok(observationDtos);
-        }
+        //    return Ok(observationDtos);
+        //}
 
         [AllowAnonymous]
         [HttpGet("ObsSessions/{sessionId}/observations", Name = "GetAllObservationsForObsSession")]

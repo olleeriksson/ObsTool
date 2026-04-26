@@ -33,11 +33,7 @@ class Api {
 
     public static getFullObsSession(obsSessionId: number) {
         return axios.get<IObsSession>(import.meta.env.VITE_API_URL + "/obsSessions/" + obsSessionId +
-            "?includeLocation=true&includeObservations=true&includeDso=true&includeOtherObservations=true");
-    }
-
-    public static getAllObservationsOfDso(dsoId: number) {
-        return axios.get<IObsSession>(import.meta.env.VITE_API_URL + "/observations?dsoId=" + dsoId);
+            "?includeLocation=true&includeObservations=true&includeDso=true&includeOtherObservations=true&includePrevAndNextObservations=true");
     }
 
     public static addObsSession(newObsSession: IObsSession) {

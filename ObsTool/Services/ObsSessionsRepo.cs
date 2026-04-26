@@ -103,7 +103,7 @@ namespace ObsTool.Services
         }
 
         // Note!! Changed from IList to List because of a bug in .NET Core 3.0 (https://github.com/aspnet/EntityFrameworkCore/issues/17342)
-        public ICollection<ObsSession> GetObsSessionsByMultipleIds(List<int> ids)
+        public ICollection<ObsSession> GetObsSessionsByMultipleIds(List<int> ids, bool includeObservations = false)
         {
             // With LINQ
             //IEnumerable<ObsSession> obsSessions = from s in _dbContext.ObsSessions
@@ -111,11 +111,16 @@ namespace ObsTool.Services
             //                                        select s;
             //return obsSessions.ToList();
 
-            List<ObsSession> list = _dbContext.ObsSessions
-                .Where(s => ids.Contains(s.Id))
-                .Include(s => s.Location)
-                .ToList();
-            return list;
+            var query = _dbContext.ObsSessions
+                .Where(s => ids.Contains(s.Id));
+
+            query = query.Include(s => s.Location);
+
+            if (includeObservations)
+            {
+                query = query.Include(s => s.Observations);
+            }
+            return query.ToList();
         }
 
 

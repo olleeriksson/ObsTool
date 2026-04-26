@@ -42,6 +42,7 @@ interface IDsoBadgedWithObservationsProps extends WithStyles<typeof styles> {
   showBadge: boolean;
   showDsoExtra: boolean;
   showObservations: boolean;
+  showPrevAndNextObservation: boolean;
   startWithObservationsExpanded: boolean;
 }
 
@@ -121,7 +122,7 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
       let observations;
       if (this.props.dso.observations) {
         observations = this.props.dso.observations.map(obs =>
-          <ObservationSecondary key={obs.id} observation={obs} />
+          <ObservationSecondary key={obs.id} observation={obs} showPrevAndNextObservation={this.props.showPrevAndNextObservation} />
         );
       }
 

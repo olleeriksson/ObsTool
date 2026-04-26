@@ -89,7 +89,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       let otherObservations;
       if (this.props.observation.otherObservations) {
         otherObservations = this.props.observation.otherObservations.map(otherObs =>
-          <ObservationSecondary key={otherObs.id} observation={otherObs} />
+          <ObservationSecondary key={otherObs.id} observation={otherObs} showPrevAndNextObservation={true} />
         );
       }
 

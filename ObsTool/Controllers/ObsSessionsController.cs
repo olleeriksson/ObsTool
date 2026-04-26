@@ -39,7 +39,7 @@ namespace ObsTool.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/ObsSession
+        // GET: api/ObsSessions
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Get(bool includeLocation = false, bool simple = false)
@@ -58,11 +58,11 @@ namespace ObsTool.Controllers
             }
         }
 
-        // GET: api/ObsSession/5
+        // GET: api/ObsSessions/5
         [AllowAnonymous]
         [HttpGet("{id}", Name = "GetOneObsSession")]
         public IActionResult Get(int id, bool includeLocation = false, bool includeObservations = false,
-            bool includeDso = false, bool includeOtherObservations = false)
+            bool includeDso = false, bool includeOtherObservations = false, bool includePrevAndNextObservations = false)
         {
             //ObsSessionDto session = Store.Current.ObsSessions.FirstOrDefault(s => s.Id == id);
             //IEnumerable<ObsSessionDto> sessions = Store.Current.ObsSessions;
@@ -89,7 +89,7 @@ namespace ObsTool.Controllers
                 int[] primaryObservationIds = obsSession.Observations.Select(o => o.Id).ToArray();
 
                 var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(
-                    dsoIds, exludeObservationIds: primaryObservationIds);
+                    dsoIds, exludeObservationIds: primaryObservationIds, includePrevAndNextObservations);
 
                 // Go through each observation and..
                 foreach (var observationDto in obsSessionDto.Observations)

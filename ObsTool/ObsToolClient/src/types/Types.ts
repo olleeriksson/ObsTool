@@ -8,7 +8,9 @@ export interface IObservation {
     dsoObservations: IDsoObservation[];
     text: string;
     obsSession?: IObsSession;
-    otherObservations?: IObservation[];
+    otherObservations?: IObservation[]; 
+    prevObservation?: IObservation; 
+    nextObservation?: IObservation; 
     obsResources?: IObsResource[];
     displayOrder: number;
     nonDetection: boolean;
