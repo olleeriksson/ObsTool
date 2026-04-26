@@ -37,7 +37,7 @@ class SingleObsSessionView extends React.Component<ISingleObsSessionViewProps> {
 
         return <div className={classes.root}>
             <Grid container spacing={5} justifyContent="center">
-                <Grid size={{ xs: 12, sm: 8 }} className={classes.column}>
+                <Grid size={{ xs: 12, md: 12 }} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
                         <ObsSessionPage obsSessionId={this.props.obsSessionId} />
                     </Paper>

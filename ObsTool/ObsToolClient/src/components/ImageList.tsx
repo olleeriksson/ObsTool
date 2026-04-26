@@ -383,9 +383,11 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
         <Grid container spacing={1} direction="column">
           {imagesTitle}
-          <MuiImageList className={classes.gridList} cols={4}>
-            {imageElements}
-          </MuiImageList>
+          {imageElements.length > 0 && (
+            <MuiImageList className={classes.gridList} cols={4}>
+              {imageElements}
+            </MuiImageList>
+          )}
           {linksTitle}
           <Grid>
             {linkElements}

@@ -21,8 +21,7 @@ const styles = (theme: Theme) => createStyles({
   root: {
     border: "1px dashed lightgray",
     margin: "0.5em",
-    paddingTop: "0.3em"
-    //padding: theme.spacing(1),
+    padding: theme.spacing(1),
   },
   image: {
     border: 1,
@@ -130,7 +129,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     }
 
     let expandedGridItem;
-    if (this.state.isExpanded) {
+    if (this.state.isExpanded && this.props.observation.obsResources && this.props.observation.obsResources.length > 0) {
       expandedGridItem = (
         <Grid size={12}>
           <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={false} />

@@ -83,7 +83,7 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
         if (this.state.isLoading) {
             return (
                 <Grid container spacing={5} justifyContent="center" direction="row">
-                    <Grid size={{ xs: 12, sm: 7 }}>
+                    <Grid size={{ xs: 12, md: 8 }}>
                         <Typography variant="caption" color="textSecondary" gutterBottom={true}>
                             <CircularProgress />
                         </Typography>
@@ -102,7 +102,7 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
                     All observed objects
                 </Typography>
                 <Grid container spacing={5} justifyContent="center" direction="row">
-                    <Grid size={{ xs: 12, sm: 7 }}>
+                    <Grid size={{ xs: 12, md: 8 }}>
                         <Grid container spacing={0} justifyContent="center" direction="column">
                             {obsList}
                         </Grid>

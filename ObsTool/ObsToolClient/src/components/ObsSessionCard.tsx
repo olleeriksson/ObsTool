@@ -31,9 +31,6 @@ const styles = (theme: Theme) => createStyles({
   },
   header: {
     flexGrow: 1,
-    maxHeight: 100,
-    overflow: "hidden",
-    textOverflow: "ellipsis"
   },
   buttons: {
   },
@@ -133,7 +130,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
             <Grid container spacing={1} className={classes.mainRowContainer}>
               <Grid>
                 <div className={classes.icon}>
-                  <Typography gutterBottom={true} variant="h4">
+                  <Typography gutterBottom={false} variant="h6">
                     <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
                   </Typography>
                 </div>
@@ -150,17 +147,13 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                       {this.props.obsSession.location && this.props.obsSession.location.name}
                     </Typography>
                   </Grid>
-                  <Grid size="grow" className={classes.summary}>
-                    <Typography variant="caption">
-                      {this.props.obsSession.summary && this.props.obsSession.summary.toString()}
-                    </Typography>
-                  </Grid>
                 </Grid>
               </Grid>
               <Grid className={classes.buttons}>
                 <Grid container direction="column" spacing={0}>
                   <Grid>
                     <IconButton
+                      size="small"
                       onClick={this.handleClickOnObsSession}
                     >
                       <VisibilityIcon />
@@ -168,6 +161,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                   </Grid>
                   <Grid>
                     <IconButton
+                      size="small"
                       className={classNames(classes.expand, { [classes.expandOpen]: this.state.isExpanded })}
                       onClick={this.handleExpandClick}
                       aria-expanded={this.state.isExpanded}

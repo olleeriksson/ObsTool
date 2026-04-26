@@ -27,8 +27,7 @@ const styles = (theme: Theme) => createStyles({
   },
   image: {
     border: 1,
-    width: 96,
-    height: 96,
+    margin: 10
   },
   img: {
     margin: "auto",
@@ -133,7 +132,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
             <Grid container spacing={2} wrap="nowrap">
               <Grid>
                 <ButtonBase className={classes.image}>
-                  <Typography gutterBottom={true} variant="h3">
+                  <Typography gutterBottom={true} variant="h4">
                     <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                   </Typography>
                 </ButtonBase>

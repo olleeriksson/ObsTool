@@ -15,7 +15,7 @@ export interface IObsSessionListState {
 }
 
 class ObsSessionList extends React.Component<IObsSessionListProps, IObsSessionListState> {
-  private static DEFAULT_PAGE_SIZE = 6;
+  private static DEFAULT_PAGE_SIZE = 7;
 
   constructor(props: IObsSessionListProps) {
     super(props);

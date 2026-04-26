@@ -131,7 +131,7 @@ class Home extends React.Component<IHomeProps> {
             </Grid>
             {/* Second/third row */}
             <Grid container alignItems="flex-start" justifyContent="center">
-                <Grid size={{ xs: 12, sm: 7 }}>
+                <Grid size={{ xs: 12, md: 8 }}>
                     <StatisticsTable />
                 </Grid>
             </Grid>
