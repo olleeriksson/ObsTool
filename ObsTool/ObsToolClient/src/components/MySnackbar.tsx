@@ -1,9 +1,7 @@
 import * as React from "react";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-// import Typography from "@mui/material/Typography";
 import green from "@mui/material/colors/green";
 import amber from "@mui/material/colors/amber";
 import classNames from "classnames";
@@ -58,43 +56,30 @@ export interface IMySnackbarProps extends WithStyles<typeof styles> {
     variant: "success" | "warning" | "error" | "info";
 }
 
-interface IMySnackbarState {
-    open: boolean;
-}
+const MySnackbarBase = React.forwardRef<HTMLDivElement, IMySnackbarProps>((props, ref) => {
+    const { classes, className, message, onClose, variant, ...other } = props;
+    const Icon = variantIcon[variant];
 
-class MySnackbar extends React.Component<IMySnackbarProps, IMySnackbarState> {
-    constructor(props: IMySnackbarProps) {
-        super(props);
+    const action = <IconButton
+        key="close"
+        aria-label="Close"
+        color="inherit"
+        className={classes.close}
+        onClick={onClose}
+    >
+        <CloseIcon className={classes.icon} />
+    </IconButton>;
 
-        this.state = {
-            open: false,
-        };
-    }
+    return (
+        <SnackbarContent
+            ref={ref}
+            className={classNames(classes[variant], className)}
+            aria-describedby="client-snackbar"
+            message={<span id="client-snackbar" className={classes.message}><Icon className={classNames(classes.icon, classes.iconVariant)} />{message}</span>}
+            action={action}
+            {...other}
+        />
+    );
+});
 
-    public render() {
-        const { classes, className, message, onClose, variant, ...other } = this.props;
-        const Icon = variantIcon[variant];
-
-        const action = <IconButton
-            key="close"
-            aria-label="Close"
-            color="inherit"
-            className={classes.close}
-            onClick={onClose}
-        >
-            <CloseIcon className={classes.icon} />
-        </IconButton>;
-
-        return (
-            <SnackbarContent
-                className={classNames(classes[variant], className)}
-                aria-describedby="client-snackbar"
-                message={<span id="client-snackbar" className={classes.message}><Icon className={classNames(classes.icon, classes.iconVariant)} />{message}</span>}
-                action={action}
-                {...other}
-            />
-        );
-    }
-}
-
-export default withStyles(styles)(MySnackbar);
+export default withStyles(styles)(MySnackbarBase);
