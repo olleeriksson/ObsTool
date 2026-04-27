@@ -32,7 +32,7 @@ const styles = (theme: Theme) => createStyles({
     overflow: "hidden"  // gets rid of an annoying scroll bar in the report text form field
   },
   saveButton: {
-    marginRight: 150,
+    marginRight: `calc(5% - ${theme.spacing(1)})`,
   },
   dateField: {
     width: 200,
@@ -304,18 +304,26 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     </Grid>
                     <Grid>
                       <Grid container direction="row" justifyContent="flex-end">
-                        <Grid>
-                          {circularProgress}
-                          <Button
-                            variant="contained"
-                            type="submit"
-                            disabled={!this.props.allowEditing}
-                            className={classes.saveButton}
-                          >
-                            Save
-                          </Button>
-                        </Grid>
+                        {circularProgress}
+                        <Button
+                          variant="contained"
+                          type="submit"
+                          disabled={!this.props.allowEditing}
+                          className={classes.saveButton}
+                        >
+                          Save
+                        </Button>
                       </Grid>
+                    </Grid>
+                    <Grid>
+                      <Typography variant="caption" color="textSecondary" component={"div" as any} style={{ marginTop: 8, marginLeft: 8, lineHeight: 1.4 }}>
+                        <div><code>!!</code>{" — "}section not found</div>
+                        <div><code>!M 31!</code>{" — "}individual not found</div>
+                        <div><code>(M 31)</code>{" — "}suppress reference</div>
+                        <div><code>-1 +1 +2 * **</code>{" — "}rating</div>
+                        <div><code>revisit</code>{" / "}<code>come back</code>{" — "}follow-up</div>
+                        <div><code>Link: Image: Sketch: Jot:</code>{" — "}+ url</div>
+                      </Typography>
                     </Grid>
                   </Grid>
                 </Grid>
