@@ -33,6 +33,10 @@ namespace ObsTool.Database
         }
         public DbSet<Location> Locations { get; set; }
 
+        public DbSet<Instrument> Instruments { get; set; }
+
+        public DbSet<Eyepiece> Eyepieces { get; set; }
+
         public DbSet<Article> Articles { get; set; }
 
         public DbSet<Constellation> Constellations { get; set; }

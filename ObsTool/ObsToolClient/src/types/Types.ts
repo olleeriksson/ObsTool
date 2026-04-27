@@ -8,12 +8,13 @@ export interface IObservation {
     dsoObservations: IDsoObservation[];
     text: string;
     obsSession?: IObsSession;
-    otherObservations?: IObservation[]; 
-    prevObservation?: IObservation; 
-    nextObservation?: IObservation; 
+    otherObservations?: IObservation[];
+    prevObservation?: IObservation;
+    nextObservation?: IObservation;
     obsResources?: IObsResource[];
     displayOrder: number;
     nonDetection: boolean;
+    instrumentId?: number;
 }
 
 export interface IDsoObservation {
@@ -121,6 +122,21 @@ export interface ILocation {
     googleMapsAddress: string;
 }
 
+export interface IInstrument {
+    id?: number;
+    key: string;
+    name: string;
+    diameterMm: number;
+    focalLengthMm: string;
+}
+
+export interface IEyepiece {
+    id?: number;
+    key: string;
+    name: string;
+    focalLengthMm: string;
+}
+
 // --------------------------------------------------------------------------
 
 export interface IDataState {
@@ -132,6 +148,12 @@ export interface IDataState {
     locations?: ILocation[];
     isLoadingLocations: boolean;
     isErrorLocations?: string;
+    instruments?: IInstrument[];
+    isLoadingInstruments: boolean;
+    isErrorInstruments?: string;
+    eyepieces?: IEyepiece[];
+    isLoadingEyepieces: boolean;
+    isErrorEyepieces?: string;
     searchQuery?: string;
     checkedObsResources: IObsResource[];
 }
@@ -144,6 +166,12 @@ export interface IReadonlyDataState {
     locations?: ILocation[];
     isLoadingLocations: boolean;
     isErrorLocations?: string;
+    instruments?: IInstrument[];
+    isLoadingInstruments: boolean;
+    isErrorInstruments?: string;
+    eyepieces?: IEyepiece[];
+    isLoadingEyepieces: boolean;
+    isErrorEyepieces?: string;
     searchQuery?: string;
     checkedObsResources: IObsResource[];
 }

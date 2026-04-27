@@ -21,6 +21,14 @@ namespace ObsTool
             CreateMap<Models.LocationDto, Entities.Location>();
             CreateMap<Models.LocationDtoForCreation, Entities.Location>();
             CreateMap<Models.LocationDtoForUpdate, Entities.Location>();
+            CreateMap<Entities.Instrument, Models.InstrumentDto>();
+            CreateMap<Models.InstrumentDto, Entities.Instrument>();
+            CreateMap<Models.InstrumentDtoForCreation, Entities.Instrument>();
+            CreateMap<Models.InstrumentDtoForUpdate, Entities.Instrument>();
+            CreateMap<Entities.Eyepiece, Models.EyepieceDto>();
+            CreateMap<Models.EyepieceDto, Entities.Eyepiece>();
+            CreateMap<Models.EyepieceDtoForCreation, Entities.Eyepiece>();
+            CreateMap<Models.EyepieceDtoForUpdate, Entities.Eyepiece>();
             CreateMap<Entities.Dso, Models.DsoDto>();
             CreateMap<Entities.Observation, Models.ObservationDto>();
             CreateMap<Models.ObservationDto, Entities.Observation>();

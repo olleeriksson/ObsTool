@@ -10,6 +10,7 @@ import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Api from "../api/Api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ILocation, IAppState, IDataState } from "src/types/Types";
 import classNames from "classnames";
 import EditIcon from "@mui/icons-material/Edit";
@@ -272,8 +273,11 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         ));
 
         return <div className={classes.root}>
+            <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
+                <FontAwesomeIcon icon="map-marked" className="faSpaceAfter" /> Locations
+            </Typography>
             <Grid container spacing={5} justifyContent="center" direction="row">
-                <Grid size={{ xs: 12, sm: 8 }}>
+                <Grid size={{ xs: 12, md: 8 }}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         {locationForm}
                     </Paper>

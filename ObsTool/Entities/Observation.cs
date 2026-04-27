@@ -40,5 +40,7 @@ namespace ObsTool.Entities
         public List<ObsResource> ObsResources { get; set; } = new List<ObsResource>();
 
         public bool NonDetection { get; set; } = false;
+
+        public int? InstrumentId { get; set; }
     }
 }

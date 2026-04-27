@@ -39,5 +39,7 @@ namespace ObsTool.Models
         public List<ObsResourceDto> ObsResources { get; set; } = null;
 
         public bool NonDetection { get; set; } = false;
+
+        public int? InstrumentId { get; set; }
     }
 }

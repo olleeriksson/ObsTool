@@ -15,6 +15,16 @@ import {
     IGetLocationsFailureAction,
 } from "../actions/LocationActions";
 import {
+    InstrumentAction,
+    IGetInstrumentsSuccessAction,
+    IGetInstrumentsFailureAction,
+} from "../actions/InstrumentActions";
+import {
+    EyepieceAction,
+    IGetEyepiecesSuccessAction,
+    IGetEyepiecesFailureAction,
+} from "../actions/EyepieceActions";
+import {
     SearchAction,
     ISearchAction
 } from "../actions/SearchActions";
@@ -37,11 +47,17 @@ const initialDataState: IDataState = {
     locations: undefined,
     isLoadingLocations: false,
     isErrorLocations: undefined,
+    instruments: undefined,
+    isLoadingInstruments: false,
+    isErrorInstruments: undefined,
+    eyepieces: undefined,
+    isLoadingEyepieces: false,
+    isErrorEyepieces: undefined,
     searchQuery: "",
     checkedObsResources: []
 };
 
-type DataAction = AuthenticationAction | ObsSessionAction | LocationAction | SearchAction | ObsResourceCheckAction;
+type DataAction = AuthenticationAction | ObsSessionAction | LocationAction | InstrumentAction | EyepieceAction | SearchAction | ObsResourceCheckAction;
 
 const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, action: DataAction) => {
 
@@ -150,6 +166,56 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 locations: [],   //???
                 isLoadingLocations: false,
                 isErrorLocations: action11.payload.error,
+            };
+        }
+        case constants.GET_INSTRUMENTS_BEGIN: {
+            return {
+                ...state,
+                isLoadingInstruments: true,
+                isErrorInstruments: undefined,
+            };
+        }
+        case constants.GET_INSTRUMENTS_SUCCESS: {
+            const instrAction = action as IGetInstrumentsSuccessAction;
+            return {
+                ...state,
+                instruments: [...instrAction.payload.instruments],
+                isLoadingInstruments: false,
+                isErrorInstruments: undefined,
+            };
+        }
+        case constants.GET_INSTRUMENTS_FAILURE: {
+            const instrFailAction = action as IGetInstrumentsFailureAction;
+            return {
+                ...state,
+                instruments: [],
+                isLoadingInstruments: false,
+                isErrorInstruments: instrFailAction.payload.error,
+            };
+        }
+        case constants.GET_EYEPIECES_BEGIN: {
+            return {
+                ...state,
+                isLoadingEyepieces: true,
+                isErrorEyepieces: undefined,
+            };
+        }
+        case constants.GET_EYEPIECES_SUCCESS: {
+            const epAction = action as IGetEyepiecesSuccessAction;
+            return {
+                ...state,
+                eyepieces: [...epAction.payload.eyepieces],
+                isLoadingEyepieces: false,
+                isErrorEyepieces: undefined,
+            };
+        }
+        case constants.GET_EYEPIECES_FAILURE: {
+            const epFailAction = action as IGetEyepiecesFailureAction;
+            return {
+                ...state,
+                eyepieces: [],
+                isLoadingEyepieces: false,
+                isErrorEyepieces: epFailAction.payload.error,
             };
         }
         case constants.SEARCH: {

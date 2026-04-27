@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IPagedDsoList, IObsResource, IStatistics, ILoginInfo } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
@@ -62,6 +62,38 @@ class Api {
 
     public static deleteLocation(locationId: number) {
         return axios.delete(import.meta.env.VITE_API_URL + "/locations/" + locationId);
+    }
+
+    public static getInstruments() {
+        return axios.get<IInstrument[]>(import.meta.env.VITE_API_URL + "/instruments/");
+    }
+
+    public static addInstrument(newInstrument: IInstrument) {
+        return axios.post<IInstrument>(import.meta.env.VITE_API_URL + "/instruments/", newInstrument);
+    }
+
+    public static updateInstrument(updatedInstrument: IInstrument) {
+        return axios.put<IInstrument>(import.meta.env.VITE_API_URL + "/instruments/" + updatedInstrument.id, updatedInstrument);
+    }
+
+    public static deleteInstrument(instrumentId: number) {
+        return axios.delete(import.meta.env.VITE_API_URL + "/instruments/" + instrumentId);
+    }
+
+    public static getEyepieces() {
+        return axios.get<IEyepiece[]>(import.meta.env.VITE_API_URL + "/eyepieces/");
+    }
+
+    public static addEyepiece(newEyepiece: IEyepiece) {
+        return axios.post<IEyepiece>(import.meta.env.VITE_API_URL + "/eyepieces/", newEyepiece);
+    }
+
+    public static updateEyepiece(updatedEyepiece: IEyepiece) {
+        return axios.put<IEyepiece>(import.meta.env.VITE_API_URL + "/eyepieces/" + updatedEyepiece.id, updatedEyepiece);
+    }
+
+    public static deleteEyepiece(eyepieceId: number) {
+        return axios.delete(import.meta.env.VITE_API_URL + "/eyepieces/" + eyepieceId);
     }
 
     public static searchDso(query: string) {

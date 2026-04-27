@@ -8,6 +8,7 @@ import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce } from "lodash";
 // import DsoExtended from "./DsoExtended";
 import { connect } from "react-redux";
@@ -152,6 +153,9 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
         }
 
         return <div className={classes.root}>
+            <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
+                <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search
+            </Typography>
             <Grid container spacing={5} justifyContent="center" direction="row">
                 <Grid size={{ xs: 12, sm: 8 }}>
                     <Paper className={classes.textfieldPaper} elevation={1}>

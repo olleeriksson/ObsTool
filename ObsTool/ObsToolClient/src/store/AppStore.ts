@@ -15,6 +15,12 @@ const initialDataState: IDataState = {
     locations: undefined,
     isLoadingLocations: false,
     isErrorLocations: undefined,
+    instruments: undefined,
+    isLoadingInstruments: false,
+    isErrorInstruments: undefined,
+    eyepieces: undefined,
+    isLoadingEyepieces: false,
+    isErrorEyepieces: undefined,
     searchQuery: "",
     checkedObsResources: []
 };
