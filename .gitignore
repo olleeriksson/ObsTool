@@ -1,4 +1,5 @@
 .vs
+.codex-run
 */**/bin/Debug
 */**/bin/Release
 */**/bin/netcoreapp*
