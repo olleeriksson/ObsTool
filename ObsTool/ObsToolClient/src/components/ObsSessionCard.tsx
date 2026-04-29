@@ -113,7 +113,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
             {this.props.obsSession.transparency && this.props.obsSession.transparency.toString() || <span>N/A</span>}
           </Typography>
           <Typography variant="body1">
-            <strong>Limiting magnitude:</strong>
+            <strong>Lim. mag.:</strong>
             {this.props.obsSession.limitingMagnitude && this.props.obsSession.limitingMagnitude.toString() || <span>N/A</span>}
           </Typography>
         </Grid>

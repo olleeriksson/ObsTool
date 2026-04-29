@@ -35,7 +35,7 @@ const styles = (theme: Theme) => createStyles({
     marginRight: `calc(5% - ${theme.spacing(1)})`,
   },
   dateField: {
-    width: 200,
+    //width: 200,
   },
   selectLocation: {
     width: 300,
@@ -261,7 +261,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               />
               <TextField
                 id="lm"
-                label="Limiting magnitude"
+                label="Lim. mag."
                 maxRows={10}
                 value={this.state.obsSession.limitingMagnitude || ""}
                 onChange={this.handleChange("limitingMagnitude")}

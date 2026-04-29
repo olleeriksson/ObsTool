@@ -18,13 +18,13 @@ import AladinFrame from "./AladinLiteFrame";
 
 const styles = (theme: Theme) => createStyles({
     header: {
-        maxWidth: 600,
+        maxWidth: 800,
         margin: "0 auto",
         verticalAlign: "center",
         padding: `${theme.spacing(8)} 0 ${theme.spacing(6)}`,
     },
     cardGridItem: {
-        maxWidth: 300,
+        maxWidth: 400,
     },
     cardContent: {
     },

@@ -173,7 +173,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <span style={{ whiteSpace: "nowrap" }}><img src={logo} className="logo-appbar" alt="logo" /> ObsTool</span>
                         </Link>
                     </Typography>
-                    <Grid container spacing={4} direction="row" justifyContent="flex-end">
+                    <Grid container spacing={1} direction="row" justifyContent="flex-end">
                         <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>
                             <SearchInput onSearchView={weAreOnSearchView} />
                         </div>
@@ -184,7 +184,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observations
                         </Button>
                         <Button component={LinkToSessions} className="appbarButton">
-                            <FontAwesomeIcon icon="table" className="faSpaceAfter" /> List sessions
+                            <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Sessions
                         </Button>
                         <Button component={LinkToNewSession} className="appbarButton">
                             <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
