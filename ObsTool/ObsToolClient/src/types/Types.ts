@@ -129,15 +129,15 @@ export interface IInstrument {
     id?: number;
     key: string;
     name: string;
-    diameterMm: number;
-    focalLengthMm: string;
+    diameterMm?: number;
+    focalLengthMm?: number;
 }
 
 export interface IEyepiece {
     id?: number;
     key: string;
     name: string;
-    focalLengthMm: string;
+    focalLengthMm?: number;
 }
 
 // --------------------------------------------------------------------------

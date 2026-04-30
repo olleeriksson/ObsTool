@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { IInstrument } from "../types/Types";
@@ -15,7 +15,7 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
       return null;
     }
 
-    const details = `${instrument.name} | ${instrument.diameterMm} mm | FL ${instrument.focalLengthMm || "N/A"} mm`;
+    const details = `${instrument.name} | ${instrument.diameterMm} mm | FL ${instrument.focalLengthMm ?? "N/A"} mm`;
     const variant = this.props.compact ? "caption" : "body2";
 
     return (
@@ -29,3 +29,4 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
 }
 
 export default InstrumentBadge;
+

@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
@@ -80,7 +80,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
             id: undefined,
             key: "",
             name: "",
-            focalLengthMm: ""
+            focalLengthMm: undefined
         };
     }
 
@@ -101,14 +101,44 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
             );
     }
 
+    private parseIntegerInput = (rawValue: string): number | undefined => {
+        const digitsOnly = rawValue.replace(/\D/g, "");
+        if (!digitsOnly) {
+            return undefined;
+        }
+
+        return Number.parseInt(digitsOnly, 10);
+    }
+
+    private extractFocalLengthFromKey = (key: string): number | undefined => {
+        const match = key.match(/(\d+)\s*mm\b/i);
+        if (!match?.[1]) {
+            return undefined;
+        }
+
+        return Number.parseInt(match[1], 10);
+    }
+
     private handleFormChange = (name: string) => (event: any) => {
-        const newValue = event.target.value;
+        const rawValue = event.target.value;
+        const parsedFocalFromKey = name === "key" ? this.extractFocalLengthFromKey(rawValue) : undefined;
+        const newValue = name === "focalLengthMm"
+            ? this.parseIntegerInput(rawValue)
+            : rawValue;
         this.setState((prevState) => ({
             currentEyepiece: {
                 ...prevState.currentEyepiece,
-                [name]: newValue
+                [name]: newValue,
+                focalLengthMm: parsedFocalFromKey ?? (name === "focalLengthMm" ? newValue : prevState.currentEyepiece.focalLengthMm)
             }
         }));
+    }
+
+    private isCurrentEyepieceValid = (): boolean => {
+        const { key, name, focalLengthMm } = this.state.currentEyepiece;
+        return !!key.trim()
+            && !!name.trim()
+            && focalLengthMm !== undefined;
     }
 
     private handleClickResource = (eyepieceId?: number) => (event: any) => {
@@ -145,6 +175,11 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
 
     private handleSubmit = (e: any) => {
         e.preventDefault();
+        if (!this.isCurrentEyepieceValid()) {
+            this.setState({ isError: true });
+            return;
+        }
+
         this.setState({ isLoading: true, isError: false });
         if (this.state.currentEyepiece.id) {
             Api.updateEyepiece(this.state.currentEyepiece).then(
@@ -221,16 +256,18 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                             <TextField
                                 id="focalLengthMm"
                                 label="Focal length (mm)"
-                                value={this.state.currentEyepiece.focalLengthMm || ""}
+                                value={this.state.currentEyepiece.focalLengthMm ?? ""}
                                 onChange={this.handleFormChange("focalLengthMm")}
                                 className={classNames(classes.formControl, classes.textfieldNarrow)}
                                 margin="dense"
+                                type="text"
+                                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                             />
                         </Grid>
                         <Grid>
                             <Grid container direction="row">
                                 <Grid>
-                                    <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn}>
+                                    <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn || !this.isCurrentEyepieceValid()}>
                                         {this.state.currentEyepiece.id ? "Update" : "Save"}
                                     </Button>
                                     <Button color="primary" onClick={this.onClear}>
@@ -260,7 +297,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                     </a>
                 </Typography>
                 <Typography variant="caption" gutterBottom={true}>
-                    Focal length: <strong>{eyepiece.focalLengthMm || "N/A"} mm</strong>
+                    Focal length: <strong>{eyepiece.focalLengthMm ?? "N/A"} mm</strong>
                 </Typography>
             </Grid>
         ));
@@ -293,3 +330,4 @@ const mapStateToProps = (state: IAppState) => {
 };
 
 export default connect(mapStateToProps)(withStyles(styles)(EyepiecesView));
+

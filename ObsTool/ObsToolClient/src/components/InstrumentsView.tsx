@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
@@ -83,8 +83,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             id: undefined,
             key: "",
             name: "",
-            diameterMm: 0,
-            focalLengthMm: ""
+            diameterMm: undefined,
+            focalLengthMm: undefined
         };
     }
 
@@ -108,14 +108,34 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             );
     }
 
+    private parseIntegerInput = (rawValue: string): number | undefined => {
+        const digitsOnly = rawValue.replace(/\D/g, "");
+        if (!digitsOnly) {
+            return undefined;
+        }
+
+        return Number.parseInt(digitsOnly, 10);
+    }
+
     private handleFormChange = (name: string) => (event: any) => {
-        const newValue = event.target.value;
+        const rawValue = event.target.value;
+        const newValue = (name === "diameterMm" || name === "focalLengthMm")
+            ? this.parseIntegerInput(rawValue)
+            : rawValue;
         this.setState((prevState) => ({
             currentInstrument: {
                 ...prevState.currentInstrument,
                 [name]: newValue
             }
         }));
+    }
+
+    private isCurrentInstrumentValid = (): boolean => {
+        const { key, name, diameterMm, focalLengthMm } = this.state.currentInstrument;
+        return !!key.trim()
+            && !!name.trim()
+            && diameterMm !== undefined
+            && focalLengthMm !== undefined;
     }
 
     private handleClickResource = (instrumentId?: number) => (event: any) => {
@@ -152,6 +172,11 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
 
     private handleSubmit = (e: any) => {
         e.preventDefault();
+        if (!this.isCurrentInstrumentValid()) {
+            this.setState({ isError: true });
+            return;
+        }
+
         this.setState({ isLoading: true, isError: false });
         if (this.state.currentInstrument.id) {
             Api.updateInstrument(this.state.currentInstrument).then(
@@ -228,25 +253,28 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                             <TextField
                                 id="diameterMm"
                                 label="Diameter (mm)"
-                                type="number"
-                                value={this.state.currentInstrument.diameterMm || ""}
+                                type="text"
+                                value={this.state.currentInstrument.diameterMm ?? ""}
                                 onChange={this.handleFormChange("diameterMm")}
                                 className={classNames(classes.formControl, classes.textfieldNarrow)}
                                 margin="dense"
+                                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                             />
                             <TextField
                                 id="focalLengthMm"
                                 label="Focal length (mm)"
-                                value={this.state.currentInstrument.focalLengthMm || ""}
+                                value={this.state.currentInstrument.focalLengthMm ?? ""}
                                 onChange={this.handleFormChange("focalLengthMm")}
                                 className={classNames(classes.formControl, classes.textfieldNarrow)}
                                 margin="dense"
+                                type="text"
+                                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                             />
                         </Grid>
                         <Grid>
                             <Grid container direction="row">
                                 <Grid>
-                                    <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn}>
+                                    <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn || !this.isCurrentInstrumentValid()}>
                                         {this.state.currentInstrument.id ? "Update" : "Save"}
                                     </Button>
                                     <Button color="primary" onClick={this.onClear}>
@@ -277,7 +305,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                 </Typography>
                 <Typography variant="caption" gutterBottom={true}>
                     Diameter: <strong>{instrument.diameterMm} mm</strong>,{" "}
-                    Focal length: <strong>{instrument.focalLengthMm || "N/A"} mm</strong>
+                    Focal length: <strong>{instrument.focalLengthMm ?? "N/A"} mm</strong>
                 </Typography>
             </Grid>
         ));
@@ -319,3 +347,4 @@ const mapDispatchToProps = (dispatch: Dispatch<instrumentActions.InstrumentActio
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(InstrumentsView));
+

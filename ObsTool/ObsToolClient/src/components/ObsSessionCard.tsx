@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 //import "./ObsSessionCard.css";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
@@ -103,7 +103,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
           </Typography>
           <Typography variant="body1">
             {this.props.obsSession.instrument
-              ? `${this.props.obsSession.instrument.name} (${this.props.obsSession.instrument.diameterMm} mm, FL ${this.props.obsSession.instrument.focalLengthMm || "N/A"} mm)`
+              ? `${this.props.obsSession.instrument.name} (${this.props.obsSession.instrument.diameterMm} mm, FL ${this.props.obsSession.instrument.focalLengthMm ?? "N/A"} mm)`
               : <span>N/A</span>}
           </Typography>
           <Typography variant="body1">
@@ -190,3 +190,4 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
 }
 
 export default withStyles(styles)(ObsSessionCard);
+

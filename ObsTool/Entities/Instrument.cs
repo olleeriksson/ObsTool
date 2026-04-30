@@ -17,7 +17,6 @@ namespace ObsTool.Entities
 
         public int DiameterMm { get; set; }
 
-        [MaxLength(250)]
-        public string FocalLengthMm { get; set; }
+        public int FocalLengthMm { get; set; }
     }
 }
