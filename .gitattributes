@@ -1,0 +1,19 @@
+* text=auto eol=crlf
+
+# Keep common Windows scripts in CRLF explicitly
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Common binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.7z binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
