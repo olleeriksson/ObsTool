@@ -5,7 +5,7 @@ using ObsTool.Entities;
 
 namespace ObsTool.Services
 {
-    public class InstrumentsRepo
+    public class InstrumentsRepo : IInstrumentsRepo
     {
         private MainDbContext _dbContext;
 
@@ -26,6 +26,11 @@ namespace ObsTool.Services
             return _dbContext.Instruments.FirstOrDefault(i => i.Id == id);
         }
 
+        public Instrument GetInstrumentByKey(string key)
+        {
+            return _dbContext.Instruments.FirstOrDefault(i => i.Key == key);
+        }
+
         public IEnumerable<Instrument> GetInstruments()
         {
             return _dbContext.Instruments.ToList();
@@ -40,6 +45,11 @@ namespace ObsTool.Services
         public bool AnyObservationReferences(int instrumentId)
         {
             return _dbContext.Observations.Any(o => o.InstrumentId == instrumentId);
+        }
+
+        public bool AnyObsSessionReferences(int instrumentId)
+        {
+            return _dbContext.ObsSessions.Any(s => s.InstrumentId == instrumentId);
         }
 
         public bool SaveChanges()

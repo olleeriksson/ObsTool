@@ -64,17 +64,20 @@ namespace ObsTool.Services
             {
                 query = query.Include(s => s.Location);
             }
+            query = query.Include(s => s.Instrument);
             if (includeObservations && includeDso)
             {
                 query = query
                     .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtra)
-                    .Include(s => s.Observations).ThenInclude(o => o.ObsResources);
+                    .Include(s => s.Observations).ThenInclude(o => o.ObsResources)
+                    .Include(s => s.Observations).ThenInclude(o => o.Instrument);
             }
             else if (includeObservations)
             {
                 query = query
                     .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtra)
-                    .Include(s => s.Observations).ThenInclude(o => o.ObsResources);
+                    .Include(s => s.Observations).ThenInclude(o => o.ObsResources)
+                    .Include(s => s.Observations).ThenInclude(o => o.Instrument);
             }
 
             ObsSession obsSession = query.FirstOrDefault();
@@ -96,6 +99,7 @@ namespace ObsTool.Services
             {
                 query = query.Include(s => s.Location);
             }
+            query = query.Include(s => s.Instrument);
             // TODO: Would be great if we could exclude the ReportText column from the query.
             //       DOesn't seem to exist any way to do that.
 
@@ -115,10 +119,11 @@ namespace ObsTool.Services
                 .Where(s => ids.Contains(s.Id));
 
             query = query.Include(s => s.Location);
+            query = query.Include(s => s.Instrument);
 
             if (includeObservations)
             {
-                query = query.Include(s => s.Observations);
+                query = query.Include(s => s.Observations).ThenInclude(o => o.Instrument);
             }
             return query.ToList();
         }

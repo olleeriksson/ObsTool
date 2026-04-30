@@ -20,19 +20,21 @@ namespace ObsTool.Controllers
         private MainDbContext _mainDbContext;
         private ObsSessionsRepo _obsSessionsRepository;
         private LocationsRepo _locationsRepository;
+        private IInstrumentsRepo _instrumentsRepo;
         private readonly IDsoRepo _dsoRepo;
         private ReportTextManager _reportTextManager;
         ObservationsService _observationsService;
         private readonly IMapper _mapper;
 
         public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext,
-            ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IDsoRepo dsoRepo,
+            ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IInstrumentsRepo instrumentsRepo, IDsoRepo dsoRepo,
             ReportTextManager reportTextManager, ObservationsService observationsService, IMapper mapper)
         {
             _logger = logger;
             _mainDbContext = mainDbContext;
             _obsSessionsRepository = obsSessionRepository;
             _locationsRepository = locationsRepository;
+            _instrumentsRepo = instrumentsRepo;
             _dsoRepo = dsoRepo;
             _reportTextManager = reportTextManager;
             _observationsService = observationsService;
@@ -127,6 +129,15 @@ namespace ObsTool.Controllers
                 }
                 obsSession.Location = locationEntity;
             }
+            if (newObsSessionDto.InstrumentId != null)
+            {
+                Instrument instrumentEntity = _instrumentsRepo.GetInstrument(newObsSessionDto.InstrumentId ?? 0);
+                if (instrumentEntity == null)
+                {
+                    return BadRequest("Invalid InstrumentId");
+                }
+                obsSession.Instrument = instrumentEntity;
+            }
 
             ObsSession addedObsSession = _obsSessionsRepository.AddObsSession(obsSession);
 
@@ -170,6 +181,20 @@ namespace ObsTool.Controllers
                     return NotFound($"Invalid LocationId {obsSessionDtoForUpdate.LocationId}");
                 }
                 obsSessionEntity.Location = locationEntity;
+            }
+            if (obsSessionDtoForUpdate.InstrumentId != null)
+            {
+                Instrument instrumentEntity = _instrumentsRepo.GetInstrument(obsSessionDtoForUpdate.InstrumentId ?? 0);
+                if (instrumentEntity == null)
+                {
+                    return NotFound($"Invalid InstrumentId {obsSessionDtoForUpdate.InstrumentId}");
+                }
+                obsSessionEntity.Instrument = instrumentEntity;
+            }
+            else
+            {
+                obsSessionEntity.Instrument = null;
+                obsSessionEntity.InstrumentId = null;
             }
 
             _mapper.Map(obsSessionDtoForUpdate, obsSessionEntity);

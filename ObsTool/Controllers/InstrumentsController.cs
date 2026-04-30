@@ -13,10 +13,10 @@ namespace ObsTool.Controllers
     [Route("api/Instruments")]
     public class InstrumentsController : Controller
     {
-        private InstrumentsRepo _instrumentsRepo;
+        private IInstrumentsRepo _instrumentsRepo;
         private readonly IMapper _mapper;
 
-        public InstrumentsController(InstrumentsRepo instrumentsRepo, IMapper mapper)
+        public InstrumentsController(IInstrumentsRepo instrumentsRepo, IMapper mapper)
         {
             _instrumentsRepo = instrumentsRepo;
             _mapper = mapper;
@@ -73,6 +73,10 @@ namespace ObsTool.Controllers
             if (_instrumentsRepo.AnyObservationReferences(id))
             {
                 return BadRequest("There are observations referring to this instrument. Cannot delete.");
+            }
+            if (_instrumentsRepo.AnyObsSessionReferences(id))
+            {
+                return BadRequest("There are observation sessions referring to this instrument. Cannot delete.");
             }
 
             if (!_instrumentsRepo.DeleteInstrument(entity))

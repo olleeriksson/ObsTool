@@ -18,6 +18,7 @@ import classNames from "classnames";
 import DsoExtended from "./DsoExtended";
 import ObservationSecondary from "./ObservationSecondary";
 import ImageList from "./ImageList";
+import InstrumentBadge from "./InstrumentBadge";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -132,10 +133,13 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
             <Grid container spacing={2} wrap="nowrap">
               <Grid>
                 <ButtonBase className={classes.image}>
-                  <Typography gutterBottom={true} variant="h4">
+                  <Typography gutterBottom={false} variant="h4">
                     <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                   </Typography>
                 </ButtonBase>
+                <div style={{ marginLeft: 10, marginTop: -4 }}>
+                  <InstrumentBadge instrument={this.props.observation.instrument} compact={true} />
+                </div>
               </Grid>
               <Grid size={{ xs: 11, sm: "grow" }}>
                 <Grid container direction="column" spacing={2}>

@@ -99,6 +99,14 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
             {this.props.obsSession.summary && this.props.obsSession.summary.toString()}
           </Typography>
           <Typography variant="body1">
+            <strong>Instrument:</strong>
+          </Typography>
+          <Typography variant="body1">
+            {this.props.obsSession.instrument
+              ? `${this.props.obsSession.instrument.name} (${this.props.obsSession.instrument.diameterMm} mm, FL ${this.props.obsSession.instrument.focalLengthMm || "N/A"} mm)`
+              : <span>N/A</span>}
+          </Typography>
+          <Typography variant="body1">
             <strong>Conditions:</strong>
           </Typography>
           <Typography variant="body1">

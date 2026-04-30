@@ -15,6 +15,7 @@ export interface IObservation {
     displayOrder: number;
     nonDetection: boolean;
     instrumentId?: number;
+    instrument?: IInstrument;
 }
 
 export interface IDsoObservation {
@@ -93,6 +94,8 @@ export interface IObsSession {
     dsoObjects?: IDso[];
 
     locationId?: number; // addition for post/put
+    instrumentId?: number; // addition for post/put
+    instrument?: IInstrument;
 }
 
 export interface IStatistics {

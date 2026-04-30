@@ -360,5 +360,58 @@ namespace TestProject
             Assert.Throws<ObsToolException>(() => reportTextManager.Parse(obsSession));
         }
 
+        [Test]
+        public void testInstrumentFromObsSessionUsedWhenNoScopeDirective()
+        {
+            var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                InstrumentId = 77,
+                ReportText =
+                    @"M 31 looked bright.
+
+                    NGC 206 was tricky."
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
+            Assert.That(observationsMap.Values.All(o => o.InstrumentId == 77), Is.True);
+        }
+
+        [Test]
+        public void testScopeDirectiveOverridesInstrumentForFollowingObservations()
+        {
+            var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
+            instrumentsRepoMock.Setup(x => x.GetInstrumentByKey("Dob10")).Returns(new Instrument { Id = 10, Key = "Dob10" });
+            instrumentsRepoMock.Setup(x => x.GetInstrumentByKey("ED80")).Returns(new Instrument { Id = 20, Key = "ED80" });
+
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                InstrumentId = 77,
+                ReportText =
+                    @"M 31 first object.
+
+                    Scope: Dob10
+
+                    NGC 206 second object.
+
+                    Scope: ED80
+
+                    M 42 third object."
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(3));
+            Assert.That(observationsMap.GetAt(0).Value.InstrumentId, Is.EqualTo(77));
+            Assert.That(observationsMap.GetAt(1).Value.InstrumentId, Is.EqualTo(10));
+            Assert.That(observationsMap.GetAt(2).Value.InstrumentId, Is.EqualTo(20));
+        }
+
     }
 }

@@ -18,17 +18,25 @@ namespace ObsTool.Services
         private MainDbContext _dbContext;
         private ObservationsRepo _observationsRepo;
         private IDsoRepo _dsoRepo;
+        private IInstrumentsRepo _instrumentsRepo;
         private ILogger<ReportTextManager> _logger;
         private DsoObservationsRepo _dsoObservationsRepo;
 
         public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
             ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
+            : this(dbContext, observationsRepo, dsoRepo, logger, dsoObservationsRepo, null)
+        {
+        }
+
+        public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
+            ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo, IInstrumentsRepo instrumentsRepo)
         {
             _dbContext = dbContext;
             _observationsRepo = observationsRepo;
             _dsoRepo = dsoRepo;
             _logger = logger;
             _dsoObservationsRepo = dsoObservationsRepo;
+            _instrumentsRepo = instrumentsRepo;
         }
 
         public void DisplayName() => Console.WriteLine(ToString());
@@ -91,6 +99,7 @@ namespace ObsTool.Services
                     existingObservation.Text = updatedObservation.Text;
                     existingObservation.DisplayOrder = updatedObservation.DisplayOrder;
                     existingObservation.NonDetection = updatedObservation.NonDetection;
+                    existingObservation.InstrumentId = updatedObservation.InstrumentId;
 
                     _dbContext.Entry(existingObservation).Collection("DsoObservations").Load();
                     _dbContext.Entry(existingObservation).Collection("ObsResources").Load();
@@ -251,6 +260,13 @@ namespace ObsTool.Services
             string followUpRegexp = @"\s(re-?visit|come back|telescope)" + flagOutro;
             var findFollowUpRegexp = new Regex(followUpRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+            var scopeMatches = Regex.Matches(
+                reportText,
+                @"^\s*Scope:\s*(.+?)\s*$",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline)
+                .Cast<Match>()
+                .ToList();
+
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
                 int obsIndex = 0;
@@ -260,6 +276,7 @@ namespace ObsTool.Services
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
                     string sectionText = sectionsMatch.Value.Trim();  // the whole section, including resource links
+                    int? sectionInstrumentId = GetInstrumentIdForSection(obsSession.InstrumentId, scopeMatches, sectionsMatch.Index);
 
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
                     var dsosInSection = new Dictionary<int, Dso>();
@@ -416,7 +433,8 @@ namespace ObsTool.Services
                         Identifier = observationsIdentifier,
                         DsoObservations = new List<DsoObservation>(),
                         DisplayOrder = obsIndex++,
-                        NonDetection = nonDetection
+                        NonDetection = nonDetection,
+                        InstrumentId = sectionInstrumentId
                     };
 
                     // Add all DSOs to the observation
@@ -474,6 +492,40 @@ namespace ObsTool.Services
             obsSession.ReportText = reportText;
 
             return observationsDict;
+        }
+
+        private int? GetInstrumentIdForSection(int? defaultInstrumentId, List<Match> scopeMatches, int sectionStartIndex)
+        {
+            int? sectionInstrumentId = defaultInstrumentId;
+
+            foreach (var scopeMatch in scopeMatches)
+            {
+                if (scopeMatch.Index > sectionStartIndex)
+                {
+                    break;
+                }
+
+                string scopeKey = scopeMatch.Groups[1].Value.Trim();
+                if (string.IsNullOrWhiteSpace(scopeKey))
+                {
+                    sectionInstrumentId = null;
+                    continue;
+                }
+
+                if (_instrumentsRepo == null)
+                {
+                    continue;
+                }
+
+                Instrument instrument = _instrumentsRepo.GetInstrumentByKey(scopeKey);
+                if (instrument == null)
+                {
+                    throw new ObsToolException($"Unknown instrument key in scope directive: '{scopeKey}'");
+                }
+                sectionInstrumentId = instrument.Id;
+            }
+
+            return sectionInstrumentId;
         }
 
         private string FindExistingObsIdentifier(string sectionText)

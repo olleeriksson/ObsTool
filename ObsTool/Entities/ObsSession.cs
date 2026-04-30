@@ -19,6 +19,11 @@ namespace ObsTool.Entities
 
         public int? LocationId { get; set; }
 
+        [ForeignKey("InstrumentId")]
+        public Instrument Instrument { get; set; }
+
+        public int? InstrumentId { get; set; }
+
         [MaxLength(500)]
         public string Title { get; set; }
 

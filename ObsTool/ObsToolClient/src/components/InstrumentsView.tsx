@@ -21,6 +21,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
+import * as instrumentActions from "../actions/InstrumentActions";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -52,6 +54,7 @@ const styles = (theme: Theme) => createStyles({
 
 interface IInstrumentsViewProps extends WithStyles<typeof styles> {
     store: IDataState;
+    actions: any;
 }
 
 interface IInstrumentsViewState {
@@ -90,14 +93,17 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
     }
 
     private loadFromApi() {
+        this.props.actions.getInstrumentsBegin();
         this.setState({ currentInstrument: this.getEmptyInstrument() });
         this.setState({ isLoading: true });
         Api.getInstruments().then(
             (response) => {
                 this.setState({ instruments: response.data, isLoading: false, isError: false });
+                this.props.actions.getInstrumentsSuccess(response.data);
             }).catch(
                 () => {
                     this.setState({ isLoading: false, isError: true });
+                    this.props.actions.getInstrumentsFailure("Failed to load instruments");
                 }
             );
     }
@@ -303,4 +309,13 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-export default connect(mapStateToProps)(withStyles(styles)(InstrumentsView));
+const mapDispatchToProps = (dispatch: Dispatch<instrumentActions.InstrumentAction>) => {
+    return {
+        actions: bindActionCreators(
+            instrumentActions,
+            dispatch
+        )
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(InstrumentsView));

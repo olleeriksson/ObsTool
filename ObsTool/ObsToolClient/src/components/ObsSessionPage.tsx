@@ -26,6 +26,7 @@ import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, IDataState } from "../types/Types";
 import * as obsSessionActions from "../actions/ObsSessionActions";
 import * as locationActions from "../actions/LocationActions";
+import * as instrumentActions from "../actions/InstrumentActions";
 import * as utils from "../utils";
 
 const styles = (theme: Theme) => createStyles({
@@ -81,6 +82,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     public componentDidMount() {
         this.loadLocations();
+        this.loadInstruments();
         if (this.props.obsSessionId) {
             this.loadObsSession(this.props.obsSessionId);
         }
@@ -109,6 +111,18 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
     }
 
+    private loadInstruments = () => {
+        this.props.actions.getInstrumentsBegin();
+        Api.getInstruments().then(
+            (response) => {
+                this.props.actions.getInstrumentsSuccess(response.data);
+            },
+            () => {
+                this.indicateError();
+            }
+        );
+    }
+
     private loadObsSession = (obsSessionId: number) => {
         this.setState({ isLoading: true });
         Api.getFullObsSession(obsSessionId).then(
@@ -130,6 +144,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         // Convert the "shadow" field locationId back to a number. The API expects a number,
         // but the SelectComponent requires a string backing field.
         newObsSession.locationId = newObsSession.locationId ? Number(newObsSession.locationId) : undefined;
+        newObsSession.instrumentId = newObsSession.instrumentId ? Number(newObsSession.instrumentId) : undefined;
 
         if (!newObsSession.id) {
             const originalReportText = newObsSession.reportText;
@@ -190,6 +205,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     private handleSuccessDataFromApi = (obsSession: IObsSession) => {
         // Update the "shadow" field locationId according to the location.id field.
         obsSession.locationId = obsSession.location ? obsSession.location.id : undefined;
+        obsSession.instrumentId = obsSession.instrument ? obsSession.instrument.id : undefined;
 
         this.setState({ obsSession: obsSession });
         this.setState({ isLoading: false });
@@ -385,6 +401,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                 <ObsSessionForm
                                     obsSession={this.state.obsSession}
                                     locations={this.props.store.locations || []}
+                                    instruments={this.props.store.instruments || []}
                                     onSaveObsSession={this.onSaveObsSession}
                                     isLoading={this.state.isLoading}
                                     allowEditing={this.props.store.isLoggedIn}
@@ -411,10 +428,10 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<obsSessionActions.ObsSessionAction | locationActions.LocationAction>) => {
+const mapDispatchToProps = (dispatch: Dispatch<obsSessionActions.ObsSessionAction | locationActions.LocationAction | instrumentActions.InstrumentAction>) => {
     return {
         actions: bindActionCreators(
-            { ...obsSessionActions, ...locationActions },
+            { ...obsSessionActions, ...locationActions, ...instrumentActions },
             dispatch
         )
     };

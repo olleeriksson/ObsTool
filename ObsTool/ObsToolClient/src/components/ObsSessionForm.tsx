@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import TextareaAutosize from "@mui/material/TextField";
 import DsoShort from "./DsoShort";
-import { IObsSession, ILocation, IObservation, IDsoObservation } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IObservation, IDsoObservation } from "../types/Types";
 import classNames from "classnames";
 import Grid from "@mui/material/Grid2";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
@@ -23,21 +23,25 @@ const styles = (theme: Theme) => createStyles({
     marginRight: theme.spacing(1),
     width: "95%",
   },
-  textField: {
-  },
+  textField: {},
   textFieldMultiLine: {
     height: 100,
   },
   textFieldReportText: {
-    overflow: "hidden"  // gets rid of an annoying scroll bar in the report text form field
+    overflow: "hidden"
   },
   saveButton: {
     marginRight: `calc(5% - ${theme.spacing(1)})`,
   },
   dateField: {
-    //width: 200,
+    width: 180,
+    marginRight: theme.spacing(2),
   },
   selectLocation: {
+    width: 300,
+    marginRight: theme.spacing(2),
+  },
+  selectInstrument: {
     width: 300,
     marginRight: theme.spacing(2),
   },
@@ -50,7 +54,6 @@ const styles = (theme: Theme) => createStyles({
     marginTop: "0.7em"
   },
   multipleDsoContainer: {
-    //border: "1px dashed lightgray",
     marginBottom: "0.7em",
     marginTop: "0.7em"
   }
@@ -59,6 +62,7 @@ const styles = (theme: Theme) => createStyles({
 export interface IObsSessionFormProps extends WithStyles<typeof styles> {
   obsSession: IObsSession;
   locations?: ILocation[];
+  instruments?: IInstrument[];
   onSaveObsSession: (obsSession: IObsSession) => void;
   isLoading: boolean;
   allowEditing: boolean;
@@ -79,13 +83,14 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
         title: "",
         date: new Date().toISOString().slice(0, 10),
         locationId: undefined,
+        instrumentId: undefined,
         summary: "",
         conditions: "",
         seeing: undefined,
         transparency: undefined,
         limitingMagnitude: undefined,
         reportText: "",
-        dsoObjects: [],    // not sure
+        dsoObjects: [],
       }
     };
 
@@ -95,14 +100,12 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
   public componentDidUpdate(prevProps: IObsSessionFormProps) {
     if (this.props.obsSession && this.props.obsSession !== prevProps.obsSession) {
-      // Load from object
       this.setState({ obsSession: this.props.obsSession });
     }
   }
 
   public componentDidMount() {
     if (this.props.obsSession) {
-      // Load from object
       this.setState({ obsSession: this.props.obsSession });
     }
   }
@@ -114,7 +117,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
   private handleChange = (name: string) => (event: any) => {
     const newValue = event.target.value;
-    this.setState((prevState, props) => ({
+    this.setState((prevState) => ({
       obsSession: {
         ...prevState.obsSession,
         [name]: newValue
@@ -145,16 +148,12 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} nonDetection={dsoObs.nonDetection || o.nonDetection} />
               );
             if (o.dsoObservations.length > 1) {
-              // Show many
               return <div key={o.id} className={classes.multipleDsoContainer}>{dsoShortLabels}</div>;
-            } else {
-              // Show one
-              return <div key={o.id} className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
             }
-          } else {
-            const errorText = "Err " + o.id;
-            return <DsoShort key={index} error={errorText} />;
+            return <div key={o.id} className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
           }
+          const errorText = "Err " + o.id;
+          return <DsoShort key={index} error={errorText} />;
         });
     }
     const dsoList: any = dsoObjects.length > 0 ? dsoObjects : <Typography variant="caption" color="textSecondary" >No objects</Typography>;
@@ -164,6 +163,13 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
       const locations = this.props.locations;
       const locationOptionValues: IKeyValuePair[] = locations.map(l => ({ key: "" + l.id, value: l.name }));
       locationOptions.push(...locationOptionValues);
+    }
+
+    const instrumentOptions: IKeyValuePair[] = [{ key: "", value: "n/a" }];
+    if (this.props.instruments) {
+      const sortedInstruments = [...this.props.instruments].sort((a, b) => a.key.localeCompare(b.key));
+      const instrumentOptionValues: IKeyValuePair[] = sortedInstruments.map(i => ({ key: "" + i.id, value: `${i.key} - ${i.name}` }));
+      instrumentOptions.push(...instrumentOptionValues);
     }
 
     const seeingOptionValues: IKeyValuePair[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ({ key: "" + n, value: "" + n }));
@@ -176,9 +182,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
     let circularProgress;
     if (this.props.isLoading) {
-      circularProgress = (
-        <CircularProgress className="circularProgress" style={{ marginLeft: 20 }} />
-      );
+      circularProgress = <CircularProgress className="circularProgress" style={{ marginLeft: 20 }} />;
     }
 
     return (
@@ -208,10 +212,20 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 variant="outlined"
               />
               <SelectComponent
+                classes={classNames(classes.formControl, classes.selectInstrument)}
+                label="Instrument"
+                name="instrument"
+                value={"" + (this.state.obsSession.instrumentId || "")}
+                onChange={this.handleChange("instrumentId")}
+                options={instrumentOptions}
+              />
+            </Grid>
+            <Grid>
+              <SelectComponent
                 classes={classNames(classes.formControl, classes.selectLocation)}
                 label="Location"
                 name="location"
-                value={"" + this.state.obsSession.locationId}
+                value={"" + (this.state.obsSession.locationId || "")}
                 onChange={this.handleChange("locationId")}
                 options={locationOptions}
               />
@@ -279,12 +293,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     <Grid size="grow">
                       <Grid container direction="row" justifyContent="flex-end">
                         {circularProgress}
-                        <Button
-                          variant="contained"
-                          type="submit"
-                          disabled={!this.props.allowEditing}
-                          className={classes.saveButton}
-                        >
+                        <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.saveButton}>
                           Save
                         </Button>
                       </Grid>
@@ -305,24 +314,20 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     <Grid>
                       <Grid container direction="row" justifyContent="flex-end">
                         {circularProgress}
-                        <Button
-                          variant="contained"
-                          type="submit"
-                          disabled={!this.props.allowEditing}
-                          className={classes.saveButton}
-                        >
+                        <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.saveButton}>
                           Save
                         </Button>
                       </Grid>
                     </Grid>
                     <Grid>
                       <Typography variant="caption" color="textSecondary" component={"div" as any} style={{ marginTop: 8, marginLeft: 8, lineHeight: 1.4 }}>
-                        <div><code>!!</code>{" — "}section not found</div>
-                        <div><code>!M 31!</code>{" — "}individual not found</div>
-                        <div><code>(M 31)</code>{" — "}suppress reference</div>
-                        <div><code>-1 +1 +2 * **</code>{" — "}rating</div>
-                        <div><code>revisit</code>{" / "}<code>come back</code>{" — "}follow-up</div>
-                        <div><code>Link: Image: Sketch: Jot:</code>{" — "}+ url</div>
+                        <div><code>!!</code>{" - "}section not found</div>
+                        <div><code>!M 31!</code>{" - "}individual not found</div>
+                        <div><code>(M 31)</code>{" - "}suppress reference</div>
+                        <div><code>-1 +1 +2 * **</code>{" - "}rating</div>
+                        <div><code>revisit</code>{" / "}<code>come back</code>{" - "}follow-up</div>
+                        <div><code>Link: Image: Sketch: Jot:</code>{" - "}+ url</div>
+                        <div><code>Scope: KEY</code>{" - "}switch instrument from this point</div>
                       </Typography>
                     </Grid>
                   </Grid>

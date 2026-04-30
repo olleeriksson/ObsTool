@@ -93,7 +93,7 @@ namespace ObsTool
 
             services.AddScoped<ObsSessionsRepo>();
             services.AddScoped<LocationsRepo>();
-            services.AddScoped<InstrumentsRepo>();
+            services.AddScoped<IInstrumentsRepo, InstrumentsRepo>();
             services.AddScoped<EyepiecesRepo>();
             services.AddScoped<IDsoRepo, DsoRepo>();
             services.AddScoped<ObservationsRepo>();

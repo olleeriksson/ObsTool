@@ -41,6 +41,9 @@ namespace ObsTool.Entities
 
         public bool NonDetection { get; set; } = false;
 
+        [ForeignKey("InstrumentId")]
+        public Instrument Instrument { get; set; }
+
         public int? InstrumentId { get; set; }
     }
 }

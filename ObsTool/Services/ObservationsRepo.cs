@@ -23,6 +23,7 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Include(o => o.ObsResources)
                 .Include(o => o.DsoObservations)
+                .Include(o => o.Instrument)
                 .ToList();
         }
 
@@ -31,6 +32,7 @@ namespace ObsTool.Services
             return _dbContext.Observations.Where(o => o.Id == id)
                 .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
                 .Include(o => o.ObsResources)
+                .Include(o => o.Instrument)
                 .FirstOrDefault();
         }
 
@@ -39,6 +41,7 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Where(o => o.DsoObservations.Any(obs => obs.DsoId == dsoId))
                 .Include(o => o.ObsResources)
+                .Include(o => o.Instrument)
                 .ToList();
         }
 
@@ -50,6 +53,7 @@ namespace ObsTool.Services
                 .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))
                 .Include(o => o.ObsResources)
                 .Include(o => o.DsoObservations)
+                .Include(o => o.Instrument)
                 .ToList();
         }
 

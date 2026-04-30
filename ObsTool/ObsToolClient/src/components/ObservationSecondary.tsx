@@ -16,6 +16,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import ImageList from "./ImageList";
+import InstrumentBadge from "./InstrumentBadge";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -178,6 +179,9 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
                   <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                 </Typography>
               </ButtonBase>
+              <div style={{ width: 48, textAlign: "center", marginTop: -2 }}>
+                <InstrumentBadge instrument={this.props.observation.instrument} compact={true} />
+              </div>
             </Grid>
             <Grid size={{ xs: 12, sm: "grow" }}>
               <Grid container direction="column" spacing={2}>
