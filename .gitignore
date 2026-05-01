@@ -1,5 +1,6 @@
 .vs
 .codex-run
+.dotnet-cli-home
 */**/bin/Debug
 */**/bin/Release
 */**/bin/netcoreapp*

@@ -7,6 +7,7 @@ using ObsTool.Entities;
 using ObsTool.Models;
 using ObsTool.Services;
 using ObsTool.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -108,10 +109,20 @@ namespace ObsTool.Controllers
                             observationDto.OtherObservations.AddRange(allObservationsOfDso);
                         }
                     }
+
+                    observationDto.OtherObservations = observationDto.OtherObservations
+                        .OrderByDescending(o => ParseObservationDateOrMin(o.ObsSession?.Date))
+                        .ThenByDescending(o => o.Id)
+                        .ToList();
                 }
             }
 
             return Ok(obsSessionDto);
+        }
+
+        private static DateTime ParseObservationDateOrMin(string date)
+        {
+            return DateTime.TryParse(date, out var parsedDate) ? parsedDate : DateTime.MinValue;
         }
 
         [HttpPost]

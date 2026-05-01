@@ -87,6 +87,12 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
     getEyepiecesCached().then(eyepieces => this.setState({ eyepieces }));
   }
 
+  private sortByObsSessionDateDesc = (observationA: IObservation, observationB: IObservation) => {
+    const dateA = observationA.obsSession?.date ? new Date(observationA.obsSession.date).getTime() : 0;
+    const dateB = observationB.obsSession?.date ? new Date(observationB.obsSession.date).getTime() : 0;
+    return dateB - dateA;
+  }
+
   public render() {
     const { classes } = this.props;
 
@@ -95,7 +101,9 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
       let otherObservations;
       if (this.props.observation.otherObservations) {
-        otherObservations = this.props.observation.otherObservations.map(otherObs =>
+        otherObservations = [...this.props.observation.otherObservations]
+          .sort(this.sortByObsSessionDateDesc)
+          .map(otherObs =>
           <ObservationSecondary key={otherObs.id} observation={otherObs} showPrevAndNextObservation={true} />
         );
       }
