@@ -33,7 +33,42 @@ namespace ObsTool.Controllers
         public IActionResult Get()
         {
             var locations = _locationsRepository.GetLocations();
-            var sortedLocations = locations.OrderByDescending(loc => loc.Id);
+
+            // Rank locations using a 50/50 blend of normalized recency and normalized usage count.
+            var locationUsage = _obsSessionsRepository.GetObsSessions()
+                .Where(s => s.LocationId.HasValue)
+                .GroupBy(s => s.LocationId.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        Count = g.Count(),
+                        LatestDate = g.Max(s => s.Date ?? DateTime.MinValue)
+                    });
+
+            var maxUsageCount = locationUsage.Count > 0 ? locationUsage.Max(kv => kv.Value.Count) : 0;
+            var minLatestDateTicks = locationUsage.Count > 0 ? locationUsage.Min(kv => kv.Value.LatestDate.Ticks) : 0L;
+            var maxLatestDateTicks = locationUsage.Count > 0 ? locationUsage.Max(kv => kv.Value.LatestDate.Ticks) : 0L;
+            var latestDateTicksRange = maxLatestDateTicks - minLatestDateTicks;
+
+            var sortedLocations = locations
+                .OrderByDescending(loc =>
+                {
+                    if (!locationUsage.ContainsKey(loc.Id))
+                    {
+                        return 0d;
+                    }
+
+                    var usage = locationUsage[loc.Id];
+                    var normalizedCount = maxUsageCount > 0 ? (double)usage.Count / maxUsageCount : 0d;
+                    var normalizedRecency = latestDateTicksRange > 0
+                        ? (double)(usage.LatestDate.Ticks - minLatestDateTicks) / latestDateTicksRange
+                        : 0d;
+
+                    return (normalizedCount * 0.25d) + (normalizedRecency * 0.75d);
+                })
+                .ThenByDescending(loc => loc.Id);
+
             var results = _mapper.Map<IEnumerable<LocationDto>>(sortedLocations);
             return Ok(results);
         }
