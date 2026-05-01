@@ -60,8 +60,15 @@ const styles = (theme: Theme) => createStyles({
   titleWrap: {
   },
   tile: {
-    backgroundColor: "black",
     margin: 3,
+  },
+  tileBlackBackground: {
+    backgroundColor: "black",
+    border: "none",
+  },
+  tileWhiteBackground: {
+    backgroundColor: "#ffffff",
+    border: "1px solid #dddddd",
   },
   imageContainer: {
     height: 140,
@@ -291,7 +298,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
       const titleBarClass = r.backgroundColor === 255 ? classes.titleBarWhite : classes.titleBarBlack;
 
-      return <ImageListItem key={r.id} className={classes.tile}>
+      const tileBackgroundClass = r.backgroundColor === 255 ? classes.tileWhiteBackground : classes.tileBlackBackground;
+
+      return <ImageListItem key={r.id} className={`${classes.tile} ${tileBackgroundClass}`}>
         <div onClick={this.handleClickResource(r.id)} className={classes.imageContainer} >
           <ResourceImage
             type={r.type}
