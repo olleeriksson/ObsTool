@@ -7,7 +7,7 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IObservation } from "../types/Types";
+import { IEyepiece, IObservation } from "../types/Types";
 import Grid from "@mui/material/Grid2";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -19,6 +19,7 @@ import DsoExtended from "./DsoExtended";
 import ObservationSecondary from "./ObservationSecondary";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
+import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -59,6 +60,7 @@ export interface IObservationProps extends WithStyles<typeof styles> {
 
 export interface IObservationState {
   isExpanded: boolean;
+  eyepieces: IEyepiece[];
 }
 
 class Observation extends React.Component<IObservationProps, IObservationState> {
@@ -67,6 +69,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
     this.state = {
       isExpanded: false,
+      eyepieces: [],
     };
 
     this.handleClickOnObservation = this.handleClickOnObservation.bind(this);
@@ -78,6 +81,10 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
   private handleExpandClick = () => {
     this.setState({ isExpanded: !this.state.isExpanded });
+  }
+
+  public componentDidMount() {
+    getEyepiecesCached().then(eyepieces => this.setState({ eyepieces }));
   }
 
   public render() {
@@ -147,7 +154,11 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                     {dsoObjects}
                     <div style={{ marginTop: "1em", marginBottom: "1em" }}>
                       <Typography variant="body2" gutterBottom={true}>
-                        {this.props.observation.text}
+                        {renderReportTextAnnotated(
+                          this.props.observation.text,
+                          this.props.observation.instrument || this.props.observation.obsSession?.instrument,
+                          this.state.eyepieces
+                        )}
                       </Typography>
                     </div>
                     <div style={{ marginTop: 5 }}>
@@ -178,3 +189,5 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 }
 
 export default withStyles(styles)(Observation);
+
+

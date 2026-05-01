@@ -7,7 +7,7 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IObservation } from "../types/Types";
+import { IEyepiece, IObservation } from "../types/Types";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
@@ -17,6 +17,7 @@ import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
+import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -56,6 +57,7 @@ export interface IObservationSecondaryState {
   isExpanded: boolean;
   isPrevObservationExpanded: boolean;
   isNextObservationExpanded: boolean;
+  eyepieces: IEyepiece[];
 }
 
 /**
@@ -74,6 +76,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
       isExpanded: true,
       isPrevObservationExpanded: false,
       isNextObservationExpanded: false,
+      eyepieces: [],
     };
 
     this.handleExpandClick = this.handleExpandClick.bind(this);
@@ -89,6 +92,10 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
 
   private handleExpandNextObservationClick = () => {
     this.setState({ isNextObservationExpanded: !this.state.isNextObservationExpanded });
+  }
+
+  public componentDidMount() {
+    getEyepiecesCached().then(eyepieces => this.setState({ eyepieces }));
   }
 
   public render() {
@@ -147,7 +154,11 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
       expandedPrevObservationItem = (
         <Typography variant="body2" color="text.secondary" style={{ marginBottom: "0.5em" }}>
           <span onClick={this.handleExpandPrevObservationClick} style={{ cursor: "pointer" }}>... </span>
-          {this.props.observation.prevObservation && this.props.observation.prevObservation.text}
+          {this.props.observation.prevObservation && renderReportTextAnnotated(
+            this.props.observation.prevObservation.text,
+            this.props.observation.prevObservation.instrument || this.props.observation.prevObservation.obsSession?.instrument,
+            this.state.eyepieces
+          )}
         </Typography>
       );
     }
@@ -157,7 +168,11 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
       expandedNextObservationItem = (
         <Typography variant="body2" color="text.secondary" style={{ marginTop: "0.5em" }}>
           <span onClick={this.handleExpandNextObservationClick} style={{ cursor: "pointer" }}>... </span>
-          {this.props.observation.nextObservation && this.props.observation.nextObservation.text}
+          {this.props.observation.nextObservation && renderReportTextAnnotated(
+            this.props.observation.nextObservation.text,
+            this.props.observation.nextObservation.instrument || this.props.observation.nextObservation.obsSession?.instrument,
+            this.state.eyepieces
+          )}
         </Typography>
       );
     }
@@ -196,7 +211,11 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
                   {expandedPrevObservationItem}
                   <Typography variant="body2">
                     {expandPrevObservationButton}
-                    {this.props.observation.text}
+                    {renderReportTextAnnotated(
+                      this.props.observation.text,
+                      this.props.observation.instrument || this.props.observation.obsSession?.instrument,
+                      this.state.eyepieces
+                    )}
                     {expandNextObservationButton}
                   </Typography>
                   {expandedNextObservationItem}
@@ -220,3 +239,5 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
 }
 
 export default withStyles(styles)(ObservationSecondary);
+
+
