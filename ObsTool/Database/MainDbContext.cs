@@ -55,6 +55,8 @@ namespace ObsTool.Database
 
         public DbSet<DsoObservation> DsoObservations { get; set; }
 
+        public DbSet<H2500> H2500 { get; set; }
+
         public DbSet<ObsResource> ObsResources { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -92,6 +94,13 @@ namespace ObsTool.Database
                 .HasOne(dsoExtra => dsoExtra.ObsSession)
                 .WithMany(obsSession => obsSession.DsoExtras)
                 .HasForeignKey(dsoExtra => dsoExtra.ObsSessionId);
+
+            modelBuilder.Entity<H2500>()
+                .HasOne(h2500 => h2500.Dso)
+                .WithMany(dso => dso.H2500Objects)
+                .HasForeignKey(h2500 => h2500.SacDeepSkyObjectsId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

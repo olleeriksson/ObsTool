@@ -17,6 +17,10 @@ Two projects under one solution (`ObsTool.sln`):
 
 Frontend-specific guidance currently lives at **`ObsTool/ObsToolClient/CLAUDE.md`** (there is no `ObsTool/ObsToolClient/AGENTS.md` yet). Read it before doing frontend work; it covers the MUI v6 / tss-react styling shim, dev-server port rules, and testing setup. Do not duplicate that content here.
 
+## Working Rules
+
+- Document code that you write.
+
 ## Important rules
 
 - **Never commit to git.** This applies to both backend and frontend changes.
@@ -88,6 +92,25 @@ Mapped to table `SacDeepSkyObjects` (note the table-name attribute in `Entities/
 A `Dso` represents a single deep-sky object (galaxy, nebula, cluster, ...). Key columns: `Catalog` (`"M"`, `"NGC"`, `"IC"`, `"Sh2"`, ...), `CatalogNumber`, `Name` (`"M 31"`), `OtherNames`, `CommonName`, `Type`, `Con` (constellation), coordinates `RA`/`DEC`, `Mag` (visual magnitude), `SB` (surface brightness), `SizeMax`/`SizeMin`, etc. Most string columns are stored as strings even when numeric, because they come straight from the SAC database that way.
 
 Two navigation collections back to user data: `DsoObservations` (every time it has been observed) and `DsoExtra` (user-added metadata - see below).
+
+### `H2500` - Herschel catalog checklist
+
+The development SQLite database (`C:\Users\Olle\source\obstool_database_dev.db`) also contains an `H2500` table for the Herschel catalog / checklist. It is catalog/list data rather than user-entered observation data. At the time it was inspected, it had 2521 rows, all linked to `SacDeepSkyObjects` through `H2500.SacDeepSkyObjectsId`.
+
+`H2500` is not currently mapped as an EF Core entity or `DbSet` in the app code. If future work needs to expose Herschel progress through the API, either add an explicit entity/DTO/repo path or use a focused read query; do not infer it from the report parser.
+
+Important columns:
+
+- `HerschelId` - primary key for the Herschel list row.
+- `HerschelNo` - Herschel designation, for example `H I-1`.
+- `Cat` / `CatNo` - the main catalog designation (`NGC`, `M`, or `IC`) and number used for display and sanity checks.
+- `Name` / `NameCompr` - display/compressed names for the listed object.
+- `Type`, `Const`, `Constellation` - object type and constellation metadata from the Herschel list.
+- `H400`, `H2500ExclMissing`, `H2500Unseen`, `H2500Unmarked`, `H400ExclMissing`, `H400Unseen` - checklist/filter flags from the source list.
+- `DescrLong`, `DreyerTranslated` - descriptive text fields.
+- `SacDeepSkyObjectsId` - nullable FK to `SacDeepSkyObjects(Id)`, configured with `ON DELETE NO ACTION ON UPDATE NO ACTION`.
+
+For "how many Herschel objects has the user observed?", the intended relationship path is `H2500.SacDeepSkyObjectsId -> SacDeepSkyObjects.Id -> DsoObservations.DsoId -> Observations -> ObsSessions`. Count distinct `H2500.HerschelId` when answering Herschel-list progress. Counting distinct SAC IDs is a different number because some Herschel rows can point to the same SAC object; the inspected dev database had 39 duplicated `SacDeepSkyObjectsId` groups. Decide explicitly whether `DsoObservations.NonDetection` should count before presenting progress totals.
 
 ### `ObsSession` - one observing night
 

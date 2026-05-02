@@ -37,6 +37,7 @@ namespace ObsTool
             CreateMap<Models.ObsResourceDtoForCreationAndUpdate, Entities.ObsResource>();
             CreateMap<Entities.DsoExtra, Models.DsoExtraDto>();
             CreateMap<Models.DsoExtraDto, Entities.DsoExtra>();
+            CreateMap<Entities.H2500, Models.H2500Dto>();
         }
     }
 }

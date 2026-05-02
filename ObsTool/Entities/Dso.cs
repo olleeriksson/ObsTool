@@ -100,6 +100,8 @@ namespace ObsTool.Entities
 
         public ICollection<DsoObservation> DsoObservations { get; set; }
 
+        public ICollection<H2500> H2500Objects { get; set; }
+
         public ICollection<ArticleDsoObjects> ReferringArticles { get; set; }
 
         public DsoExtra DsoExtra { get; set; }
