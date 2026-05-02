@@ -62,6 +62,10 @@ An old MUI v4 reference build runs separately on **http://localhost:5000** somet
 
 There are two distinct list patterns for observations, depending on entry point:
 
+### Non-detection flags
+
+Current saves propagate a section-level non-detection marker (`!!`) to all included `DsoObservation.NonDetection` rows. The parent `Observation.NonDetection` flag is still meaningful as a legacy fallback: older saved observations may have the section flag set without every joined `DsoObservation` having been backfilled. When filtering or counting detections, use `DsoObservation.NonDetection || Observation.NonDetection` unless all legacy sessions have explicitly been migrated or re-saved.
+
 **Pattern A — DSO-centric** (one card per DSO, observations nested below):
 - Renderer: `DsoBadgedWithObservations` → expands to a list of `ObservationSecondary` rows.
 - `ObservationSecondary` shows the obs-session date/title/location as a link back to `/session/:id`, plus the observation text and an `ImageList`.

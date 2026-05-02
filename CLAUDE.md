@@ -136,3 +136,40 @@ Test coverage for this pipeline lives in `ObsTool.Test/ReportTextManagerTest.cs`
 - **CORS**: allowed origins are space-separated in `CorsAllowedOrigins`. Add new dev ports there if changing the Vite port.
 - **API base URL**: backend routes live under `/api/...` (route attributes on each controller); SPA reads `VITE_API_URL` for the base.
 - **Catalog list is dynamic**: `ReportTextManager` builds its DSO regex from `DsoRepo.GetAllCatalogs()`, with `Sh2` added explicitly. New catalog prefixes generally need no code change beyond seeding rows in `SacDeepSkyObjects`.
+
+
+### Non-detection semantics
+
+There are two non-detection flags, and they are not interchangeable:
+
+- `Observation.NonDetection` is section-level / group-level.
+- `DsoObservation.NonDetection` is per-object within a section.
+
+The report parser sets them from two different report-text patterns:
+
+- `!!` marks the whole observation section as a non-detection.
+- `!NGC 206!` marks that individual DSO as a non-detection inside an otherwise normal section.
+
+If a whole section is marked with `!!`, every `DsoObservation` in that section is also treated as a non-detection. If every DSO in a section is individually marked as non-detected, the parent `Observation.NonDetection` is also set to true. A mixed section can therefore have `Observation.NonDetection = false` while one or more child `DsoObservation.NonDetection` rows are true.
+
+The app's non-detection count logic treats a DSO observation as a non-detection when either flag is true:
+
+```csharp
+d.NonDetection || d.Observation.NonDetection
+```
+
+For H2500/H400 progress reporting, use the inverse as the clean-detection rule:
+
+```sql
+Observations.NonDetection = 0
+AND DsoObservations.NonDetection = 0
+```
+
+An H2500/H400 object should count as detected if it has at least one clean linked row. It should count as a cross-referenced non-detection only if it has linked observation rows but no clean detection row. If an object has both non-detection rows and clean detection rows, count it as detected for progress reporting.
+
+Relevant code and tests:
+
+- Services/ReportTextManager.cs contains the parser logic.
+- Services/ObservationsRepo.cs contains GetNumNonDetections().
+- ObsTool.Test/ReportTextManagerTest.cs covers parser behavior.
+- ObsTool.Test/ObservationsRepoTest.cs covers non-detection counting.
