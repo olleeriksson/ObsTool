@@ -36,6 +36,10 @@ interface IObservedDsosState {
     dsoList: IDso[];
 }
 
+/*
+This component is used to render a page with all DSOs ever observed.
+This is the page that is kind of useless. Accessed via the top nav bar.
+ */
 class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosState> {
     constructor(props: IObservedDsosProps) {
         super(props);

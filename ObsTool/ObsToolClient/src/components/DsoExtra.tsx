@@ -17,8 +17,10 @@ export interface IDsoExtendedProps extends WithStyles<typeof styles> {
 }
 
 const styles = (theme: Theme) => createStyles({
-  dsoExtended: {
-    marginLeft: "1.5em"
+  dsoExtra: {
+    marginLeft: theme.spacing(3),
+    marginTop: theme.spacing(0.5),
+    lineHeight: "1em",
   },
 });
 
@@ -47,32 +49,22 @@ class DsoExtended extends React.Component<IDsoExtendedProps> {
         const translatedDsoType = obsToolUtils.translateDsoType(this.props.dso.type);
         const searchTerms = [this.props.dso.name || "", translatedDsoType || ""];
 
-        if (this.props.dso.name === "custom") {
-          return (
-            <div className={classes.dsoExtended}>
-              <Typography variant="subtitle1">
-                <img src={CosmosIcon} width="20" height="20" /> Custom object: {this.props.customObjectName}
-              </Typography>
-            </div>
-          );
-        } else {
-          return (
-            <div className={classes.dsoExtended}>
-              <Typography variant="caption" color="textSecondary" gutterBottom={true}>
-                <strong>Type:</strong> {this.props.dso.type} &nbsp;
-                <strong>Const:</strong> {this.props.dso.con} &nbsp;
-                <strong>Mag:</strong> {this.props.dso.mag} &nbsp;
-                <strong>SB:</strong> {this.props.dso.sb} &nbsp;
-                <strong>Class:</strong> {this.props.dso.class} &nbsp;
-                <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
-                <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
-                <strong>Notes:</strong> {this.props.dso.notes} &nbsp;|&nbsp;
-                <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} />&nbsp;|&nbsp;
-                <AladinLiteLink linkTitle="Aladin Lite" searchTerm={this.props.dso.name} />
-              </Typography>
-            </div>
-          );
-        }
+        return (
+          <div className={classes.dsoExtra}>
+            <Typography variant="caption" color="textSecondary" gutterBottom={true}>
+              <strong>Type:</strong> {this.props.dso.type} &nbsp;
+              <strong>Const:</strong> {this.props.dso.con} &nbsp;
+              <strong>Mag:</strong> {this.props.dso.mag} &nbsp;
+              <strong>SB:</strong> {this.props.dso.sb} &nbsp;
+              <strong>Class:</strong> {this.props.dso.class} &nbsp;
+              <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
+              <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
+              <strong>Notes:</strong> {this.props.dso.notes} &nbsp;|&nbsp;
+              <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} />&nbsp;|&nbsp;
+              <AladinLiteLink linkTitle="Aladin Lite" searchTerm={this.props.dso.name} />
+            </Typography>
+          </div>
+        );
       } else {
         return (
           <Typography color="textSecondary" gutterBottom={true}>

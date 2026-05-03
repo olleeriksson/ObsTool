@@ -47,6 +47,10 @@ interface ISearchViewState {
     moreHits: number;
 }
 
+/*
+This component is used to render the search page. It has a search input field and the results are a list
+of rendered DsoBadgedWithObservations components.
+ */
 class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
     constructor(props: ISearchViewProps) {
         super(props);

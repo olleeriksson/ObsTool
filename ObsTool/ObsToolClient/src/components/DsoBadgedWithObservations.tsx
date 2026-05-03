@@ -5,7 +5,7 @@ import type { WithStyles } from "src/muiCompat";
 import Grid from "@mui/material/Grid2";
 import { IDso } from "../types/Types";
 import DsoExtra from "./DsoExtra";
-import DsoRegular from "./DsoRegular";
+import DsoSearchLabel from "./DsoSearchLabel";
 import Badge from "@mui/material/Badge";
 // import ObservationSecondary from "./ObservationSecondary";
 import IconButton from "@mui/material/IconButton";
@@ -50,6 +50,12 @@ interface IDynamicDsoLabelState {
   isExpanded: boolean;
 }
 
+/*
+This is the search / view version of a DSO object, when it's just viewed as a DSO object outside the context of an observation.
+It's used in the search results dropdown, search results, and on the pretty unnecessary Observations page (showing all objects ever observed).
+
+The other version of this component is DsoExtended, which is used when viewing a DSO in the context of an observation.
+*/
 class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservationsProps, IDynamicDsoLabelState> {
   constructor(props: IDsoBadgedWithObservationsProps) {
     super(props);
@@ -87,14 +93,13 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
         <Grid container>
           <Grid size={11}>
             <Badge className={classes.badge} badgeContent={this.props.dso.numObservations} color="secondary">
-              <DsoRegular dso={this.props.dso} />
+              <DsoSearchLabel dso={this.props.dso} />
             </Badge>
-            <span style={{ marginLeft: "1.2em" }} >
-              <DsoAnnotations
-                rating={this.props.dso.dsoExtra && this.props.dso.dsoExtra.rating}
-                followUp={this.props.dso.dsoExtra && this.props.dso.dsoExtra.followUp}
-              />
-            </span>
+            <span style={{ marginLeft: "1.2em" }} />
+            <DsoAnnotations
+              rating={this.props.dso.dsoExtra && this.props.dso.dsoExtra.rating}
+              followUp={this.props.dso.dsoExtra && this.props.dso.dsoExtra.followUp}
+            />
 
             {this.props.showDsoExtra && (
               <div style={{ marginLeft: 8 }} >
@@ -110,7 +115,12 @@ class DsoBadgedWithObservations extends React.Component<IDsoBadgedWithObservatio
     } else {
       dsoLabel = (
         <div>
-          <DsoRegular dso={this.props.dso} />
+          <DsoSearchLabel dso={this.props.dso} />
+          {this.props.showDsoExtra && (
+            <div style={{ marginLeft: 8 }} >
+              <DsoExtra dso={this.props.dso} />
+            </div>
+          )}
           {expandButton}
         </div>
       );
