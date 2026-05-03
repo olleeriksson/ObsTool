@@ -54,5 +54,6 @@ namespace ObsTool.Models
         public DsoExtraDto DsoExtra { get; set; }
         public int NumObservations { get; set; }
         public ObservationDto[] Observations { get; set; }
+        public HerschelInfoDto[] HerschelObjects { get; set; }
     }
 }

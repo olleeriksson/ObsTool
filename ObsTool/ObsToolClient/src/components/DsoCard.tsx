@@ -15,6 +15,9 @@ import ObservationSecondary from "./ObservationSecondary";
 import Typography from "@mui/material/Typography";
 import DsoAnnotations from "./DsoAnnotations";
 import CosmosIcon from "../cosmos.svg";
+import HerschelBadge from "./HerschelBadge";
+import Api from "../api/Api";
+import { IHerschelDetails } from "../types/Types";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -44,6 +47,19 @@ const styles = (theme: Theme) => createStyles({
   expandOpen: {
     transform: "rotate(180deg)",
   },
+  herschelDetails: {
+    marginLeft: "1.5em",
+    marginTop: theme.spacing(1),
+  },
+  herschelDetailRow: {
+    borderLeft: "3px solid #f5c542",
+    marginBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(1),
+  },
+  descrButton: {
+    marginLeft: theme.spacing(0.5),
+    padding: 0,
+  },
 });
 
 interface IDsoCardProps extends WithStyles<typeof styles> {
@@ -57,10 +73,15 @@ interface IDsoCardProps extends WithStyles<typeof styles> {
   showObservations?: boolean;
   showPrevAndNextObservation?: boolean;
   startWithObservationsExpanded?: boolean;
+  allowHerschelDetails?: boolean;
 }
 
 interface IDynamicDsoLabelState {
   isExpanded: boolean;
+  isHerschelExpanded: boolean;
+  herschelDetails?: IHerschelDetails[];
+  isHerschelLoading: boolean;
+  expandedHerschelIds: number[];
 }
 
 /*
@@ -72,12 +93,41 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     super(props);
 
     this.state = {
-      isExpanded: !!this.props.startWithObservationsExpanded
+      isExpanded: !!this.props.startWithObservationsExpanded,
+      isHerschelExpanded: false,
+      isHerschelLoading: false,
+      expandedHerschelIds: [],
     };
   }
 
   private handleExpandClick = () => {
     this.setState({ isExpanded: !this.state.isExpanded });
+  }
+
+  private handleHerschelExpandClick = () => {
+    const nextExpanded = !this.state.isHerschelExpanded;
+    this.setState({ isHerschelExpanded: nextExpanded });
+
+    const dso = this.props.dso;
+    if (nextExpanded && dso && !this.state.herschelDetails && !this.state.isHerschelLoading) {
+      this.setState({ isHerschelLoading: true });
+      Api.getHerschelDetails(dso.id).then(response => {
+        this.setState({ herschelDetails: response.data, isHerschelLoading: false });
+      }).catch(() => {
+        this.setState({ herschelDetails: [], isHerschelLoading: false });
+      });
+    }
+  }
+
+  private toggleDescrLong = (herschelId: number) => {
+    this.setState(prevState => {
+      const isExpanded = prevState.expandedHerschelIds.includes(herschelId);
+      return {
+        expandedHerschelIds: isExpanded
+          ? prevState.expandedHerschelIds.filter(id => id !== herschelId)
+          : [...prevState.expandedHerschelIds, herschelId]
+      };
+    });
   }
 
   public render() {
@@ -152,10 +202,24 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
       <DsoExtra dso={dso} />
     );
 
-    const expandDiv = this.props.showObservations && (
-      <div className={classes.expandDiv}>
-        {expandButton}
-      </div>
+    const allowHerschelDetails = this.props.allowHerschelDetails !== false;
+    const herschelBadge = dso.herschelObjects && dso.herschelObjects.length > 0 && (
+      <Grid size={"auto"} style={{ marginTop: "1em" }}>
+        <HerschelBadge
+          herschelObjects={dso.herschelObjects}
+          allowDetails={allowHerschelDetails}
+          isExpanded={this.state.isHerschelExpanded}
+          onClick={this.handleHerschelExpandClick}
+        />
+      </Grid>
+    );
+
+    const expandObservations = this.props.showObservations && (
+      <Grid size={"auto"}>
+        <div className={classes.expandDiv}>
+          {expandButton}
+        </div>
+      </Grid>
     );
 
     const dsoLabel = (
@@ -170,9 +234,8 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
           </div>
           {dsoExtra}
         </Grid>
-        <Grid size={"auto"}>
-          {expandDiv}
-        </Grid>
+        {herschelBadge}
+        {expandObservations}
       </Grid>
     );
 
@@ -196,9 +259,52 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
       );
     }
 
+    let herschelDetailsSection;
+    if (this.state.isHerschelExpanded && allowHerschelDetails) {
+      const details = this.state.herschelDetails || [];
+      const detailRows = details.map(detail => {
+        const isDescrExpanded = this.state.expandedHerschelIds.includes(detail.herschelId);
+        return (
+          <div key={detail.herschelId} className={classes.herschelDetailRow}>
+            <Typography variant="body2">
+              <strong>{detail.herschelNo}</strong>
+              {detail.h400 ? " H400" : ""}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              {detail.herschelSummary || "No William Herschel summary found."}
+            </Typography>
+            {detail.descrLong && (
+              <>
+                <button className={classes.descrButton} type="button" onClick={() => this.toggleDescrLong(detail.herschelId)}>
+                  {isDescrExpanded ? "Hide full description" : "Show full description"}
+                </button>
+                {isDescrExpanded && (
+                  <Typography variant="body2" style={{ whiteSpace: "pre-wrap" }}>
+                    {detail.descrLong}
+                  </Typography>
+                )}
+              </>
+            )}
+          </div>
+        );
+      });
+
+      herschelDetailsSection = (
+        <div className={classes.herschelDetails}>
+          <Typography gutterBottom={true} variant="subtitle1">
+            <strong>Herschel</strong>
+          </Typography>
+          {this.state.isHerschelLoading ? (
+            <Typography variant="body2" color="textSecondary">Loading...</Typography>
+          ) : detailRows}
+        </div>
+      );
+    }
+
     return (
       <div>
         {dsoLabel}
+        {herschelDetailsSection}
         {observationsSection}
       </div>
     );

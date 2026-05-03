@@ -22,6 +22,7 @@ namespace ObsTool.Controllers
         private ObsSessionsRepo _obsSessionsRepository;
         private LocationsRepo _locationsRepository;
         private IInstrumentsRepo _instrumentsRepo;
+        private IH2500Repo _h2500Repo;
         private readonly IDsoRepo _dsoRepo;
         private ReportTextManager _reportTextManager;
         ObservationsService _observationsService;
@@ -29,13 +30,14 @@ namespace ObsTool.Controllers
 
         public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext,
             ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IInstrumentsRepo instrumentsRepo, IDsoRepo dsoRepo,
-            ReportTextManager reportTextManager, ObservationsService observationsService, IMapper mapper)
+            IH2500Repo h2500Repo, ReportTextManager reportTextManager, ObservationsService observationsService, IMapper mapper)
         {
             _logger = logger;
             _mainDbContext = mainDbContext;
             _obsSessionsRepository = obsSessionRepository;
             _locationsRepository = locationsRepository;
             _instrumentsRepo = instrumentsRepo;
+            _h2500Repo = h2500Repo;
             _dsoRepo = dsoRepo;
             _reportTextManager = reportTextManager;
             _observationsService = observationsService;
@@ -65,7 +67,8 @@ namespace ObsTool.Controllers
         [AllowAnonymous]
         [HttpGet("{id}", Name = "GetOneObsSession")]
         public IActionResult Get(int id, bool includeLocation = false, bool includeObservations = false,
-            bool includeDso = false, bool includeOtherObservations = false, bool includePrevAndNextObservations = false)
+            bool includeDso = false, bool includeOtherObservations = false, bool includePrevAndNextObservations = false,
+            bool includeHerschel = false)
         {
             //ObsSessionDto session = Store.Current.ObsSessions.FirstOrDefault(s => s.Id == id);
             //IEnumerable<ObsSessionDto> sessions = Store.Current.ObsSessions;
@@ -81,6 +84,10 @@ namespace ObsTool.Controllers
             }
 
             var obsSessionDto = _mapper.Map<ObsSessionDto>(obsSession);
+            if (includeHerschel)
+            {
+                PopulateHerschelBadges(obsSessionDto);
+            }
 
             // Retrieving also all the earlier/other observations of these objects will make this the biggest query ever :)
             if (includeOtherObservations)
@@ -123,6 +130,40 @@ namespace ObsTool.Controllers
         private static DateTime ParseObservationDateOrMin(string date)
         {
             return DateTime.TryParse(date, out var parsedDate) ? parsedDate : DateTime.MinValue;
+        }
+
+        private void PopulateHerschelBadges(ObsSessionDto obsSessionDto)
+        {
+            var dsoDtos = obsSessionDto.Observations?
+                .SelectMany(o => o.DsoObservations)
+                .Select(dsoObservation => dsoObservation.Dso)
+                .Where(dso => dso != null)
+                .GroupBy(dso => dso.Id)
+                .Select(g => g.First())
+                .ToList();
+
+            if (dsoDtos == null || dsoDtos.Count == 0)
+            {
+                return;
+            }
+
+            var herschelByDsoId = _h2500Repo.GetH2500ObjectsByDsoIds(dsoDtos.Select(d => d.Id))
+                .Where(h => h.SacDeepSkyObjectsId != null)
+                .GroupBy(h => h.SacDeepSkyObjectsId.Value)
+                .ToDictionary(g => g.Key, g => g.Select(h => new HerschelInfoDto
+                {
+                    HerschelId = h.HerschelId,
+                    HerschelNo = h.HerschelNo,
+                    H400 = h.H400
+                }).ToArray());
+
+            foreach (DsoDto dso in dsoDtos)
+            {
+                if (herschelByDsoId.ContainsKey(dso.Id))
+                {
+                    dso.HerschelObjects = herschelByDsoId[dso.Id];
+                }
+            }
         }
 
         [HttpPost]

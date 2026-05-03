@@ -66,8 +66,11 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
     }
 
     private receiveAndResetSearchQueryFromRedux(queryFromRedux: string) {
-        this.setState({ query: queryFromRedux });
-        this.loadDsoFromApi(queryFromRedux);
+        const trimmedQuery = queryFromRedux.trim();
+        this.setState({ query: trimmedQuery });
+        if (trimmedQuery !== "") {
+            this.loadDsoFromApi(trimmedQuery);
+        }
 
         // Then clear it in the redux store
         this.props.actions.clearSearch();
@@ -86,7 +89,13 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
     }
 
     private loadDsoFromApi(query: string) {
-        Api.searchDso(this.state.query).then(
+        const trimmedQuery = query.trim();
+        if (trimmedQuery === "") {
+            this.setState({ dsoList: [], moreHits: 0, isError: false });
+            return;
+        }
+
+        Api.searchDso(trimmedQuery, true).then(
             (response) => {
                 const pagedResult: IPagedDsoList = response.data;
 
@@ -101,11 +110,12 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
 
     private handleChange = (event: any) => {
         const query = event.target.value;
+        const trimmedQuery = query.trim();
         this.setState({ query: query });
-        if (query !== "") {
-            this.loadDsoFromApi(query);
+        if (trimmedQuery !== "") {
+            this.loadDsoFromApi(trimmedQuery);
         } else {
-            this.setState({ dsoList: [] });
+            this.setState({ dsoList: [], moreHits: 0, isError: false });
         }
     }
 

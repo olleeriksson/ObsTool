@@ -187,7 +187,6 @@ namespace TestProject
                 CatNo = herschelId,
                 H400 = h400,
                 Const = constellation.Substring(0, 3),
-                Constellation = constellation,
                 SacDeepSkyObjectsId = sacDeepSkyObjectsId
             };
         }

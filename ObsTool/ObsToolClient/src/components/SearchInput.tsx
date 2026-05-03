@@ -50,7 +50,13 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
     }
 
     private loadDsoFromApi = debounce((query: string) => {
-        Api.searchDso(query).then(
+        const trimmedQuery = query.trim();
+        if (trimmedQuery === "") {
+            this.setState({ options: [] });
+            return;
+        }
+
+        Api.searchDso(trimmedQuery).then(
             (response) => {
                 const pagedResult: IPagedDsoList = response.data;
                 const options: ISuggestion[] = pagedResult.data.map(dso => ({ dso }));
@@ -66,7 +72,7 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
     private handleInputChange = (_event: any, newValue: string, reason: string) => {
         this.setState({ inputValue: newValue });
         if (reason === "input") {
-            if (newValue) {
+            if (newValue.trim() !== "") {
                 this.loadDsoFromApi(newValue);
             } else {
                 this.setState({ options: [] });
@@ -83,7 +89,12 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
 
     private onFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        this.props.actions.search(this.state.inputValue);
+        const trimmedQuery = this.state.inputValue.trim();
+        if (trimmedQuery === "") {
+            return;
+        }
+
+        this.props.actions.search(trimmedQuery);
         this.setState({ redirectToSearchPage: true });
     }
 

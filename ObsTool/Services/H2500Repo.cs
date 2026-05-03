@@ -40,6 +40,15 @@ namespace ObsTool.Services
                 .ToList();
         }
 
+        public IEnumerable<H2500> GetH2500ObjectsByDsoIds(IEnumerable<int> dsoIds)
+        {
+            var dsoIdList = dsoIds.Distinct().ToList();
+            return BaseQuery()
+                .Where(h => h.SacDeepSkyObjectsId != null && dsoIdList.Contains(h.SacDeepSkyObjectsId.Value))
+                .OrderBy(h => h.HerschelId)
+                .ToList();
+        }
+
         public IEnumerable<H2500> GetObservedH2500Objects(bool includeNonDetections = true)
         {
             return ObservedQuery(includeNonDetections)

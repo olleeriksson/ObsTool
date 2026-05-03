@@ -78,7 +78,7 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
             obsList = this.state.dsoList.map(dso => (
                 <Grid key={dso.id} size={12}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
-                        <DsoCard dso={dso} showBadge={true} showDsoExtra={true} showObservations={true} startWithObservationsExpanded={false} showPrevAndNextObservation={false} />
+                        <DsoCard dso={dso} showBadge={true} showDsoExtra={true} showObservations={true} startWithObservationsExpanded={false} showPrevAndNextObservation={false} allowHerschelDetails={false} />
                     </Paper>
                 </Grid>
             ));

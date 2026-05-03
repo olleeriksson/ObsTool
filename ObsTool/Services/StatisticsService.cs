@@ -173,7 +173,6 @@ namespace ObsTool.Services
                 .ToDictionary(c => NormalizeConstellationKey(c.Abbreviation), c => c.Name);
 
             var h2500ObjectsByConstellation = h2500Objects
-                // Use the abbreviation as the durable join key; H2500.Constellation is only display text from the source list.
                 .GroupBy(h => NormalizeConstellationKey(h.Const))
                 .ToDictionary(g => g.Key, g => g.ToList());
 

@@ -64,12 +64,24 @@ export interface IDso {
     numObservations?: number;
     observations?: IObservation[];
     dsoExtra?: IDsoExtra;
+    herschelObjects?: IHerschelInfo[];
 }
 
 export interface IDsoExtra {
     id: number;
     rating: number;
     followUp: boolean;
+}
+
+export interface IHerschelInfo {
+    herschelId: number;
+    herschelNo: string;
+    h400: boolean;
+}
+
+export interface IHerschelDetails extends IHerschelInfo {
+    descrLong?: string;
+    herschelSummary?: string;
 }
 
 export interface IPagedDsoList {

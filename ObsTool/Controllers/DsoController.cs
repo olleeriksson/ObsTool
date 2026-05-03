@@ -18,19 +18,21 @@ namespace ObsTool
     public class DsoController : Controller
     {
         private IDsoRepo _dsoRepo;
+        private IH2500Repo _h2500Repo;
         private ObservationsService _observationsService;
         private readonly IMapper _mapper;
 
-        public DsoController(IDsoRepo dsoRepo, ObservationsService observationsService, IMapper mapper)
+        public DsoController(IDsoRepo dsoRepo, IH2500Repo h2500Repo, ObservationsService observationsService, IMapper mapper)
         {
             _dsoRepo = dsoRepo;
+            _h2500Repo = h2500Repo;
             _observationsService = observationsService;
             _mapper = mapper;
         }
 
         [AllowAnonymous]
         [HttpGet("observed")]
-        public IActionResult GetAllObservedDso()
+        public IActionResult GetAllObservedDso(bool includeHerschel = false)
         {
             // Get all observations in the whole database, mapped by DSO id
             var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds();
@@ -42,6 +44,10 @@ namespace ObsTool
             int maxCount = 2000;
             var truncatedDsoList = dsoList.Take(maxCount);
             IEnumerable<DsoDto> truncatedDsoDtoList = _mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
+            if (includeHerschel)
+            {
+                PopulateHerschelBadges(truncatedDsoDtoList);
+            }
 
             foreach (DsoDto dso in truncatedDsoDtoList)
             {
@@ -75,7 +81,7 @@ namespace ObsTool
         /// </summary>
         [AllowAnonymous]
         [HttpGet()]
-        public IActionResult GetDso([FromQuery] string query, [FromQuery] string name)
+        public IActionResult GetDso([FromQuery] string query, [FromQuery] string name, [FromQuery] bool includeHerschel = false)
         {
             if ((name != null && query != null) || (name == null && query == null))
             {
@@ -95,6 +101,10 @@ namespace ObsTool
                 int maxCount = 15;
                 var truncatedDsoList = dsoList.Take(maxCount);
                 IEnumerable<DsoDto> truncatedDsoDtoList = _mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
+                if (includeHerschel)
+                {
+                    PopulateHerschelBadges(truncatedDsoDtoList);
+                }
 
                 var dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToList<int>();
 
@@ -132,13 +142,17 @@ namespace ObsTool
                 dsoList.Add(dso);
 
                 IEnumerable<DsoDto> result = _mapper.Map<IEnumerable<DsoDto>>(dsoList);
+                if (includeHerschel)
+                {
+                    PopulateHerschelBadges(result);
+                }
                 return Ok(result);
             }
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public IActionResult GetDso([FromRoute] int id)
+        public IActionResult GetDso([FromRoute] int id, [FromQuery] bool includeHerschel = false)
         {
             if (!ModelState.IsValid)
             {
@@ -146,14 +160,69 @@ namespace ObsTool
             }
 
             Dso dso = _dsoRepo.GetDsoById(id);
-            DsoDto result = _mapper.Map<DsoDto>(dso);
-
             if (dso == null)
             {
                 return NotFound();
             }
 
+            DsoDto result = _mapper.Map<DsoDto>(dso);
+
+            if (includeHerschel)
+            {
+                PopulateHerschelBadges(new[] { result });
+            }
+
             return Ok(result);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{id}/herschel")]
+        public IActionResult GetHerschelDetails([FromRoute] int id)
+        {
+            if (_dsoRepo.GetDsoById(id) == null)
+            {
+                return NotFound();
+            }
+
+            var details = _h2500Repo.GetH2500ObjectsByDsoId(id)
+                .Select(h => new HerschelDetailsDto
+                {
+                    HerschelId = h.HerschelId,
+                    HerschelNo = h.HerschelNo,
+                    H400 = h.H400,
+                    DescrLong = h.DescrLong,
+                    HerschelSummary = HerschelSummaryExtractor.ExtractWilliamHerschelBlock(h.DescrLong)
+                })
+                .ToArray();
+
+            return Ok(details);
+        }
+
+        private void PopulateHerschelBadges(IEnumerable<DsoDto> dsoDtos)
+        {
+            var dsoList = dsoDtos.ToList();
+            var herschelByDsoId = _h2500Repo.GetH2500ObjectsByDsoIds(dsoList.Select(d => d.Id))
+                .Where(h => h.SacDeepSkyObjectsId != null)
+                .GroupBy(h => h.SacDeepSkyObjectsId.Value)
+                .ToDictionary(g => g.Key, g => g.Select(ToHerschelInfoDto).ToArray());
+
+            foreach (DsoDto dso in dsoList)
+            {
+                if (herschelByDsoId.ContainsKey(dso.Id))
+                {
+                    dso.HerschelObjects = herschelByDsoId[dso.Id];
+                }
+            }
+        }
+
+        private static HerschelInfoDto ToHerschelInfoDto(H2500 herschelObject)
+        {
+            return new HerschelInfoDto
+            {
+                HerschelId = herschelObject.HerschelId,
+                HerschelNo = herschelObject.HerschelNo,
+                H400 = herschelObject.H400
+            };
         }
 
         //// GET: api/dso/5

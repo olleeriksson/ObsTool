@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
@@ -33,7 +33,7 @@ class Api {
 
     public static getFullObsSession(obsSessionId: number) {
         return axios.get<IObsSession>(import.meta.env.VITE_API_URL + "/obsSessions/" + obsSessionId +
-            "?includeLocation=true&includeObservations=true&includeDso=true&includeOtherObservations=true&includePrevAndNextObservations=true");
+            "?includeLocation=true&includeObservations=true&includeDso=true&includeOtherObservations=true&includePrevAndNextObservations=true&includeHerschel=true");
     }
 
     public static addObsSession(newObsSession: IObsSession) {
@@ -96,12 +96,16 @@ class Api {
         return axios.delete(import.meta.env.VITE_API_URL + "/eyepieces/" + eyepieceId);
     }
 
-    public static searchDso(query: string) {
-        return axios.get<IPagedDsoList>(import.meta.env.VITE_API_URL + "/dso?query=" + query);
+    public static searchDso(query: string, includeHerschel = false) {
+        return axios.get<IPagedDsoList>(import.meta.env.VITE_API_URL + "/dso?query=" + encodeURIComponent(query) + "&includeHerschel=" + includeHerschel);
     }
 
     public static getAllDsosAndTheirObservations() {
-        return axios.get<IPagedDsoList>(import.meta.env.VITE_API_URL + "/dso/observed");
+        return axios.get<IPagedDsoList>(import.meta.env.VITE_API_URL + "/dso/observed?includeHerschel=true");
+    }
+
+    public static getHerschelDetails(dsoId: number) {
+        return axios.get<IHerschelDetails[]>(import.meta.env.VITE_API_URL + "/dso/" + dsoId + "/herschel");
     }
 
     // public static getDsoById(dsoId: number) {
