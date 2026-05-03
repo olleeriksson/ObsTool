@@ -47,20 +47,6 @@ namespace ObsTool.Services
                 .ToList();
         }
 
-        public int GetNumH2500Objects()
-        {
-            return _dbContext.H2500.Count();
-        }
-
-        public int GetNumObservedH2500Objects(bool includeNonDetections = true)
-        {
-            // Count Herschel list rows, not SAC objects; multiple H2500 rows can point to the same DSO.
-            return ObservedQuery(includeNonDetections)
-                .Select(h => h.HerschelId)
-                .Distinct()
-                .Count();
-        }
-
         private IQueryable<H2500> BaseQuery()
         {
             return _dbContext.H2500
@@ -74,7 +60,8 @@ namespace ObsTool.Services
                 .Where(h => h.SacDeepSkyObjectsId != null &&
                     _dbContext.DsoObservations.Any(dsoObservation =>
                         dsoObservation.DsoId == h.SacDeepSkyObjectsId &&
-                        (includeNonDetections || !dsoObservation.NonDetection)));
+                        (includeNonDetections || (!dsoObservation.NonDetection && !dsoObservation.Observation.NonDetection))));
         }
+
     }
 }

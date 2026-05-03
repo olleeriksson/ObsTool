@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -98,6 +98,7 @@ namespace ObsTool
             services.AddScoped<IDsoRepo, DsoRepo>();
             services.AddScoped<IH2500Repo, H2500Repo>();
             services.AddScoped<ObservationsRepo>();
+            services.AddScoped<StatisticsService>();
             services.AddScoped<ReportTextManager>();
             services.AddScoped<ObservationsService>();
             services.AddScoped<ObsResourcesRepo>();

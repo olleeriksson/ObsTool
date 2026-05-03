@@ -20,6 +20,7 @@ The frontend has its own dedicated guidance at **`ObsTool/ObsToolClient/CLAUDE.m
 ## Important rules
 
 - **Never commit to git.** This applies to both backend and frontend changes. (Repeated from the frontend CLAUDE.md so it isn't missed when working server-side.)
+- **Preserve the user's staged changes.** Do not run broad staging or unstaging commands such as `git add .`, `git restore --staged .`, or `git reset` unless the user explicitly asks for that exact git operation. Leave any files that were already staged in the index exactly as they are. Put new or modified work in the working tree only, unstaged, and report the status clearly.
 
 ## Commands
 

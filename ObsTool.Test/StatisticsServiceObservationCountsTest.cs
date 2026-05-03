@@ -13,11 +13,11 @@ using Microsoft.Data.Sqlite;
 namespace TestProject
 {
     [TestFixture]
-    public class ObservationsRepoTest
+    public class StatisticsServiceObservationCountsTest
     {
         private SqliteConnection _connection;
         private MainDbContext _dbContext;
-        private ObservationsRepo _repo;
+        private StatisticsService _statisticsService;
 
         [SetUp]
         public void Setup()
@@ -45,7 +45,7 @@ namespace TestProject
             _dbContext = new MainDbContext(options, new Mock<ILogger<MainDbContext>>().Object);
             _dbContext.Database.EnsureCreated();
 
-            _repo = new ObservationsRepo(_dbContext);
+            _statisticsService = new StatisticsService(_dbContext);
         }
 
         [TearDown]
@@ -86,7 +86,7 @@ namespace TestProject
             );
             _dbContext.SaveChanges();
 
-            Assert.That(_repo.GetNumNonDetections(), Is.EqualTo(2));
+            Assert.That(_statisticsService.GetNumNonDetections(), Is.EqualTo(2));
         }
 
         [Test]
@@ -122,7 +122,48 @@ namespace TestProject
             );
             _dbContext.SaveChanges();
 
-            Assert.That(_repo.GetNumNonDetections(), Is.EqualTo(3));
+            Assert.That(_statisticsService.GetNumNonDetections(), Is.EqualTo(3));
+        }
+
+        [Test]
+        public void testDetectionAndNonDetectionCounts_DetectionWinsForSameDso()
+        {
+            _dbContext.Observations.AddRange(
+                new Observation
+                {
+                    Identifier = "1-1-nondetection",
+                    NonDetection = true,
+                    ObsSessionId = 1,
+                    DsoObservations = new List<DsoObservation>
+                    {
+                        new DsoObservation { DsoId = 1, CustomObjectName = "" }
+                    }
+                },
+                new Observation
+                {
+                    Identifier = "1-1-detection",
+                    NonDetection = false,
+                    ObsSessionId = 2,
+                    DsoObservations = new List<DsoObservation>
+                    {
+                        new DsoObservation { DsoId = 1, CustomObjectName = "" }
+                    }
+                },
+                new Observation
+                {
+                    Identifier = "1-2-nondetection",
+                    NonDetection = false,
+                    ObsSessionId = 3,
+                    DsoObservations = new List<DsoObservation>
+                    {
+                        new DsoObservation { DsoId = 2, CustomObjectName = "", NonDetection = true }
+                    }
+                }
+            );
+            _dbContext.SaveChanges();
+
+            Assert.That(_statisticsService.GetNumDetections(), Is.EqualTo(1));
+            Assert.That(_statisticsService.GetNumNonDetections(), Is.EqualTo(1));
         }
     }
 }

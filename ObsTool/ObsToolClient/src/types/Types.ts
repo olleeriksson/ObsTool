@@ -115,6 +115,22 @@ export interface IStatistics {
     numDsoInDatabase: number;
     numDetections: number;
     numNonDetections: number;
+    h2500?: IObsGroupStatistics;
+    h400?: IObsGroupStatistics;
+    constellations?: IConstellationStatistics[];
+}
+
+export interface IObsGroupStatistics {
+    total: number;
+    observed: number;
+    nonDetections: number;
+}
+
+export interface IConstellationStatistics {
+    constellation: string;
+    observed: number;
+    h2500: IObsGroupStatistics;
+    h400: IObsGroupStatistics;
 }
 
 export interface ILocation {

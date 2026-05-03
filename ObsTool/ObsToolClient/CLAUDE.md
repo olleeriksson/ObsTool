@@ -5,6 +5,7 @@ A React/TypeScript frontend for recording and tracking amateur astronomy observa
 ## Rules / Restrictions
 
 - Never commit anything to git.
+- Preserve the user's staged changes. Do not run broad staging or unstaging commands such as `git add .`, `git restore --staged .`, or `git reset` unless the user explicitly asks for that exact git operation. Leave already staged files staged. Put new or modified work in the working tree only, unstaged, and report the status clearly.
 - After making a change, as a last thing, always tell me what localhost address I can use to view the deployed change.
 
 ## Tech stack

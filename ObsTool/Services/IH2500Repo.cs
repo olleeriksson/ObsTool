@@ -10,7 +10,5 @@ namespace ObsTool.Services
         IEnumerable<H2500> GetH2500Objects();
         IEnumerable<H2500> GetH2500ObjectsByDsoId(int dsoId);
         IEnumerable<H2500> GetObservedH2500Objects(bool includeNonDetections = true);
-        int GetNumH2500Objects();
-        int GetNumObservedH2500Objects(bool includeNonDetections = true);
     }
 }

@@ -24,6 +24,9 @@ namespace ObsTool.Models
         public int NumSketches { get; set; }
         public int NumDetections { get; set; }
         public int NumNonDetections { get; set; }
+        public ObsGroupStatisticsDto H2500 { get; set; }
+        public ObsGroupStatisticsDto H400 { get; set; }
+        public IEnumerable<ConstellationStatisticsDto> Constellations { get; set; }
 
     }
 }
