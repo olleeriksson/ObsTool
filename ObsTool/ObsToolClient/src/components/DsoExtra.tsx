@@ -1,7 +1,6 @@
 import * as React from "react";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
-import CosmosIcon from "../cosmos.svg";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
@@ -9,7 +8,7 @@ import * as obsToolUtils from "../obsToolUtils";
 import GoogleImagesLink from "./GoogleImagesLink";
 import AladinLiteLink from "./AladinLiteLink";
 
-export interface IDsoExtendedProps extends WithStyles<typeof styles> {
+export interface IDsoExtraProps extends WithStyles<typeof styles> {
   id?: number;
   customObjectName?: string;
   error?: string;
@@ -18,14 +17,14 @@ export interface IDsoExtendedProps extends WithStyles<typeof styles> {
 
 const styles = (theme: Theme) => createStyles({
   dsoExtra: {
-    marginLeft: theme.spacing(3),
+    marginLeft: theme.spacing(0),
     marginTop: theme.spacing(0.5),
     lineHeight: "1em",
   },
 });
 
-class DsoExtended extends React.Component<IDsoExtendedProps> {
-  constructor(props: IDsoExtendedProps) {
+class DsoExtra extends React.Component<IDsoExtraProps> {
+  constructor(props: IDsoExtraProps) {
     super(props);
   }
 
@@ -76,4 +75,4 @@ class DsoExtended extends React.Component<IDsoExtendedProps> {
   }
 }
 
-export default withStyles(styles)(DsoExtended);
+export default withStyles(styles)(DsoExtra);

@@ -10,19 +10,18 @@ import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce } from "lodash";
-// import DsoExtended from "./DsoExtended";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/SearchActions";
-import DsoBadgedWithObservations from "./DsoBadgedWithObservations";
+import DsoCard from "./DsoCard";
 
 const styles = (theme: Theme) => createStyles({
     root: {
     },
     textfieldPaper: {
         marginTop: theme.spacing(2),
-        padding: theme.spacing(2),
+        padding: theme.spacing(3),
     },
     textfield: {
         margin: theme.spacing(1),
@@ -49,7 +48,7 @@ interface ISearchViewState {
 
 /*
 This component is used to render the search page. It has a search input field and the results are a list
-of rendered DsoBadgedWithObservations components.
+of rendered DsoCard components.
  */
 class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
     constructor(props: ISearchViewProps) {
@@ -141,14 +140,14 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
                 const startWithObservationsExpanded = this.state.dsoList.length === 1;
                 searchResult = this.state.dsoList.map(dso => (
                     <Grid key={dso.id} size={12}>
-                        <DsoBadgedWithObservations dso={dso} showBadge={true} showDsoExtra={true} showObservations={true} startWithObservationsExpanded={startWithObservationsExpanded} showPrevAndNextObservation={true} />
+                        <DsoCard dso={dso} showBadge={true} showDsoExtra={true} showObservations={true} startWithObservationsExpanded={startWithObservationsExpanded} showPrevAndNextObservation={true} />
                     </Grid>
                 ));
             }
 
             searchResultPaper = (
                 <Paper className={classes.textfieldPaper} elevation={1}>
-                    <Grid container spacing={3} direction="column">
+                    <Grid container spacing={3} direction="column" >
                         {searchResult}
                     </Grid>
                     {moreHits}

@@ -15,7 +15,7 @@ import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import classNames from "classnames";
-import DsoExtended from "./DsoExtended";
+import DsoCard from "./DsoCard";
 import ObservationSecondary from "./ObservationSecondary";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
@@ -26,6 +26,7 @@ const styles = (theme: Theme) => createStyles({
     flexGrow: 1,
     maxWidth: "100 %",
     padding: theme.spacing(1),
+    paddingTop: theme.spacing(2),
   },
   image: {
     border: 1,
@@ -109,12 +110,12 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       }
 
       expandedGridItem = (
-        <Grid size={12}>
-          <Typography gutterBottom={true} variant="subtitle1">
+        <div style={{ marginLeft: "1em", marginTop: -10, marginBottom: "0.em" }}>
+          <Typography variant="subtitle1">
             <strong>Other observations</strong>
           </Typography>
           {otherObservations}
-        </Grid>
+        </div>
       );
     }
 
@@ -135,7 +136,20 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
     let dsoObjects;
     if (this.props.observation.dsoObservations) {
       dsoObjects = this.props.observation.dsoObservations.map(o =>
-        <DsoExtended key={o.dso.id} dso={o.dso} customObjectName={o.customObjectName} nonDetection={o.nonDetection || this.props.observation.nonDetection} />
+        <div style={{ marginBottom: "0.4em" }}>
+          <DsoCard
+            key={o.dso.id}
+            dso={o.dso}
+            customObjectName={o.customObjectName}
+            nonDetection={o.nonDetection || this.props.observation.nonDetection}
+            showBadge={false}
+            showDsoAnnotations={true}
+            showDsoExtra={true}
+            showObservations={false}
+            showPrevAndNextObservation={false}
+            startWithObservationsExpanded={false}
+          />
+        </div>
       );
     }
 
@@ -148,7 +162,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
             <Grid container spacing={2} wrap="nowrap">
               <Grid>
                 <ButtonBase className={classes.image}>
-                  <Typography gutterBottom={false} variant="h4">
+                  <Typography variant="h4">
                     <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
                   </Typography>
                 </ButtonBase>
@@ -160,7 +174,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                 <Grid container direction="column" spacing={2}>
                   <Grid size="grow">
                     {dsoObjects}
-                    <div style={{ marginTop: "1em", marginBottom: "1em" }}>
+                    <div style={{ marginTop: "0.8em", marginBottom: "1em" }}>
                       <Typography variant="body2" gutterBottom={true}>
                         {renderReportTextAnnotated(
                           this.props.observation.text,

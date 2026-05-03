@@ -8,7 +8,7 @@ import Paper from "@mui/material/Paper";
 import { IDso, IPagedDsoList } from "../types/Types";
 import Api from "../api/Api";
 import CircularProgress from "@mui/material/CircularProgress";
-import DsoBadgedWithObservations from "./DsoBadgedWithObservations";
+import DsoCard from "./DsoCard";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -78,7 +78,7 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
             obsList = this.state.dsoList.map(dso => (
                 <Grid key={dso.id} size={12}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
-                        <DsoBadgedWithObservations dso={dso} showBadge={true} showDsoExtra={true} showObservations={true} startWithObservationsExpanded={false} showPrevAndNextObservation={false} />
+                        <DsoCard dso={dso} showBadge={true} showDsoExtra={true} showObservations={true} startWithObservationsExpanded={false} showPrevAndNextObservation={false} />
                     </Paper>
                 </Grid>
             ));

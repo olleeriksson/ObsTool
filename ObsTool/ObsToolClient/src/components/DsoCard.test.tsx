@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import DsoExtended from "./DsoExtended";
+import DsoCard from "./DsoCard";
 import { IDso } from "../types/Types";
 
 const theme = createTheme();
@@ -25,22 +25,22 @@ const baseDso: IDso = {
 };
 
 it("shows DSO content when dso prop is provided", () => {
-    render(<DsoExtended dso={baseDso} />, { wrapper });
+    render(<DsoCard dso={baseDso} />, { wrapper });
     expect(screen.getByText(/NGC 224/)).toBeInTheDocument();
 });
 
 it("shows error state when no dso is provided", () => {
-    render(<DsoExtended />, { wrapper });
+    render(<DsoCard />, { wrapper });
     expect(screen.getByText("Error!")).toBeInTheDocument();
 });
 
 it("shows error prop message", () => {
-    render(<DsoExtended error="DSO not found" />, { wrapper });
+    render(<DsoCard error="DSO not found" />, { wrapper });
     expect(screen.getByText("DSO not found")).toBeInTheDocument();
 });
 
 it("shows custom object label when dso name is 'custom'", () => {
     const customDso: IDso = { ...baseDso, name: "custom" };
-    render(<DsoExtended dso={customDso} customObjectName="My Star" />, { wrapper });
+    render(<DsoCard dso={customDso} customObjectName="My Star" />, { wrapper });
     expect(screen.getByText(/Custom object: My Star/)).toBeInTheDocument();
 });

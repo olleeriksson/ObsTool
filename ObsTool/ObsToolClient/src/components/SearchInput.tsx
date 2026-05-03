@@ -12,7 +12,7 @@ import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/SearchActions";
-import DsoBadgedWithObservations from "./DsoBadgedWithObservations";
+import DsoCard from "./DsoCard";
 
 interface ISuggestion {
     dso?: IDso;
@@ -125,7 +125,7 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
                             if (option.dso) {
                                 return (
                                     <li key={key} {...restProps}>
-                                        <DsoBadgedWithObservations dso={option.dso} showBadge={true} showDsoExtra={false} showObservations={false} startWithObservationsExpanded={false} showPrevAndNextObservation={true} />
+                                        <DsoCard dso={option.dso} showBadge={true} showDsoExtra={false} showObservations={false} startWithObservationsExpanded={false} showPrevAndNextObservation={true} />
                                     </li>
                                 );
                             }

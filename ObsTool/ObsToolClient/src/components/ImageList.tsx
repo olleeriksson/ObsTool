@@ -334,9 +334,11 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
 
     const imagesTitle = imageElements.length > 0 && (
       <Grid>
-        <Typography variant="caption">
-          <strong>Sketches &amp; Images</strong> &nbsp;
-        </Typography>
+        <div style={{ marginTop: -10 }}>
+          <Typography variant="caption">
+            <strong>Sketches &amp; Images</strong> &nbsp;
+          </Typography>
+        </div>
       </Grid>
     );
 
