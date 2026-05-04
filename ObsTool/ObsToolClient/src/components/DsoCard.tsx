@@ -204,7 +204,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
 
     const allowHerschelDetails = this.props.allowHerschelDetails !== false;
     const herschelBadge = dso.herschelObjects && dso.herschelObjects.length > 0 && (
-      <Grid size={"auto"} style={{ marginTop: "1em" }}>
+      <Grid size={"auto"} style={{ marginTop: "0.8em" }}>
         <HerschelBadge
           herschelObjects={dso.herschelObjects}
           allowDetails={allowHerschelDetails}

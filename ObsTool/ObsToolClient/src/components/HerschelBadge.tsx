@@ -28,6 +28,7 @@ const styles = (theme: Theme) => createStyles({
     height: 40,
     objectFit: "contain",
     width: 40,
+    border: "1px solid #aaaaaa",
   },
   overlay: {
     "& .MuiBadge-badge": {
@@ -93,7 +94,7 @@ class HerschelBadge extends React.Component<HerschelBadgeProps> {
           </Badge>
         ) : icon}
         <Typography className={classes.label} variant="caption" component="span">
-          {this.getLabel()}
+          { "HERSCHEL"/* {this.getLabel()} */}
         </Typography>
       </span>
     );
