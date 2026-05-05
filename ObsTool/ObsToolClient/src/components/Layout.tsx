@@ -9,7 +9,7 @@ import Grid from "@mui/material/Grid2";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import classNames from "classnames";
-import logo from "../assets/images/obstool-logo-navbar-60px.png";
+import logo from "../assets/images/obstool-logo-navbar-55px.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Layout.css";
 import { Link, useLocation } from "react-router-dom";
@@ -28,6 +28,7 @@ const styles = (theme: Theme) => createStyles({
     toolbar: {
         flex: 1,
         alignItems: "center",
+        paddingLeft: `${theme.spacing(1)} !important`,
     },
     toolbarTitle: {
         flex: 1,
