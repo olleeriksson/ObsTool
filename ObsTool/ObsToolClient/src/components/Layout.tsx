@@ -9,7 +9,7 @@ import Grid from "@mui/material/Grid2";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import classNames from "classnames";
-import logo from "./../obstool-logo.png";
+import logo from "../assets/images/obstool-logo-navbar-60px.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Layout.css";
 import { Link, useLocation } from "react-router-dom";
@@ -27,11 +27,13 @@ const styles = (theme: Theme) => createStyles({
     },
     toolbar: {
         flex: 1,
-        alignContent: "center",
+        alignItems: "center",
     },
     toolbarTitle: {
         flex: 1,
-        alignContent: "center",
+        alignItems: "center",
+        display: "flex",
+        minWidth: 0,
     },
     layout: {
         width: "auto",
@@ -169,8 +171,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             <AppBar position="static" color="default" className={classes.appBar}>
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
-                        <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-                            <span style={{ whiteSpace: "nowrap" }}><img src={logo} className="logo-appbar" alt="logo" /> ObsTool</span>
+                        <Link to="/" className="appbar-brand">
+                            <img src={logo} className="logo-appbar" alt="logo" /><span className="appbar-title">ObsTool</span>
                         </Link>
                     </Typography>
                     <Grid container spacing={1} direction="row" justifyContent="flex-end">

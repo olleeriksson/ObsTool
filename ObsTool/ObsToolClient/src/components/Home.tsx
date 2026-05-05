@@ -10,7 +10,7 @@ import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
-import logo from "./../obstool-logo.png";
+import logo from "../assets/images/obstool-logo-200px.png";
 import "./Layout.css";
 import { Link } from "react-router-dom";
 import SearchInput from "./SearchInput";
@@ -21,7 +21,7 @@ const styles = (theme: Theme) => createStyles({
         maxWidth: 800,
         margin: "0 auto",
         verticalAlign: "center",
-        padding: `${theme.spacing(8)} 0 ${theme.spacing(6)}`,
+        padding: `${theme.spacing(7)} 0 ${theme.spacing(6)}`,
     },
     cardGridItem: {
         maxWidth: 400,
@@ -32,6 +32,12 @@ const styles = (theme: Theme) => createStyles({
         [theme.breakpoints.up("sm")]: {
             paddingBottom: theme.spacing(2),
         },
+    },
+    homeTitle: {
+        fontFamily: "\"Montserrat\", \"Segoe UI\", Arial, sans-serif",
+        fontSize: "2rem",
+        fontWeight: "bold",
+        lineHeight: 1.1,
     },
 });
 
@@ -59,8 +65,8 @@ class Home extends React.Component<IHomeProps> {
                         <Typography align="center" gutterBottom={true}>
                             <img src={logo} className="App-logo" alt="logo" />
                         </Typography>
-                        <Typography variant="h4" align="center" color="textPrimary" gutterBottom={true}>
-                            <strong>ObsTool</strong>
+                        <Typography variant="inherit" component="h1" align="center" color="textPrimary" gutterBottom={true} className={classes.homeTitle}>
+                            ObsTool
                         </Typography>
                         <Typography variant="h6" align="center" color="textSecondary" component="p">
                             A tool for recording and keeping track of deepsky observations
