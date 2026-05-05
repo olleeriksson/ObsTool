@@ -8,9 +8,7 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import { IHerschelInfo } from "../types/Types";
-import HerschelIcon from "../herschel.png";
-// Swap to this import if the SVG asset becomes preferred again.
-// import HerschelIcon from "../herschel.svg";
+import HerschelIcon from "../assets/images/herschel.png";
 
 const styles = (theme: Theme) => createStyles({
   root: {

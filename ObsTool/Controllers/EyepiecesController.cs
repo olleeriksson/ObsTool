@@ -50,6 +50,13 @@ namespace ObsTool.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] EyepieceDtoForCreation eyepieceDto)
         {
+            if (eyepieceDto == null)
+            {
+                return BadRequest();
+            }
+
+            eyepieceDto.Name = string.IsNullOrWhiteSpace(eyepieceDto.Name) ? eyepieceDto.Key : eyepieceDto.Name;
+            eyepieceDto.FocalLengthMm = NormalizeOptionalText(eyepieceDto.FocalLengthMm);
             var entity = _mapper.Map<Eyepiece>(eyepieceDto);
             var added = _eyepiecesRepo.AddEyepiece(entity);
             if (added == null)
@@ -94,6 +101,8 @@ namespace ObsTool.Controllers
             }
 
             _mapper.Map(eyepieceDto, entity);
+            entity.Name = string.IsNullOrWhiteSpace(entity.Name) ? entity.Key : entity.Name;
+            entity.FocalLengthMm = NormalizeOptionalText(entity.FocalLengthMm);
 
             if (!_eyepiecesRepo.SaveChanges())
             {
@@ -101,6 +110,11 @@ namespace ObsTool.Controllers
             }
 
             return Ok(_mapper.Map<EyepieceDto>(entity));
+        }
+
+        private static string NormalizeOptionalText(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
     }
 }

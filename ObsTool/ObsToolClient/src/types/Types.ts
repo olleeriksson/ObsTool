@@ -165,7 +165,7 @@ export interface IEyepiece {
     id?: number;
     key: string;
     name: string;
-    focalLengthMm?: number;
+    focalLengthMm?: string;
 }
 
 // --------------------------------------------------------------------------

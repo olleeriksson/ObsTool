@@ -14,7 +14,7 @@ import classNames from "classnames";
 import ObservationSecondary from "./ObservationSecondary";
 import Typography from "@mui/material/Typography";
 import DsoAnnotations from "./DsoAnnotations";
-import CosmosIcon from "../cosmos.svg";
+import CosmosIcon from "../assets/images/cosmos.svg";
 import HerschelBadge from "./HerschelBadge";
 import Api from "../api/Api";
 import { IHerschelDetails } from "../types/Types";

@@ -14,6 +14,19 @@ const getMagnificationText = (instrumentFocalLengthMm: number, eyepieceFocalLeng
 
 const buildKeyRegex = (key: string) => new RegExp(`(^|[^A-Za-z0-9])(${escapeRegex(key)})(?=[^A-Za-z0-9]|$)`, "gi");
 
+const parseEyepieceFocalLengthMm = (focalLengthMm: string | undefined): number | undefined => {
+  if (!focalLengthMm) {
+    return undefined;
+  }
+
+  const parsed = Number.parseFloat(focalLengthMm.replace(",", "."));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+};
+
+const hasParsedFocalLength = (
+  item: { eyepiece: IEyepiece; focalLengthMm: number | undefined }
+): item is { eyepiece: IEyepiece; focalLengthMm: number } => !!item.eyepiece.key && item.focalLengthMm !== undefined;
+
 export const getEyepiecesCached = async (): Promise<IEyepiece[]> => {
   if (eyepiecesCache) {
     return eyepiecesCache;
@@ -41,7 +54,12 @@ export const renderReportTextAnnotated = (
   }
   const instrumentFocalLengthMm = instrument.focalLengthMm;
 
-  const relevantEyepieces = eyepieces.filter(ep => !!ep.key && !!ep.focalLengthMm && ep.focalLengthMm > 0);
+  const relevantEyepieces = eyepieces
+    .map(eyepiece => ({
+      eyepiece,
+      focalLengthMm: parseEyepieceFocalLengthMm(eyepiece.focalLengthMm),
+    }))
+    .filter(hasParsedFocalLength);
   if (relevantEyepieces.length === 0) {
     return text;
   }
@@ -53,8 +71,7 @@ export const renderReportTextAnnotated = (
     magnificationText: string;
   }> = [];
 
-  relevantEyepieces.forEach(eyepiece => {
-    const eyepieceFocalLengthMm = eyepiece.focalLengthMm as number;
+  relevantEyepieces.forEach(({ eyepiece, focalLengthMm }) => {
     const regex = buildKeyRegex(eyepiece.key);
     let match = regex.exec(text);
     while (match) {
@@ -66,7 +83,7 @@ export const renderReportTextAnnotated = (
         start: keyStart,
         end: keyEnd,
         fullText: keyMatch,
-        magnificationText: getMagnificationText(instrumentFocalLengthMm, eyepieceFocalLengthMm),
+        magnificationText: getMagnificationText(instrumentFocalLengthMm, focalLengthMm),
       });
       match = regex.exec(text);
     }

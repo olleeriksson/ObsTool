@@ -101,44 +101,55 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
             );
     }
 
-    private parseIntegerInput = (rawValue: string): number | undefined => {
-        const digitsOnly = rawValue.replace(/\D/g, "");
-        if (!digitsOnly) {
+    private parseFocalLengthInput = (rawValue: string): string | undefined => {
+        const normalized = rawValue.replace(",", ".").replace(/[^0-9.]/g, "");
+        const firstDotIndex = normalized.indexOf(".");
+        const value = firstDotIndex === -1
+            ? normalized
+            : normalized.slice(0, firstDotIndex + 1) + normalized.slice(firstDotIndex + 1).replace(/\./g, "");
+
+        if (!value || value === ".") {
             return undefined;
         }
 
-        return Number.parseInt(digitsOnly, 10);
+        return value;
     }
 
-    private extractFocalLengthFromKey = (key: string): number | undefined => {
-        const match = key.match(/(\d+)\s*mm\b/i);
-        if (!match?.[1]) {
+    private extractFocalLengthFromKey = (key: string): string | undefined => {
+        const matches = [...key.matchAll(/(\d+(?:[.,]\d+)?)(?:\s*mm\b)?/gi)];
+        if (matches.length === 0) {
             return undefined;
         }
 
-        return Number.parseInt(match[1], 10);
+        const selectedMatch = matches.length === 1
+            ? matches[0]
+            : matches.find(match => /\d+(?:[.,]\d+)?\s*mm\b/i.test(match[0])) ?? matches[1];
+
+        return selectedMatch[1].replace(",", ".");
     }
 
     private handleFormChange = (name: string) => (event: any) => {
         const rawValue = event.target.value;
         const parsedFocalFromKey = name === "key" ? this.extractFocalLengthFromKey(rawValue) : undefined;
         const newValue = name === "focalLengthMm"
-            ? this.parseIntegerInput(rawValue)
+            ? this.parseFocalLengthInput(rawValue)
             : rawValue;
         this.setState((prevState) => ({
             currentEyepiece: {
                 ...prevState.currentEyepiece,
                 [name]: newValue,
+                // Keep Name synced with Key while Name still exactly matches the previous Key.
+                name: name === "key" && prevState.currentEyepiece.name === prevState.currentEyepiece.key
+                    ? rawValue
+                    : (name === "name" ? rawValue : prevState.currentEyepiece.name),
                 focalLengthMm: parsedFocalFromKey ?? (name === "focalLengthMm" ? newValue : prevState.currentEyepiece.focalLengthMm)
             }
         }));
     }
 
     private isCurrentEyepieceValid = (): boolean => {
-        const { key, name, focalLengthMm } = this.state.currentEyepiece;
-        return !!key.trim()
-            && !!name.trim()
-            && focalLengthMm !== undefined;
+        const { key } = this.state.currentEyepiece;
+        return !!key.trim();
     }
 
     private handleClickResource = (eyepieceId?: number) => (event: any) => {
@@ -180,15 +191,22 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
             return;
         }
 
+        const eyepieceToSave = {
+            ...this.state.currentEyepiece,
+            key: this.state.currentEyepiece.key.trim(),
+            name: this.state.currentEyepiece.name.trim() || this.state.currentEyepiece.key.trim(),
+            focalLengthMm: this.state.currentEyepiece.focalLengthMm?.trim() || undefined
+        };
+
         this.setState({ isLoading: true, isError: false });
         if (this.state.currentEyepiece.id) {
-            Api.updateEyepiece(this.state.currentEyepiece).then(
+            Api.updateEyepiece(eyepieceToSave).then(
                 () => { this.loadFromApi(); }
             ).catch(
                 () => { this.setState({ isLoading: false, isError: true }); }
             );
         } else {
-            Api.addEyepiece(this.state.currentEyepiece).then(
+            Api.addEyepiece(eyepieceToSave).then(
                 () => { this.loadFromApi(); }
             ).catch(
                 () => { this.setState({ isLoading: false, isError: true }); }
@@ -261,7 +279,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                                 className={classNames(classes.formControl, classes.textfieldNarrow)}
                                 margin="dense"
                                 type="text"
-                                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                                inputProps={{ inputMode: "decimal", pattern: "[0-9]*[.]?[0-9]*" }}
                             />
                         </Grid>
                         <Grid>
@@ -297,7 +315,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                     </a>
                 </Typography>
                 <Typography variant="caption" gutterBottom={true}>
-                    Focal length: <strong>{eyepiece.focalLengthMm ?? "N/A"} mm</strong>
+                    Focal length: <strong>{eyepiece.focalLengthMm ? `${eyepiece.focalLengthMm} mm` : "N/A"}</strong>
                 </Typography>
             </Grid>
         ));
