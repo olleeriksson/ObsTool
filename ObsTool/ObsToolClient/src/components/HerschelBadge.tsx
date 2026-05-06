@@ -8,7 +8,7 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import { IHerschelInfo } from "../types/Types";
-import HerschelIcon from "../assets/images/herschel.png";
+import HerschelIcon from "../assets/images/herschel2.png";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -23,10 +23,10 @@ const styles = (theme: Theme) => createStyles({
   },
   icon: {
     display: "block",
-    height: 40,
+    height: 50,
     objectFit: "contain",
-    width: 40,
-    border: "1px solid #aaaaaa",
+    //width: 40,
+    border: "0px solid #aaaaaa",
   },
   overlay: {
     "& .MuiBadge-badge": {

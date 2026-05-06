@@ -20,26 +20,26 @@ it("shows H400 overlay for a single H400 Herschel object", () => {
     render(<HerschelBadge herschelObjects={[h400Object]} />, { wrapper });
 
     expect(screen.getByText("H400")).toBeInTheDocument();
-    expect(screen.getByText("H I-1")).toBeInTheDocument();
+    expect(screen.getByText("HERSCHEL")).toBeInTheDocument();
 });
 
-it("shows H400.. overlay and first Herschel number with count for multiple rows when the first row is H400", () => {
+it("shows H400.. overlay and generic Herschel label for multiple rows when the first row is H400", () => {
     render(<HerschelBadge herschelObjects={[h400Object, { herschelId: 2, herschelNo: "H II-2", h400: false }]} />, { wrapper });
 
     expect(screen.getByText("H400..")).toBeInTheDocument();
-    expect(screen.getByText("H I-1 +1")).toBeInTheDocument();
+    expect(screen.getByText("HERSCHEL")).toBeInTheDocument();
 });
 
-it("shows first Herschel number with count without H400 overlay when the first row is not H400", () => {
+it("shows generic Herschel label without H400 overlay when the first row is not H400", () => {
     render(<HerschelBadge herschelObjects={[{ ...h400Object, h400: false }, { herschelId: 2, herschelNo: "H II-2", h400: false }]} />, { wrapper });
 
-    expect(screen.getByText("H I-1 +1")).toBeInTheDocument();
+    expect(screen.getByText("HERSCHEL")).toBeInTheDocument();
     expect(screen.queryByText("H400..")).not.toBeInTheDocument();
 });
 
 it("does not show H400 overlay when only a hidden later row is H400", () => {
     render(<HerschelBadge herschelObjects={[{ ...h400Object, h400: false }, { herschelId: 2, herschelNo: "H II-2", h400: true }]} />, { wrapper });
 
-    expect(screen.getByText("H I-1 +1")).toBeInTheDocument();
+    expect(screen.getByText("HERSCHEL")).toBeInTheDocument();
     expect(screen.queryByText("H400..")).not.toBeInTheDocument();
 });
