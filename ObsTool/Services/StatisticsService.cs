@@ -133,6 +133,44 @@ namespace ObsTool.Services
                 .Count();
         }
 
+        public IEnumerable<ConstellationMapObjectDto> GetH2500ObjectsForConstellationMap(string constellation)
+        {
+            var constellationKey = ResolveConstellationKey(constellation);
+            if (constellationKey == null)
+            {
+                return Enumerable.Empty<ConstellationMapObjectDto>();
+            }
+
+            var observedDsoIds = DetectedDsoObservations()
+                .AsNoTracking()
+                .Select(dsoObservation => dsoObservation.DsoId)
+                .Distinct()
+                .ToHashSet();
+
+            return _dbContext.H2500
+                .AsNoTracking()
+                .Include(h => h.Dso)
+                .Where(h => h.Dso != null)
+                .Where(h => h.Const != null && h.Const.Trim().ToUpper() == constellationKey)
+                .OrderBy(h => h.HerschelId)
+                .ToList()
+                .Select(h => new ConstellationMapObjectDto
+                {
+                    HerschelId = h.HerschelId,
+                    HerschelNo = h.HerschelNo,
+                    H400 = h.H400,
+                    DsoId = h.Dso.Id,
+                    Name = h.Dso.Name,
+                    Catalog = h.Dso.Catalog,
+                    CatalogNumber = h.Dso.CatalogNumber,
+                    Constellation = h.Dso.Con,
+                    RA = h.Dso.RA,
+                    DEC = h.Dso.DEC,
+                    IsObserved = h.SacDeepSkyObjectsId != null && observedDsoIds.Contains(h.SacDeepSkyObjectsId.Value)
+                })
+                .ToList();
+        }
+
         public (ObsGroupStatisticsDto H2500, ObsGroupStatisticsDto H400, IEnumerable<ConstellationStatisticsDto> Constellations) GetCatalogProgressStatistics()
         {
             var h2500Objects = _dbContext.H2500
@@ -192,6 +230,7 @@ namespace ObsTool.Services
                         Constellation = constellationNames.ContainsKey(constellationKey)
                             ? constellationNames[constellationKey]
                             : constellationKey,
+                        ConstellationAbbrv = constellationKey,
                         Observed = observedObjectsByConstellation.ContainsKey(constellationKey)
                             ? observedObjectsByConstellation[constellationKey]
                             : 0,
@@ -265,6 +304,26 @@ namespace ObsTool.Services
                 Observed = observed,
                 NonDetections = nonDetections
             };
+        }
+
+        private string ResolveConstellationKey(string constellation)
+        {
+            if (string.IsNullOrWhiteSpace(constellation))
+            {
+                return null;
+            }
+
+            var requested = constellation.Trim();
+            var matchedConstellation = _dbContext.Constellations
+                .AsNoTracking()
+                .ToList()
+                .FirstOrDefault(c =>
+                    string.Equals(c.Name, requested, System.StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(c.Abbreviation, requested, System.StringComparison.OrdinalIgnoreCase));
+
+            return matchedConstellation == null
+                ? NormalizeConstellationKey(requested)
+                : NormalizeConstellationKey(matchedConstellation.Abbreviation);
         }
 
         private static string NormalizeConstellationKey(string constellation)

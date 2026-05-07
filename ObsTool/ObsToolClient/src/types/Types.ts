@@ -48,6 +48,8 @@ export interface IDso {
     otherCommonNames: string;
     type: string;
     con: string;
+    ra?: string;
+    dec?: string;
     mag: string;
     sb: string;
     u2k: string;
@@ -140,9 +142,25 @@ export interface IObsGroupStatistics {
 
 export interface IConstellationStatistics {
     constellation: string;
+    constellationAbbrv: string;
     observed: number;
     h2500: IObsGroupStatistics;
     h400: IObsGroupStatistics;
+}
+
+export interface IConstellationMapObject {
+    herschelId?: number;
+    herschelNo?: string;
+    h400?: boolean;
+    dsoId?: number;
+    id?: number | string;
+    name: string;
+    catalog?: string;
+    catalogNumber?: string;
+    constellation?: string;
+    ra: string;
+    dec: string;
+    isObserved?: boolean;
 }
 
 export interface ILocation {

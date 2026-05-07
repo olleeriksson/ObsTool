@@ -18,6 +18,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { IStatistics, IObsGroupStatistics, IConstellationStatistics } from "../types/Types";
 import Api from "../api/Api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import ConstellationDialog from "./ConstellationDialog";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -134,6 +135,12 @@ const styles = (theme: Theme) => createStyles({
             opacity: 1,
         },
     },
+    constellationRow: {
+        cursor: "pointer",
+        "&:hover": {
+            backgroundColor: theme.palette.action.hover,
+        },
+    },
 });
 
 export interface IStatisticsTableProps extends WithStyles<typeof styles> {
@@ -147,6 +154,8 @@ export interface IStatisticsTableState {
     constellationSortBy: ConstellationSortColumn;
     constellationSortDirection: "asc" | "desc";
     constellationCatalogSortMetric: CatalogSortMetric;
+    selectedConstellation?: IConstellationStatistics;
+    isConstellationDialogOpen: boolean;
 }
 
 type ConstellationSortColumn = "constellation" | "observed" | "h400" | "h2500";
@@ -164,6 +173,8 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             constellationSortBy: "h2500",
             constellationSortDirection: "desc",
             constellationCatalogSortMetric: "observed",
+            selectedConstellation: undefined,
+            isConstellationDialogOpen: false,
         };
     }
 
@@ -477,7 +488,19 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 </TableHead>
                 <TableBody>
                     {sortedStats.map(row => (
-                        <TableRow key={row.constellation}>
+                        <TableRow
+                            key={row.constellation}
+                            className={classes.constellationRow}
+                            hover={true}
+                            tabIndex={0}
+                            onClick={() => this.openConstellationDialog(row)}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    this.openConstellationDialog(row);
+                                }
+                            }}
+                        >
                             <TableCell size="small" component="th" scope="row">{row.constellation}</TableCell>
                             <TableCell size="small" align="right">{row.observed}</TableCell>
                             <TableCell size="small" align="right">{this.renderCatalogProgress(row.h400)}</TableCell>
@@ -487,6 +510,19 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 </TableBody>
             </Table>
         );
+    }
+
+    private openConstellationDialog(constellation: IConstellationStatistics) {
+        this.setState({
+            selectedConstellation: constellation,
+            isConstellationDialogOpen: true,
+        });
+    }
+
+    private closeConstellationDialog() {
+        this.setState({
+            isConstellationDialogOpen: false,
+        });
     }
 
     private renderConstellationStatisticsRows() {
@@ -591,6 +627,11 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                         </Table>
                     </Paper>
                     {this.renderConstellationStatisticsRows()}
+                    <ConstellationDialog
+                        open={this.state.isConstellationDialogOpen}
+                        constellation={this.state.selectedConstellation}
+                        onClose={() => this.closeConstellationDialog()}
+                    />
                 </>
             );
         }

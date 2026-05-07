@@ -28,13 +28,48 @@ const styles = (theme: Theme) => createStyles({
     toolbar: {
         flex: 1,
         alignItems: "center",
+        flexWrap: "wrap",
+        gap: theme.spacing(1),
         paddingLeft: `${theme.spacing(1)} !important`,
+        paddingTop: theme.spacing(0.75),
+        paddingBottom: theme.spacing(0.75),
     },
     toolbarTitle: {
-        flex: 1,
+        flex: "0 0 auto",
         alignItems: "center",
         display: "flex",
         minWidth: 0,
+        marginRight: theme.spacing(1),
+        [theme.breakpoints.down("md")]: {
+            flexBasis: "100%",
+            marginRight: 0,
+        },
+    },
+    navControls: {
+        alignItems: "center",
+        display: "flex",
+        flex: "1 1 640px",
+        flexWrap: "wrap",
+        gap: theme.spacing(1),
+        justifyContent: "flex-end",
+        minWidth: 0,
+        [theme.breakpoints.down("md")]: {
+            flexBasis: "100%",
+            justifyContent: "flex-start",
+        },
+    },
+    searchContainer: {
+        flex: "1 1 220px",
+        marginLeft: theme.spacing(1),
+        marginRight: theme.spacing(1),
+        maxWidth: 300,
+        minWidth: 180,
+        [theme.breakpoints.down("sm")]: {
+            flexBasis: "100%",
+            marginLeft: 0,
+            marginRight: 0,
+            maxWidth: "none",
+        },
     },
     layout: {
         width: "auto",
@@ -52,7 +87,8 @@ const styles = (theme: Theme) => createStyles({
         padding: `${theme.spacing(6)} 0`,
     },
     appbarButton: {
-        margin: 10
+        margin: theme.spacing(0.25),
+        whiteSpace: "nowrap",
     }
 });
 
@@ -148,13 +184,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //if (this.state.isLoggedIn) {  // in global state now
         if (this.props.store.isLoggedIn) {
             loginLogoutComponent = (
-                <Button color="primary" onClick={this.handleClickLogout} className="appbarButton">
+                <Button color="primary" onClick={this.handleClickLogout} className={classes.appbarButton}>
                     <FontAwesomeIcon icon="key" className="faSpaceAfter" /> Logout
                 </Button>
             );
         } else {
             loginLogoutComponent = (
-                <Button color="primary" onClick={this.handleOnClickLogin} className="appbarButton">
+                <Button color="primary" onClick={this.handleOnClickLogin} className={classes.appbarButton}>
                     <FontAwesomeIcon icon="key" className="faSpaceAfter" /> Login
                 </Button>
             );
@@ -176,36 +212,36 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <img src={logo} className="logo-appbar" alt="logo" /><span className="appbar-title">ObsTool</span>
                         </Link>
                     </Typography>
-                    <Grid container spacing={1} direction="row" justifyContent="flex-end">
-                        <div style={{ width: 300, marginLeft: 20, marginRight: 15 }}>
+                    <div className={classes.navControls}>
+                        <div className={classes.searchContainer}>
                             <SearchInput onSearchView={weAreOnSearchView} />
                         </div>
-                        <Button component={LinkToHome} className="appbarButton">
+                        <Button component={LinkToHome} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="home" className="faSpaceAfter" />Home
                         </Button>
-                        <Button component={LinkToObservedDsos} className="appbarButton">
+                        <Button component={LinkToObservedDsos} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observations
                         </Button>
-                        <Button component={LinkToSessions} className="appbarButton">
+                        <Button component={LinkToSessions} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Sessions
                         </Button>
-                        <Button component={LinkToNewSession} className="appbarButton">
+                        <Button component={LinkToNewSession} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
                         </Button>
-                        <Button component={LinkToLocations} className="appbarButton">
+                        <Button component={LinkToLocations} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="map-marked" className="faSpaceAfter" /> Locations
                         </Button>
-                        <Button component={LinkToInstruments} className="appbarButton">
+                        <Button component={LinkToInstruments} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" /> Instruments
                         </Button>
-                        <Button component={LinkToEyepieces} className="appbarButton">
+                        <Button component={LinkToEyepieces} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="eye" className="faSpaceAfter" /> Eyepieces
                         </Button>
-                        <Button component={LinkToSearch} className="appbarButton">
+                        <Button component={LinkToSearch} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search
                         </Button>
                         {loginLogoutComponent}
-                    </Grid>
+                    </div>
                 </Toolbar>
             </AppBar>
             <main className={classes.layout}>

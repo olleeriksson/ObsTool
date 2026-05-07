@@ -99,6 +99,24 @@ namespace TestProject
             Assert.That(_statisticsService.GetNumObservedH2500Objects(includeNonDetections: true), Is.EqualTo(4));
         }
 
+        [Test]
+        public void GetH2500ObjectsForConstellationMap_ReturnsLinkedObjectsWithCoordinates()
+        {
+            SeedConstellationsAndDsos();
+            SeedHerschelObjects();
+            SeedObservations();
+
+            var objects = _statisticsService.GetH2500ObjectsForConstellationMap("Orion").ToList();
+
+            Assert.That(objects.Select(o => o.HerschelId), Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(objects[0].Name, Is.EqualTo("NGC 1"));
+            Assert.That(objects[0].RA, Is.EqualTo("00 00"));
+            Assert.That(objects[0].DEC, Is.EqualTo("+00 00"));
+            Assert.That(objects[0].HerschelNo, Is.EqualTo("H 1"));
+            Assert.That(objects[0].IsObserved, Is.True);
+            Assert.That(objects[1].IsObserved, Is.False);
+        }
+
         private void SeedConstellationsAndDsos()
         {
             _dbContext.Constellations.AddRange(

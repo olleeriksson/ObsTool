@@ -21,5 +21,12 @@ namespace ObsTool.Controllers
         {
             return Ok(_statisticsService.GetStatistics());
         }
+
+        [AllowAnonymous]
+        [HttpGet("constellations/{constellation}/h2500")]
+        public IActionResult GetH2500ObjectsForConstellationMap([FromRoute] string constellation)
+        {
+            return Ok(_statisticsService.GetH2500ObjectsForConstellationMap(constellation));
+        }
     }
 }
