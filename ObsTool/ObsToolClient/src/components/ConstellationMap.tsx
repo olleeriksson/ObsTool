@@ -20,7 +20,6 @@ import {
     normalizeLongitude,
     parseMapObjectPosition,
     projectPosition,
-    projectToTangentPlane,
     ProjectedLabelCandidate,
     ProjectedPoint,
     selectLabelPlacements,
@@ -50,6 +49,9 @@ export interface IConstellationMapProps {
     labelMode?: ConstellationMapLabelMode;
     width?: number | string;
     height?: number;
+    showControls?: boolean;
+    initialZoom?: number;
+    allowZoom?: boolean;
 }
 
 interface ProjectedMapObject extends ProjectedLabelCandidate {
@@ -69,14 +71,17 @@ interface DragState {
     startPan: PlanePan;
 }
 
+interface MapPadding {
+    x: number;
+    y: number;
+}
+
 const viewBoxWidth = 1000;
 const defaultHeight = 420;
-const boundaryPadding = 8;
+const boundaryPaddingRatio = 0.02;
 const labelFontSize = 12;
 const minZoom = 1.0;
 const maxZoom = 6;
-const zoomInPointerPull = 0.35;
-const zoomOutCenterPull = 0.45;
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -113,10 +118,6 @@ const styles = (theme: Theme) => createStyles({
         stroke: "#d1d1d1",
         strokeDasharray: "5 4",
         strokeWidth: 0.9,
-    },
-    focusedBoundaryFill: {
-        fill: "#ffffff",
-        stroke: "none",
     },
     gridLine: {
         fill: "none",
@@ -224,6 +225,9 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         labelMode = "sac",
         width = "100%",
         height = defaultHeight,
+        showControls = true,
+        initialZoom = 1,
+        allowZoom = true,
     } = props;
 
     const defaultMaxLabels = getDefaultMaxLabels(objects, highlightedObjects);
@@ -234,14 +238,15 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const [isDragging, setIsDragging] = React.useState(false);
     const [selectedObjectInfo, setSelectedObjectInfo] = React.useState<string | null>(null);
     const dragState = React.useRef<DragState | null>(null);
+    const focusedBoundaryClipPathId = React.useId().replace(/:/g, "");
 
     React.useEffect(() => setActiveLabelMode(labelMode), [labelMode]);
     React.useEffect(() => setActiveMaxLabels(maxNumLabels ?? defaultMaxLabels), [maxNumLabels, defaultMaxLabels]);
     React.useEffect(() => {
         setPan({ x: 0, y: 0 });
-        setZoom(1);
+        setZoom(clamp(initialZoom, minZoom, maxZoom));
         setSelectedObjectInfo(null);
-    }, [constellation]);
+    }, [constellation, initialZoom]);
 
     const constellationId = normalizeConstellationId(constellation);
     const focusedBoundaryFeatures = getConstellationFeatures(constellationBounds, constellationId);
@@ -260,6 +265,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     }
 
     const viewExtent = createViewExtent(extent, pan, zoom);
+    const mapPadding = getMapPadding(height);
     const foregroundKeys = new Set([...objects, ...highlightedObjects].map(getMapObjectKey));
     const highlightedKeys = new Set(highlightedObjects.map(getMapObjectKey));
     const projectedBackgroundObjects = projectObjects(
@@ -267,14 +273,16 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         viewExtent,
         height,
         3,
-        activeLabelMode);
-    const projectedHighlightedObjects = projectObjects(uniqueObjects(highlightedObjects), viewExtent, height, 5, activeLabelMode);
+        activeLabelMode,
+        mapPadding);
+    const projectedHighlightedObjects = projectObjects(uniqueObjects(highlightedObjects), viewExtent, height, 5, activeLabelMode, mapPadding);
     const projectedObjects = projectObjects(
         uniqueObjects(objects).filter(object => !highlightedKeys.has(getMapObjectKey(object))),
         viewExtent,
         height,
         4,
-        activeLabelMode);
+        activeLabelMode,
+        mapPadding);
     const foregroundObjectCount = projectedHighlightedObjects.length + projectedObjects.length;
     const sliderMax = Math.max(1, foregroundObjectCount);
     const displayedMaxLabels = Math.min(activeMaxLabels, sliderMax);
@@ -299,6 +307,9 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     projectedObjects,
                     projectedHighlightedObjects,
                     labelPlacements,
+                    mapPadding,
+                    focusedBoundaryClipPathId,
+                    allowZoom,
                     pan,
                     zoom,
                     isDragging,
@@ -308,58 +319,60 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     setIsDragging,
                     dragState)}
             </div>
-            <aside className={classes.controlsPanel}>
-                <Typography variant="overline" component="div" className={classes.controlsTitle}>
-                    Map controls
-                </Typography>
-                <Typography variant="caption" component="div" className={classes.labelsCaption}>
-                    Labels
-                </Typography>
-                <ToggleButtonGroup
-                    exclusive={true}
-                    fullWidth={true}
-                    size="small"
-                    value={activeLabelMode}
-                    onChange={(_, value: ConstellationMapLabelMode | null) => {
-                        if (value != null) {
-                            setActiveLabelMode(value);
-                        }
-                    }}
-                    aria-label="Constellation map label style"
-                    className={classes.labelToggleGroup}
-                >
-                    <ToggleButton value="herschel" className={classes.labelToggleButton}>
-                        Herschel
-                    </ToggleButton>
-                    <ToggleButton value="sac" className={classes.labelToggleButton}>
-                        SAC
-                    </ToggleButton>
-                </ToggleButtonGroup>
-                <Typography variant="caption" component="div" className={classes.labelCount}>
-                    Label count: {displayedMaxLabels}
-                </Typography>
-                <Slider
-                    size="small"
-                    min={0}
-                    max={sliderMax}
-                    step={1}
-                    value={displayedMaxLabels}
-                    onChange={(_, value) => setActiveMaxLabels(Array.isArray(value) ? value[0] : value)}
-                    aria-label="Label count"
-                    valueLabelDisplay="auto"
-                />
-                <Typography variant="caption" component="div" className={classes.controlHelpText}>
-                    Drag the map to pan. Use the mouse wheel to zoom.
-                </Typography>
-                <Typography variant="caption" component="div" className={classes.zoomText}>
-                    Zoom: {zoom.toFixed(1)}x
-                </Typography>
-                {selectedObjectInfo && (
-                    <div className={classes.selectedObjectInfo}>
-                        {selectedObjectInfo}
-                    </div>
-                )}
-            </aside>
+            {showControls && (
+                <aside className={classes.controlsPanel}>
+                    <Typography variant="overline" component="div" className={classes.controlsTitle}>
+                        Map controls
+                    </Typography>
+                    <Typography variant="caption" component="div" className={classes.labelsCaption}>
+                        Labels
+                    </Typography>
+                    <ToggleButtonGroup
+                        exclusive={true}
+                        fullWidth={true}
+                        size="small"
+                        value={activeLabelMode}
+                        onChange={(_, value: ConstellationMapLabelMode | null) => {
+                            if (value != null) {
+                                setActiveLabelMode(value);
+                            }
+                        }}
+                        aria-label="Constellation map label style"
+                        className={classes.labelToggleGroup}
+                    >
+                        <ToggleButton value="herschel" className={classes.labelToggleButton}>
+                            Herschel
+                        </ToggleButton>
+                        <ToggleButton value="sac" className={classes.labelToggleButton}>
+                            SAC
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                    <Typography variant="caption" component="div" className={classes.labelCount}>
+                        Label count: {displayedMaxLabels}
+                    </Typography>
+                    <Slider
+                        size="small"
+                        min={0}
+                        max={sliderMax}
+                        step={1}
+                        value={displayedMaxLabels}
+                        onChange={(_, value) => setActiveMaxLabels(Array.isArray(value) ? value[0] : value)}
+                        aria-label="Label count"
+                        valueLabelDisplay="auto"
+                    />
+                    <Typography variant="caption" component="div" className={classes.controlHelpText}>
+                        Drag the map to pan. Use the mouse wheel to zoom.
+                    </Typography>
+                    <Typography variant="caption" component="div" className={classes.zoomText}>
+                        Zoom: {zoom.toFixed(1)}x
+                    </Typography>
+                    {selectedObjectInfo && (
+                        <div className={classes.selectedObjectInfo}>
+                            {selectedObjectInfo}
+                        </div>
+                    )}
+                </aside>
+            )}
         </div>
     );
 }
@@ -377,6 +390,9 @@ function renderPlot(
     projectedObjects: ProjectedMapObject[],
     projectedHighlightedObjects: ProjectedMapObject[],
     labelPlacements: ReturnType<typeof selectLabelPlacements>,
+    mapPadding: MapPadding,
+    focusedBoundaryClipPathId: string,
+    allowZoom: boolean,
     pan: PlanePan,
     zoom: number,
     isDragging: boolean,
@@ -388,7 +404,9 @@ function renderPlot(
     const surroundingBoundaryRings = getPolygonRings(constellationBounds.features.filter(feature => normalizeConstellationId(feature.id) !== focusedConstellationId));
     const surroundingLineSegments = getLineSegments(constellationLines.features.filter(feature => normalizeConstellationId(feature.id) !== focusedConstellationId));
     const gridSegments = createGridSegments(focusedBoundaryPositions);
-    const focusedBoundaryCoversView = isViewCoveredByFocusedBoundary(focusedBoundaryRings, viewExtent);
+    const focusedBoundaryFillPaths = focusedBoundaryRings
+        .map(ring => coordinatesToPath(ring, viewExtent, height, true, mapPadding, true))
+        .filter((path): path is string => path != null);
 
     return (
         <svg
@@ -398,42 +416,49 @@ function renderPlot(
             height={height}
             viewBox={`0 0 ${viewBoxWidth} ${height}`}
             onPointerDown={(event) => startDrag(event, pan, dragState, setIsDragging)}
-            onPointerMove={(event) => continueDrag(event, viewExtent, baseExtent, height, dragState, setPan)}
+            onPointerMove={(event) => continueDrag(event, viewExtent, baseExtent, height, mapPadding, dragState, setPan)}
             onPointerUp={(event) => stopDrag(event, dragState, setIsDragging)}
             onPointerCancel={(event) => stopDrag(event, dragState, setIsDragging)}
             onLostPointerCapture={(event) => stopDrag(event, dragState, setIsDragging)}
-            onWheel={(event) => zoomFromWheel(event, zoom, viewExtent, baseExtent, height, setZoom, setPan)}
+            onWheel={(event) => {
+                if (allowZoom) {
+                    zoomFromWheel(event, zoom, viewExtent, baseExtent, height, mapPadding, setZoom, setPan);
+                }
+            }}
             onDragStart={(event) => event.preventDefault()}
             className={`${classes.plotSvg} ${isDragging ? classes.plotSvgDragging : classes.plotSvgIdle}`}
         >
+            <defs>
+                <clipPath id={focusedBoundaryClipPathId} clipPathUnits="userSpaceOnUse">
+                    {focusedBoundaryFillPaths.map((path, index) => (
+                        <path key={`focused-boundary-clip-${index}`} d={path} />
+                    ))}
+                </clipPath>
+            </defs>
             <rect x={0} y={0} width={viewBoxWidth} height={height} fill="#f4f4f4" />
-            {focusedBoundaryCoversView && <rect x={0} y={0} width={viewBoxWidth} height={height} fill="#ffffff" />}
             <g aria-hidden="true">
                 {surroundingBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, height, true, {
                     key: `surrounding-boundary-${index}`,
                     className: classes.surroundingBoundary,
-                }))}
-                {focusedBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, height, true, {
-                    key: `boundary-fill-${index}`,
-                    className: classes.focusedBoundaryFill,
-                }, true))}
+                }, mapPadding))}
+                {focusedBoundaryFillPaths.length > 0 && <rect x={0} y={0} width={viewBoxWidth} height={height} fill="#ffffff" clipPath={`url(#${focusedBoundaryClipPathId})`} />}
                 {gridSegments.map((segment, index) => renderPath(segment, viewExtent, height, false, {
                     key: `grid-${index}`,
                     className: classes.gridLine,
-                }))}
+                }, mapPadding))}
                 {surroundingLineSegments.map((segment, index) => renderPath(segment, viewExtent, height, false, {
                     key: `surrounding-line-${index}`,
                     className: classes.surroundingLine,
-                }))}
+                }, mapPadding))}
                 {focusedBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, height, true, {
                     key: `boundary-${index}`,
                     className: classes.focusedBoundary,
-                }, true))}
+                }, mapPadding, true))}
                 {focusedLineSegments.map((segment, index) => renderPath(segment, viewExtent, height, false, {
                     key: `line-${index}`,
                     className: classes.focusedLine,
-                }))}
-                {getUniqueLineVertices(surroundingLineSegments, viewExtent, height).map(vertex => (
+                }, mapPadding))}
+                {getUniqueLineVertices(surroundingLineSegments, viewExtent, height, mapPadding).map(vertex => (
                     <circle
                         key={`surrounding-vertex-${vertex.key}`}
                         cx={vertex.point.x}
@@ -442,7 +467,7 @@ function renderPlot(
                         className={classes.surroundingVertex}
                     />
                 ))}
-                {getUniqueLineVertices(focusedLineSegments, viewExtent, height).map(vertex => (
+                {getUniqueLineVertices(focusedLineSegments, viewExtent, height, mapPadding).map(vertex => (
                     <circle
                         key={`vertex-${vertex.key}`}
                         cx={vertex.point.x}
@@ -489,8 +514,8 @@ function toCelestialPosition(coordinate: RawCoordinate): CelestialPosition {
     };
 }
 
-function renderPath(coordinates: RawCoordinate[], extent: MapExtent, height: number, close: boolean, props: React.SVGProps<SVGPathElement>, allowOffscreenPath = false) {
-    const path = coordinatesToPath(coordinates, extent, height, close, allowOffscreenPath);
+function renderPath(coordinates: RawCoordinate[], extent: MapExtent, height: number, close: boolean, props: React.SVGProps<SVGPathElement>, padding: MapPadding, allowOffscreenPath = false) {
+    const path = coordinatesToPath(coordinates, extent, height, close, padding, allowOffscreenPath);
     if (path == null) {
         return null;
     }
@@ -498,7 +523,7 @@ function renderPath(coordinates: RawCoordinate[], extent: MapExtent, height: num
     return <path {...props} d={path} />;
 }
 
-function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, height: number, close: boolean, allowOffscreenPath: boolean) {
+function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, height: number, close: boolean, padding: MapPadding, allowOffscreenPath: boolean) {
     const commands: string[] = [];
     let isDrawingSegment = false;
     let hasGap = false;
@@ -506,7 +531,7 @@ function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, heig
     let segmentPointCount = 0;
 
     coordinates.forEach(coordinate => {
-        const point = projectCoordinate(coordinate, extent, height);
+        const point = projectCoordinate(coordinate, extent, height, padding);
         if (point == null) {
             hasGap = true;
             isDrawingSegment = false;
@@ -532,48 +557,8 @@ function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, heig
     return close && !hasGap && segmentPointCount >= 2 ? `${path} Z` : path;
 }
 
-function projectCoordinate(coordinate: RawCoordinate, extent: MapExtent, height: number) {
-    return projectPosition(toCelestialPosition(coordinate), extent, viewBoxWidth, height, boundaryPadding);
-}
-
-function isViewCoveredByFocusedBoundary(boundaryRings: RawCoordinate[][], extent: MapExtent) {
-    const viewCorners = [
-        { x: extent.minPlaneX, y: extent.minPlaneY },
-        { x: extent.minPlaneX, y: extent.maxPlaneY },
-        { x: extent.maxPlaneX, y: extent.minPlaneY },
-        { x: extent.maxPlaneX, y: extent.maxPlaneY },
-    ];
-
-    return viewCorners.every(corner => isPlanePointInsideAnyRing(corner, boundaryRings, extent));
-}
-
-function isPlanePointInsideAnyRing(point: PlanePan, boundaryRings: RawCoordinate[][], extent: MapExtent) {
-    return boundaryRings.some(ring => isPlanePointInsideRing(point, ring, extent));
-}
-
-function isPlanePointInsideRing(point: PlanePan, ring: RawCoordinate[], extent: MapExtent) {
-    const planeRing = ring
-        .map(coordinate => projectToTangentPlane(toCelestialPosition(coordinate), extent.centerLongitude, extent.centerLatitude))
-        .filter((coordinate): coordinate is { planeX: number; planeY: number } => coordinate != null);
-
-    if (planeRing.length < 3) {
-        return false;
-    }
-
-    let isInside = false;
-    for (let index = 0, previousIndex = planeRing.length - 1; index < planeRing.length; previousIndex = index++) {
-        const current = planeRing[index];
-        const previous = planeRing[previousIndex];
-        const crossesLatitude = (current.planeY > point.y) !== (previous.planeY > point.y);
-        if (crossesLatitude) {
-            const crossingX = (previous.planeX - current.planeX) * (point.y - current.planeY) / (previous.planeY - current.planeY) + current.planeX;
-            if (point.x < crossingX) {
-                isInside = !isInside;
-            }
-        }
-    }
-
-    return isInside;
+function projectCoordinate(coordinate: RawCoordinate, extent: MapExtent, height: number, padding: MapPadding) {
+    return projectPosition(toCelestialPosition(coordinate), extent, viewBoxWidth, height, padding.x, padding.y);
 }
 
 function projectObjects(
@@ -581,14 +566,15 @@ function projectObjects(
     extent: MapExtent,
     height: number,
     markerRadius: number,
-    labelMode: ConstellationMapLabelMode): ProjectedMapObject[] {
+    labelMode: ConstellationMapLabelMode,
+    padding: MapPadding): ProjectedMapObject[] {
     return objects.flatMap(object => {
         const position = parseMapObjectPosition(object);
         if (position == null) {
             return [];
         }
 
-        const projected = projectPosition(position, extent, viewBoxWidth, height, boundaryPadding);
+        const projected = projectPosition(position, extent, viewBoxWidth, height, padding.x, padding.y);
         if (projected == null) {
             return [];
         }
@@ -625,11 +611,11 @@ function getDefaultMaxLabels(objects: IConstellationMapObject[], highlightedObje
     return uniqueHighlightedObjects.length + uniqueNormalObjects.length;
 }
 
-function getUniqueLineVertices(lineSegments: RawCoordinate[][], extent: MapExtent, height: number) {
+function getUniqueLineVertices(lineSegments: RawCoordinate[][], extent: MapExtent, height: number, padding: MapPadding) {
     const vertices = new Map<string, { key: string; point: ProjectedPoint }>();
     lineSegments.forEach(segment => {
         segment.forEach(coordinate => {
-            const point = projectCoordinate(coordinate, extent, height);
+            const point = projectCoordinate(coordinate, extent, height, padding);
             if (point == null || !isNearViewBox(point, height)) {
                 return;
             }
@@ -790,6 +776,7 @@ function continueDrag(
     viewExtent: MapExtent,
     baseExtent: MapExtent,
     height: number,
+    padding: MapPadding,
     dragState: React.MutableRefObject<DragState | null>,
     setPan: (pan: PlanePan) => void) {
     const drag = dragState.current;
@@ -798,7 +785,7 @@ function continueDrag(
     }
 
     event.preventDefault();
-    const scaleData = getProjectionScaleData(viewExtent, height);
+    const scaleData = getProjectionScaleData(viewExtent, height, padding);
     const deltaX = (event.clientX - drag.startClientX) / scaleData.scale;
     const deltaY = (event.clientY - drag.startClientY) / scaleData.scale;
     const nextPan = clampPan({ x: drag.startPan.x - deltaX, y: drag.startPan.y + deltaY }, baseExtent);
@@ -825,14 +812,14 @@ function zoomFromWheel(
     viewExtent: MapExtent,
     baseExtent: MapExtent,
     height: number,
+    padding: MapPadding,
     setZoom: (zoom: number) => void,
     setPan: (pan: PlanePan) => void) {
     event.preventDefault();
-    const isWheelZoomingOut = event.deltaY > 0;
     const factor = event.deltaY < 0 ? 1.14 : 1 / 1.14;
     const nextZoom = clamp(zoom * factor, minZoom, maxZoom);
-    const planePoint = svgPointToPlane(event, viewExtent, height);
-    if (planePoint == null || (nextZoom === zoom && !isWheelZoomingOut)) {
+    const planePoint = svgPointToPlane(event, viewExtent, height, padding);
+    if (planePoint == null || nextZoom === zoom) {
         setZoom(nextZoom);
         return;
     }
@@ -844,19 +831,12 @@ function zoomFromWheel(
     const zoomRatio = zoom / nextZoom;
     const anchoredCenterX = planePoint.x - (planePoint.x - currentCenterX) * zoomRatio;
     const anchoredCenterY = planePoint.y - (planePoint.y - currentCenterY) * zoomRatio;
-    const isZoomingOut = nextZoom < zoom || isWheelZoomingOut;
-    const nextCenterX = isZoomingOut
-        ? anchoredCenterX + (baseCenterX - anchoredCenterX) * zoomOutCenterPull
-        : currentCenterX + (anchoredCenterX - currentCenterX) * zoomInPointerPull;
-    const nextCenterY = isZoomingOut
-        ? anchoredCenterY + (baseCenterY - anchoredCenterY) * zoomOutCenterPull
-        : currentCenterY + (anchoredCenterY - currentCenterY) * zoomInPointerPull;
 
     setZoom(nextZoom);
-    setPan(clampPan({ x: nextCenterX - baseCenterX, y: nextCenterY - baseCenterY }, baseExtent));
+    setPan(clampPan({ x: anchoredCenterX - baseCenterX, y: anchoredCenterY - baseCenterY }, baseExtent));
 }
 
-function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerEvent<SVGSVGElement> | React.WheelEvent<SVGSVGElement>, extent: MapExtent, height: number) {
+function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerEvent<SVGSVGElement> | React.WheelEvent<SVGSVGElement>, extent: MapExtent, height: number, padding: MapPadding) {
     const rect = event.currentTarget.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
         return null;
@@ -864,7 +844,7 @@ function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerE
 
     const svgX = (event.clientX - rect.left) / rect.width * viewBoxWidth;
     const svgY = (event.clientY - rect.top) / rect.height * height;
-    const scaleData = getProjectionScaleData(extent, height);
+    const scaleData = getProjectionScaleData(extent, height, padding);
 
     return {
         x: extent.minPlaneX + (svgX - scaleData.xOffset) / scaleData.scale,
@@ -872,11 +852,11 @@ function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerE
     };
 }
 
-function getProjectionScaleData(extent: MapExtent, height: number) {
+function getProjectionScaleData(extent: MapExtent, height: number, padding: MapPadding) {
     const planeSpanX = Math.max(0.001, extent.maxPlaneX - extent.minPlaneX);
     const planeSpanY = Math.max(0.001, extent.maxPlaneY - extent.minPlaneY);
-    const drawableWidth = Math.max(1, viewBoxWidth - boundaryPadding * 2);
-    const drawableHeight = Math.max(1, height - boundaryPadding * 2);
+    const drawableWidth = Math.max(1, viewBoxWidth - padding.x * 2);
+    const drawableHeight = Math.max(1, height - padding.y * 2);
     const scale = Math.min(drawableWidth / planeSpanX, drawableHeight / planeSpanY);
     const usedWidth = planeSpanX * scale;
     const usedHeight = planeSpanY * scale;
@@ -885,6 +865,13 @@ function getProjectionScaleData(extent: MapExtent, height: number) {
         scale,
         xOffset: (viewBoxWidth - usedWidth) / 2,
         yOffset: (height - usedHeight) / 2,
+    };
+}
+
+function getMapPadding(height: number): MapPadding {
+    return {
+        x: viewBoxWidth * boundaryPaddingRatio,
+        y: height * boundaryPaddingRatio,
     };
 }
 

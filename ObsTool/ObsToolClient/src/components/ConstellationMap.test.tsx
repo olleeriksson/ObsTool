@@ -1,5 +1,6 @@
 import * as React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import ConstellationMap from "./ConstellationMap";
 
 it("does not label a single foreground object", () => {
@@ -100,4 +101,74 @@ it("shows selected object information when a label is clicked", () => {
     fireEvent.click(screen.getByText("H V-18"));
 
     expect(screen.getByText("NGC 224 / H V-18")).toBeInTheDocument();
+});
+
+it("zooms from the wheel when zooming is enabled", () => {
+    render(
+        <ConstellationMap
+            constellation="And"
+            objects={[]}
+            initialZoom={2}
+        />
+    );
+
+    const map = screen.getByRole("img", { name: "Constellation map" });
+    vi.spyOn(map, "getBoundingClientRect").mockReturnValue({
+        bottom: 420,
+        height: 420,
+        left: 0,
+        right: 1000,
+        top: 0,
+        width: 1000,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+    });
+
+    fireEvent.wheel(map, { clientX: 250, clientY: 200, deltaY: 100 });
+
+    expect(screen.getByText("Zoom: 1.8x")).toBeInTheDocument();
+});
+
+it("ignores wheel zoom when zooming is disabled", () => {
+    render(
+        <ConstellationMap
+            constellation="And"
+            objects={[]}
+            initialZoom={2}
+            allowZoom={false}
+        />
+    );
+
+    const map = screen.getByRole("img", { name: "Constellation map" });
+    vi.spyOn(map, "getBoundingClientRect").mockReturnValue({
+        bottom: 420,
+        height: 420,
+        left: 0,
+        right: 1000,
+        top: 0,
+        width: 1000,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+    });
+
+    fireEvent.wheel(map, { clientX: 250, clientY: 200, deltaY: 100 });
+
+    expect(screen.getByText("Zoom: 2.0x")).toBeInTheDocument();
+});
+
+it("clips the white constellation fill to the focused boundary", () => {
+    const { container } = render(
+        <ConstellationMap
+            constellation="And"
+            objects={[]}
+        />
+    );
+
+    const clipPath = container.querySelector("clipPath");
+    const clippedFill = container.querySelector("rect[clip-path]");
+
+    expect(clipPath).toBeInTheDocument();
+    expect(clippedFill).toHaveAttribute("fill", "#ffffff");
 });

@@ -175,7 +175,7 @@ export function createMapExtent(coordinates: CelestialPosition[]): MapExtent | n
     };
 }
 
-export function projectPosition(position: CelestialPosition, extent: MapExtent, width: number, height: number, padding: number): ProjectedPoint | null {
+export function projectPosition(position: CelestialPosition, extent: MapExtent, width: number, height: number, paddingX: number, paddingY: number): ProjectedPoint | null {
     const planePoint = projectToTangentPlane(position, extent.centerLongitude, extent.centerLatitude);
     if (planePoint == null) {
         return null;
@@ -183,8 +183,8 @@ export function projectPosition(position: CelestialPosition, extent: MapExtent, 
 
     const planeSpanX = Math.max(0.001, extent.maxPlaneX - extent.minPlaneX);
     const planeSpanY = Math.max(0.001, extent.maxPlaneY - extent.minPlaneY);
-    const drawableWidth = Math.max(1, width - padding * 2);
-    const drawableHeight = Math.max(1, height - padding * 2);
+    const drawableWidth = Math.max(1, width - paddingX * 2);
+    const drawableHeight = Math.max(1, height - paddingY * 2);
     const scale = Math.min(drawableWidth / planeSpanX, drawableHeight / planeSpanY);
     const usedWidth = planeSpanX * scale;
     const usedHeight = planeSpanY * scale;

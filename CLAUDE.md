@@ -17,10 +17,29 @@ Two projects under one solution (`ObsTool.sln`):
 
 The frontend has its own dedicated guidance at **`ObsTool/ObsToolClient/CLAUDE.md`** — read it before doing any frontend work. It covers the MUI v6 / tss-react styling shim, dev-server port rules, and testing setup. Do not duplicate that content here.
 
+## Working Rules
+
+- Document code that you write.
+
 ## Important rules
 
 - **Never commit to git.** This applies to both backend and frontend changes. (Repeated from the frontend CLAUDE.md so it isn't missed when working server-side.)
 - **Preserve the user's staged changes.** Do not run broad staging or unstaging commands such as `git add .`, `git restore --staged .`, or `git reset` unless the user explicitly asks for that exact git operation. Leave any files that were already staged in the index exactly as they are. Put new or modified work in the working tree only, unstaged, and report the status clearly.
+- **Local server ownership rule.** Before starting frontend or backend locally, first check whether the user already has a running instance and reuse it if available (frontend commonly on `localhost:3000-3007`). If Codex starts any local dev server process for verification, Codex must stop every process it started before finishing so the user remains free to start their own instances on preferred ports.
+
+## Browser verification workflow (Edge + Chrome)
+
+Use this workflow whenever the user asks to verify that the React app loads or works in a browser.
+
+- Prefer Browser Use in-app browser for interactive verification on localhost targets.
+- Also vary checks across both Edge and Chrome when possible (user preference is primarily Chrome).
+- Detect an already-running frontend first by probing `http://localhost:3000` through `http://localhost:3007` and reuse the active port.
+- If no frontend is running, start `npm run dev` in `ObsTool/ObsToolClient`, remember the PID, and stop it before finishing.
+- Assume backend may already be user-run; probe common local API ports before starting a new backend process.
+- If backend must be started for verification, start `dotnet run` in `ObsTool`, remember the PID, and stop it before finishing.
+- Minimum load proof for frontend: HTTP 200 response from active frontend port and served HTML contains the React mount node (`<div id="root"></div>`).
+- For browser variance evidence, run the same URL in Edge and Chrome. If one method fails (for example headless GPU/runtime issues), retry with stable flags or switch to in-app verification and record the limitation explicitly.
+- Do not leave temp verification processes or temp artifacts behind when done.
 
 ## Commands
 
@@ -67,52 +86,73 @@ In non-development environments, `Startup.Configure` mounts the SPA via `UseSpaS
 
 Classic ASP.NET Core layered structure (`Startup.cs` does service registration the old-style way, not minimal hosting):
 
-- **Controllers** (`Controllers/`) — thin REST controllers under `api/...`: `ObsSessions`, `Observations`, `Dso`, `Locations`, `ObsResources`, `Statistics`, `Authentication`, `Admin`.
-- **Services / Repos** (`Services/`) — repo-per-aggregate (`ObsSessionsRepo`, `LocationsRepo`, `DsoRepo`, `ObservationsRepo`, `DsoObservationsRepo`, `ObsResourcesRepo`) plus two thicker services: `ObservationsService` and `ReportTextManager`. All registered as scoped in `Startup.ConfigureServices`.
-- **Entities** (`Entities/`) — EF Core entities; key relationships configured in `Database/MainDbContext.OnModelCreating` (composite keys for join entities; one-to-one `Dso` ↔ `DsoExtra`).
-- **Models** (`Models/`) — DTOs (`*Dto`, plus `*DtoForCreation` / `*DtoForUpdate` variants). Mapping is via AutoMapper, configured in `MappingProfiles.cs`.
-- **Database** — SQLite via EF Core. Connection string in `appsettings.{Environment}.json` under `Db:ConnectionString`. Set `Db:Migrate=true` to auto-run migrations on startup (`MainDbContext` checks this in its constructor).
-- **Auth** — cookie auth. Toggled by `EnableAuthentication` in config: when true, an `AuthorizeFilter` is added globally and endpoints opt out with `[AllowAnonymous]`. `OnRedirectToLogin` returns 401 instead of redirecting, so the SPA handles auth itself.
-- **Errors** — custom `ExceptionMiddleware`, wired via `ConfigureCustomExceptionMiddleware()`.
-- **Logging** — NLog via `UseNLog()` in `Program.cs`; config in `nlog.config`.
+- **Controllers** (`Controllers/`) - thin REST controllers under `api/...`: `ObsSessions`, `Observations`, `Dso`, `Locations`, `Instruments`, `Eyepieces`, `ObsResources`, `Statistics`, `Authentication`, `Admin`.
+- **Services / Repos** (`Services/`) - repo-per-aggregate (`ObsSessionsRepo`, `LocationsRepo`, `InstrumentsRepo`, `EyepiecesRepo`, `DsoRepo`, `ObservationsRepo`, `DsoObservationsRepo`, `ObsResourcesRepo`) plus two thicker services: `ObservationsService` and `ReportTextManager`. All are registered as scoped in `Startup.ConfigureServices` (`DsoRepo` behind `IDsoRepo`).
+- **Entities** (`Entities/`) - EF Core entities for sessions/observations/resources, DSO catalog data, equipment (`Instrument`, `Eyepiece`), and article metadata (`Article`, `Constellation`, join tables). Key relationships are configured in `Database/MainDbContext.OnModelCreating` (composite keys for join entities; one-to-one `Dso` <-> `DsoExtra`).
+- **Models** (`Models/`) - DTOs (`*Dto`, plus `*DtoForCreation` / `*DtoForUpdate` variants). Mapping is via AutoMapper, configured in `MappingProfiles.cs`.
+- **Database** - SQLite via EF Core. Connection string in `appsettings.{Environment}.json` under `Db:ConnectionString`. Set `Db:Migrate=true` to auto-run migrations on startup (`MainDbContext` checks this in its constructor).
+- **Auth** - cookie auth. Toggled by `EnableAuthentication` in config: when true, an `AuthorizeFilter` is added globally and endpoints opt out with `[AllowAnonymous]`. `OnRedirectToLogin` returns 401 instead of redirecting, so the SPA handles auth itself.
+- **Errors** - custom `ExceptionMiddleware`, wired via `ConfigureCustomExceptionMiddleware()`.
+- **Logging** - NLog via `UseNLog()` in `Program.cs`; config in `nlog.config`.
 
-Frontend is a React 18 SPA: global Redux state (`src/store/AppStore.ts` → reducers in `src/reducers/`, thunks in `src/actions/`), all API calls through the static `Api` class in `src/api/Api.ts` (axios with cookie credentials), React Router v6 in `src/components/Routes.tsx`, MUI v6 with the tss-react `withStyles` shim — see the frontend CLAUDE.md.
+Frontend is a React 18 SPA: global Redux state (`src/store/AppStore.ts` -> reducers in `src/reducers/`, thunks in `src/actions/`), all API calls through the static `Api` class in `src/api/Api.ts` (axios with cookie credentials), React Router v6 in `src/components/Routes.tsx`, MUI v6 with the tss-react `withStyles` shim - see `ObsTool/ObsToolClient/CLAUDE.md`.
 
-## Domain model — the four core entities
+## Domain model - the four core entities
 
 Understanding these and how they're produced is the single most important thing for working on this codebase. The user's primary edit target is **`ObsSession.ReportText`** (free-form prose); everything else is derived from it.
 
-### `Dso` — read-only reference catalog
+### `Dso` - read-only reference catalog
 
-Mapped to table `SacDeepSkyObjects` (note the table-name attribute in `Entities/Dso.cs`). Sourced from the Saguaro Astronomy Club deep-sky database — this is **catalog data, treated as effectively read-only at runtime** (populated/curated via the SQL in `Database/README.txt`, not by the API).
+Mapped to table `SacDeepSkyObjects` (note the table-name attribute in `Entities/Dso.cs`). Sourced from the Saguaro Astronomy Club deep-sky database - this is **catalog data, treated as effectively read-only at runtime** (populated/curated via the SQL in `Database/README.txt`, not by the API).
 
-A `Dso` represents a single deep-sky object (galaxy, nebula, cluster, …). Key columns: `Catalog` (`"M"`, `"NGC"`, `"IC"`, `"Sh2"`, …), `CatalogNumber`, `Name` (`"M 31"`), `OtherNames`, `CommonName`, `Type`, `Con` (constellation), coordinates `RA`/`DEC`, `Mag` (visual magnitude), `SB` (surface brightness), `SizeMax`/`SizeMin`, etc. Most string columns are stored as strings even when numeric, because they come straight from the SAC database that way.
+A `Dso` represents a single deep-sky object (galaxy, nebula, cluster, ...). Key columns: `Catalog` (`"M"`, `"NGC"`, `"IC"`, `"Sh2"`, ...), `CatalogNumber`, `Name` (`"M 31"`), `OtherNames`, `CommonName`, `Type`, `Con` (constellation), coordinates `RA`/`DEC`, `Mag` (visual magnitude), `SB` (surface brightness), `SizeMax`/`SizeMin`, etc. Most string columns are stored as strings even when numeric, because they come straight from the SAC database that way.
 
-Two navigation collections back to user data: `DsoObservations` (every time it has been observed) and `DsoExtra` (user-added metadata — see below).
+Two navigation collections back to user data: `DsoObservations` (every time it has been observed) and `DsoExtra` (user-added metadata - see below).
 
-### `ObsSession` — one observing night
+### `H2500` - Herschel catalog checklist
+
+The development SQLite database (`C:\Users\Olle\source\obstool_database_dev.db`) also contains an `H2500` table for the Herschel catalog / checklist. It is catalog/list data rather than user-entered observation data. At the time it was inspected, it had 2521 rows, all linked to `SacDeepSkyObjects` through `H2500.SacDeepSkyObjectsId`.
+
+`H2500` is not currently mapped as an EF Core entity or `DbSet` in the app code. If future work needs to expose Herschel progress through the API, either add an explicit entity/DTO/repo path or use a focused read query; do not infer it from the report parser.
+
+Important columns:
+
+- `HerschelId` - primary key for the Herschel list row.
+- `HerschelNo` - Herschel designation, for example `H I-1`.
+- `Cat` / `CatNo` - the main catalog designation (`NGC`, `M`, or `IC`) and number used for display and sanity checks.
+- `Name` / `NameCompr` - display/compressed names for the listed object.
+- `Type`, `Const`, `Constellation` - object type and constellation metadata from the Herschel list.
+- `H400`, `H2500ExclMissing`, `H2500Unseen`, `H2500Unmarked`, `H400ExclMissing`, `H400Unseen` - checklist/filter flags from the source list.
+- `DescrLong`, `DreyerTranslated` - descriptive text fields.
+- `SacDeepSkyObjectsId` - nullable FK to `SacDeepSkyObjects(Id)`, configured with `ON DELETE NO ACTION ON UPDATE NO ACTION`.
+
+For "how many Herschel objects has the user observed?", the intended relationship path is `H2500.SacDeepSkyObjectsId -> SacDeepSkyObjects.Id -> DsoObservations.DsoId -> Observations -> ObsSessions`. Count distinct `H2500.HerschelId` when answering Herschel-list progress. Counting distinct SAC IDs is a different number because some Herschel rows can point to the same SAC object; the inspected dev database had 39 duplicated `SacDeepSkyObjectsId` groups. Decide explicitly whether `DsoObservations.NonDetection` should count before presenting progress totals.
+
+### `ObsSession` - one observing night
 
 A single session at the telescope. Owns: `Date`, `Location`, `Title`, free-form `Summary` and `Conditions`, numeric `Seeing` / `Transparency` / `LimitingMagnitude` ratings, a list of `Observations`, a collection of `DsoExtras`, and crucially a free-form **`ReportText`** in which the user describes the night, naming objects by catalog designation (e.g. `"M 31"`, `"NGC 869"`).
 
 `ReportText` is the source of truth for what was observed; `Observations` and `DsoObservations` are derived from it by parsing.
 
-### `Observation` — one prose section, one or more DSOs
+### `Observation` - one prose section, one or more DSOs
 
-One discrete observation within a session. Holds the `Text` (the section of the report that talks about it), an `Identifier` (a stable `#sessionId-dsoId-dsoId-…` tag injected back into the report so re-parses can match it to the persisted row), a `DisplayOrder`, a `NonDetection` flag, plus its `DsoObservations` (which DSOs the section is about) and `ObsResources` (attached photos/sketches/links).
+One discrete observation within a session. Holds the `Text` (the section of the report that talks about it), an `Identifier` (a stable `#sessionId-dsoId-dsoId-...` tag injected back into the report so re-parses can match it to the persisted row), a `DisplayOrder`, a `NonDetection` flag, plus its `DsoObservations` (which DSOs the section is about) and `ObsResources` (attached photos/sketches/links).
 
-Note: `Observation` deliberately does **not** have direct `ObsSession` or `Dso` navigation properties — only `ObsSessionId`. The comment in `Entities/Observation.cs` explains why: removing them avoids self-referencing loops in EF Core and AutoMapper. Code that needs the parent session has to fetch it separately, which `ObservationsService` does and stitches into the DTO manually.
+Note: `Observation` deliberately does **not** have direct `ObsSession` or `Dso` navigation properties - only `ObsSessionId`. The comment in `Entities/Observation.cs` explains why: removing them avoids self-referencing loops in EF Core and AutoMapper. Code that needs the parent session has to fetch it separately, which `ObservationsService` does and stitches into the DTO manually.
 
-### `DsoObservation` — join with payload
+### `DsoObservation` - join with payload
 
 A pure many-to-many join between `Observation` and `Dso` (one observation section can mention several DSOs; one DSO can be observed across many sessions). Carries extra payload: `DisplayOrder` (so the UI shows DSOs in the order they appeared in the report) and `CustomObjectName` (used when the user observes something that isn't in the catalog).
 
-Composite PK is `(ObservationId, DsoId, CustomObjectName)` — configured in `MainDbContext.OnModelCreating`. Equality and hash code are overridden in the entity so list comparisons in `ReportTextManager` work as set membership rather than reference equality.
+Composite PK is `(ObservationId, DsoId, CustomObjectName)` - configured in `MainDbContext.OnModelCreating`. Equality and hash code are overridden in the entity so list comparisons in `ReportTextManager` work as set membership rather than reference equality.
 
 ### Supporting entities
 
-- **`DsoExtra`** — user-added metadata layered onto the read-only `Dso` (one-to-one). Holds a `Rating` (parsed from `+1`/`+2`/`-1`/`*`/`**` markers in the report) and a `FollowUp` flag (parsed from words like "revisit", "come back", "telescope"). Also references the `ObsSession` it was last updated from; `ReportTextManager` only overwrites it if the current session is newer.
-- **`ObsResource`** — photo / sketch / link / jot attached to an `Observation`. Carries display metadata: `Rotation`, `ZoomLevel`, `Inverted`, `BackgroundColor`. Resources of type `Sketch` and `Jot` are assumed to be Google Drive URLs and have the file ID extracted at parse time.
-- **`Location`** — where a session happened. Name, latitude/longitude, optional Google Maps address.
+- **`DsoExtra`** - user-added metadata layered onto the read-only `Dso` (one-to-one). Holds a `Rating` (parsed from `+1`/`+2`/`-1`/`*`/`**` markers in the report) and a `FollowUp` flag (parsed from words like "revisit", "come back", "telescope"). Also references the `ObsSession` it was last updated from; `ReportTextManager` only overwrites it if the current session is newer.
+- **`ObsResource`** - photo / sketch / link / jot attached to an `Observation`. Carries display metadata: `Rotation`, `ZoomLevel`, `Inverted`, `BackgroundColor`. Resources of type `Sketch` and `Jot` are assumed to be Google Drive URLs and have the file ID extracted at parse time.
+- **`Location`** - where a session happened. Name, latitude/longitude, optional Google Maps address.
+- **`Instrument / Eyepiece`** - user-maintained equipment entities exposed through dedicated CRUD controllers/repos.
+- **`Article / Constellation`** - additional domain content relations (`ArticleConstellations`, `ArticleDsoObjects`) configured with composite keys in `MainDbContext`.
 
 ## The report-text parsing pipeline
 
@@ -120,20 +160,20 @@ Composite PK is `(ObservationId, DsoId, CustomObjectName)` — configured in `Ma
 
 1. **Sections the report** by blank lines (regex with `Singleline` so a section can include trailing `Photo:` / `Sketch:` lines).
 2. **Per section**, regex-extracts:
-   - DSO designations matching any catalog known to `DsoRepo.GetAllCatalogs()` (e.g. `M 31`, `NGC 7000`, `Sh2-101`). Each is resolved against `Dso`; unknown names are silently skipped. Parenthesised mentions like `(M 31)` are deliberately ignored. The same DSO appearing in two different sections is treated as an error.
-   - Resource lines: `Photo:`, `Image:`, `Sketch:`, `Link:`, `Jot:` followed by a URL → `ObsResource` rows. `Photo` is normalised to `image`. `Sketch` and `Jot` URLs are run through Google Drive ID extraction.
-   - `!!` → `NonDetection = true`.
-   - `+1` / `+2` / `-1` / `*` / `**` → numeric `Rating`.
-   - "revisit" / "come back" / "telescope" → `FollowUp = true`.
-3. **Reconciles** with what's already persisted: matches by stable `Identifier`. Sections that no longer parse to anything become deletes; matching sections are updated in place; new sections are inserted. For new sections it injects a freshly-minted `#sessionId-dsoId-…` identifier back into the report text so the next save round-trips stably.
-4. **Strips** parsed resource lines from the persisted `ReportText` (so they don't appear twice — once as parsed `ObsResource`, once as raw text).
+   - DSO designations matching any catalog known to `DsoRepo.GetAllCatalogs()` (e.g. `M 31`, `NGC 7000`, `Sh2-101`). Each is resolved against `Dso`; unknown names are silently skipped. Parenthesized mentions like `(M 31)` are deliberately ignored. The same DSO appearing in two different sections is treated as an error.
+   - Resource lines: `Photo:`, `Image:`, `Sketch:`, `Link:`, `Jot:` followed by a URL -> `ObsResource` rows. `Photo` is normalized to `image`. `Sketch` and `Jot` URLs are run through Google Drive ID extraction.
+   - `!!` -> `NonDetection = true`.
+   - `+1` / `+2` / `-1` / `*` / `**` -> numeric `Rating`.
+   - "revisit" / "come back" / "telescope" -> `FollowUp = true`.
+3. **Reconciles** with what's already persisted: matches by stable `Identifier`. Sections that no longer parse to anything become deletes; matching sections are updated in place; new sections are inserted. For new sections it injects a freshly-minted `#sessionId-dsoId-...` identifier back into the report text so the next save round-trips stably.
+4. **Strips** parsed resource lines from the persisted `ReportText` (so they don't appear twice - once as parsed `ObsResource`, once as raw text).
 5. **Updates `DsoExtra`** for each DSO in the section, but only if the current session is newer than whichever session previously wrote it (so the most recent rating/follow-up wins per DSO).
 
-Test coverage for this pipeline lives in `ObsTool.Test/ReportTextManagerTest.cs` — that's the file to extend when changing parsing rules.
+Test coverage for this pipeline lives in `ObsTool.Test/ReportTextManagerTest.cs` - that's the file to extend when changing parsing rules.
 
 ## Cross-cutting conventions
 
-- **DTO/Entity boundary**: controllers accept and return only `*Dto` types; AutoMapper handles entity ↔ DTO. When adding a field, update the entity, the DTOs, **and** `MappingProfiles.cs` together. Bear in mind the manual `ObsSessionDto` stitching in `ObservationsService.GetAllObservationDtosForObservations` — AutoMapper can't do it because of the recursion cycle noted on `Observation`.
+- **DTO/Entity boundary**: controllers accept and return only `*Dto` types; AutoMapper handles entity <-> DTO. When adding a field, update the entity, the DTOs, **and** `MappingProfiles.cs` together. Bear in mind the manual `ObsSessionDto` stitching in `ObservationsService.GetAllObservationDtosForObservations` - AutoMapper can't do it because of the recursion cycle noted on `Observation`.
 - **CORS**: allowed origins are space-separated in `CorsAllowedOrigins`. Add new dev ports there if changing the Vite port.
 - **API base URL**: backend routes live under `/api/...` (route attributes on each controller); SPA reads `VITE_API_URL` for the base.
 - **Catalog list is dynamic**: `ReportTextManager` builds its DSO regex from `DsoRepo.GetAllCatalogs()`, with `Sh2` added explicitly. New catalog prefixes generally need no code change beyond seeding rows in `SacDeepSkyObjects`.
