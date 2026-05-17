@@ -35,7 +35,7 @@ jobs:
         run: npm ci
 
       - name: Publish integrated app
-        run: dotnet publish ObsTool/ObsTool.csproj --configuration Release --runtime win-x64 --self-contained true --output publish /p:EnvironmentName=Production
+        run: dotnet publish ObsTool/ObsTool.csproj --configuration Release --self-contained false --output publish /p:EnvironmentName=Production
         env:
           VITE_API_URL: /obstool/api
           VITE_BASE_PATH: /obstool/
