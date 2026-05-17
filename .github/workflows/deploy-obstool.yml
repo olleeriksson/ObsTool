@@ -69,7 +69,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: publish/
           server-dir: /
-          dangerous-clean-slate: true
+          dangerous-clean-slate: false     # true deletes all files in the server directory before uploading, false only deletes files that are being replaced
 
       - name: Remove app_offline marker from publish folder
         shell: pwsh
