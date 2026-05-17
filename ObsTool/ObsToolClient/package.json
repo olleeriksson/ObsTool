@@ -35,8 +35,8 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit --project tsconfig.app.json && vite build",
+    "typecheck": "tsc --noEmit --project tsconfig.app.json",
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "vitest run",
