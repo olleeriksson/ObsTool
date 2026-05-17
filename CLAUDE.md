@@ -71,16 +71,84 @@ npm run test:watch # vitest interactive
 
 The SPA reads the API base URL from `import.meta.env.VITE_API_URL` (axios calls in `src/api/Api.ts`). In dev the backend allows CORS for `localhost:3000–3007` (see `appsettings.Development.json`).
 
-### Production (single integrated binary)
+## Run And Deployment Modes
 
-`dotnet publish -c Release` builds the SPA into `ObsTool/ObsToolClient/build` and copies it into the publish output. Then:
+ObsTool can be run in three different shapes. Keep these separate when diagnosing ports, base paths, publish output, and hosting failures.
+
+### 1. Development: separate backend and Vite frontend
+
+Use this mode for normal local coding. The ASP.NET Core backend and Vite frontend run as separate processes.
 
 ```bash
-cd ObsTool/bin/Release/net10.0/publish
-./ObsTool.exe
+dotnet run --project ObsTool
+cd ObsTool/ObsToolClient
+npm run dev
 ```
 
-In non-development environments, `Startup.Configure` mounts the SPA via `UseSpaStaticFiles` / `UseSpa` so the same process serves both the API and the static React bundle. In Development, the SPA is **not** auto-launched — run `npm run dev` separately.
+The backend development launch profile is `http://localhost:50996/` (`AspNetCoreWebApp` in `ObsTool/Properties/launchSettings.json`; IIS Express is `50995`). The frontend is normally `http://localhost:3000/` when the user starts it manually. `ObsTool/ObsToolClient/.env.development` points the frontend API base to `http://localhost:50996/api`.
+
+In Development, the backend does not host or auto-launch the SPA. Run Vite separately.
+
+### 2. Local production: integrated ASP.NET Core app
+
+Use this mode to test the same integrated shape as hosting: one ASP.NET Core process serves both `/api/...` and the built React SPA.
+
+Preferred scripts:
+
+```bash
+cd ObsTool/Scripts
+PROD-build-and-run-integrated.cmd
+```
+
+If the app has already been published:
+
+```bash
+cd ObsTool/Scripts
+PROD-run-integrated.cmd
+```
+
+The local production URL is `http://localhost:5000/obstool/`. The scripts set:
+
+- `ASPNETCORE_ENVIRONMENT=Production`
+- `ASPNETCORE_URLS=http://localhost:5000`
+- `ASPNETCORE_PATHBASE=/obstool`
+- `VITE_API_URL=/obstool/api`
+- `VITE_BASE_PATH=/obstool/`
+
+`dotnet publish -c Release` builds the SPA into `ObsTool/ObsToolClient/build` and copies it into the publish output. In non-development environments, `Startup.Configure` mounts the SPA via `UseSpaStaticFiles` / `UseSpa` so the same process serves both the API and the static React bundle.
+
+### 3. Hosted production: SmarterASP.NET via GitHub Actions
+
+The hosted deployment target is `https://www.olle-eriksson.com/obstool/`. Pushing to the `release` branch runs `.github/workflows/deploy-obstool.yml`, builds the app on GitHub Actions, and uploads the `publish/` output by FTP.
+
+Required GitHub repository secrets:
+
+- `FTP_SERVER`
+- `FTP_USERNAME`
+- `FTP_PASSWORD`
+
+The FTP account is scoped so the workflow uses `server-dir: /`, which maps to `www.olle-eriksson.com/obstool/` on the host.
+
+The hosted workflow should use framework-dependent publish unless there is a specific reason to bundle the runtime:
+
+```bash
+dotnet publish ObsTool/ObsTool.csproj --configuration Release --self-contained false --output publish /p:EnvironmentName=Production
+```
+
+This generates an IIS `web.config` that runs `dotnet .\ObsTool.dll` and relies on SmarterASP.NET's installed ASP.NET Core runtime. This is the preferred shared-hosting mode because it avoids hard-coding a native runtime architecture.
+
+Self-contained publish is an alternative:
+
+```bash
+dotnet publish ObsTool/ObsTool.csproj --configuration Release --runtime win-x64 --self-contained true --output publish /p:EnvironmentName=Production
+```
+
+Only use self-contained if the deployed runtime architecture matches the IIS application pool bitness. A `win-x64` self-contained publish deployed to a 32-bit IIS worker can fail with `HTTP Error 500.32 - Failed to load .NET Core host`. Fix that either by switching back to framework-dependent publish or by changing the hosting provider's app pool to 64-bit.
+
+`dangerous-clean-slate: true` in the FTP deploy action deletes the server directory before uploading and is useful when replacing an old incompatible deployment. For normal steady-state deploys, prefer `dangerous-clean-slate: false` or omit it so FTP deploy can sync changes instead of reuploading everything.
+
+The current database is still external to the app via the Production connection string. Do not assume the GitHub Actions deployment also provisions or migrates the production database.
+
 
 ## Architecture
 
