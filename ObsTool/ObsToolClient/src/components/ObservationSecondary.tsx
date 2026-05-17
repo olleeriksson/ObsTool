@@ -178,7 +178,8 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     }
 
     const obsSessionId = this.props.observation.obsSession && this.props.observation.obsSession.id;
-    const obsSessionUrl = "/session/" + obsSessionId;
+    const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+    const obsSessionUrl = baseUrl + "/session/" + obsSessionId;
     const obsSessionDate = this.props.observation.obsSession && this.props.observation.obsSession.date;
     const obsSessionTitle = this.props.observation.obsSession && this.props.observation.obsSession.title && this.props.observation.obsSession.title;
     const obsSessionLocation = this.props.observation.obsSession && this.props.observation.obsSession.location && "(" + this.props.observation.obsSession.location.name + ")";

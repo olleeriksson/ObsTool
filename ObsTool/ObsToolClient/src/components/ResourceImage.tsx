@@ -112,7 +112,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
             const driveMaxWidth = this.props.driveMaxWidth || "100";
             const driveMaxHeight = this.props.driveMaxHeight || "100";
             if (this.props.preview) {
-                return <img src="aladin.png" />;
+                return <img src={`${import.meta.env.BASE_URL}aladin.png`} />;
             }
             return (
                 <AladinLiteFrame target={aladinTargetName} width={"550"} height={"550"} />

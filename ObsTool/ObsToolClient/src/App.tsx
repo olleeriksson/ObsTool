@@ -32,15 +32,16 @@ class App extends React.Component<{}, {}> {
   }
 
   public render() {
-    // basename={baseUrl}
     const store = this.store;
+    // Keep React Router aligned with Vite's base path for subdirectory deployments.
+    const baseName = import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, "");
 
     return (
       <ThemeProvider theme={theme}>
         <Provider store={store}>
           <div className="App">
             <CssBaseline />
-            <BrowserRouter>{Routes.routes}</BrowserRouter>
+            <BrowserRouter basename={baseName}>{Routes.routes}</BrowserRouter>
           </div>
         </Provider>
       </ThemeProvider>

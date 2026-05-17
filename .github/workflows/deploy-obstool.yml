@@ -1,0 +1,85 @@
+name: Deploy ObsTool
+
+on:
+  push:
+    branches:
+      - release
+
+concurrency:
+  group: obstool-release-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and FTP deploy
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ObsTool/ObsToolClient/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ObsTool/ObsToolClient
+        run: npm ci
+
+      - name: Publish integrated app
+        run: dotnet publish ObsTool/ObsTool.csproj --configuration Release --runtime win-x64 --self-contained true --output publish /p:EnvironmentName=Production
+        env:
+          VITE_API_URL: /obstool/api
+          VITE_BASE_PATH: /obstool/
+
+      - name: Create app_offline marker
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path deployment/app-offline | Out-Null
+          '<!doctype html><html><body>ObsTool deployment in progress.</body></html>' | Set-Content -Path deployment/app-offline/app_offline.htm -Encoding utf8
+          Copy-Item -Path deployment/app-offline/app_offline.htm -Destination publish/app_offline.htm -Force
+
+      - name: Put app offline
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: deployment/app-offline/
+          server-dir: /
+          state-name: .ftp-deploy-offline-state.json
+
+      - name: Wait for IIS to release files
+        shell: pwsh
+        run: Start-Sleep -Seconds 10
+
+      - name: Upload published app
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: publish/
+          server-dir: /
+          dangerous-clean-slate: true
+
+      - name: Remove app_offline marker from publish folder
+        shell: pwsh
+        run: Remove-Item -Path publish/app_offline.htm -Force
+
+      - name: Bring app online
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: publish/
+          server-dir: /

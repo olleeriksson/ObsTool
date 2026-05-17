@@ -114,6 +114,18 @@ namespace ObsTool
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            var pathBase = Configuration["PathBase"] ?? Configuration["ASPNETCORE_PATHBASE"];
+            if (!string.IsNullOrWhiteSpace(pathBase))
+            {
+                if (!pathBase.StartsWith("/"))
+                {
+                    pathBase = "/" + pathBase;
+                }
+
+                // Supports production deployments and local production checks below /obstool.
+                app.UsePathBase(pathBase);
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

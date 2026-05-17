@@ -34,11 +34,15 @@ Backend & Frontend together
   
   Run (BE & hosted FE together):
     1. cd <git root>\ObsTool\bin\Release\net10.0\publish
-    2. .\ObsTool.exe
+    2. set ASPNETCORE_URLS=http://localhost:5000
+    3. set ASPNETCORE_PATHBASE=/obstool
+    4. .\ObsTool.exe
 
-	Had som problems with this in sep 2021, but changed the REACT_APP_API_URL in 
-	ObsToolClient/.env.production from REACT_APP_API_URL=https://localhost:5001/api to
-	REACT_APP_API_URL=http://localhost:5000/api and then I could run production locally.
+  Local production URL:
+    http://localhost:5000/obstool/
+
+  The production React build uses /obstool/ for static assets and /obstool/api for API calls,
+  matching the SmarterASP.NET subdirectory deployment target.
 
 ====================================
 |      PRODUCTION EXTERNALLY       |

@@ -3,7 +3,7 @@ import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
 // The Api is at 50996 from running dotnet run
-// The Api is at 5000 from executing the deployed Exe
+// The local production app is at http://localhost:5000/obstool, with the API below /obstool/api.
 
 class Api {
 
