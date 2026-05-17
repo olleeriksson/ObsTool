@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ObsTool.Database;
+using ObsTool.Utils;
 
 namespace ObsTool
 {
@@ -10,7 +12,19 @@ namespace ObsTool
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+            if (DatabaseBootstrapCommand.IsBootstrapCommand(args))
+            {
+                DatabaseBootstrapCommand.Run(host.Services, args);
+                return;
+            }
+            if (PasswordHashCommand.IsHashPasswordCommand(args))
+            {
+                PasswordHashCommand.Run(args);
+                return;
+            }
+
+            host.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

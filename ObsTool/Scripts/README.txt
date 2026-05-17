@@ -4,9 +4,9 @@ Usually what you do is build the frontend with npm run build and then deploy it 
 deploy command does nothing. Instead, everything is built using dotnet publish and the Visual Studio project file.
 
 
-====================================
-|            DEVELOPMENT           |
-====================================
+#=============================================
+# Local Development
+#=============================================
 
 For development it seems the integrated solution in Visual Studio with dotnet publish doesn't run the frontend.
 So you have to run the frontend manually with npm start, but the backend can be run from the Play button in Visual Studio.
@@ -22,9 +22,27 @@ Backend
   Run:
     1. Run the project from Visual Studio in Debug mode.
 
-========================================================================
-|  PRODUCTION LOCALLY INTEGRATED IN VISUAL STUDIO / VIA DOTNET PUBLISH |
-========================================================================
+
+
+#=======================================================
+# Production Externally via GitHub to SmarterASP.NET
+#=======================================================
+
+  Just push a new commit on the 'release' branch to github and it will deploy it.
+
+
+#=======================================================================
+# To test External Production at SmarterASP.NET but with local MySQL
+#=======================================================================
+
+Scripts\MYSQL-start-local-docker.cmd
+Scripts\MYSQL-start-obstool-backend.cmd
+Scripts\DEV-build-and-run-FE.cmd
+
+
+#=======================================================================
+# production locally integrated in visual studio / via dotnet publish
+#=======================================================================
 
 Backend & Frontend together
 ----------------------------
@@ -43,29 +61,4 @@ Backend & Frontend together
 
   The production React build uses /obstool/ for static assets and /obstool/api for API calls,
   matching the SmarterASP.NET subdirectory deployment target.
-
-====================================
-|      PRODUCTION EXTERNALLY       |
-====================================
-
-  Deploy to a server from Visual Studio's publish functionality.
-  It does an automatic build and publish of the BE and FE.
-
-
-=================================================
-|  PRODUCTION LOCALLY WITH FE VIA NODE EXPRESS  |
-=================================================
-
-  Build backend (the commands in the .csproj file can be removed because building and shipping the FE together with BE is not needed):
-    1. cd <git root>\ObsTool
-    2. dotnet publish -c Release        (or Publish to a directory from Visual Studio)
-
-  Build and run frontend:
-    1. cd <git root>\ObsTool\ObsToolClient
-    2. npm run build      # Builds the FE.
-    2. npm run deploy     # To copy the files to the directory used by the webserver.
-                          # This step calls batch file under ObsTool\ObsTool\ObsToolClient\scripts\deploy.cmd.
-                          # This file would be modified in case I decide to stop building the FE with dotnet publish.
-    3. cd ObsToolWebserver
-    4. npm start
 

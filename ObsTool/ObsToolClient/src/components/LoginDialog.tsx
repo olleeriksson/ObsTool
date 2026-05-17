@@ -24,8 +24,8 @@ interface IFormFieldsState {
 export default function LoginDialog(props: ILoginDialogProps) {
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [formFields, setFormFields] = React.useState<IFormFieldsState>({
-        username: "test",
-        password: "test"
+        username: "",
+        password: ""
     });
 
     const handleInputChange = (e: any) => setFormFields({
@@ -75,14 +75,19 @@ export default function LoginDialog(props: ILoginDialogProps) {
                     autoFocus={true}
                     margin="normal"
                     label="Username"
+                    value={formFields.username}
                     fullWidth={true}
+                    autoComplete="username"
                     onChange={handleInputChange}
                 />
                 <TextField
                     name="password"
                     label="Password"
+                    type="password"
                     margin="normal"
+                    value={formFields.password}
                     fullWidth={true}
+                    autoComplete="current-password"
                     onChange={handleInputChange}
                 />
             </DialogContent>

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using TestWebAppNoAuth.Models;
+using ObsTool.Models;
 
 namespace ObsTool.Controllers
 {
@@ -32,21 +32,21 @@ namespace ObsTool.Controllers
             var providedUsername = requestDto.Username;
             var providedPassword = requestDto.Password;
 
-            var cfgUsername = _configuration.GetSection("AdminUser:Username").Get<string>();
-            var cfgHashedPassword = _configuration.GetSection("AdminUser:HashedPassword").Get<string>();
-
-            if (providedUsername == cfgUsername)
+            foreach (var configuredUser in GetConfiguredUsers())
             {
-                var passwordHasher = new PasswordHasher<string>();
-                if (passwordHasher.VerifyHashedPassword(null, cfgHashedPassword, providedPassword) == PasswordVerificationResult.Success)
+                if (providedUsername == configuredUser.Username)
                 {
-                    var claims = new List<Claim>
+                    var passwordHasher = new PasswordHasher<string>();
+                    if (passwordHasher.VerifyHashedPassword(null, configuredUser.HashedPassword, providedPassword) == PasswordVerificationResult.Success)
                     {
-                        new Claim(ClaimTypes.Name, providedUsername)
-                    };
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                    return Ok();
+                        var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.Name, providedUsername)
+                        };
+                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                        return Ok();
+                    }
                 }
             }
             return Unauthorized();
@@ -66,6 +66,31 @@ namespace ObsTool.Controllers
             // by authorization, then they are logged in.
             return Ok("Yes you are logged in");
             //return Unauthorized("You are not logged in");
+        }
+
+        private IEnumerable<ConfiguredLoginUser> GetConfiguredUsers()
+        {
+            var configuredUsers = _configuration.GetSection("Authentication:Users").Get<List<ConfiguredLoginUser>>();
+            if (configuredUsers?.Count > 0)
+            {
+                return configuredUsers.Where(u => !string.IsNullOrWhiteSpace(u.Username) && !string.IsNullOrWhiteSpace(u.HashedPassword));
+            }
+
+            // Preserve the old single-user config path so existing local appsettings keep working.
+            var legacyUser = new ConfiguredLoginUser
+            {
+                Username = _configuration.GetSection("AdminUser:Username").Get<string>(),
+                HashedPassword = _configuration.GetSection("AdminUser:HashedPassword").Get<string>()
+            };
+            return string.IsNullOrWhiteSpace(legacyUser.Username) || string.IsNullOrWhiteSpace(legacyUser.HashedPassword)
+                ? Enumerable.Empty<ConfiguredLoginUser>()
+                : new[] { legacyUser };
+        }
+
+        private class ConfiguredLoginUser
+        {
+            public string Username { get; set; }
+            public string HashedPassword { get; set; }
         }
     }
 }

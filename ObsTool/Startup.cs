@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
+using MySql.EntityFrameworkCore.Extensions;
 
 namespace ObsTool
 {
@@ -37,7 +38,7 @@ namespace ObsTool
             services.AddControllers(config =>
             {
                 // For default lock-down and then opt out with AllowAnonymous annotations
-                if (bool.Parse(Configuration["EnableAuthentication"]))
+                if (Configuration.GetValue<bool>("EnableAuthentication"))
                 {
                     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                     config.Filters.Add(new AuthorizeFilter(policy));
@@ -88,8 +89,7 @@ namespace ObsTool
 
             services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfile>());
 
-            // Sqlite
-            services.AddDbContext<MainDbContext>(o => o.UseSqlite(Configuration["Db:ConnectionString"]));
+            services.AddDbContext<MainDbContext>(ConfigureDatabaseProvider);
 
             services.AddScoped<ObsSessionsRepo>();
             services.AddScoped<LocationsRepo>();
@@ -109,6 +109,29 @@ namespace ObsTool
             {
                 configuration.RootPath = "ObsToolClient/build";
             });
+        }
+
+        private static void ConfigureDatabaseProvider(DbContextOptionsBuilder options)
+        {
+            var provider = Configuration["Db:Provider"] ?? "Sqlite";
+            var connectionString = Configuration["Db:ConnectionString"];
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Db:ConnectionString must be configured.");
+            }
+
+            switch (provider.Trim().ToLowerInvariant())
+            {
+                case "sqlite":
+                    options.UseSqlite(connectionString);
+                    break;
+                case "mysql":
+                    options.UseMySQL(connectionString);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported Db:Provider '{provider}'. Use 'Sqlite' or 'MySql'.");
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

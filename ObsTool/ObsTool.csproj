@@ -13,7 +13,8 @@
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="10.0.6" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="moq" Version="4.20.72" />
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="Nlog.Web.AspNetCore" Version="5.3.4" />

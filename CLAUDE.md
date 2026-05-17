@@ -163,6 +163,18 @@ Classic ASP.NET Core layered structure (`Startup.cs` does service registration t
 - **Errors** - custom `ExceptionMiddleware`, wired via `ConfigureCustomExceptionMiddleware()`.
 - **Logging** - NLog via `UseNLog()` in `Program.cs`; config in `nlog.config`.
 
+### Database bootstrap for hosted MySQL
+
+Keep `Database/DatabaseBootstrapCommand.cs` and the `db-bootstrap` command. It is intentional long-lived maintenance tooling, not temporary migration scaffolding. It supports hosted MySQL setup while preserving local SQLite development.
+
+The bootstrap command reads a local SQLite database and writes the target database configured through `Db:Provider` and `Db:ConnectionString`. It creates the target schema if needed and imports only reference/catalog tables:
+
+- `Constellations`
+- `SacDeepSkyObjects`
+- `H2500`
+
+By default it skips a target reference table that already has rows. Use `--replace-reference-data` only for deliberate maintenance. `SacDeepSkyObjects` is expected to be stable except possible additions, while `H2500` is the table most likely to need future refreshes. Do not remove this command just because the initial hosted bootstrap has already been done.
+
 Frontend is a React 18 SPA: global Redux state (`src/store/AppStore.ts` -> reducers in `src/reducers/`, thunks in `src/actions/`), all API calls through the static `Api` class in `src/api/Api.ts` (axios with cookie credentials), React Router v6 in `src/components/Routes.tsx`, MUI v6 with the tss-react `withStyles` shim - see `ObsTool/ObsToolClient/CLAUDE.md`.
 
 ## Domain model - the four core entities

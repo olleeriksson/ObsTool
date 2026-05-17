@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TestWebAppNoAuth.Models
+namespace ObsTool.Models
 {
     public class LoginDto
     {

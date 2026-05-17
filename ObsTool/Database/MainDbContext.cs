@@ -21,7 +21,7 @@ namespace ObsTool.Database
             _logger = logger;
             //Database.EnsureCreated();
 
-            bool migrate = bool.Parse(Startup.Configuration["Db:Migrate"]);
+            bool migrate = bool.TryParse(Startup.Configuration["Db:Migrate"], out var configuredMigrate) && configuredMigrate;
             _logger.LogInformation("Migrate DB: " + migrate);
 
             if (migrate)
