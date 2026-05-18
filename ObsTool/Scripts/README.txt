@@ -31,6 +31,30 @@ Backend
   Just push a new commit on the 'release' branch to github and it will deploy it.
 
 
+  To set up users in external production:
+
+    SmarterASP:
+      Control Panel > Advance > Pool Manager > Actions > Environment Variables
+
+    Those variables are set at the IIS application-pool level, so they’re available to ASP.NET Core apps running in that pool. They also document the web.config fallback under
+    <aspNetCore><environmentVariables>...</environmentVariables>.
+
+    For ObsTool, the clean hosted setup should be environment variables like:
+
+    Db__Provider=MySql
+    Db__ConnectionString=server=...;port=3306;database=...;user=...;password=...;
+    EnableAuthentication=true
+    Authentication__Users__0__Username=...
+    Authentication__Users__0__HashedPassword=...
+
+    To generate a hash:
+      dotnet run --project .\ObsTool\ObsTool.csproj -- hash-password "your-password-here"
+
+    On SmarterASP.NET: recycle/restart the app pool after changing environment variables:
+      Control Panel V5 > Hosting Control Panel > Advance > Pool Manager > Actions > Restart
+
+
+
 #=======================================================================
 # To test External Production at SmarterASP.NET but with local MySQL
 #=======================================================================
