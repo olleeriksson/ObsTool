@@ -3,6 +3,32 @@ export interface ILoginInfo {
     password: string;
 }
 
+export interface IEmailTestRequest {
+    to?: string;
+    subject?: string;
+    body?: string;
+}
+
+export interface IEmailTestResult {
+    message: string;
+    to: string;
+    from: string;
+    smtpHost: string;
+    smtpPort: number;
+    sentAtUtc: string;
+}
+
+export interface IEmailTestSettings {
+    isConfigured: boolean;
+    mailTo: string;
+    mailFrom: string;
+    smtpHost: string;
+    smtpPort: number;
+    secureSocketOption: string;
+    hasUsername: boolean;
+    hasPassword: boolean;
+}
+
 export interface IObservation {
     id: number;
     dsoObservations: IDsoObservation[];

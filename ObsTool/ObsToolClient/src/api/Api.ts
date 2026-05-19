@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
@@ -138,6 +138,19 @@ class Api {
 
     public static getH2500ObjectsForConstellationMap(constellation: string) {
         return axios.get<IConstellationMapObject[]>(import.meta.env.VITE_API_URL + "/statistics/constellations/" + encodeURIComponent(constellation) + "/h2500");
+    }
+
+    public static getEmailTestSettings() {
+        return axios.get<IEmailTestSettings>(
+            import.meta.env.VITE_API_URL + "/diagnostics/email/settings",
+            { withCredentials: true });
+    }
+
+    public static sendEmailTest(request: IEmailTestRequest) {
+        return axios.post<IEmailTestResult>(
+            import.meta.env.VITE_API_URL + "/diagnostics/email/test",
+            request,
+            { withCredentials: true });
     }
 }
 

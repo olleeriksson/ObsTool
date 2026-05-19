@@ -89,6 +89,8 @@ namespace ObsTool
 
             services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfile>());
 
+            services.Configure<MailServiceOptions>(Configuration.GetSection(MailServiceOptions.SectionName));
+
             services.AddDbContext<MainDbContext>(ConfigureDatabaseProvider);
 
             services.AddScoped<ObsSessionsRepo>();
@@ -103,6 +105,7 @@ namespace ObsTool
             services.AddScoped<ObservationsService>();
             services.AddScoped<ObsResourcesRepo>();
             services.AddScoped<DsoObservationsRepo>();
+            services.AddScoped<IMailService, MailService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

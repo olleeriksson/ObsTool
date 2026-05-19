@@ -46,6 +46,16 @@ Backend
     EnableAuthentication=true
     Authentication__Users__0__Username=...
     Authentication__Users__0__HashedPassword=...
+    MailService__SmtpPassword=<google-app-password-or-oauth-compatible-secret>
+
+    The other mail settings are non-secret and live in appsettings.json:
+      MailService:MailTo
+      MailService:MailFrom
+      MailService:SenderName
+      MailService:SmtpHost
+      MailService:SmtpPort
+      MailService:SmtpUsername
+      MailService:SecureSocketOption
 
     To generate a hash:
       dotnet run --project .\ObsTool\ObsTool.csproj -- hash-password "your-password-here"

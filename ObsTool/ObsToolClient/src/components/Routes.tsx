@@ -10,6 +10,7 @@ import SearchView from "./SearchView";
 import LocationsView from "./LocationsView";
 import InstrumentsView from "./InstrumentsView";
 import EyepiecesView from "./EyepiecesView";
+import EmailDiagnosticsView from "./EmailDiagnosticsView";
 
 function SingleObsSessionRoute() {
     const { obsSessionId } = useParams<{ obsSessionId: string }>();
@@ -31,5 +32,6 @@ export const routes = (
         <Route path="/locations" element={<Layout><LocationsView /></Layout>} />
         <Route path="/instruments" element={<Layout><InstrumentsView /></Layout>} />
         <Route path="/eyepieces" element={<Layout><EyepiecesView /></Layout>} />
+        <Route path="/diagnostics/email" element={<Layout><EmailDiagnosticsView /></Layout>} />
     </Routes>
 );
