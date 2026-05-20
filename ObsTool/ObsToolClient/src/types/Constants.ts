@@ -6,6 +6,9 @@ export type LOGGED_IN = typeof LOGGED_IN;
 export const LOGGED_OUT = "LOGGED_OUT";
 export type LOGGED_OUT = typeof LOGGED_OUT;
 
+export const AUTHENTICATION_CHECKED = "AUTHENTICATION_CHECKED";
+export type AUTHENTICATION_CHECKED = typeof AUTHENTICATION_CHECKED;
+
 // ObsSessions
 
 export const GET_OBSSESSIONS_BEGIN = "GET_OBSSESSIONS_BEGIN";

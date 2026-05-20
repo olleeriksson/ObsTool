@@ -8,6 +8,11 @@ import { thunk } from "redux-thunk";
 
 const initialDataState: IDataState = {
     isLoggedIn: false,
+    loggedInUsername: undefined,
+    loggedInEmail: undefined,
+    loggedInFullName: undefined,
+    isSuperAdmin: false,
+    hasCheckedAuthentication: false,
     obsSessions: [],
     isLoadingObsSessions: false,
     isErrorObsSessions: undefined,

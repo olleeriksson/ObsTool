@@ -1,6 +1,13 @@
 import * as React from "react";
 import { Routes, Route, useParams } from "react-router-dom";
 import Layout from "./Layout";
+import ChangePasswordPage from "./ChangePasswordPage";
+import ConfirmEmailPage from "./ConfirmEmailPage";
+import ForgotPasswordPage from "./ForgotPasswordPage";
+import LoginPage from "./LoginPage";
+import RequireLogin from "./RequireLogin";
+import ResetPasswordPage from "./ResetPasswordPage";
+import SignupPage from "./SignupPage";
 import Home from "./Home";
 import ListView from "./ListView";
 import ObservedDsos from "./ObservedDsos";
@@ -11,27 +18,43 @@ import LocationsView from "./LocationsView";
 import InstrumentsView from "./InstrumentsView";
 import EyepiecesView from "./EyepiecesView";
 import EmailDiagnosticsView from "./EmailDiagnosticsView";
+import UserAdminPage from "./UserAdminPage";
 
 function SingleObsSessionRoute() {
     const { obsSessionId } = useParams<{ obsSessionId: string }>();
     return (
-        <Layout>
+        <ProtectedLayout>
             <SingleObsSessionView obsSessionId={Number(obsSessionId)} />
-        </Layout>
+        </ProtectedLayout>
+    );
+}
+
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <RequireLogin>
+            <Layout>{children}</Layout>
+        </RequireLogin>
     );
 }
 
 export const routes = (
     <Routes>
-        <Route path="/" element={<Layout><Home /></Layout>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/" element={<ProtectedLayout><Home /></ProtectedLayout>} />
         <Route path="/session/:obsSessionId" element={<SingleObsSessionRoute />} />
-        <Route path="/observations" element={<Layout><ObservedDsos /></Layout>} />
-        <Route path="/sessions" element={<Layout><ListView /></Layout>} />
-        <Route path="/newsession" element={<Layout><NewObsSessionView /></Layout>} />
-        <Route path="/search" element={<Layout><SearchView /></Layout>} />
-        <Route path="/locations" element={<Layout><LocationsView /></Layout>} />
-        <Route path="/instruments" element={<Layout><InstrumentsView /></Layout>} />
-        <Route path="/eyepieces" element={<Layout><EyepiecesView /></Layout>} />
-        <Route path="/diagnostics/email" element={<Layout><EmailDiagnosticsView /></Layout>} />
+        <Route path="/observations" element={<ProtectedLayout><ObservedDsos /></ProtectedLayout>} />
+        <Route path="/sessions" element={<ProtectedLayout><ListView /></ProtectedLayout>} />
+        <Route path="/newsession" element={<ProtectedLayout><NewObsSessionView /></ProtectedLayout>} />
+        <Route path="/search" element={<ProtectedLayout><SearchView /></ProtectedLayout>} />
+        <Route path="/locations" element={<ProtectedLayout><LocationsView /></ProtectedLayout>} />
+        <Route path="/instruments" element={<ProtectedLayout><InstrumentsView /></ProtectedLayout>} />
+        <Route path="/eyepieces" element={<ProtectedLayout><EyepiecesView /></ProtectedLayout>} />
+        <Route path="/change-password" element={<ProtectedLayout><ChangePasswordPage /></ProtectedLayout>} />
+        <Route path="/user-admin" element={<ProtectedLayout><UserAdminPage /></ProtectedLayout>} />
+        <Route path="/diagnostics/email" element={<ProtectedLayout><EmailDiagnosticsView /></ProtectedLayout>} />
     </Routes>
 );

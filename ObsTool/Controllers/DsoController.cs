@@ -30,7 +30,6 @@ namespace ObsTool
             _mapper = mapper;
         }
 
-        [AllowAnonymous]
         [HttpGet("observed")]
         public IActionResult GetAllObservedDso(bool includeHerschel = false)
         {
@@ -79,7 +78,6 @@ namespace ObsTool
         /// <summary>
         /// Used both by the page listing all observations, and all the search pages/components.
         /// </summary>
-        [AllowAnonymous]
         [HttpGet()]
         public IActionResult GetDso([FromQuery] string query, [FromQuery] string name, [FromQuery] bool includeHerschel = false)
         {
@@ -150,7 +148,6 @@ namespace ObsTool
             }
         }
 
-        [AllowAnonymous]
         [HttpGet("{id}")]
         public IActionResult GetDso([FromRoute] int id, [FromQuery] bool includeHerschel = false)
         {
@@ -175,7 +172,6 @@ namespace ObsTool
             return Ok(result);
         }
 
-        [AllowAnonymous]
         [HttpGet("{id}/herschel")]
         public IActionResult GetHerschelDetails([FromRoute] int id)
         {

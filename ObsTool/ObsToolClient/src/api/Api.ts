@@ -1,30 +1,69 @@
-import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings, IAuthenticationStatus, ISignupRequest, IConfirmEmailRequest, IConfirmEmailResult, IForgotPasswordRequest, IResetPasswordRequest, IChangePasswordRequest, IUserAdminList, IAdminChangePasswordRequest } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
 // The Api is at 50996 from running dotnet run
 // The local production app is at http://localhost:5000/obstool, with the API below /obstool/api.
+axios.defaults.withCredentials = true;
 
 class Api {
 
     public static isLoggedIn() {
-        return axios.get(
-            import.meta.env.VITE_API_URL + "/authentication/loggedin/",
-            { withCredentials: true });  // for CORS with cookies, only development
+        return axios.get<IAuthenticationStatus>(import.meta.env.VITE_API_URL + "/authentication/loggedin/");
     }
 
     public static login(loginInfo: ILoginInfo) {
-        return axios.post<ILoginInfo>(
+        return axios.post<IAuthenticationStatus>(
             import.meta.env.VITE_API_URL + "/authentication/login/",
-            loginInfo,
-            { withCredentials: true });  // for CORS with cookies, only development
+            loginInfo);
     }
 
     public static logout() {
-        return axios.post(
+        return axios.post<IAuthenticationStatus>(
             import.meta.env.VITE_API_URL + "/authentication/logout/",
-            null,
-            { withCredentials: true });  // for CORS with cookies, only development
+            null);
+    }
+
+    public static signup(request: ISignupRequest) {
+        return axios.post(
+            import.meta.env.VITE_API_URL + "/authentication/signup/",
+            request);
+    }
+
+    public static confirmEmail(request: IConfirmEmailRequest) {
+        return axios.post<IConfirmEmailResult>(
+            import.meta.env.VITE_API_URL + "/authentication/confirm-email/",
+            request);
+    }
+
+    public static forgotPassword(request: IForgotPasswordRequest) {
+        return axios.post(
+            import.meta.env.VITE_API_URL + "/authentication/forgot-password/",
+            request);
+    }
+
+    public static resetPassword(request: IResetPasswordRequest) {
+        return axios.post<IAuthenticationStatus>(
+            import.meta.env.VITE_API_URL + "/authentication/reset-password/",
+            request);
+    }
+
+    public static changePassword(request: IChangePasswordRequest) {
+        return axios.post(
+            import.meta.env.VITE_API_URL + "/authentication/change-password/",
+            request);
+    }
+
+    public static getUserAdminList() {
+        return axios.get<IUserAdminList>(import.meta.env.VITE_API_URL + "/users/admin/");
+    }
+
+    public static adminChangeUserPassword(userId: number, request: IAdminChangePasswordRequest) {
+        return axios.put(import.meta.env.VITE_API_URL + "/users/" + userId + "/password/", request);
+    }
+
+    public static adminDeleteUser(userId: number) {
+        return axios.delete(import.meta.env.VITE_API_URL + "/users/" + userId);
     }
 
     public static getObsSessionsSimple() {

@@ -15,14 +15,12 @@ namespace ObsTool.Controllers
             _statisticsService = statisticsService;
         }
 
-        [AllowAnonymous]
         [HttpGet()]
         public IActionResult Get()
         {
             return Ok(_statisticsService.GetStatistics());
         }
 
-        [AllowAnonymous]
         [HttpGet("constellations/{constellation}/h2500")]
         public IActionResult GetH2500ObjectsForConstellationMap([FromRoute] string constellation)
         {

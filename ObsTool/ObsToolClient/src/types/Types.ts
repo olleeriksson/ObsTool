@@ -3,6 +3,73 @@ export interface ILoginInfo {
     password: string;
 }
 
+export interface IAuthenticationStatus {
+    isLoggedIn: boolean;
+    username?: string;
+    email?: string;
+    fullName?: string;
+    isSuperAdmin: boolean;
+}
+
+export interface ISignupRequest {
+    email: string;
+    username?: string;
+    fullName: string;
+    password: string;
+}
+
+export interface IConfirmEmailRequest {
+    userId: number;
+    token: string;
+}
+
+export interface IConfirmEmailResult {
+    email: string;
+}
+
+export interface IForgotPasswordRequest {
+    email: string;
+}
+
+export interface IResetPasswordRequest {
+    userId: number;
+    token: string;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface IChangePasswordRequest {
+    currentPassword: string;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface IAdminChangePasswordRequest {
+    password: string;
+    confirmPassword: string;
+}
+
+export interface IUserAdmin {
+    id: number;
+    email: string;
+    username?: string;
+    fullName: string;
+    emailConfirmed: boolean;
+    createdUtc: string;
+    lastLoginUtc?: string;
+}
+
+export interface ISuperAdminUser {
+    username: string;
+    email?: string;
+    fullName?: string;
+}
+
+export interface IUserAdminList {
+    users: IUserAdmin[];
+    superAdmins: ISuperAdminUser[];
+}
+
 export interface IEmailTestRequest {
     to?: string;
     subject?: string;
@@ -216,6 +283,11 @@ export interface IEyepiece {
 
 export interface IDataState {
     isLoggedIn: boolean;
+    loggedInUsername?: string;
+    loggedInEmail?: string;
+    loggedInFullName?: string;
+    isSuperAdmin: boolean;
+    hasCheckedAuthentication: boolean;
     obsSessions: IObsSession[];
     isLoadingObsSessions: boolean;
     isErrorObsSessions?: string;
@@ -234,6 +306,12 @@ export interface IDataState {
 }
 
 export interface IReadonlyDataState {
+    isLoggedIn: boolean;
+    loggedInUsername?: string;
+    loggedInEmail?: string;
+    loggedInFullName?: string;
+    isSuperAdmin: boolean;
+    hasCheckedAuthentication: boolean;
     obsSessions: ReadonlyArray<Readonly<IObsSession>>;
     isLoadingObsSessions: boolean;
     isErrorObsSessions?: string;

@@ -1,16 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using ObsTool.Models;
+using ObsTool.Services;
 
 namespace ObsTool.Controllers
 {
@@ -18,79 +16,206 @@ namespace ObsTool.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private readonly UserAccountService _userAccountService;
+        private readonly AppOptions _appOptions;
 
-        public AuthenticationController(IConfiguration configuration)
+        public AuthenticationController(UserAccountService userAccountService, IOptions<AppOptions> appOptions)
         {
-            _configuration = configuration;
+            _userAccountService = userAccountService;
+            _appOptions = appOptions.Value;
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginDto requestDto)
         {
-            var providedUsername = requestDto.Username;
-            var providedPassword = requestDto.Password;
-
-            foreach (var configuredUser in GetConfiguredUsers())
+            var loginResult = _userAccountService.ValidateLogin(requestDto?.Username, requestDto?.Password);
+            if (!loginResult.Success)
             {
-                if (providedUsername == configuredUser.Username)
-                {
-                    var passwordHasher = new PasswordHasher<string>();
-                    if (passwordHasher.VerifyHashedPassword(null, configuredUser.HashedPassword, providedPassword) == PasswordVerificationResult.Success)
-                    {
-                        var claims = new List<Claim>
-                        {
-                            new Claim(ClaimTypes.Name, providedUsername)
-                        };
-                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                        return Ok();
-                    }
-                }
+                return Unauthorized();
             }
-            return Unauthorized();
+
+            await SignInAsync(loginResult);
+            return Ok(ToAuthenticationStatus(loginResult));
         }
 
         [AllowAnonymous]
         [HttpPost("logout")]
-        public async Task LogoutAsync()
+        public async Task<IActionResult> LogoutAsync()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok(new AuthenticationStatusDto { IsLoggedIn = false });
         }
 
+        [AllowAnonymous]
         [HttpGet("loggedin")]
         public IActionResult LoggedIn()
         {
-            // If the user can access this endpoint, which is in some cases protected
-            // by authorization, then they are logged in.
-            return Ok("Yes you are logged in");
-            //return Unauthorized("You are not logged in");
+            // The SPA uses this as its page-level auth gate before rendering database-backed views.
+            return Ok(GetAuthenticationStatusFromClaims());
         }
 
-        private IEnumerable<ConfiguredLoginUser> GetConfiguredUsers()
+        [AllowAnonymous]
+        [HttpPost("signup")]
+        public IActionResult Signup([FromBody] SignupDto requestDto)
         {
-            var configuredUsers = _configuration.GetSection("Authentication:Users").Get<List<ConfiguredLoginUser>>();
-            if (configuredUsers?.Count > 0)
+            try
             {
-                return configuredUsers.Where(u => !string.IsNullOrWhiteSpace(u.Username) && !string.IsNullOrWhiteSpace(u.HashedPassword));
+                _userAccountService.Signup(requestDto, GetPublicBaseUrl());
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToErrorDetails(ex.Message));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("confirm-email")]
+        public IActionResult ConfirmEmail([FromBody] ConfirmEmailDto requestDto)
+        {
+            try
+            {
+                var email = _userAccountService.ConfirmEmail(requestDto?.UserId ?? 0, requestDto?.Token);
+                return Ok(new ConfirmEmailResultDto { Email = email });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToErrorDetails(ex.Message));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("forgot-password")]
+        public IActionResult ForgotPassword([FromBody] ForgotPasswordDto requestDto)
+        {
+            try
+            {
+                _userAccountService.RequestPasswordReset(requestDto?.Email, GetPublicBaseUrl());
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToErrorDetails(ex.Message));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordDto requestDto)
+        {
+            try
+            {
+                var loginResult = _userAccountService.ResetPassword(requestDto);
+                await SignInAsync(loginResult);
+                return Ok(ToAuthenticationStatus(loginResult));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToErrorDetails(ex.Message));
+            }
+        }
+
+        [HttpPost("change-password")]
+        public IActionResult ChangePassword([FromBody] ChangePasswordDto requestDto)
+        {
+            try
+            {
+                var userId = GetDatabaseUserId();
+                if (userId == null)
+                {
+                    return BadRequest(ToErrorDetails("Configured superadmin users do not have a database password to change here."));
+                }
+
+                _userAccountService.ChangeOwnPassword(userId.Value, requestDto);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToErrorDetails(ex.Message));
+            }
+        }
+
+        private async Task SignInAsync(LoginResult loginResult)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, loginResult.DisplayName),
+                new Claim(AuthClaimTypes.AuthSource, loginResult.IsSuperAdmin ? "Environment" : "Database"),
+                new Claim(AuthClaimTypes.IsSuperAdmin, loginResult.IsSuperAdmin.ToString())
+            };
+
+            AddClaimIfValue(claims, AuthClaimTypes.UserId, loginResult.UserId?.ToString());
+            AddClaimIfValue(claims, AuthClaimTypes.Username, loginResult.Username);
+            AddClaimIfValue(claims, ClaimTypes.Email, loginResult.Email);
+            AddClaimIfValue(claims, AuthClaimTypes.FullName, loginResult.FullName);
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+        }
+
+        private AuthenticationStatusDto GetAuthenticationStatusFromClaims()
+        {
+            var isLoggedIn = User.Identity?.IsAuthenticated ?? false;
+            return new AuthenticationStatusDto
+            {
+                IsLoggedIn = isLoggedIn,
+                Username = isLoggedIn ? User.FindFirstValue(AuthClaimTypes.Username) : null,
+                Email = isLoggedIn ? User.FindFirstValue(ClaimTypes.Email) : null,
+                FullName = isLoggedIn ? User.FindFirstValue(AuthClaimTypes.FullName) : null,
+                IsSuperAdmin = isLoggedIn && string.Equals(User.FindFirstValue(AuthClaimTypes.IsSuperAdmin), bool.TrueString, StringComparison.OrdinalIgnoreCase)
+            };
+        }
+
+        private static AuthenticationStatusDto ToAuthenticationStatus(LoginResult loginResult)
+        {
+            return new AuthenticationStatusDto
+            {
+                IsLoggedIn = true,
+                Username = loginResult.Username,
+                Email = loginResult.Email,
+                FullName = loginResult.FullName,
+                IsSuperAdmin = loginResult.IsSuperAdmin
+            };
+        }
+
+        private int? GetDatabaseUserId()
+        {
+            var userIdClaim = User.FindFirstValue(AuthClaimTypes.UserId);
+            return int.TryParse(userIdClaim, out var userId) ? userId : null;
+        }
+
+        private string GetPublicBaseUrl()
+        {
+            if (!string.IsNullOrWhiteSpace(_appOptions.PublicBaseUrl))
+            {
+                return _appOptions.PublicBaseUrl.TrimEnd('/');
             }
 
-            // Preserve the old single-user config path so existing local appsettings keep working.
-            var legacyUser = new ConfiguredLoginUser
+            var origin = Request.Headers["Origin"].ToString();
+            if (!string.IsNullOrWhiteSpace(origin))
             {
-                Username = _configuration.GetSection("AdminUser:Username").Get<string>(),
-                HashedPassword = _configuration.GetSection("AdminUser:HashedPassword").Get<string>()
-            };
-            return string.IsNullOrWhiteSpace(legacyUser.Username) || string.IsNullOrWhiteSpace(legacyUser.HashedPassword)
-                ? Enumerable.Empty<ConfiguredLoginUser>()
-                : new[] { legacyUser };
+                return $"{origin.TrimEnd('/')}{Request.PathBase}".TrimEnd('/');
+            }
+
+            return $"{Request.Scheme}://{Request.Host}{Request.PathBase}".TrimEnd('/');
         }
 
-        private class ConfiguredLoginUser
+        private static void AddClaimIfValue(List<Claim> claims, string type, string value)
         {
-            public string Username { get; set; }
-            public string HashedPassword { get; set; }
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                claims.Add(new Claim(type, value));
+            }
+        }
+
+        private static ErrorDetails ToErrorDetails(string message)
+        {
+            return new ErrorDetails
+            {
+                StatusCode = 400,
+                Message = message
+            };
         }
     }
 }

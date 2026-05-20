@@ -6,16 +6,23 @@ import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import Grid from "@mui/material/Grid2";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import LockResetIcon from "@mui/icons-material/LockReset";
+import LogoutIcon from "@mui/icons-material/Logout";
 import classNames from "classnames";
 import logo from "../assets/images/obstool-logo-navbar-55px.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Layout.css";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import SearchInput from "./SearchInput";
 import Api from "src/api/Api";
-import LoginDialog from "./LoginDialog";
 import { IAppState, IDataState } from "src/types/Types";
 import * as authenticationAction from "../actions/AuthenticationActions";
 import { bindActionCreators, Dispatch } from "redux";
@@ -89,7 +96,7 @@ const styles = (theme: Theme) => createStyles({
     appbarButton: {
         margin: theme.spacing(0.25),
         whiteSpace: "nowrap",
-    }
+    },
 });
 
 // Defined at module level so React sees a stable component identity across renders.
@@ -102,10 +109,10 @@ const LinkToLocations = React.forwardRef<HTMLAnchorElement, any>((props, ref) =>
 const LinkToInstruments = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/instruments" ref={ref} {...props} />);
 const LinkToEyepieces = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/eyepieces" ref={ref} {...props} />);
 const LinkToSearch = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/search" ref={ref} {...props} />);
+const LinkToLogin = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/login" ref={ref} {...props} />);
 
 export interface ILayoutState {
-    //isLoggedIn: boolean;  // in global state now
-    isShowingLoginDialog: boolean;
+    userMenuAnchorEl: HTMLElement | null;
 }
 
 export interface ILayoutProps extends WithStyles<typeof styles> {
@@ -113,6 +120,7 @@ export interface ILayoutProps extends WithStyles<typeof styles> {
     onSearchView?: boolean;
     actions: any;
     store: IDataState;
+    navigate: (path: string, options?: { replace?: boolean }) => void;
 }
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
@@ -120,58 +128,39 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         super(props);
 
         this.state = {
-            //isLoggedIn: false,  // in global state now
-            isShowingLoginDialog: false
+            userMenuAnchorEl: null
         };
     }
 
-    public componentDidMount() {
-        this.checkLoggedInStatus();
+    private handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+        this.setState({ userMenuAnchorEl: event.currentTarget });
     }
 
-    private checkLoggedInStatus = () => {
-        // Only check if you're logged in when you're not. Whenever you change route, the component
-        // gets remounted (because of push history) and this check is executed.
-        //if (!this.props.store.isLoggedIn) {
-        Api.isLoggedIn().then(
-            () => {
-                //this.setState({ isLoggedIn: true });  // in global state now
-                this.props.actions.setLoggedIn();
-            },
-            () => {
-                //this.setState({ isLoggedIn: false });  // in global state now
-                this.props.actions.setLoggedOut();
-            }
-        );
-        //}
-    }
-
-    private handleLoginSuccess = () => {
-        this.setState({
-            //isLoggedIn: true,  // in global state now
-            isShowingLoginDialog: false
-        });
-        this.props.actions.setLoggedIn();
-    }
-
-    private handleLoginCancelled = () => {
-        this.setState({ isShowingLoginDialog: false });
-    }
-
-    private handleOnClickLogin = () => {
-        this.setState({ isShowingLoginDialog: true });
+    private handleCloseUserMenu = () => {
+        this.setState({ userMenuAnchorEl: null });
     }
 
     private handleClickLogout = () => {
+        this.handleCloseUserMenu();
         Api.logout().then(
             () => {
-                //this.setState({ isLoggedIn: false });  // in global state now
                 this.props.actions.setLoggedOut();
+                this.props.navigate("/login", { replace: true });
             },
             () => {
                 alert("Logout failed!");
             }
         );
+    }
+
+    private handleClickChangePassword = () => {
+        this.handleCloseUserMenu();
+        this.props.navigate("/change-password");
+    }
+
+    private handleClickUserAdmin = () => {
+        this.handleCloseUserMenu();
+        this.props.navigate("/user-admin");
     }
 
     public render() {
@@ -180,17 +169,66 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //console.log("Location found in Layout");
         //console.log(this.props.location);
 
-        let loginLogoutComponent;
-        //if (this.state.isLoggedIn) {  // in global state now
+        const isUserMenuOpen = Boolean(this.state.userMenuAnchorEl);
+        let userMenuComponent;
         if (this.props.store.isLoggedIn) {
-            loginLogoutComponent = (
-                <Button color="primary" onClick={this.handleClickLogout} className={classes.appbarButton}>
-                    <FontAwesomeIcon icon="key" className="faSpaceAfter" /> Logout
-                </Button>
+            const userMenuLabel = this.props.store.loggedInUsername
+                ?? this.props.store.loggedInFullName
+                ?? this.props.store.loggedInEmail
+                ?? "User";
+            userMenuComponent = (
+                <>
+                    <Button
+                        color="primary"
+                        className={classes.appbarButton}
+                        onClick={this.handleOpenUserMenu}
+                        aria-controls={isUserMenuOpen ? "user-menu" : undefined}
+                        aria-haspopup="true"
+                        aria-expanded={isUserMenuOpen ? "true" : undefined}
+                        startIcon={<AccountCircleIcon />}
+                    >
+                        {userMenuLabel}
+                    </Button>
+                    <Menu
+                        id="user-menu"
+                        anchorEl={this.state.userMenuAnchorEl}
+                        open={isUserMenuOpen}
+                        onClose={this.handleCloseUserMenu}
+                        anchorOrigin={{
+                            vertical: "bottom",
+                            horizontal: "right"
+                        }}
+                        transformOrigin={{
+                            vertical: "top",
+                            horizontal: "right"
+                        }}
+                    >
+                        <MenuItem onClick={this.handleClickChangePassword}>
+                            <ListItemIcon>
+                                <LockResetIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>Change password</ListItemText>
+                        </MenuItem>
+                        {this.props.store.isSuperAdmin && (
+                            <MenuItem onClick={this.handleClickUserAdmin}>
+                                <ListItemIcon>
+                                    <AdminPanelSettingsIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>User admin</ListItemText>
+                            </MenuItem>
+                        )}
+                        <MenuItem onClick={this.handleClickLogout}>
+                            <ListItemIcon>
+                                <LogoutIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>Logout</ListItemText>
+                        </MenuItem>
+                    </Menu>
+                </>
             );
         } else {
-            loginLogoutComponent = (
-                <Button color="primary" onClick={this.handleOnClickLogin} className={classes.appbarButton}>
+            userMenuComponent = (
+                <Button component={LinkToLogin} color="primary" className={classes.appbarButton}>
                     <FontAwesomeIcon icon="key" className="faSpaceAfter" /> Login
                 </Button>
             );
@@ -198,13 +236,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         const weAreOnSearchView = this.props.onSearchView ?? false;
 
-        const loginDialog = (
-            <LoginDialog isOpen={this.state.isShowingLoginDialog} onLogin={this.handleLoginSuccess} onCancel={this.handleLoginCancelled} />
-        );
-
         return <div>
             <CssBaseline />
-            {loginDialog}
             <AppBar position="static" color="default" className={classes.appBar}>
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
@@ -240,7 +273,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         <Button component={LinkToSearch} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search
                         </Button>
-                        {loginLogoutComponent}
+                        {userMenuComponent}
                     </div>
                 </Toolbar>
             </AppBar>
@@ -267,7 +300,7 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<authenticationAction.ILoggedInAction | authenticationAction.ILoggedOutAction>) => {
+const mapDispatchToProps = (dispatch: Dispatch<authenticationAction.AuthenticationAction>) => {
     return {
         actions: bindActionCreators(
             { ...authenticationAction },
@@ -280,8 +313,9 @@ const LayoutConnected = connect(mapStateToProps, mapDispatchToProps)(withStyles(
 
 export default function LayoutWithRouter({ children }: { children?: React.ReactNode }) {
     const location = useLocation();
+    const navigate = useNavigate();
     return (
-        <LayoutConnected onSearchView={location.pathname === "/search"}>
+        <LayoutConnected onSearchView={location.pathname === "/search"} navigate={navigate}>
             {children}
         </LayoutConnected>
     );

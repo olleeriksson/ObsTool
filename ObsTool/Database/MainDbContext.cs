@@ -59,6 +59,8 @@ namespace ObsTool.Database
 
         public DbSet<ObsResource> ObsResources { get; set; }
 
+        public DbSet<AppUser> Users { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder
@@ -74,6 +76,14 @@ namespace ObsTool.Database
             modelBuilder.Entity<ArticleConstellations>().HasKey(ac => new { ac.ArticleId, ac.ConstellationId });
             modelBuilder.Entity<ArticleDsoObjects>().HasKey(ad => new { ad.ArticleId, ad.DsoId});
             modelBuilder.Entity<DsoObservation>().HasKey(ad => new { ad.ObservationId, ad.DsoId, ad.CustomObjectName });
+
+            modelBuilder.Entity<AppUser>()
+                .HasIndex(user => user.NormalizedEmail)
+                .IsUnique();
+
+            modelBuilder.Entity<AppUser>()
+                .HasIndex(user => user.NormalizedUsername)
+                .IsUnique();
 
             modelBuilder.Entity<DsoObservation>()
                 .HasOne(dsoObs => dsoObs.Observation)

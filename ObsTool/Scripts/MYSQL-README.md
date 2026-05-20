@@ -32,9 +32,11 @@ Equivalent environment overrides:
 ```bat
 set "ASPNETCORE_ENVIRONMENT=Development"
 set "Db__Provider=MySql"
-set "Db__ConnectionString=server=127.0.0.1;port=3306;database=obstool;user=obstool;password=obstool_dev_password;SslMode=Disabled;"
+set "Db__ConnectionString=server=127.0.0.1;port=3306;database=obstool;user=obstool;password=obstool_dev_password;SslMode=Disabled;AllowPublicKeyRetrieval=True;"
 dotnet run --no-build --no-launch-profile --project ..\ObsTool.csproj -- db-bootstrap --source-sqlite "C:\Users\Olle\source\obstool_database_dev.db"
 ```
+
+`AllowPublicKeyRetrieval=True` is only for this local Docker setup. It lets the MySQL 8 `caching_sha2_password` handshake work over the intentionally insecure local connection.
 
 For SmarterASP.NET, use the same configuration shape but set the connection string to the hosted MySQL database. Also set `EnableAuthentication=true` on the hosted app. Keep local `appsettings.Production.json` on SQLite so local integrated production runs do not require MySQL.
 

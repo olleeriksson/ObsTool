@@ -46,7 +46,11 @@ Backend
     EnableAuthentication=true
     Authentication__Users__0__Username=...
     Authentication__Users__0__HashedPassword=...
+    App__PublicBaseUrl=https://www.olle-eriksson.com/obstool
     MailService__SmtpPassword=<google-app-password-or-oauth-compatible-secret>
+
+    App__PublicBaseUrl is optional if the host forwards the public Origin and /obstool path correctly,
+    but setting it explicitly makes confirmation and password-reset email links deterministic.
 
     The other mail settings are non-secret and live in appsettings.json:
       MailService:MailTo

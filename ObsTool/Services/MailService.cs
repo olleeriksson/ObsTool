@@ -13,6 +13,8 @@ namespace ObsTool.Services
     {
         EmailTestSettingsDto GetSettings();
         Task<EmailTestResultDto> SendTestEmailAsync(EmailTestRequestDto request, string triggeredBy);
+        Task SendEmailConfirmationAsync(string recipient, string fullName, string confirmationUrl);
+        Task SendPasswordResetAsync(string recipient, string fullName, string resetUrl);
     }
 
     public class MailService : IMailService
@@ -42,7 +44,7 @@ namespace ObsTool.Services
 
         public async Task<EmailTestResultDto> SendTestEmailAsync(EmailTestRequestDto request, string triggeredBy)
         {
-            var missingSettings = GetMissingSettings();
+            var missingSettings = GetMissingSettings(requireDefaultRecipient: true);
             if (missingSettings.Count > 0)
             {
                 throw new InvalidOperationException("MailService is missing required settings: " + string.Join(", ", missingSettings));
@@ -54,22 +56,10 @@ namespace ObsTool.Services
                 ? "This is a test email from the ObsTool backend."
                 : request.Body.Trim();
 
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(_options.SenderName, _options.MailFrom));
-            message.To.Add(MailboxAddress.Parse(recipient));
-            message.Subject = subject;
-            message.Body = new TextPart("plain")
-            {
-                Text = body + Environment.NewLine + Environment.NewLine + $"Triggered by: {triggeredBy ?? "unknown"}" + Environment.NewLine + $"UTC: {DateTime.UtcNow:O}"
-            };
-
-            using (var client = new SmtpClient())
-            {
-                await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, ParseSecureSocketOption(_options.SecureSocketOption));
-                await client.AuthenticateAsync(_options.SmtpUsername, _options.SmtpPassword);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-            }
+            await SendEmailAsync(
+                recipient,
+                subject,
+                body + Environment.NewLine + Environment.NewLine + $"Triggered by: {triggeredBy ?? "unknown"}" + Environment.NewLine + $"UTC: {DateTime.UtcNow:O}");
 
             return new EmailTestResultDto
             {
@@ -82,11 +72,64 @@ namespace ObsTool.Services
             };
         }
 
-        private List<string> GetMissingSettings()
+        public Task SendEmailConfirmationAsync(string recipient, string fullName, string confirmationUrl)
+        {
+            var body =
+                $"Hello {FormatDisplayName(fullName)}," + Environment.NewLine + Environment.NewLine +
+                "Confirm your ObsTool email address by opening this link:" + Environment.NewLine +
+                confirmationUrl + Environment.NewLine + Environment.NewLine +
+                "After confirmation you can log in with this email address.";
+
+            return SendEmailAsync(recipient, "Confirm your ObsTool email address", body);
+        }
+
+        public Task SendPasswordResetAsync(string recipient, string fullName, string resetUrl)
+        {
+            var body =
+                $"Hello {FormatDisplayName(fullName)}," + Environment.NewLine + Environment.NewLine +
+                "Reset your ObsTool password by opening this link:" + Environment.NewLine +
+                resetUrl + Environment.NewLine + Environment.NewLine +
+                "If you did not request a password reset, you can ignore this email.";
+
+            return SendEmailAsync(recipient, "Reset your ObsTool password", body);
+        }
+
+        private async Task SendEmailAsync(string recipient, string subject, string body)
+        {
+            var missingSettings = GetMissingSettings(requireDefaultRecipient: false);
+            if (missingSettings.Count > 0)
+            {
+                throw new InvalidOperationException("MailService is missing required settings: " + string.Join(", ", missingSettings));
+            }
+
+            if (string.IsNullOrWhiteSpace(recipient))
+            {
+                throw new InvalidOperationException("Email recipient is required.");
+            }
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_options.SenderName, _options.MailFrom));
+            message.To.Add(MailboxAddress.Parse(recipient.Trim()));
+            message.Subject = subject;
+            message.Body = new TextPart("plain")
+            {
+                Text = body
+            };
+
+            using (var client = new SmtpClient())
+            {
+                await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, ParseSecureSocketOption(_options.SecureSocketOption));
+                await client.AuthenticateAsync(_options.SmtpUsername, _options.SmtpPassword);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+            }
+        }
+
+        private List<string> GetMissingSettings(bool requireDefaultRecipient = true)
         {
             var missingSettings = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(_options.MailTo))
+            if (requireDefaultRecipient && string.IsNullOrWhiteSpace(_options.MailTo))
             {
                 missingSettings.Add("MailTo");
             }
@@ -117,6 +160,11 @@ namespace ObsTool.Services
             }
 
             return missingSettings;
+        }
+
+        private static string FormatDisplayName(string fullName)
+        {
+            return string.IsNullOrWhiteSpace(fullName) ? "there" : fullName.Trim();
         }
 
         private static SecureSocketOptions ParseSecureSocketOption(string value)

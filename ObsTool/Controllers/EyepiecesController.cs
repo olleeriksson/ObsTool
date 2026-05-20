@@ -23,7 +23,6 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/Eyepieces
-        [AllowAnonymous]
         [HttpGet]
         public IActionResult Get()
         {
@@ -34,7 +33,6 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/Eyepieces/5
-        [AllowAnonymous]
         [HttpGet("{id}", Name = "GetOneEyepiece")]
         public IActionResult Get(int id)
         {

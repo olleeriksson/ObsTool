@@ -45,7 +45,6 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/ObsSessions
-        [AllowAnonymous]
         [HttpGet]
         public IActionResult Get(bool includeLocation = false, bool simple = false)
         {
@@ -64,7 +63,6 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/ObsSessions/5
-        [AllowAnonymous]
         [HttpGet("{id}", Name = "GetOneObsSession")]
         public IActionResult Get(int id, bool includeLocation = false, bool includeObservations = false,
             bool includeDso = false, bool includeOtherObservations = false, bool includePrevAndNextObservations = false,

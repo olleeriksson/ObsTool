@@ -28,7 +28,6 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/Locations
-        [AllowAnonymous]
         [HttpGet]
         public IActionResult Get()
         {
@@ -74,7 +73,6 @@ namespace ObsTool.Controllers
         }
 
         // GET: api/Locations/5
-        [AllowAnonymous]
         [HttpGet("{id}", Name = "GetOneLocation")]
         public IActionResult Get(int id)
         {

@@ -73,8 +73,8 @@ namespace ObsTool
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(cookieOptions =>
                 {
-                    // A user gets locked out after 10 minutes of API inactivity
-                    cookieOptions.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    // A user gets logged out after three hours of API inactivity.
+                    cookieOptions.ExpireTimeSpan = TimeSpan.FromHours(3);
                     cookieOptions.SlidingExpiration = true;
                     // The following is needed because with cookie authentication the default is 
                     // to redirect to a login page, and we want a 401 to be returned from an api request.
@@ -89,6 +89,7 @@ namespace ObsTool
 
             services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfile>());
 
+            services.Configure<AppOptions>(Configuration.GetSection(AppOptions.SectionName));
             services.Configure<MailServiceOptions>(Configuration.GetSection(MailServiceOptions.SectionName));
 
             services.AddDbContext<MainDbContext>(ConfigureDatabaseProvider);
@@ -106,6 +107,7 @@ namespace ObsTool
             services.AddScoped<ObsResourcesRepo>();
             services.AddScoped<DsoObservationsRepo>();
             services.AddScoped<IMailService, MailService>();
+            services.AddScoped<UserAccountService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

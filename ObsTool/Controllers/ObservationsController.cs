@@ -35,7 +35,6 @@ namespace ObsTool.Controllers
 
         // Note!
         //   Not used by anyone.
-        //[AllowAnonymous]
         //[HttpGet("observations/", Name = "GetAllForDsos")]
         //public IActionResult GetAllForDsos([FromQuery] string dsoIds, [FromQuery] string dsoName)
         //{
@@ -59,7 +58,6 @@ namespace ObsTool.Controllers
         //    return Ok(observationDtos);
         //}
 
-        [AllowAnonymous]
         [HttpGet("ObsSessions/{sessionId}/observations", Name = "GetAllObservationsForObsSession")]
         public IActionResult GetAllObservationsForObsSession(int obsSessionId)
         {
@@ -74,7 +72,6 @@ namespace ObsTool.Controllers
             return Ok(observationDto);
         }
 
-        [AllowAnonymous]
         [HttpGet("observations/{id}", Name = "GetOneObservation")]
         public IActionResult Get(int id)
         {
@@ -88,7 +85,6 @@ namespace ObsTool.Controllers
             return Ok(observationDto);
         }
 
-        [AllowAnonymous]
         [HttpGet("observations/{id}/dso/{dsoId}")]
         public IActionResult GetDsoObservation(int id, int dsoId)
         {

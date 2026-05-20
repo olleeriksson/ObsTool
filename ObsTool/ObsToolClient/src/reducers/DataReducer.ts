@@ -35,11 +35,16 @@ import {
 } from "../actions/ObsResourceCheckActions";
 
 import * as constants from "../types/Constants";
-import { AuthenticationAction } from "src/actions/AuthenticationActions";
+import * as authenticationAction from "src/actions/AuthenticationActions";
 // import { initialAppState, initialDataState } from "../store/AppStore";
 
 const initialDataState: IDataState = {
     isLoggedIn: false,
+    loggedInUsername: undefined,
+    loggedInEmail: undefined,
+    loggedInFullName: undefined,
+    isSuperAdmin: false,
+    hasCheckedAuthentication: false,
     obsSessions: [],
     isLoadingObsSessions: false,
     isErrorObsSessions: undefined,
@@ -57,21 +62,38 @@ const initialDataState: IDataState = {
     checkedObsResources: []
 };
 
-type DataAction = AuthenticationAction | ObsSessionAction | LocationAction | InstrumentAction | EyepieceAction | SearchAction | ObsResourceCheckAction;
+type DataAction = authenticationAction.AuthenticationAction | ObsSessionAction | LocationAction | InstrumentAction | EyepieceAction | SearchAction | ObsResourceCheckAction;
 
 const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, action: DataAction) => {
 
     switch (action.type) {
         case constants.LOGGED_IN: {
+            const loggedInAction = action as authenticationAction.ILoggedInAction;
             return {
                 ...state,
-                isLoggedIn: true
+                isLoggedIn: true,
+                loggedInUsername: loggedInAction.payload.username,
+                loggedInEmail: loggedInAction.payload.email,
+                loggedInFullName: loggedInAction.payload.fullName,
+                isSuperAdmin: loggedInAction.payload.isSuperAdmin,
+                hasCheckedAuthentication: true
             };
         }
         case constants.LOGGED_OUT: {
             return {
                 ...state,
-                isLoggedIn: false
+                isLoggedIn: false,
+                loggedInUsername: undefined,
+                loggedInEmail: undefined,
+                loggedInFullName: undefined,
+                isSuperAdmin: false,
+                hasCheckedAuthentication: true
+            };
+        }
+        case constants.AUTHENTICATION_CHECKED: {
+            return {
+                ...state,
+                hasCheckedAuthentication: true
             };
         }
         case constants.GET_OBSSESSIONS_BEGIN: {
