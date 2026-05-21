@@ -17,7 +17,7 @@ function Invoke-Git {
         }
 
         if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
-            $FailureMessage = "$FailureMessage`n$result.CombinedOutput"
+            $FailureMessage = "$FailureMessage`n$($result.CombinedOutput)"
         }
 
         Stop-Release $FailureMessage
@@ -38,7 +38,7 @@ function Get-GitOutput {
     if ($result.ExitCode -ne 0) {
         $message = "Git command failed: git $($Arguments -join ' ')"
         if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
-            $message = "$message`n$result.CombinedOutput"
+            $message = "$message`n$($result.CombinedOutput)"
         }
 
         Stop-Release $message
@@ -57,21 +57,20 @@ function Invoke-GitCommand {
         [string[]]$Arguments
     )
 
-    $stdoutFile = New-TemporaryFile
-    $stderrFile = New-TemporaryFile
-    $previousErrorActionPreference = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = 'git'
+    $startInfo.Arguments = ($Arguments | ForEach-Object { ConvertTo-ProcessArgument $_ }) -join ' '
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $startInfo.CreateNoWindow = $true
+    $startInfo.WorkingDirectory = (Get-Location).ProviderPath
 
-    try {
-        & git @Arguments > $stdoutFile 2> $stderrFile
-        $exitCode = $LASTEXITCODE
-    }
-    finally {
-        $ErrorActionPreference = $previousErrorActionPreference
-        $stdout = if (Test-Path -LiteralPath $stdoutFile) { Get-Content -LiteralPath $stdoutFile -Raw } else { '' }
-        $stderr = if (Test-Path -LiteralPath $stderrFile) { Get-Content -LiteralPath $stderrFile -Raw } else { '' }
-        Remove-Item -LiteralPath $stdoutFile, $stderrFile -Force -ErrorAction SilentlyContinue
-    }
+    $process = [System.Diagnostics.Process]::Start($startInfo)
+    $stdout = $process.StandardOutput.ReadToEnd()
+    $stderr = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+    $exitCode = $process.ExitCode
 
     if ($null -eq $stdout) {
         $stdout = ''
@@ -91,6 +90,19 @@ function Invoke-GitCommand {
         StdErr = $stderr.Trim()
         CombinedOutput = $combinedOutput.Trim()
     }
+}
+
+function ConvertTo-ProcessArgument {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Argument
+    )
+
+    if ($Argument -notmatch '[\s"]') {
+        return $Argument
+    }
+
+    return '"' + ($Argument -replace '"', '\"') + '"'
 }
 
 function Confirm-Step {
@@ -114,18 +126,8 @@ function Stop-Release {
 }
 
 function Get-DefaultBranch {
-    $mainExists = $false
-    $masterExists = $false
-
-    & git show-ref --verify --quiet refs/heads/main
-    if ($LASTEXITCODE -eq 0) {
-        $mainExists = $true
-    }
-
-    & git show-ref --verify --quiet refs/heads/master
-    if ($LASTEXITCODE -eq 0) {
-        $masterExists = $true
-    }
+    $mainExists = (Invoke-GitCommand @('show-ref', '--verify', '--quiet', 'refs/heads/main')).ExitCode -eq 0
+    $masterExists = (Invoke-GitCommand @('show-ref', '--verify', '--quiet', 'refs/heads/master')).ExitCode -eq 0
 
     if ($mainExists) {
         return 'main'
