@@ -17,14 +17,14 @@ function Invoke-Git {
         }
 
         if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
-            $FailureMessage = "$FailureMessage`n$($result.CombinedOutput)"
+            Write-GitOutput $result.CombinedOutput
         }
 
         Stop-Release $FailureMessage
     }
 
     if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
-        Write-Host $result.CombinedOutput
+        Write-GitOutput $result.CombinedOutput
     }
 }
 
@@ -38,7 +38,7 @@ function Get-GitOutput {
     if ($result.ExitCode -ne 0) {
         $message = "Git command failed: git $($Arguments -join ' ')"
         if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
-            $message = "$message`n$($result.CombinedOutput)"
+            Write-GitOutput $result.CombinedOutput
         }
 
         Stop-Release $message
@@ -66,6 +66,8 @@ function Invoke-GitCommand {
     $startInfo.CreateNoWindow = $true
     $startInfo.WorkingDirectory = (Get-Location).ProviderPath
 
+    Write-GitOutput "> git $($Arguments -join ' ')"
+
     $process = [System.Diagnostics.Process]::Start($startInfo)
     $stdout = $process.StandardOutput.ReadToEnd()
     $stderr = $process.StandardError.ReadToEnd()
@@ -90,6 +92,15 @@ function Invoke-GitCommand {
         StdErr = $stderr.Trim()
         CombinedOutput = $combinedOutput.Trim()
     }
+}
+
+function Write-GitOutput {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Text
+    )
+
+    Write-Host $Text -ForegroundColor DarkGray
 }
 
 function ConvertTo-ProcessArgument {
@@ -121,8 +132,7 @@ function Stop-Release {
         [string]$Message
     )
 
-    Write-Host "Release aborted: $Message"
-    exit 1
+    throw $Message
 }
 
 function Get-DefaultBranch {
@@ -189,6 +199,10 @@ function Add-ReleaseLine {
     Add-Content -LiteralPath $ReleaseFile -Value ('{0,-13} - ' -f $releaseName)
 }
 
+$defaultBranch = $null
+$releaseFailed = $false
+$releaseFailureMessage = $null
+
 try {
     $repoRoot = (Get-GitOutput @('rev-parse', '--show-toplevel') | Select-Object -First 1)
     Set-Location -LiteralPath $repoRoot
@@ -232,6 +246,32 @@ try {
     Write-Host "Release completed successfully. '$defaultBranch' has been merged into 'release' and pushed."
 }
 catch {
-    Write-Host "Release aborted: $($_.Exception.Message)"
+    $releaseFailed = $true
+    $releaseFailureMessage = $_.Exception.Message
+}
+finally {
+    if (-not [string]::IsNullOrWhiteSpace($defaultBranch)) {
+        $checkoutResult = Invoke-GitCommand @('checkout', $defaultBranch)
+        if ($checkoutResult.ExitCode -ne 0) {
+            if (-not [string]::IsNullOrWhiteSpace($checkoutResult.CombinedOutput)) {
+                Write-GitOutput $checkoutResult.CombinedOutput
+            }
+
+            if ($releaseFailed) {
+                $releaseFailureMessage = "$releaseFailureMessage Could not return to '$defaultBranch'."
+            }
+            else {
+                Write-Host "Release completed, but could not return to '$defaultBranch'."
+                exit 1
+            }
+        }
+        elseif (-not [string]::IsNullOrWhiteSpace($checkoutResult.CombinedOutput)) {
+            Write-GitOutput $checkoutResult.CombinedOutput
+        }
+    }
+}
+
+if ($releaseFailed) {
+    Write-Host "Release aborted: $releaseFailureMessage"
     exit 1
 }
