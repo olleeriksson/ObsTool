@@ -47,6 +47,8 @@ namespace ObsTool
                             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                             .AddJsonFile($"appsettings.{env.EnvironmentName}.json",
                                         optional: true, reloadOnChange: true);
+                        // Local production runs use Production settings but still need machine-local secrets.
+                        config.AddUserSecrets<Program>(optional: true);
                         // Add environment variables to config
                         config.AddEnvironmentVariables();
 

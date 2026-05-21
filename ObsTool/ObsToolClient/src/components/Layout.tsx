@@ -214,7 +214,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 <ListItemIcon>
                                     <AdminPanelSettingsIcon fontSize="small" />
                                 </ListItemIcon>
-                                <ListItemText>User admin</ListItemText>
+                                <ListItemText>User Management</ListItemText>
                             </MenuItem>
                         )}
                         <MenuItem onClick={this.handleClickLogout}>

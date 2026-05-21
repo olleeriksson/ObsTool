@@ -33,11 +33,11 @@ Use this workflow whenever the user asks to verify that the React app loads or w
 
 - Prefer Browser Use in-app browser for interactive verification on localhost targets.
 - Also vary checks across both Edge and Chrome when possible (user preference is primarily Chrome).
-- Detect an already-running frontend first by probing `http://localhost:3000` through `http://localhost:3007` and reuse the active port.
+- Detect an already-running frontend first by probing `http://localhost:3000/obstool/` through `http://localhost:3007/obstool/` and reuse the active port.
 - If no frontend is running, start `npm run dev` in `ObsTool/ObsToolClient`, remember the PID, and stop it before finishing.
 - Assume backend may already be user-run; probe common local API ports before starting a new backend process.
 - If backend must be started for verification, start `dotnet run` in `ObsTool`, remember the PID, and stop it before finishing.
-- Minimum load proof for frontend: HTTP 200 response from active frontend port and served HTML contains the React mount node (`<div id="root"></div>`).
+- Minimum load proof for frontend: HTTP 200 response from `http://localhost:<port>/obstool/` and served HTML contains the React mount node (`<div id="root"></div>`).
 - For browser variance evidence, run the same URL in Edge and Chrome. If one method fails (for example headless GPU/runtime issues), retry with stable flags or switch to in-app verification and record the limitation explicitly.
 - Do not leave temp verification processes or temp artifacts behind when done.
 
@@ -85,7 +85,7 @@ cd ObsTool/ObsToolClient
 npm run dev
 ```
 
-The backend development launch profile is `http://localhost:50996/` (`AspNetCoreWebApp` in `ObsTool/Properties/launchSettings.json`; IIS Express is `50995`). The frontend is normally `http://localhost:3000/` when the user starts it manually. `ObsTool/ObsToolClient/.env.development` points the frontend API base to `http://localhost:50996/api`.
+The backend development launch profile is `http://localhost:50996/` (`AspNetCoreWebApp` in `ObsTool/Properties/launchSettings.json`; IIS Express is `50995`). Development also uses `PathBase=/obstool` so the API shape matches production: `http://localhost:50996/obstool/api/...`. The frontend is normally `http://localhost:3000/obstool/` when the user starts it manually. `ObsTool/ObsToolClient/.env.development` points the frontend API base to `http://localhost:50996/obstool/api` and sets `VITE_BASE_PATH=/obstool/`.
 
 In Development, the backend does not host or auto-launch the SPA. Run Vite separately.
 
@@ -255,7 +255,7 @@ Test coverage for this pipeline lives in `ObsTool.Test/ReportTextManagerTest.cs`
 
 - **DTO/Entity boundary**: controllers accept and return only `*Dto` types; AutoMapper handles entity <-> DTO. When adding a field, update the entity, the DTOs, **and** `MappingProfiles.cs` together. Bear in mind the manual `ObsSessionDto` stitching in `ObservationsService.GetAllObservationDtosForObservations` - AutoMapper can't do it because of the recursion cycle noted on `Observation`.
 - **CORS**: allowed origins are space-separated in `CorsAllowedOrigins`. Add new dev ports there if changing the Vite port.
-- **API base URL**: backend routes live under `/api/...` (route attributes on each controller); SPA reads `VITE_API_URL` for the base.
+- **API base URL**: backend routes live under `/api/...` (route attributes on each controller), but development and production both mount the app under `/obstool`, so the externally visible API is `/obstool/api/...`. The SPA reads `VITE_API_URL` for the base.
 - **Catalog list is dynamic**: `ReportTextManager` builds its DSO regex from `DsoRepo.GetAllCatalogs()`, with `Sh2` added explicitly. New catalog prefixes generally need no code change beyond seeding rows in `SacDeepSkyObjects`.
 
 

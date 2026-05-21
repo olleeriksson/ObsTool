@@ -16,11 +16,13 @@ Frontend
   Run:
     1. cd <git root>\ObsTool\ObsToolClient
     2. npm start
+    3. Open http://localhost:3000/obstool/
 
 Backend
 ---------------------
   Run:
     1. Run the project from Visual Studio in Debug mode.
+    2. Development API routes are below http://localhost:50996/obstool/api/
 
 
 
@@ -100,3 +102,7 @@ Backend & Frontend together
   The production React build uses /obstool/ for static assets and /obstool/api for API calls,
   matching the SmarterASP.NET subdirectory deployment target.
 
+  Local production reads .NET user-secrets for this project, even though the runtime environment is Production.
+  Store local-only secrets there instead of appsettings.json:
+
+    dotnet user-secrets set "MailService:SmtpPassword" "<google-app-password-without-spaces>" --project .\ObsTool\ObsTool.csproj

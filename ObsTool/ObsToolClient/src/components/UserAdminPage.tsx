@@ -62,7 +62,7 @@ function getErrorMessage(error: any) {
     return error?.response?.data?.Message
         ?? error?.response?.data?.message
         ?? error?.message
-        ?? "User admin request failed.";
+        ?? "User Management request failed.";
 }
 
 function formatDate(value?: string) {
@@ -161,7 +161,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
         return (
             <div className={classes.root}>
                 <Paper className={classes.panel}>
-                    <Typography variant="h5">User admin</Typography>
+                    <Typography variant="h5">User Management</Typography>
                     <Typography className={classes.muted}>Only configured superadmin users can use this page.</Typography>
                 </Paper>
             </div>
@@ -172,7 +172,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
         <div className={classes.root}>
             <Paper className={classes.panel}>
                 <div className={classes.actions}>
-                    <Typography variant="h5">User admin</Typography>
+                    <Typography variant="h5">User Management</Typography>
                     {isLoading && <CircularProgress size={20} />}
                 </div>
 

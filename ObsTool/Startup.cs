@@ -73,6 +73,14 @@ namespace ObsTool
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(cookieOptions =>
                 {
+                    var pathBase = GetConfiguredPathBase();
+                    // Avoid localhost cookie collisions between development root and integrated /obstool runs.
+                    cookieOptions.Cookie.Name = BuildAuthenticationCookieName(pathBase);
+                    if (!string.IsNullOrWhiteSpace(pathBase))
+                    {
+                        cookieOptions.Cookie.Path = pathBase;
+                    }
+
                     // A user gets logged out after three hours of API inactivity.
                     cookieOptions.ExpireTimeSpan = TimeSpan.FromHours(3);
                     cookieOptions.SlidingExpiration = true;
@@ -143,13 +151,9 @@ namespace ObsTool
         public void Configure(IApplicationBuilder app, IHostEnvironment env, ILoggerFactory loggerFactory)
         {
             var pathBase = Configuration["PathBase"] ?? Configuration["ASPNETCORE_PATHBASE"];
+            pathBase = NormalizePathBase(pathBase);
             if (!string.IsNullOrWhiteSpace(pathBase))
             {
-                if (!pathBase.StartsWith("/"))
-                {
-                    pathBase = "/" + pathBase;
-                }
-
                 // Supports production deployments and local production checks below /obstool.
                 app.UsePathBase(pathBase);
             }
@@ -191,6 +195,45 @@ namespace ObsTool
                     spa.Options.SourcePath = "./ObsToolClient";
                 });
             }
+        }
+
+        private static string GetConfiguredPathBase()
+        {
+            return NormalizePathBase(Configuration["PathBase"] ?? Configuration["ASPNETCORE_PATHBASE"]);
+        }
+
+        private static string NormalizePathBase(string pathBase)
+        {
+            if (string.IsNullOrWhiteSpace(pathBase))
+            {
+                return null;
+            }
+
+            pathBase = pathBase.Trim();
+            return pathBase.StartsWith("/") ? pathBase : "/" + pathBase;
+        }
+
+        private static string BuildAuthenticationCookieName(string pathBase)
+        {
+            var environmentName = string.IsNullOrWhiteSpace(Env?.EnvironmentName)
+                ? "App"
+                : Env.EnvironmentName;
+            var pathPart = string.IsNullOrWhiteSpace(pathBase)
+                ? "root"
+                : pathBase.Trim('/');
+
+            return $".ObsTool.{SanitizeCookieNamePart(environmentName)}.{SanitizeCookieNamePart(pathPart)}.Auth";
+        }
+
+        private static string SanitizeCookieNamePart(string value)
+        {
+            var result = string.Empty;
+            foreach (var c in value)
+            {
+                result += char.IsLetterOrDigit(c) ? c : '_';
+            }
+
+            return string.IsNullOrWhiteSpace(result) ? "default" : result;
         }
     }
 }

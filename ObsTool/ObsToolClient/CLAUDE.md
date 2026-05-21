@@ -30,8 +30,8 @@ npm run lint     # eslint
 **Port 3000** is always manually started by the user — never kill it, never start anything on it.
 
 **Port 3001** is Claude's dedicated dev server port. When you need a dev server:
-1. Check if port 3000 is already running — if so, use `http://localhost:3000` directly.
-2. If port 3000 is not running, kill any servers on ports 3001–3020 (except 3000), then start your own with `npm run dev -- --port 3001` and use `http://localhost:3001`.
+1. Check if port 3000 is already running — if so, use `http://localhost:3000/obstool/` directly.
+2. If port 3000 is not running, kill any servers on ports 3001–3020 (except 3000), then start your own with `npm run dev -- --port 3001` and use `http://localhost:3001/obstool/`.
 3. Always use port 3001 for your own server — no other port.
 
 An old MUI v4 reference build runs separately on **http://localhost:5000** sometimes (useful for visual comparison). It's very important that you never click on any Save button there, or anywhere for that matter.
