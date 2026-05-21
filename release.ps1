@@ -138,12 +138,6 @@ try {
     Assert-OnBranch $defaultBranch
     Assert-CleanWorkingTree
 
-    if (-not (Confirm-Step "Push '$defaultBranch' to origin before creating the release entry?")) {
-        Stop-Release 'Canceled before pushing the default branch.'
-    }
-
-    Invoke-Git @('push', 'origin', $defaultBranch) "Could not push '$defaultBranch' to origin."
-
     $releaseFile = Join-Path $repoRoot 'RELEASES.txt'
     Add-ReleaseLine $releaseFile
 
