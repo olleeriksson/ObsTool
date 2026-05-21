@@ -10,16 +10,22 @@ function Invoke-Git {
         [string]$FailureMessage
     )
 
-    $output = & git @Arguments 2>&1
-    if ($LASTEXITCODE -ne 0) {
+    $result = Invoke-GitCommand $Arguments
+    if ($result.ExitCode -ne 0) {
         if ([string]::IsNullOrWhiteSpace($FailureMessage)) {
             $FailureMessage = "Git command failed: git $($Arguments -join ' ')"
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
+            $FailureMessage = "$FailureMessage`n$result.CombinedOutput"
         }
 
         Stop-Release $FailureMessage
     }
 
-    $output | ForEach-Object { Write-Host $_ }
+    if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
+        Write-Host $result.CombinedOutput
+    }
 }
 
 function Get-GitOutput {
@@ -28,12 +34,63 @@ function Get-GitOutput {
         [string[]]$Arguments
     )
 
-    $output = & git @Arguments 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Stop-Release "Git command failed: git $($Arguments -join ' ')"
+    $result = Invoke-GitCommand $Arguments
+    if ($result.ExitCode -ne 0) {
+        $message = "Git command failed: git $($Arguments -join ' ')"
+        if (-not [string]::IsNullOrWhiteSpace($result.CombinedOutput)) {
+            $message = "$message`n$result.CombinedOutput"
+        }
+
+        Stop-Release $message
     }
 
-    return $output
+    if ([string]::IsNullOrWhiteSpace($result.StdOut)) {
+        return @()
+    }
+
+    return $result.StdOut -split "`r?`n"
+}
+
+function Invoke-GitCommand {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments
+    )
+
+    $stdoutFile = New-TemporaryFile
+    $stderrFile = New-TemporaryFile
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+
+    try {
+        & git @Arguments > $stdoutFile 2> $stderrFile
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+        $stdout = if (Test-Path -LiteralPath $stdoutFile) { Get-Content -LiteralPath $stdoutFile -Raw } else { '' }
+        $stderr = if (Test-Path -LiteralPath $stderrFile) { Get-Content -LiteralPath $stderrFile -Raw } else { '' }
+        Remove-Item -LiteralPath $stdoutFile, $stderrFile -Force -ErrorAction SilentlyContinue
+    }
+
+    if ($null -eq $stdout) {
+        $stdout = ''
+    }
+
+    if ($null -eq $stderr) {
+        $stderr = ''
+    }
+
+    $combinedOutput = @($stdout.Trim(), $stderr.Trim()) |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    $combinedOutput = $combinedOutput -join [Environment]::NewLine
+
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        StdOut = $stdout.Trim()
+        StdErr = $stderr.Trim()
+        CombinedOutput = $combinedOutput.Trim()
+    }
 }
 
 function Confirm-Step {
@@ -138,20 +195,25 @@ try {
     Assert-OnBranch $defaultBranch
     Assert-CleanWorkingTree
 
-    $releaseFile = Join-Path $repoRoot 'RELEASES.txt'
-    Add-ReleaseLine $releaseFile
+    if (Confirm-Step 'Add a new release entry to RELEASES.txt?') {
+        $releaseFile = Join-Path $repoRoot 'RELEASES.txt'
+        Add-ReleaseLine $releaseFile
 
-    Write-Host ''
-    Write-Host 'Last 8 lines of RELEASES.txt:'
-    Get-Content -LiteralPath $releaseFile -Tail 8 | ForEach-Object { Write-Host $_ }
-    Write-Host ''
+        Write-Host ''
+        Write-Host 'Last 8 lines of RELEASES.txt:'
+        Get-Content -LiteralPath $releaseFile -Tail 8 | ForEach-Object { Write-Host $_ }
+        Write-Host ''
 
-    if (-not (Confirm-Step 'Commit this RELEASES.txt change?')) {
-        Stop-Release 'Canceled before commit.'
+        if (-not (Confirm-Step 'Commit this RELEASES.txt change?')) {
+            Stop-Release 'Canceled before commit.'
+        }
+
+        Invoke-Git @('add', '--', 'RELEASES.txt') 'Could not stage RELEASES.txt.'
+        Invoke-Git @('commit', '-m', 'Add release marker') 'Could not commit RELEASES.txt.'
     }
-
-    Invoke-Git @('add', '--', 'RELEASES.txt') 'Could not stage RELEASES.txt.'
-    Invoke-Git @('commit', '-m', 'Add release marker') 'Could not commit RELEASES.txt.'
+    else {
+        Write-Host 'Skipping RELEASES.txt update.'
+    }
 
     Assert-OnBranch $defaultBranch
     Invoke-Git @('push', 'origin', $defaultBranch) "Could not push '$defaultBranch' to origin."
