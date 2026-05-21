@@ -28,7 +28,7 @@ namespace ObsTool.Services
         /// Passing in a list of DSO ids this method returns all observations of those DSO's, mapped by the observation id
         /// in which they were observed.
         /// </summary>
-        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(List<int> dsoIds = null, 
+        public Dictionary<int, ICollection<ObservationDto>> GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(int userId, List<int> dsoIds = null,
             int[] exludeObservationIds = null, bool includePrevAndNextObservations = false)
         {
             int[] exludeObservationIdList = exludeObservationIds ?? (new int[] { });
@@ -37,11 +37,11 @@ namespace ObsTool.Services
             IEnumerable<ObservationDto> observations;
             if (dsoIds == null)
             {
-                observations = GetAllObservationDtosEverMade();  // we really should pass includePrevAndNextObservations to make this generic but it's not used here so..
+                observations = GetAllObservationDtosEverMade(userId);  // we really should pass includePrevAndNextObservations to make this generic but it's not used here so..
             }
             else
             {
-                observations = GetAllObservationDtosForMultipleDsoIds(dsoIds, includePrevAndNextObservations);
+                observations = GetAllObservationDtosForMultipleDsoIds(dsoIds, userId, includePrevAndNextObservations);
             }
 
             // Put them in a dictionary of arrays for faster lookup, mapped by the observation id
@@ -70,28 +70,28 @@ namespace ObsTool.Services
             return mapOfOtherObservations;
         }
 
-        public IEnumerable<ObservationDto> GetAllObservationDtosEverMade()
+        public IEnumerable<ObservationDto> GetAllObservationDtosEverMade(int userId)
         {
             // Get all the observations ever made, hardly a useful page
-            ICollection<Observation> observations = _observationsRepo.GetAllObservations();
+            ICollection<Observation> observations = _observationsRepo.GetAllObservations(userId);
 
-            return GetAllObservationsWithExtra(observations, false);
+            return GetAllObservationsWithExtra(observations, userId, false);
         }
 
-        public IEnumerable<ObservationDto> GetAllObservationDtosForMultipleDsoIds(List<int> dsoIds, bool includePrevAndNextObservations = false)
+        public IEnumerable<ObservationDto> GetAllObservationDtosForMultipleDsoIds(List<int> dsoIds, int userId, bool includePrevAndNextObservations = false)
         {
             // Get all observations every done on the provided list of DSOs
-            ICollection<Observation> observations = _observationsRepo.GetObservationsByMultipleDsoIds(dsoIds);
+            ICollection<Observation> observations = _observationsRepo.GetObservationsByMultipleDsoIds(dsoIds, userId);
 
-            return GetAllObservationsWithExtra(observations, includePrevAndNextObservations);
+            return GetAllObservationsWithExtra(observations, userId, includePrevAndNextObservations);
         }
 
-        private IEnumerable<ObservationDto> GetAllObservationsWithExtra(ICollection<Observation> observations, bool includePrevAndNextObservations)
+        private IEnumerable<ObservationDto> GetAllObservationsWithExtra(ICollection<Observation> observations, int userId, bool includePrevAndNextObservations)
         {
             // Convert the Observations to DTO's
             var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
 
-            Dictionary<int, ObsSessionDto> obsSessionLookupMap = GetObsSessionsForObservations(observations);
+            Dictionary<int, ObsSessionDto> obsSessionLookupMap = GetObsSessionsForObservations(observations, userId);
 
             // Then manually set the ObsSessionDto's on the ObservationDto's because automapper can't handle it
             // (it creates a self referencing loop). 
@@ -129,11 +129,11 @@ namespace ObsTool.Services
         /// <summary>
         /// Returns a lookupmap to be able to find the ObsSessionDto for a given observation.
         /// </summary>
-        private Dictionary<int, ObsSessionDto> GetObsSessionsForObservations(ICollection<Observation> observations)
+        private Dictionary<int, ObsSessionDto> GetObsSessionsForObservations(ICollection<Observation> observations, int userId)
         {
             var obsSessionIds = GetUniqueObsSessionIds(observations);
 
-            var obsSessions = _obsSessionsRepository.GetObsSessionsByMultipleIds(obsSessionIds, includeObservations: true);
+            var obsSessions = _obsSessionsRepository.GetObsSessionsByMultipleIds(obsSessionIds, userId, includeObservations: true);
 
             // Convert them to DTOs and then strip them of some fields we don't want
             var obsSessionDtos = _mapper.Map<IEnumerable<ObsSessionDto>>(obsSessions);

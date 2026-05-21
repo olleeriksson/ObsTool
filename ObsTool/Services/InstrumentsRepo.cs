@@ -14,8 +14,9 @@ namespace ObsTool.Services
             _dbContext = dbContext;
         }
 
-        public Instrument AddInstrument(Instrument instrument)
+        public Instrument AddInstrument(Instrument instrument, int userId)
         {
+            instrument.UserId = userId;
             var added = _dbContext.Instruments.Add(instrument);
             _dbContext.SaveChanges();
             return added.Entity;
@@ -26,14 +27,29 @@ namespace ObsTool.Services
             return _dbContext.Instruments.FirstOrDefault(i => i.Id == id);
         }
 
+        public Instrument GetInstrument(int id, int userId)
+        {
+            return _dbContext.Instruments.FirstOrDefault(i => i.Id == id && i.UserId == userId);
+        }
+
         public Instrument GetInstrumentByKey(string key)
         {
             return _dbContext.Instruments.FirstOrDefault(i => i.Key == key);
         }
 
+        public Instrument GetInstrumentByKey(string key, int userId)
+        {
+            return _dbContext.Instruments.FirstOrDefault(i => i.Key == key && i.UserId == userId);
+        }
+
         public IEnumerable<Instrument> GetInstruments()
         {
             return _dbContext.Instruments.ToList();
+        }
+
+        public IEnumerable<Instrument> GetInstruments(int userId)
+        {
+            return _dbContext.Instruments.Where(i => i.UserId == userId).ToList();
         }
 
         public bool DeleteInstrument(Instrument instrument)
@@ -47,9 +63,19 @@ namespace ObsTool.Services
             return _dbContext.Observations.Any(o => o.InstrumentId == instrumentId);
         }
 
+        public bool AnyObservationReferences(int instrumentId, int userId)
+        {
+            return _dbContext.Observations.Any(o => o.InstrumentId == instrumentId && o.UserId == userId);
+        }
+
         public bool AnyObsSessionReferences(int instrumentId)
         {
             return _dbContext.ObsSessions.Any(s => s.InstrumentId == instrumentId);
+        }
+
+        public bool AnyObsSessionReferences(int instrumentId, int userId)
+        {
+            return _dbContext.ObsSessions.Any(s => s.InstrumentId == instrumentId && s.UserId == userId);
         }
 
         public bool SaveChanges()

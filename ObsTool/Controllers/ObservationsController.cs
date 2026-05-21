@@ -20,16 +20,19 @@ namespace ObsTool.Controllers
         private ObservationsRepo _observationsRepo;
         private DsoObservationsRepo _dsoObservationsRepo;
         private ObservationsService _observationsService;
+        private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
         public ObservationsController(ILogger<ObservationsController> logger, MainDbContext mainDbContext, ObsSessionsRepo obsSessionRepository,
-            ObservationsRepo observationsRepo, DsoObservationsRepo dsoObservationsRepo, ObservationsService observationsService, IMapper mapper)
+            ObservationsRepo observationsRepo, DsoObservationsRepo dsoObservationsRepo, ObservationsService observationsService,
+            CurrentUserService currentUserService, IMapper mapper)
         {
             _logger = logger;
             _obsSessionsRepository = obsSessionRepository;
             _observationsRepo = observationsRepo;
             _dsoObservationsRepo = dsoObservationsRepo;
             _observationsService = observationsService;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
@@ -58,11 +61,12 @@ namespace ObsTool.Controllers
         //    return Ok(observationDtos);
         //}
 
-        [HttpGet("ObsSessions/{sessionId}/observations", Name = "GetAllObservationsForObsSession")]
+        [HttpGet("ObsSessions/{obsSessionId}/observations", Name = "GetAllObservationsForObsSession")]
         public IActionResult GetAllObservationsForObsSession(int obsSessionId)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             // Get Obs session first
-            ObsSession obsSession = _obsSessionsRepository.GetObsSession(obsSessionId);
+            ObsSession obsSession = _obsSessionsRepository.GetObsSession(obsSessionId, userId);
             if (obsSession == null)
             {
                 return NotFound();
@@ -75,7 +79,8 @@ namespace ObsTool.Controllers
         [HttpGet("observations/{id}", Name = "GetOneObservation")]
         public IActionResult Get(int id)
         {
-            Observation observation = _observationsRepo.GetObservationById(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            Observation observation = _observationsRepo.GetObservationById(id, userId);
             if (observation == null)
             {
                 return NotFound();
@@ -88,7 +93,8 @@ namespace ObsTool.Controllers
         [HttpGet("observations/{id}/dso/{dsoId}")]
         public IActionResult GetDsoObservation(int id, int dsoId)
         {
-            DsoObservation dsoObservation = _dsoObservationsRepo.GetDsoObservation(id, dsoId);
+            var userId = _currentUserService.GetRequiredUserId();
+            DsoObservation dsoObservation = _dsoObservationsRepo.GetDsoObservation(id, dsoId, userId);
             if (dsoObservation == null)
             {
                 return NotFound();
@@ -101,7 +107,8 @@ namespace ObsTool.Controllers
         [HttpDelete("observations/{id}/dso/{dsoId}")]
         public IActionResult DeleteDsoObservation(int id, int dsoId)
         {
-            DsoObservation dsoObservation = _dsoObservationsRepo.GetDsoObservation(id, dsoId);
+            var userId = _currentUserService.GetRequiredUserId();
+            DsoObservation dsoObservation = _dsoObservationsRepo.GetDsoObservation(id, dsoId, userId);
             if (dsoObservation == null)
             {
                 return NotFound();

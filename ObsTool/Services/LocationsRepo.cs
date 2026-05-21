@@ -16,8 +16,9 @@ namespace ObsTool.Services
             _dbContext = dbContext;
         }
 
-        public Location AddLocation(Location location)
+        public Location AddLocation(Location location, int userId)
         {
+            location.UserId = userId;
             var addedLocation = _dbContext.Locations.Add(location);
             _dbContext.SaveChanges();
 
@@ -35,14 +36,29 @@ namespace ObsTool.Services
             return _dbContext.Locations.FirstOrDefault(l => l.Id == id);
         }
 
+        public Location GetLocation(int id, int userId)
+        {
+            return _dbContext.Locations.FirstOrDefault(l => l.Id == id && l.UserId == userId);
+        }
+
         public IEnumerable<Location> GetLocations()
         {
             return _dbContext.Locations.ToList();
         }
 
+        public IEnumerable<Location> GetLocations(int userId)
+        {
+            return _dbContext.Locations.Where(l => l.UserId == userId).ToList();
+        }
+
         public int GetNumLocations()
         {
             return _dbContext.Locations.Count();
+        }
+
+        public int GetNumLocations(int userId)
+        {
+            return _dbContext.Locations.Count(l => l.UserId == userId);
         }
 
         public bool SaveChanges()

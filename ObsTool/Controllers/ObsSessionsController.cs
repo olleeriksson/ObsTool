@@ -26,11 +26,13 @@ namespace ObsTool.Controllers
         private readonly IDsoRepo _dsoRepo;
         private ReportTextManager _reportTextManager;
         ObservationsService _observationsService;
+        private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
         public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext,
             ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IInstrumentsRepo instrumentsRepo, IDsoRepo dsoRepo,
-            IH2500Repo h2500Repo, ReportTextManager reportTextManager, ObservationsService observationsService, IMapper mapper)
+            IH2500Repo h2500Repo, ReportTextManager reportTextManager, ObservationsService observationsService,
+            CurrentUserService currentUserService, IMapper mapper)
         {
             _logger = logger;
             _mainDbContext = mainDbContext;
@@ -41,6 +43,7 @@ namespace ObsTool.Controllers
             _dsoRepo = dsoRepo;
             _reportTextManager = reportTextManager;
             _observationsService = observationsService;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
@@ -48,7 +51,8 @@ namespace ObsTool.Controllers
         [HttpGet]
         public IActionResult Get(bool includeLocation = false, bool simple = false)
         {
-            var obsSessions = _obsSessionsRepository.GetObsSessions(includeLocation, includeReportText: simple);
+            var userId = _currentUserService.GetRequiredUserId();
+            var obsSessions = _obsSessionsRepository.GetObsSessions(userId, includeLocation, includeReportText: simple);
 
             if (simple)
             {
@@ -75,7 +79,8 @@ namespace ObsTool.Controllers
             //ObsSessionDto session = Store.Current.ObsSessions.Where(s => s.Id == id).FirstOrDefault();
             //ObsSessionDto session = (from s in Store.Current.ObsSessions where s.Id == id select s).FirstOrDefault();
 
-            ObsSession obsSession = _obsSessionsRepository.GetObsSession(id, includeLocation, includeObservations, includeDso);
+            var userId = _currentUserService.GetRequiredUserId();
+            ObsSession obsSession = _obsSessionsRepository.GetObsSession(id, userId, includeLocation, includeObservations, includeDso);
             if (obsSession == null)
             {
                 return NotFound();
@@ -97,7 +102,7 @@ namespace ObsTool.Controllers
                 int[] primaryObservationIds = obsSession.Observations.Select(o => o.Id).ToArray();
 
                 var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(
-                    dsoIds, exludeObservationIds: primaryObservationIds, includePrevAndNextObservations);
+                    userId, dsoIds, exludeObservationIds: primaryObservationIds, includePrevAndNextObservations);
 
                 // Go through each observation and..
                 foreach (var observationDto in obsSessionDto.Observations)
@@ -167,12 +172,13 @@ namespace ObsTool.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]ObsSessionDtoForCreation newObsSessionDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             ObsSession obsSession = _mapper.Map<ObsSession>(newObsSessionDto);
 
             // Lookup and verify the location id
             if (newObsSessionDto.LocationId != null)
             {
-                Location locationEntity = _locationsRepository.GetLocation(newObsSessionDto.LocationId ?? 0);
+                Location locationEntity = _locationsRepository.GetLocation(newObsSessionDto.LocationId ?? 0, userId);
                 if (locationEntity == null)
                 {
                     return BadRequest("Invalid LocationId");
@@ -181,7 +187,7 @@ namespace ObsTool.Controllers
             }
             if (newObsSessionDto.InstrumentId != null)
             {
-                Instrument instrumentEntity = _instrumentsRepo.GetInstrument(newObsSessionDto.InstrumentId ?? 0);
+                Instrument instrumentEntity = _instrumentsRepo.GetInstrument(newObsSessionDto.InstrumentId ?? 0, userId);
                 if (instrumentEntity == null)
                 {
                     return BadRequest("Invalid InstrumentId");
@@ -189,7 +195,7 @@ namespace ObsTool.Controllers
                 obsSession.Instrument = instrumentEntity;
             }
 
-            ObsSession addedObsSession = _obsSessionsRepository.AddObsSession(obsSession);
+            ObsSession addedObsSession = _obsSessionsRepository.AddObsSession(obsSession, userId);
 
             if (addedObsSession == null)
             {
@@ -211,12 +217,13 @@ namespace ObsTool.Controllers
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] ObsSessionDtoForUpdate obsSessionDtoForUpdate)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if (obsSessionDtoForUpdate == null)
             {
                 return BadRequest();
             }
 
-            ObsSession obsSessionEntity = _obsSessionsRepository.GetObsSession(id, true, true, true);
+            ObsSession obsSessionEntity = _obsSessionsRepository.GetObsSession(id, userId, true, true, true);
             if (obsSessionEntity == null)
             {
                 return NotFound();
@@ -225,7 +232,7 @@ namespace ObsTool.Controllers
             // Lookup and verify the location id
             if (obsSessionDtoForUpdate.LocationId != null)
             {
-                Location locationEntity = _locationsRepository.GetLocation(obsSessionDtoForUpdate.LocationId ?? 0);
+                Location locationEntity = _locationsRepository.GetLocation(obsSessionDtoForUpdate.LocationId ?? 0, userId);
                 if (locationEntity == null)
                 {
                     return NotFound($"Invalid LocationId {obsSessionDtoForUpdate.LocationId}");
@@ -234,7 +241,7 @@ namespace ObsTool.Controllers
             }
             if (obsSessionDtoForUpdate.InstrumentId != null)
             {
-                Instrument instrumentEntity = _instrumentsRepo.GetInstrument(obsSessionDtoForUpdate.InstrumentId ?? 0);
+                Instrument instrumentEntity = _instrumentsRepo.GetInstrument(obsSessionDtoForUpdate.InstrumentId ?? 0, userId);
                 if (instrumentEntity == null)
                 {
                     return NotFound($"Invalid InstrumentId {obsSessionDtoForUpdate.InstrumentId}");
@@ -260,7 +267,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation("Updated an observation session:");
             _logger.LogInformation(PocoPrinter.ToString(obsSessionEntity));
 
-            ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, true, true, true);
+            ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, userId, true, true, true);
             var resultingDto = _mapper.Map<ObsSessionDto>(freshObsSessionEntity);
 
             return Ok(resultingDto);
@@ -269,7 +276,8 @@ namespace ObsTool.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            ObsSession obsSessionEntity = _obsSessionsRepository.GetObsSession(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            ObsSession obsSessionEntity = _obsSessionsRepository.GetObsSession(id, userId);
             if (obsSessionEntity == null)
             {
                 return NotFound();

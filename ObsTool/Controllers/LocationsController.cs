@@ -18,12 +18,15 @@ namespace ObsTool.Controllers
     {
         private LocationsRepo _locationsRepository;
         private ObsSessionsRepo _obsSessionsRepository;
+        private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
-        public LocationsController(LocationsRepo locationsRepository, ObsSessionsRepo obsSessionsRepository, IMapper mapper)
+        public LocationsController(LocationsRepo locationsRepository, ObsSessionsRepo obsSessionsRepository,
+            CurrentUserService currentUserService, IMapper mapper)
         {
             _locationsRepository = locationsRepository;
             _obsSessionsRepository = obsSessionsRepository;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
@@ -31,10 +34,11 @@ namespace ObsTool.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var locations = _locationsRepository.GetLocations();
+            var userId = _currentUserService.GetRequiredUserId();
+            var locations = _locationsRepository.GetLocations(userId);
 
             // Rank locations using a 50/50 blend of normalized recency and normalized usage count.
-            var locationUsage = _obsSessionsRepository.GetObsSessions()
+            var locationUsage = _obsSessionsRepository.GetObsSessions(userId)
                 .Where(s => s.LocationId.HasValue)
                 .GroupBy(s => s.LocationId.Value)
                 .ToDictionary(
@@ -76,7 +80,8 @@ namespace ObsTool.Controllers
         [HttpGet("{id}", Name = "GetOneLocation")]
         public IActionResult Get(int id)
         {
-            var location = _locationsRepository.GetLocation(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            var location = _locationsRepository.GetLocation(id, userId);
 
             if (location == null)
             {
@@ -92,9 +97,10 @@ namespace ObsTool.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]LocationDtoForCreation locationDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             Location locationEntity = _mapper.Map<Location>(locationDto);
 
-            Location addedLocation = _locationsRepository.AddLocation(locationEntity);
+            Location addedLocation = _locationsRepository.AddLocation(locationEntity, userId);
 
             if (addedLocation == null)
             {
@@ -109,6 +115,7 @@ namespace ObsTool.Controllers
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] LocationDtoForUpdate locationDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if (locationDto == null)
             {
                 return BadRequest();
@@ -120,7 +127,7 @@ namespace ObsTool.Controllers
                 return StatusCode(500, "Must provide some data");
             }
 
-            Location locationEntity = _locationsRepository.GetLocation(id);
+            Location locationEntity = _locationsRepository.GetLocation(id, userId);
             if (locationEntity == null)
             {
                 return NotFound();
@@ -142,13 +149,14 @@ namespace ObsTool.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            Location locationEntity = _locationsRepository.GetLocation(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            Location locationEntity = _locationsRepository.GetLocation(id, userId);
             if (locationEntity == null)
             {
                 return NotFound();
             }
 
-            bool anyObsSessionReferring = _obsSessionsRepository.GetObsSessions().Any(s => s.LocationId == id);
+            bool anyObsSessionReferring = _obsSessionsRepository.GetObsSessions(userId).Any(s => s.LocationId == id);
             if (anyObsSessionReferring)
             {
                 return BadRequest("There are observation sessions referring to this location. Can not delete.");

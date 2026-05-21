@@ -27,9 +27,28 @@ namespace ObsTool.Services
                 .ToList();
         }
 
+        public ICollection<Observation> GetAllObservations(int userId)
+        {
+            return _dbContext.Observations
+                .Where(o => o.UserId == userId)
+                .Include(o => o.ObsResources)
+                .Include(o => o.DsoObservations)
+                .Include(o => o.Instrument)
+                .ToList();
+        }
+
         public Observation GetObservationById(int id)
         {
             return _dbContext.Observations.Where(o => o.Id == id)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.ObsResources)
+                .Include(o => o.Instrument)
+                .FirstOrDefault();
+        }
+
+        public Observation GetObservationById(int id, int userId)
+        {
+            return _dbContext.Observations.Where(o => o.Id == id && o.UserId == userId)
                 .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
                 .Include(o => o.ObsResources)
                 .Include(o => o.Instrument)
@@ -45,11 +64,32 @@ namespace ObsTool.Services
                 .ToList();
         }
 
+        public ICollection<Observation> GetObservationsByDsoId(int dsoId, int userId)
+        {
+            return _dbContext.Observations
+                .Where(o => o.UserId == userId)
+                .Where(o => o.DsoObservations.Any(obs => obs.DsoId == dsoId))
+                .Include(o => o.ObsResources)
+                .Include(o => o.Instrument)
+                .ToList();
+        }
+
         // Note!! Changed from ICollection to List because of a bug in .NET Core 3.0 (https://github.com/aspnet/EntityFrameworkCore/issues/17342)
 
         public ICollection<Observation> GetObservationsByMultipleDsoIds(List<int> dsoIds)
         {
             return _dbContext.Observations
+                .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))
+                .Include(o => o.ObsResources)
+                .Include(o => o.DsoObservations)
+                .Include(o => o.Instrument)
+                .ToList();
+        }
+
+        public ICollection<Observation> GetObservationsByMultipleDsoIds(List<int> dsoIds, int userId)
+        {
+            return _dbContext.Observations
+                .Where(o => o.UserId == userId)
                 .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))
                 .Include(o => o.ObsResources)
                 .Include(o => o.DsoObservations)

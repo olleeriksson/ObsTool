@@ -100,6 +100,7 @@ namespace ObsTool.Services
                     existingObservation.DisplayOrder = updatedObservation.DisplayOrder;
                     existingObservation.NonDetection = updatedObservation.NonDetection;
                     existingObservation.InstrumentId = updatedObservation.InstrumentId;
+                    existingObservation.UserId = obsSession.UserId;
 
                     _dbContext.Entry(existingObservation).Collection("DsoObservations").Load();
                     _dbContext.Entry(existingObservation).Collection("ObsResources").Load();
@@ -195,6 +196,7 @@ namespace ObsTool.Services
                 // If a resource with the same type and url doesn't already exist, add it!
                 if (!existingObsResources.Any(obsRes => obsRes.Type == newObsResource.Type && obsRes.Url == newObsResource.Url))
                 {
+                    newObsResource.UserId = existingObservation.UserId;
                     existingObsResources.Add(newObsResource);
                 }
             }
@@ -276,7 +278,7 @@ namespace ObsTool.Services
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
                     string sectionText = sectionsMatch.Value.Trim();  // the whole section, including resource links
-                    int? sectionInstrumentId = GetInstrumentIdForSection(obsSession.InstrumentId, scopeMatches, sectionsMatch.Index);
+                    int? sectionInstrumentId = GetInstrumentIdForSection(obsSession.UserId, obsSession.InstrumentId, scopeMatches, sectionsMatch.Index);
 
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
                     var dsosInSection = new Dictionary<int, Dso>();
@@ -314,7 +316,9 @@ namespace ObsTool.Services
                             continue;
                         }
 
-                        Dso dso = _dsoRepo.GetDsoByName(dsoName, normalize: false);
+                        Dso dso = obsSession.UserId > 0
+                            ? _dsoRepo.GetDsoByName(dsoName, normalize: false, userId: obsSession.UserId)
+                            : _dsoRepo.GetDsoByName(dsoName, normalize: false);
                         if (dso == null)
                         {
                             Debug.WriteLine("Could not match name");
@@ -353,6 +357,7 @@ namespace ObsTool.Services
 
                         var obsResource = new ObsResource
                         {
+                            UserId = obsSession.UserId,
                             Type = resourceType.Replace("Photo", "Image").ToLower(),
                             Url = url
                         };
@@ -403,7 +408,13 @@ namespace ObsTool.Services
                         bool noExistingDsoExtra = (dso.DsoExtra == null);
                         if (noExistingDsoExtra)
                         {
-                            dso.DsoExtra = new DsoExtra();
+                            dso.DsoExtra = new DsoExtra
+                            {
+                                UserId = obsSession.UserId,
+                                DsoId = dso.Id,
+                                Dso = dso
+                            };
+                            _dbContext?.DsoExtra.Add(dso.DsoExtra);
                         }
                         // If there is no existing DSO extra, or if this obs session is newer than the obs session used to store 
                         // the existing DSO extra, then we replace the attributes in it.
@@ -429,6 +440,7 @@ namespace ObsTool.Services
                     // Now, create the observation!
                     Observation observation = new Observation
                     {
+                        UserId = obsSession.UserId,
                         Text = sectionObsText,
                         Identifier = observationsIdentifier,
                         DsoObservations = new List<DsoObservation>(),
@@ -494,7 +506,7 @@ namespace ObsTool.Services
             return observationsDict;
         }
 
-        private int? GetInstrumentIdForSection(int? defaultInstrumentId, List<Match> scopeMatches, int sectionStartIndex)
+        private int? GetInstrumentIdForSection(int userId, int? defaultInstrumentId, List<Match> scopeMatches, int sectionStartIndex)
         {
             int? sectionInstrumentId = defaultInstrumentId;
 
@@ -517,7 +529,9 @@ namespace ObsTool.Services
                     continue;
                 }
 
-                Instrument instrument = _instrumentsRepo.GetInstrumentByKey(scopeKey);
+                Instrument instrument = userId > 0
+                    ? _instrumentsRepo.GetInstrumentByKey(scopeKey, userId)
+                    : _instrumentsRepo.GetInstrumentByKey(scopeKey);
                 if (instrument == null)
                 {
                     throw new ObsToolException($"Unknown instrument key in scope directive: '{scopeKey}'");

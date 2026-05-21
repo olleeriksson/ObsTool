@@ -22,14 +22,17 @@ namespace ObsTool.Controllers
         //private IObsSessionsRepository _obsSessionsRepository;
         private ObservationsRepo _observationsRepo;
         private ILogger<ObsResourcesController> _logger;
+        private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
-        public ObsResourcesController(ObsResourcesRepo obsResourceRepo, ObservationsRepo observationsRepo, ILogger<ObsResourcesController> logger, IMapper mapper)
+        public ObsResourcesController(ObsResourcesRepo obsResourceRepo, ObservationsRepo observationsRepo,
+            ILogger<ObsResourcesController> logger, CurrentUserService currentUserService, IMapper mapper)
         {
             _obsResourceRepo = obsResourceRepo;
             //_obsSessionsRepository = obsSessionsRepository;
             _observationsRepo = observationsRepo;
             _logger = logger;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
@@ -37,7 +40,8 @@ namespace ObsTool.Controllers
         [Route("resources")]
         public IActionResult Get()
         {
-            var resources = _obsResourceRepo.GetAllResources();
+            var userId = _currentUserService.GetRequiredUserId();
+            var resources = _obsResourceRepo.GetAllResources(userId);
             var results = _mapper.Map<IEnumerable<ObsResourceDto>>(resources);
             return Ok(results);
         }
@@ -45,7 +49,8 @@ namespace ObsTool.Controllers
         [HttpGet("resources/{resourceId}", Name = "GetOneObsResource")]
         public IActionResult Get(int resourceId)
         {
-            ObsResource obsResource = _obsResourceRepo.GetOneResource(resourceId);
+            var userId = _currentUserService.GetRequiredUserId();
+            ObsResource obsResource = _obsResourceRepo.GetOneResource(resourceId, userId);
             if (obsResource == null)
             {
                 return NotFound();
@@ -56,8 +61,9 @@ namespace ObsTool.Controllers
         [HttpGet("observations/{observationId}/resources", Name = "GetAllResourcesForObservation")]
         public IActionResult GetAllResourcesForObsSession(int observationId)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             // Get Obs session first
-            Observation observation = _observationsRepo.GetObservationById(observationId);
+            Observation observation = _observationsRepo.GetObservationById(observationId, userId);
             if (observation == null)
             {
                 return NotFound();
@@ -70,6 +76,7 @@ namespace ObsTool.Controllers
         [HttpPost("observations/{observationId}/resources")]
         public IActionResult Post(int observationId, [FromBody] ObsResourceDtoForCreationAndUpdate newObsResourceDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             ObsResource newObsResource = _mapper.Map<ObsResource>(newObsResourceDto);
 
             // Verify the type
@@ -78,7 +85,7 @@ namespace ObsTool.Controllers
                 return BadRequest("Invalid type");
             }
 
-            Observation observation = _observationsRepo.GetObservationById(observationId);
+            Observation observation = _observationsRepo.GetObservationById(observationId, userId);
             if (observation == null)
             {
                 return NotFound("Could not find the observation");
@@ -86,7 +93,7 @@ namespace ObsTool.Controllers
 
             newObsResource.ObservationId = observation.Id;
 
-            ObsResource addedObsResource = _obsResourceRepo.AddObsResource(newObsResource);
+            ObsResource addedObsResource = _obsResourceRepo.AddObsResource(newObsResource, userId);
 
             if (addedObsResource == null)
             {
@@ -104,12 +111,13 @@ namespace ObsTool.Controllers
         [HttpPut("resources/{resourceId}")]
         public IActionResult Put(int resourceId, [FromBody] ObsResourceDtoForCreationAndUpdate obsResourceDtoForUpdate)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if (obsResourceDtoForUpdate == null)
             {
                 return BadRequest();
             }
 
-            ObsResource obsResourceEntity = _obsResourceRepo.GetOneResource(resourceId);
+            ObsResource obsResourceEntity = _obsResourceRepo.GetOneResource(resourceId, userId);
             if (obsResourceEntity == null)
             {
                 return NotFound();
@@ -132,7 +140,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation("Updated a resource:");
             _logger.LogInformation(PocoPrinter.ToString(obsResourceEntity));
 
-            ObsResource freshObsResourceEntity = _obsResourceRepo.GetOneResource(resourceId);
+            ObsResource freshObsResourceEntity = _obsResourceRepo.GetOneResource(resourceId, userId);
             var resultingDto = _mapper.Map<ObsResourceDto>(freshObsResourceEntity);
 
             return Ok(resultingDto);
@@ -141,7 +149,8 @@ namespace ObsTool.Controllers
         [HttpDelete("resources/{id}")]
         public IActionResult Delete(int id)
         {
-            ObsResource obsResourceEntity = _obsResourceRepo.GetOneResource(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            ObsResource obsResourceEntity = _obsResourceRepo.GetOneResource(id, userId);
             if (obsResourceEntity == null)
             {
                 return NotFound();

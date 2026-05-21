@@ -12,6 +12,10 @@ namespace ObsTool.Entities
         [Key]
         public int Id { get; set; }
 
+        public int UserId { get; set; }
+
+        public AppUser User { get; set; }
+
         // Can not have this here because it creates a self referencing loop between ObsSession and Observation
         //[Required]
         //public ObsSession ObsSession { get; set; }

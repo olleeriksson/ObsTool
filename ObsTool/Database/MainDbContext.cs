@@ -85,10 +85,103 @@ namespace ObsTool.Database
                 .HasIndex(user => user.NormalizedUsername)
                 .IsUnique();
 
+            modelBuilder.Entity<ObsSession>()
+                .HasAlternateKey(obsSession => new { obsSession.Id, obsSession.UserId });
+
+            modelBuilder.Entity<Observation>()
+                .HasAlternateKey(observation => new { observation.Id, observation.UserId });
+
+            modelBuilder.Entity<Location>()
+                .HasAlternateKey(location => new { location.Id, location.UserId });
+
+            modelBuilder.Entity<Instrument>()
+                .HasAlternateKey(instrument => new { instrument.Id, instrument.UserId });
+
+            modelBuilder.Entity<ObsSession>()
+                .HasOne(obsSession => obsSession.User)
+                .WithMany()
+                .HasForeignKey(obsSession => obsSession.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Observation>()
+                .HasOne(observation => observation.User)
+                .WithMany()
+                .HasForeignKey(observation => observation.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DsoExtra>()
+                .HasOne(dsoExtra => dsoExtra.User)
+                .WithMany()
+                .HasForeignKey(dsoExtra => dsoExtra.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ObsResource>()
+                .HasOne(obsResource => obsResource.User)
+                .WithMany()
+                .HasForeignKey(obsResource => obsResource.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Location>()
+                .HasOne(location => location.User)
+                .WithMany()
+                .HasForeignKey(location => location.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Instrument>()
+                .HasOne(instrument => instrument.User)
+                .WithMany()
+                .HasForeignKey(instrument => instrument.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Eyepiece>()
+                .HasOne(eyepiece => eyepiece.User)
+                .WithMany()
+                .HasForeignKey(eyepiece => eyepiece.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ObsSession>()
+                .HasOne(obsSession => obsSession.Location)
+                .WithMany()
+                .HasPrincipalKey(location => new { location.Id, location.UserId })
+                .HasForeignKey(obsSession => new { obsSession.LocationId, obsSession.UserId })
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ObsSession>()
+                .HasOne(obsSession => obsSession.Instrument)
+                .WithMany()
+                .HasPrincipalKey(instrument => new { instrument.Id, instrument.UserId })
+                .HasForeignKey(obsSession => new { obsSession.InstrumentId, obsSession.UserId })
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Observation>()
+                .HasOne(observation => observation.Instrument)
+                .WithMany()
+                .HasPrincipalKey(instrument => new { instrument.Id, instrument.UserId })
+                .HasForeignKey(observation => new { observation.InstrumentId, observation.UserId })
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Observation>()
+                .HasOne<ObsSession>()
+                .WithMany(obsSession => obsSession.Observations)
+                .HasPrincipalKey(obsSession => new { obsSession.Id, obsSession.UserId })
+                .HasForeignKey(observation => new { observation.ObsSessionId, observation.UserId })
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ObsResource>()
+                .HasOne<Observation>()
+                .WithMany(observation => observation.ObsResources)
+                .HasPrincipalKey(observation => new { observation.Id, observation.UserId })
+                .HasForeignKey(obsResource => new { obsResource.ObservationId, obsResource.UserId })
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<DsoObservation>()
                 .HasOne(dsoObs => dsoObs.Observation)
                 .WithMany(obs => obs.DsoObservations)
-                .HasForeignKey(dsoObs => dsoObs.ObservationId);
+                .HasForeignKey(dsoObs => dsoObs.ObservationId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DsoObservation>()
                 .HasOne(dsoObs => dsoObs.Dso)
@@ -96,14 +189,21 @@ namespace ObsTool.Database
                 .HasForeignKey(dsoObs => dsoObs.DsoId);
 
             modelBuilder.Entity<DsoExtra>()
+                .HasIndex(dsoExtra => new { dsoExtra.UserId, dsoExtra.DsoId })
+                .IsUnique();
+
+            modelBuilder.Entity<DsoExtra>()
                 .HasOne(dsoExtra => dsoExtra.Dso)
-                .WithOne(dso => dso.DsoExtra)
-                .HasForeignKey<DsoExtra>(dsoExtra => dsoExtra.DsoId);
+                .WithMany(dso => dso.DsoExtras)
+                .HasForeignKey(dsoExtra => dsoExtra.DsoId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<DsoExtra>()
                 .HasOne(dsoExtra => dsoExtra.ObsSession)
                 .WithMany(obsSession => obsSession.DsoExtras)
-                .HasForeignKey(dsoExtra => dsoExtra.ObsSessionId);
+                .HasPrincipalKey(obsSession => new { obsSession.Id, obsSession.UserId })
+                .HasForeignKey(dsoExtra => new { dsoExtra.ObsSessionId, dsoExtra.UserId })
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<H2500>()
                 .HasOne(h2500 => h2500.Dso)

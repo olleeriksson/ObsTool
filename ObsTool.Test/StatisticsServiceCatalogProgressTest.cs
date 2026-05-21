@@ -19,6 +19,7 @@ namespace TestProject
         private SqliteConnection _connection;
         private MainDbContext _dbContext;
         private StatisticsService _statisticsService;
+        private const int TestUserId = 1;
 
         [SetUp]
         public void Setup()
@@ -61,7 +62,7 @@ namespace TestProject
             SeedHerschelObjects();
             SeedObservations();
 
-            var statistics = _statisticsService.GetCatalogProgressStatistics();
+            var statistics = _statisticsService.GetCatalogProgressStatistics(TestUserId);
 
             Assert.That(statistics.H2500.Total, Is.EqualTo(5));
             Assert.That(statistics.H2500.Observed, Is.EqualTo(2));
@@ -79,7 +80,7 @@ namespace TestProject
             SeedHerschelObjects();
             SeedObservations();
 
-            var constellations = _statisticsService.GetCatalogProgressStatistics().Constellations.ToList();
+            var constellations = _statisticsService.GetCatalogProgressStatistics(TestUserId).Constellations.ToList();
 
             Assert.That(constellations[0].Constellation, Is.EqualTo("Orion"));
             Assert.That(constellations[0].H2500.Total - constellations[0].H2500.Observed, Is.EqualTo(2));
@@ -95,8 +96,8 @@ namespace TestProject
             SeedHerschelObjects();
             SeedObservations();
 
-            Assert.That(_statisticsService.GetNumObservedH2500Objects(includeNonDetections: false), Is.EqualTo(2));
-            Assert.That(_statisticsService.GetNumObservedH2500Objects(includeNonDetections: true), Is.EqualTo(4));
+            Assert.That(_statisticsService.GetNumObservedH2500Objects(TestUserId, includeNonDetections: false), Is.EqualTo(2));
+            Assert.That(_statisticsService.GetNumObservedH2500Objects(TestUserId, includeNonDetections: true), Is.EqualTo(4));
         }
 
         [Test]
@@ -106,7 +107,7 @@ namespace TestProject
             SeedHerschelObjects();
             SeedObservations();
 
-            var objects = _statisticsService.GetH2500ObjectsForConstellationMap("Orion").ToList();
+            var objects = _statisticsService.GetH2500ObjectsForConstellationMap("Orion", TestUserId).ToList();
 
             Assert.That(objects.Select(o => o.HerschelId), Is.EqualTo(new[] { 1, 2 }));
             Assert.That(objects[0].Name, Is.EqualTo("NGC 1"));
@@ -154,6 +155,7 @@ namespace TestProject
                 {
                     Identifier = "1-1",
                     ObsSessionId = 1,
+                    UserId = TestUserId,
                     NonDetection = false,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -164,6 +166,7 @@ namespace TestProject
                 {
                     Identifier = "1-2",
                     ObsSessionId = 1,
+                    UserId = TestUserId,
                     NonDetection = false,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -174,6 +177,7 @@ namespace TestProject
                 {
                     Identifier = "1-3",
                     ObsSessionId = 1,
+                    UserId = TestUserId,
                     NonDetection = true,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -184,6 +188,7 @@ namespace TestProject
                 {
                     Identifier = "1-6",
                     ObsSessionId = 1,
+                    UserId = TestUserId,
                     NonDetection = false,
                     DsoObservations = new List<DsoObservation>
                     {

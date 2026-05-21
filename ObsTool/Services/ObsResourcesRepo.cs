@@ -30,9 +30,19 @@ namespace ObsTool.Services
             return _dbContext.ObsResources.ToList();
         }
 
+        public ICollection<ObsResource> GetAllResources(int userId)
+        {
+            return _dbContext.ObsResources.Where(r => r.UserId == userId).ToList();
+        }
+
         public ObsResource GetOneResource(int id)
         {
             return _dbContext.ObsResources.FirstOrDefault(r => r.Id == id);
+        }
+
+        public ObsResource GetOneResource(int id, int userId)
+        {
+            return _dbContext.ObsResources.FirstOrDefault(r => r.Id == id && r.UserId == userId);
         }
 
         public ICollection<ObsResource> GetObsResourceByObservationId(int observationId)
@@ -40,8 +50,22 @@ namespace ObsTool.Services
             return _dbContext.ObsResources.Where(r => r.ObservationId == observationId).ToList();
         }
 
+        public ICollection<ObsResource> GetObsResourceByObservationId(int observationId, int userId)
+        {
+            return _dbContext.ObsResources.Where(r => r.ObservationId == observationId && r.UserId == userId).ToList();
+        }
+
         public ObsResource AddObsResource(ObsResource ObsResource)
         {
+            var addedObsResource = _dbContext.ObsResources.Add(ObsResource);
+            _dbContext.SaveChanges();
+
+            return addedObsResource.Entity;
+        }
+
+        public ObsResource AddObsResource(ObsResource ObsResource, int userId)
+        {
+            ObsResource.UserId = userId;
             var addedObsResource = _dbContext.ObsResources.Add(ObsResource);
             _dbContext.SaveChanges();
 

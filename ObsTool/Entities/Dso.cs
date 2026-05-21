@@ -104,6 +104,9 @@ namespace ObsTool.Entities
 
         public ICollection<ArticleDsoObjects> ReferringArticles { get; set; }
 
+        public ICollection<DsoExtra> DsoExtras { get; set; }
+
+        [NotMapped]
         public DsoExtra DsoExtra { get; set; }
 
         public override string ToString()

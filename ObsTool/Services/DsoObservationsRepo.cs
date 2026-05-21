@@ -27,6 +27,14 @@ namespace ObsTool.Services
             return dsoObservation;
         }
 
+        public DsoObservation GetDsoObservation(int observationId, int dsoId, int userId)
+        {
+            DsoObservation dsoObservation = _dbContext.DsoObservations
+                .Single(dsoObs => dsoObs.CustomObjectName == "" && dsoObs.ObservationId == observationId
+                    && dsoObs.DsoId == dsoId && dsoObs.Observation.UserId == userId);
+            return dsoObservation;
+        }
+
         public bool DeleteDsoObservation(DsoObservation dsoObservation)
         {
             var state = _dbContext.Entry(dsoObservation).State;

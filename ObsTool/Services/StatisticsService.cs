@@ -16,53 +16,54 @@ namespace ObsTool.Services
             _dbContext = dbContext;
         }
 
-        public StatisticsDto GetStatistics()
+        public StatisticsDto GetStatistics(int userId)
         {
-            var catalogProgressStatistics = GetCatalogProgressStatistics();
+            var catalogProgressStatistics = GetCatalogProgressStatistics(userId);
             return new StatisticsDto
             {
-                NumObsSessions = _dbContext.ObsSessions.Count(),
-                NumObservations = GetNumObservations(),
-                NumObservedObjects = GetNumObservedObjects(),
-                NumObservedGalaxies = GetNumObservedGalaxies(),
-                NumObservedBrightNebulae = GetNumObservedBrightNebulae(),
-                NumObservedDarkNebulae = GetNumObservedDarkNebulae(),
-                NumObservedOpenClusters = GetNumObservedOpenClusters(),
-                NumObservedPlanetaryNebulae = GetNumObservedPlanetaryNebulae(),
-                NumObservedGlobularClusters = GetNumObservedGlobularClusters(),
-                NumObservedMessierObjects = GetNumObservedMessierObjects(),
-                NumObservedNGCObjects = GetNumObservedNGCObjects(),
-                NumLocations = _dbContext.Locations.Count(),
+                NumObsSessions = _dbContext.ObsSessions.Count(obsSession => obsSession.UserId == userId),
+                NumObservations = GetNumObservations(userId),
+                NumObservedObjects = GetNumObservedObjects(userId),
+                NumObservedGalaxies = GetNumObservedGalaxies(userId),
+                NumObservedBrightNebulae = GetNumObservedBrightNebulae(userId),
+                NumObservedDarkNebulae = GetNumObservedDarkNebulae(userId),
+                NumObservedOpenClusters = GetNumObservedOpenClusters(userId),
+                NumObservedPlanetaryNebulae = GetNumObservedPlanetaryNebulae(userId),
+                NumObservedGlobularClusters = GetNumObservedGlobularClusters(userId),
+                NumObservedMessierObjects = GetNumObservedMessierObjects(userId),
+                NumObservedNGCObjects = GetNumObservedNGCObjects(userId),
+                NumLocations = _dbContext.Locations.Count(location => location.UserId == userId),
                 NumDsoInDatabase = _dbContext.Dso.Count(),
-                NumSketches = _dbContext.ObsResources.Count(r => r.Type == "sketch"),
-                NumDetections = GetNumDetections(),
-                NumNonDetections = GetNumNonDetections(),
+                NumSketches = _dbContext.ObsResources.Count(r => r.UserId == userId && r.Type == "sketch"),
+                NumDetections = GetNumDetections(userId),
+                NumNonDetections = GetNumNonDetections(userId),
                 H2500 = catalogProgressStatistics.H2500,
                 H400 = catalogProgressStatistics.H400,
                 Constellations = catalogProgressStatistics.Constellations
             };
         }
 
-        public int GetNumObservations()
+        public int GetNumObservations(int userId)
         {
-            return _dbContext.Observations.Count();
+            return _dbContext.Observations.Count(observation => observation.UserId == userId);
         }
 
-        public int GetNumDetections()
+        public int GetNumDetections(int userId)
         {
-            return DetectedDsoObservations()
+            return DetectedDsoObservations(userId)
                 .Select(d => d.DsoId)
                 .Distinct()
                 .Count();
         }
 
-        public int GetNumNonDetections()
+        public int GetNumNonDetections(int userId)
         {
-            var detectedDsoIds = DetectedDsoObservations()
+            var detectedDsoIds = DetectedDsoObservations(userId)
                 .Select(d => d.DsoId)
                 .Distinct();
 
             return _dbContext.DsoObservations
+                .Where(d => d.Observation.UserId == userId)
                 .Where(d => d.NonDetection || d.Observation.NonDetection)
                 .Where(d => !detectedDsoIds.Contains(d.DsoId))
                 .Select(d => d.DsoId)
@@ -70,53 +71,54 @@ namespace ObsTool.Services
                 .Count();
         }
 
-        public int GetNumObservedObjects()
+        public int GetNumObservedObjects(int userId)
         {
             return _dbContext.Observations
+                .Where(o => o.UserId == userId)
                 .SelectMany(o => o.DsoObservations)
                 .Select(dsoObs => dsoObs.Dso.Id)
                 .Distinct()
                 .Count();
         }
 
-        public int GetNumObservedGalaxies()
+        public int GetNumObservedGalaxies(int userId)
         {
-            return GetNumObservedObjectsByType("GALXY");
+            return GetNumObservedObjectsByType("GALXY", userId);
         }
 
-        public int GetNumObservedBrightNebulae()
+        public int GetNumObservedBrightNebulae(int userId)
         {
-            return GetNumObservedObjectsByType("BRTNB");
+            return GetNumObservedObjectsByType("BRTNB", userId);
         }
 
-        public int GetNumObservedDarkNebulae()
+        public int GetNumObservedDarkNebulae(int userId)
         {
-            return GetNumObservedObjectsByType("DRKNB");
+            return GetNumObservedObjectsByType("DRKNB", userId);
         }
 
-        public int GetNumObservedPlanetaryNebulae()
+        public int GetNumObservedPlanetaryNebulae(int userId)
         {
-            return GetNumObservedObjectsByType("PLNNB");
+            return GetNumObservedObjectsByType("PLNNB", userId);
         }
 
-        public int GetNumObservedOpenClusters()
+        public int GetNumObservedOpenClusters(int userId)
         {
-            return GetNumObservedObjectsByType("OPNCL");
+            return GetNumObservedObjectsByType("OPNCL", userId);
         }
 
-        public int GetNumObservedGlobularClusters()
+        public int GetNumObservedGlobularClusters(int userId)
         {
-            return GetNumObservedObjectsByType("GLOCL");
+            return GetNumObservedObjectsByType("GLOCL", userId);
         }
 
-        public int GetNumObservedMessierObjects()
+        public int GetNumObservedMessierObjects(int userId)
         {
-            return GetNumObservedObjectsByCatalog("M");
+            return GetNumObservedObjectsByCatalog("M", userId);
         }
 
-        public int GetNumObservedNGCObjects()
+        public int GetNumObservedNGCObjects(int userId)
         {
-            return GetNumObservedObjectsByCatalog("NGC");
+            return GetNumObservedObjectsByCatalog("NGC", userId);
         }
 
         public int GetNumH2500Objects()
@@ -124,16 +126,16 @@ namespace ObsTool.Services
             return _dbContext.H2500.Count();
         }
 
-        public int GetNumObservedH2500Objects(bool includeNonDetections = true)
+        public int GetNumObservedH2500Objects(int userId, bool includeNonDetections = true)
         {
             // Count Herschel list rows, not SAC objects; multiple H2500 rows can point to the same DSO.
-            return ObservedH2500Query(includeNonDetections)
+            return ObservedH2500Query(includeNonDetections, userId)
                 .Select(h => h.HerschelId)
                 .Distinct()
                 .Count();
         }
 
-        public IEnumerable<ConstellationMapObjectDto> GetH2500ObjectsForConstellationMap(string constellation)
+        public IEnumerable<ConstellationMapObjectDto> GetH2500ObjectsForConstellationMap(string constellation, int userId)
         {
             var constellationKey = ResolveConstellationKey(constellation);
             if (constellationKey == null)
@@ -141,7 +143,7 @@ namespace ObsTool.Services
                 return Enumerable.Empty<ConstellationMapObjectDto>();
             }
 
-            var observedDsoIds = DetectedDsoObservations()
+            var observedDsoIds = DetectedDsoObservations(userId)
                 .AsNoTracking()
                 .Select(dsoObservation => dsoObservation.DsoId)
                 .Distinct()
@@ -171,13 +173,13 @@ namespace ObsTool.Services
                 .ToList();
         }
 
-        public (ObsGroupStatisticsDto H2500, ObsGroupStatisticsDto H400, IEnumerable<ConstellationStatisticsDto> Constellations) GetCatalogProgressStatistics()
+        public (ObsGroupStatisticsDto H2500, ObsGroupStatisticsDto H400, IEnumerable<ConstellationStatisticsDto> Constellations) GetCatalogProgressStatistics(int userId)
         {
             var h2500Objects = _dbContext.H2500
                 .AsNoTracking()
                 .ToList();
 
-            var observedDsoIds = DetectedDsoObservations()
+            var observedDsoIds = DetectedDsoObservations(userId)
                 .AsNoTracking()
                 .Select(dsoObservation => dsoObservation.DsoId)
                 .Distinct()
@@ -185,12 +187,13 @@ namespace ObsTool.Services
 
             var nonDetectionDsoIds = _dbContext.DsoObservations
                 .AsNoTracking()
+                .Where(dsoObservation => dsoObservation.Observation.UserId == userId)
                 .Where(dsoObservation => dsoObservation.NonDetection || dsoObservation.Observation.NonDetection)
                 .Select(dsoObservation => dsoObservation.DsoId)
                 .Distinct()
                 .ToHashSet();
 
-            var observedObjectsByConstellation = DetectedDsoObservations()
+            var observedObjectsByConstellation = DetectedDsoObservations(userId)
                 .AsNoTracking()
                 .Select(dsoObservation => new
                 {
@@ -248,16 +251,18 @@ namespace ObsTool.Services
                 constellationStats);
         }
 
-        private IQueryable<DsoObservation> DetectedDsoObservations()
+        private IQueryable<DsoObservation> DetectedDsoObservations(int userId)
         {
             // Detection counts must honor both the current per-DSO flag and the legacy parent section flag.
             return _dbContext.DsoObservations
+                .Where(d => d.Observation.UserId == userId)
                 .Where(d => !d.NonDetection && !d.Observation.NonDetection);
         }
 
-        private int GetNumObservedObjectsByType(string type)
+        private int GetNumObservedObjectsByType(string type, int userId)
         {
             return _dbContext.Observations
+                .Where(o => o.UserId == userId)
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Type == type)
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -265,9 +270,10 @@ namespace ObsTool.Services
                 .Count();
         }
 
-        private int GetNumObservedObjectsByCatalog(string catalog)
+        private int GetNumObservedObjectsByCatalog(string catalog, int userId)
         {
             return _dbContext.Observations
+                .Where(o => o.UserId == userId)
                 .SelectMany(o => o.DsoObservations)
                 .Where(dsoObs => dsoObs.Dso.Catalog == catalog)
                 .Select(dsoObs => dsoObs.Dso.Id)
@@ -275,12 +281,13 @@ namespace ObsTool.Services
                 .Count();
         }
 
-        private IQueryable<H2500> ObservedH2500Query(bool includeNonDetections)
+        private IQueryable<H2500> ObservedH2500Query(bool includeNonDetections, int userId)
         {
             return _dbContext.H2500
                 .AsNoTracking()
                 .Where(h => h.SacDeepSkyObjectsId != null &&
                     _dbContext.DsoObservations.Any(dsoObservation =>
+                        dsoObservation.Observation.UserId == userId &&
                         dsoObservation.DsoId == h.SacDeepSkyObjectsId &&
                         (includeNonDetections || (!dsoObservation.NonDetection && !dsoObservation.Observation.NonDetection))));
         }

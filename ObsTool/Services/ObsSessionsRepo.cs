@@ -17,9 +17,9 @@ namespace ObsTool.Services
             _dbContext = dbContext;
         }
 
-        public ObsSession AddObsSession(ObsSession obsSession)
+        public ObsSession AddObsSession(ObsSession obsSession, int userId)
         {
-
+            obsSession.UserId = userId;
             var addedObsSession = _dbContext.ObsSessions.Add(obsSession);
             _dbContext.SaveChanges();
 
@@ -51,15 +51,41 @@ namespace ObsTool.Services
             return _dbContext.ObsSessions.Count();
         }
 
+        public int GetNumObsSessions(int userId)
+        {
+            return _dbContext.ObsSessions.Count(obsSession => obsSession.UserId == userId);
+        }
+
         public ObsSession GetObsSession(int id)
         {
             return _dbContext.ObsSessions.FirstOrDefault(s => s.Id == id);
         }
 
+        public ObsSession GetObsSession(int id, int userId)
+        {
+            return _dbContext.ObsSessions.FirstOrDefault(s => s.Id == id && s.UserId == userId);
+        }
+
         public ObsSession GetObsSession(int id, bool includeLocation = false, bool includeObservations = false,
             bool includeDso = false)
         {
+            return GetObsSession(id, null, includeLocation, includeObservations, includeDso);
+        }
+
+        public ObsSession GetObsSession(int id, int userId, bool includeLocation = false, bool includeObservations = false,
+            bool includeDso = false)
+        {
+            return GetObsSession(id, (int?)userId, includeLocation, includeObservations, includeDso);
+        }
+
+        private ObsSession GetObsSession(int id, int? userId, bool includeLocation = false, bool includeObservations = false,
+            bool includeDso = false)
+        {
             var query = _dbContext.ObsSessions.Where(s => s.Id == id);
+            if (userId.HasValue)
+            {
+                query = query.Where(s => s.UserId == userId.Value);
+            }
             if (includeLocation)
             {
                 query = query.Include(s => s.Location);
@@ -68,19 +94,23 @@ namespace ObsTool.Services
             if (includeObservations && includeDso)
             {
                 query = query
-                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtra)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtras)
                     .Include(s => s.Observations).ThenInclude(o => o.ObsResources)
                     .Include(s => s.Observations).ThenInclude(o => o.Instrument);
             }
             else if (includeObservations)
             {
                 query = query
-                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtra)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtras)
                     .Include(s => s.Observations).ThenInclude(o => o.ObsResources)
                     .Include(s => s.Observations).ThenInclude(o => o.Instrument);
             }
 
             ObsSession obsSession = query.FirstOrDefault();
+            if (userId.HasValue)
+            {
+                PopulateUserDsoExtras(obsSession, userId.Value);
+            }
             return obsSession;
 
             //if (includeLocation)
@@ -102,6 +132,19 @@ namespace ObsTool.Services
             query = query.Include(s => s.Instrument);
             // TODO: Would be great if we could exclude the ReportText column from the query.
             //       DOesn't seem to exist any way to do that.
+
+            return query.OrderBy(s => s.Date);
+        }
+
+        public IEnumerable<ObsSession> GetObsSessions(int userId, bool includeLocation = false, bool includeReportText = false)
+        {
+            var query = _dbContext.ObsSessions.Where(s => s.UserId == userId);
+
+            if (includeLocation)
+            {
+                query = query.Include(s => s.Location);
+            }
+            query = query.Include(s => s.Instrument);
 
             return query.OrderBy(s => s.Date);
         }
@@ -128,6 +171,21 @@ namespace ObsTool.Services
             return query.ToList();
         }
 
+        public ICollection<ObsSession> GetObsSessionsByMultipleIds(List<int> ids, int userId, bool includeObservations = false)
+        {
+            var query = _dbContext.ObsSessions
+                .Where(s => ids.Contains(s.Id) && s.UserId == userId);
+
+            query = query.Include(s => s.Location);
+            query = query.Include(s => s.Instrument);
+
+            if (includeObservations)
+            {
+                query = query.Include(s => s.Observations).ThenInclude(o => o.Instrument);
+            }
+            return query.ToList();
+        }
+
 
         public bool SaveChanges()
         {
@@ -141,6 +199,22 @@ namespace ObsTool.Services
                 throw;
             }
             return success;
+        }
+
+        private static void PopulateUserDsoExtras(ObsSession obsSession, int userId)
+        {
+            if (obsSession?.Observations == null)
+            {
+                return;
+            }
+
+            foreach (var dso in obsSession.Observations
+                .SelectMany(observation => observation.DsoObservations)
+                .Select(dsoObservation => dsoObservation.Dso)
+                .Where(dso => dso != null))
+            {
+                dso.DsoExtra = dso.DsoExtras?.FirstOrDefault(dsoExtra => dsoExtra.UserId == userId);
+            }
         }
     }
 }

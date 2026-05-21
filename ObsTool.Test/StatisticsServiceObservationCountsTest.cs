@@ -18,6 +18,7 @@ namespace TestProject
         private SqliteConnection _connection;
         private MainDbContext _dbContext;
         private StatisticsService _statisticsService;
+        private const int TestUserId = 1;
 
         [SetUp]
         public void Setup()
@@ -66,6 +67,7 @@ namespace TestProject
                 {
                     Identifier = "1-1-2",
                     NonDetection = true,
+                    UserId = TestUserId,
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -77,6 +79,7 @@ namespace TestProject
                 {
                     Identifier = "1-3",
                     NonDetection = false,
+                    UserId = TestUserId,
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -86,7 +89,7 @@ namespace TestProject
             );
             _dbContext.SaveChanges();
 
-            Assert.That(_statisticsService.GetNumNonDetections(), Is.EqualTo(2));
+            Assert.That(_statisticsService.GetNumNonDetections(TestUserId), Is.EqualTo(2));
         }
 
         [Test]
@@ -101,6 +104,7 @@ namespace TestProject
                 {
                     Identifier = "1-1-2",
                     NonDetection = true,
+                    UserId = TestUserId,
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -112,6 +116,7 @@ namespace TestProject
                 {
                     Identifier = "1-3-4",
                     NonDetection = false,
+                    UserId = TestUserId,
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -122,7 +127,7 @@ namespace TestProject
             );
             _dbContext.SaveChanges();
 
-            Assert.That(_statisticsService.GetNumNonDetections(), Is.EqualTo(3));
+            Assert.That(_statisticsService.GetNumNonDetections(TestUserId), Is.EqualTo(3));
         }
 
         [Test]
@@ -133,6 +138,7 @@ namespace TestProject
                 {
                     Identifier = "1-1-nondetection",
                     NonDetection = true,
+                    UserId = TestUserId,
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -143,6 +149,7 @@ namespace TestProject
                 {
                     Identifier = "1-1-detection",
                     NonDetection = false,
+                    UserId = TestUserId,
                     ObsSessionId = 2,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -153,6 +160,7 @@ namespace TestProject
                 {
                     Identifier = "1-2-nondetection",
                     NonDetection = false,
+                    UserId = TestUserId,
                     ObsSessionId = 3,
                     DsoObservations = new List<DsoObservation>
                     {
@@ -162,8 +170,8 @@ namespace TestProject
             );
             _dbContext.SaveChanges();
 
-            Assert.That(_statisticsService.GetNumDetections(), Is.EqualTo(1));
-            Assert.That(_statisticsService.GetNumNonDetections(), Is.EqualTo(1));
+            Assert.That(_statisticsService.GetNumDetections(TestUserId), Is.EqualTo(1));
+            Assert.That(_statisticsService.GetNumNonDetections(TestUserId), Is.EqualTo(1));
         }
     }
 }

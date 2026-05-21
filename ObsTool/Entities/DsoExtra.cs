@@ -13,6 +13,10 @@ namespace ObsTool.Entities
         [Key]
         public int Id { get; set; }
 
+        public int UserId { get; set; }
+
+        public AppUser User { get; set; }
+
         public int DsoId { get; set; }
 
         public Dso Dso { get; set; }

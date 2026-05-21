@@ -49,9 +49,9 @@ namespace ObsTool.Services
                 .ToList();
         }
 
-        public IEnumerable<H2500> GetObservedH2500Objects(bool includeNonDetections = true)
+        public IEnumerable<H2500> GetObservedH2500Objects(int userId, bool includeNonDetections = true)
         {
-            return ObservedQuery(includeNonDetections)
+            return ObservedQuery(includeNonDetections, userId)
                 .OrderBy(h => h.HerschelId)
                 .ToList();
         }
@@ -63,11 +63,12 @@ namespace ObsTool.Services
                 .Include(h => h.Dso);
         }
 
-        private IQueryable<H2500> ObservedQuery(bool includeNonDetections)
+        private IQueryable<H2500> ObservedQuery(bool includeNonDetections, int userId)
         {
             return BaseQuery()
                 .Where(h => h.SacDeepSkyObjectsId != null &&
                     _dbContext.DsoObservations.Any(dsoObservation =>
+                        dsoObservation.Observation.UserId == userId &&
                         dsoObservation.DsoId == h.SacDeepSkyObjectsId &&
                         (includeNonDetections || (!dsoObservation.NonDetection && !dsoObservation.Observation.NonDetection))));
         }

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
@@ -45,7 +47,14 @@ namespace TestProject
             var obsSessionsRepo = new ObsSessionsRepo(_dbContext);
             var observationsRepo = new ObservationsRepo(_dbContext);
             var observationsService = new ObservationsService(observationsRepo, obsSessionsRepo, _dbContext, mapper);
-            _controller = new DsoController(new DsoRepo(_dbContext), new H2500Repo(_dbContext), observationsService, mapper);
+            var httpContextAccessor = new HttpContextAccessor
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(AuthClaimTypes.UserId, "1") }))
+                }
+            };
+            _controller = new DsoController(new DsoRepo(_dbContext), new H2500Repo(_dbContext), observationsService, new CurrentUserService(httpContextAccessor), mapper);
         }
 
         [TearDown]

@@ -14,11 +14,13 @@ namespace ObsTool.Controllers
     public class EyepiecesController : Controller
     {
         private EyepiecesRepo _eyepiecesRepo;
+        private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
-        public EyepiecesController(EyepiecesRepo eyepiecesRepo, IMapper mapper)
+        public EyepiecesController(EyepiecesRepo eyepiecesRepo, CurrentUserService currentUserService, IMapper mapper)
         {
             _eyepiecesRepo = eyepiecesRepo;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
@@ -26,7 +28,8 @@ namespace ObsTool.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var eyepieces = _eyepiecesRepo.GetEyepieces();
+            var userId = _currentUserService.GetRequiredUserId();
+            var eyepieces = _eyepiecesRepo.GetEyepieces(userId);
             var sorted = eyepieces.OrderByDescending(e => e.Id);
             var results = _mapper.Map<IEnumerable<EyepieceDto>>(sorted);
             return Ok(results);
@@ -36,7 +39,8 @@ namespace ObsTool.Controllers
         [HttpGet("{id}", Name = "GetOneEyepiece")]
         public IActionResult Get(int id)
         {
-            var eyepiece = _eyepiecesRepo.GetEyepiece(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            var eyepiece = _eyepiecesRepo.GetEyepiece(id, userId);
             if (eyepiece == null)
             {
                 return NotFound();
@@ -48,6 +52,7 @@ namespace ObsTool.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] EyepieceDtoForCreation eyepieceDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if (eyepieceDto == null)
             {
                 return BadRequest();
@@ -56,7 +61,7 @@ namespace ObsTool.Controllers
             eyepieceDto.Name = string.IsNullOrWhiteSpace(eyepieceDto.Name) ? eyepieceDto.Key : eyepieceDto.Name;
             eyepieceDto.FocalLengthMm = NormalizeOptionalText(eyepieceDto.FocalLengthMm);
             var entity = _mapper.Map<Eyepiece>(eyepieceDto);
-            var added = _eyepiecesRepo.AddEyepiece(entity);
+            var added = _eyepiecesRepo.AddEyepiece(entity, userId);
             if (added == null)
             {
                 return StatusCode(500, "Something went wrong creating an eyepiece");
@@ -69,7 +74,8 @@ namespace ObsTool.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var entity = _eyepiecesRepo.GetEyepiece(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            var entity = _eyepiecesRepo.GetEyepiece(id, userId);
             if (entity == null)
             {
                 return NotFound();
@@ -87,12 +93,13 @@ namespace ObsTool.Controllers
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] EyepieceDtoForUpdate eyepieceDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if (eyepieceDto == null)
             {
                 return BadRequest();
             }
 
-            var entity = _eyepiecesRepo.GetEyepiece(id);
+            var entity = _eyepiecesRepo.GetEyepiece(id, userId);
             if (entity == null)
             {
                 return NotFound();

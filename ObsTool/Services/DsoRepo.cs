@@ -21,15 +21,20 @@ namespace ObsTool.Services
         // Note!! Changed from ICollection to List because of a bug in .NET Core 3.0 (https://github.com/aspnet/EntityFrameworkCore/issues/17342)
         public ICollection<Dso> GetMultipleDsoByIds(List<int> dsoIds)
         {
+            return _dbContext.Dso
+                .Where(dso => dsoIds.Contains(dso.Id))
+                .ToList();
+        }
+
+        public ICollection<Dso> GetMultipleDsoByIds(List<int> dsoIds, int userId)
+        {
             ICollection<Dso> foundDso = null;
 
-            var dsoExtras = _dbContext.DsoExtra.Include(x => x.Dso).ToList();
-
             // Look for the normalized name in Name and OtherNames
-            foundDso = _dbContext.Dso
+            foundDso = AddUserDsoExtra(_dbContext.Dso, userId)
                 .Where(dso => dsoIds.Contains(dso.Id))
-                .Include(dso => dso.DsoExtra)
                 .ToList();
+            PopulateUserDsoExtra(foundDso, userId);
 
             return foundDso;
         }
@@ -40,16 +45,31 @@ namespace ObsTool.Services
             string normalizedQueryString = normalize ? normalizeDsoString(queryString) : queryString;
             normalizedQueryString = normalizedQueryString.ToLower();
 
-            ICollection<Dso> foundDso = null;
-
             // Look for the normalized name in Name and OtherNames
-            foundDso = _dbContext.Dso.Where(dso => 
+            return _dbContext.Dso.Where(dso =>
                 dso.Name.ToLower().Contains(normalizedQueryString) ||
                 dso.OtherNames.ToLower().Contains(normalizedQueryString) ||
                 dso.CommonName.ToLower().Contains(queryString)
                 )
-                .Include(dso => dso.DsoExtra)
                 .ToList();
+        }
+
+        public ICollection<Dso> GetMultipleDsoByQueryString(string queryString, bool normalize, int userId)
+        {
+            // Normalize if needed
+            string normalizedQueryString = normalize ? normalizeDsoString(queryString) : queryString;
+            normalizedQueryString = normalizedQueryString.ToLower();
+
+            ICollection<Dso> foundDso = null;
+
+            // Look for the normalized name in Name and OtherNames
+            foundDso = AddUserDsoExtra(_dbContext.Dso, userId).Where(dso =>
+                dso.Name.ToLower().Contains(normalizedQueryString) ||
+                dso.OtherNames.ToLower().Contains(normalizedQueryString) ||
+                dso.CommonName.ToLower().Contains(queryString)
+                )
+                .ToList();
+            PopulateUserDsoExtra(foundDso, userId);
 
             //// If not found, look for the query string in CommonName and AllCommonNames
             //if (foundDso == null)
@@ -65,6 +85,11 @@ namespace ObsTool.Services
             return _dbContext.Dso.FirstOrDefault(dso => dso.Id == id); 
         }
 
+        public Dso GetDsoById(int id, int userId)
+        {
+            return PopulateUserDsoExtra(AddUserDsoExtra(_dbContext.Dso, userId).FirstOrDefault(dso => dso.Id == id), userId);
+        }
+
         public Dso GetDsoByName(string nameString, bool normalize = true)
         {
             // Normalize if needed
@@ -73,14 +98,14 @@ namespace ObsTool.Services
             Dso foundDso = null;
 
             // Look for a perfect match with the normalized name
-            foundDso = _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.Name == normalizedName);
+            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.Name == normalizedName);
             if (foundDso != null)
             {
                 return foundDso;
             }
 
             // If no perfect match was found, look for other names that contain this name
-            foundDso = _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
+            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
             if (foundDso != null)
             {
                 return foundDso;
@@ -89,15 +114,51 @@ namespace ObsTool.Services
             // If not found, look for the query string in CommonName and AllCommonNames
             if (foundDso == null)
             {
-                foundDso = _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.CommonName == nameString || dso.AllCommonNames.Contains(nameString));
+                foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.CommonName == nameString || dso.AllCommonNames.Contains(nameString));
             }
 
             return foundDso;
         }
 
+        public Dso GetDsoByName(string nameString, bool normalize, int userId)
+        {
+            // Normalize if needed
+            string normalizedName = normalize ? normalizeDsoString(nameString) : nameString;
+
+            Dso foundDso = null;
+
+            // Look for a perfect match with the normalized name
+            var query = AddUserDsoExtra(_dbContext.Dso, userId);
+            foundDso = query.FirstOrDefault(dso => dso.Name == normalizedName);
+            if (foundDso != null)
+            {
+                return PopulateUserDsoExtra(foundDso, userId);
+            }
+
+            // If no perfect match was found, look for other names that contain this name
+            foundDso = query.FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
+            if (foundDso != null)
+            {
+                return PopulateUserDsoExtra(foundDso, userId);
+            }
+
+            // If not found, look for the query string in CommonName and AllCommonNames
+            if (foundDso == null)
+            {
+                foundDso = query.FirstOrDefault(dso => dso.CommonName == nameString || dso.AllCommonNames.Contains(nameString));
+            }
+
+            return PopulateUserDsoExtra(foundDso, userId);
+        }
+
         public Dso GetDsoByNumber(string catalogNo)
         {
-            return _dbContext.Dso.Include(dso => dso.DsoExtra).FirstOrDefault(dso => dso.CatalogNumber == catalogNo);
+            return _dbContext.Dso.FirstOrDefault(dso => dso.CatalogNumber == catalogNo);
+        }
+
+        public Dso GetDsoByNumber(string catalogNo, int userId)
+        {
+            return PopulateUserDsoExtra(AddUserDsoExtra(_dbContext.Dso, userId).FirstOrDefault(dso => dso.CatalogNumber == catalogNo), userId);
         }
 
         public int GetNumDsoInDatabase()
@@ -108,6 +169,11 @@ namespace ObsTool.Services
         public DsoExtra GetDsoExtraById(int id)
         {
             return _dbContext.DsoExtra.FirstOrDefault(dsoExtra => dsoExtra.Id == id);
+        }
+
+        public DsoExtra GetDsoExtraById(int id, int userId)
+        {
+            return _dbContext.DsoExtra.FirstOrDefault(dsoExtra => dsoExtra.Id == id && dsoExtra.UserId == userId);
         }
 
 
@@ -150,6 +216,30 @@ namespace ObsTool.Services
                 throw;
             }
             return success;
+        }
+
+        private IQueryable<Dso> AddUserDsoExtra(IQueryable<Dso> query, int userId)
+        {
+            return query.Include(dso => dso.DsoExtras.Where(dsoExtra => dsoExtra.UserId == userId))
+                .ThenInclude(dsoExtra => dsoExtra.ObsSession);
+        }
+
+        private static void PopulateUserDsoExtra(IEnumerable<Dso> dsos, int userId)
+        {
+            foreach (var dso in dsos)
+            {
+                PopulateUserDsoExtra(dso, userId);
+            }
+        }
+
+        private static Dso PopulateUserDsoExtra(Dso dso, int userId)
+        {
+            if (dso != null)
+            {
+                dso.DsoExtra = dso.DsoExtras?.FirstOrDefault(dsoExtra => dsoExtra.UserId == userId);
+            }
+
+            return dso;
         }
     }
 }

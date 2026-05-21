@@ -14,11 +14,13 @@ namespace ObsTool.Controllers
     public class InstrumentsController : Controller
     {
         private IInstrumentsRepo _instrumentsRepo;
+        private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
-        public InstrumentsController(IInstrumentsRepo instrumentsRepo, IMapper mapper)
+        public InstrumentsController(IInstrumentsRepo instrumentsRepo, CurrentUserService currentUserService, IMapper mapper)
         {
             _instrumentsRepo = instrumentsRepo;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
@@ -26,7 +28,8 @@ namespace ObsTool.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var instruments = _instrumentsRepo.GetInstruments();
+            var userId = _currentUserService.GetRequiredUserId();
+            var instruments = _instrumentsRepo.GetInstruments(userId);
             var sorted = instruments.OrderByDescending(i => i.Id);
             var results = _mapper.Map<IEnumerable<InstrumentDto>>(sorted);
             return Ok(results);
@@ -36,7 +39,8 @@ namespace ObsTool.Controllers
         [HttpGet("{id}", Name = "GetOneInstrument")]
         public IActionResult Get(int id)
         {
-            var instrument = _instrumentsRepo.GetInstrument(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            var instrument = _instrumentsRepo.GetInstrument(id, userId);
             if (instrument == null)
             {
                 return NotFound();
@@ -48,8 +52,9 @@ namespace ObsTool.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] InstrumentDtoForCreation instrumentDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             var entity = _mapper.Map<Instrument>(instrumentDto);
-            var added = _instrumentsRepo.AddInstrument(entity);
+            var added = _instrumentsRepo.AddInstrument(entity, userId);
             if (added == null)
             {
                 return StatusCode(500, "Something went wrong creating an instrument");
@@ -62,17 +67,18 @@ namespace ObsTool.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var entity = _instrumentsRepo.GetInstrument(id);
+            var userId = _currentUserService.GetRequiredUserId();
+            var entity = _instrumentsRepo.GetInstrument(id, userId);
             if (entity == null)
             {
                 return NotFound();
             }
 
-            if (_instrumentsRepo.AnyObservationReferences(id))
+            if (_instrumentsRepo.AnyObservationReferences(id, userId))
             {
                 return BadRequest("There are observations referring to this instrument. Cannot delete.");
             }
-            if (_instrumentsRepo.AnyObsSessionReferences(id))
+            if (_instrumentsRepo.AnyObsSessionReferences(id, userId))
             {
                 return BadRequest("There are observation sessions referring to this instrument. Cannot delete.");
             }
@@ -89,12 +95,13 @@ namespace ObsTool.Controllers
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] InstrumentDtoForUpdate instrumentDto)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if (instrumentDto == null)
             {
                 return BadRequest();
             }
 
-            var entity = _instrumentsRepo.GetInstrument(id);
+            var entity = _instrumentsRepo.GetInstrument(id, userId);
             if (entity == null)
             {
                 return NotFound();

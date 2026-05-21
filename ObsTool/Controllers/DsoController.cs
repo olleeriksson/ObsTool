@@ -20,25 +20,29 @@ namespace ObsTool
         private IDsoRepo _dsoRepo;
         private IH2500Repo _h2500Repo;
         private ObservationsService _observationsService;
+        private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
-        public DsoController(IDsoRepo dsoRepo, IH2500Repo h2500Repo, ObservationsService observationsService, IMapper mapper)
+        public DsoController(IDsoRepo dsoRepo, IH2500Repo h2500Repo, ObservationsService observationsService,
+            CurrentUserService currentUserService, IMapper mapper)
         {
             _dsoRepo = dsoRepo;
             _h2500Repo = h2500Repo;
             _observationsService = observationsService;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
         [HttpGet("observed")]
         public IActionResult GetAllObservedDso(bool includeHerschel = false)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             // Get all observations in the whole database, mapped by DSO id
-            var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds();
+            var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(userId);
 
             // Secondly, get the DSOs
             var dsoIds = observationsMapByDsoId.Keys.ToList();
-            ICollection<Dso> dsoList = _dsoRepo.GetMultipleDsoByIds(dsoIds);
+            ICollection<Dso> dsoList = _dsoRepo.GetMultipleDsoByIds(dsoIds, userId);
 
             int maxCount = 2000;
             var truncatedDsoList = dsoList.Take(maxCount);
@@ -81,6 +85,7 @@ namespace ObsTool
         [HttpGet()]
         public IActionResult GetDso([FromQuery] string query, [FromQuery] string name, [FromQuery] bool includeHerschel = false)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if ((name != null && query != null) || (name == null && query == null))
             {
                 return BadRequest("Can't specify neither or both of 'name' and 'query'. Specify one or the other!");
@@ -94,7 +99,7 @@ namespace ObsTool
             ICollection<Dso> dsoList;
             if (query != null)  // Searching
             {
-                dsoList = _dsoRepo.GetMultipleDsoByQueryString(query);
+                dsoList = _dsoRepo.GetMultipleDsoByQueryString(query, normalize: true, userId: userId);
 
                 int maxCount = 15;
                 var truncatedDsoList = dsoList.Take(maxCount);
@@ -107,7 +112,7 @@ namespace ObsTool
                 var dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToList<int>();
 
                 bool includePrevAndNextObservations = true;  // This is the only place where we pass true to include prev and next observations
-                var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(dsoIds, null, includePrevAndNextObservations);
+                var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(userId, dsoIds, null, includePrevAndNextObservations);
                 
                 foreach (DsoDto dso in truncatedDsoDtoList)
                 {
@@ -130,7 +135,7 @@ namespace ObsTool
             }
             else  // "Getting" one
             {
-                Dso dso = _dsoRepo.GetDsoByName(name);
+                Dso dso = _dsoRepo.GetDsoByName(name, normalize: true, userId: userId);
                 if (dso == null)
                 {
                     return NotFound();
@@ -151,12 +156,13 @@ namespace ObsTool
         [HttpGet("{id}")]
         public IActionResult GetDso([FromRoute] int id, [FromQuery] bool includeHerschel = false)
         {
+            var userId = _currentUserService.GetRequiredUserId();
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Dso dso = _dsoRepo.GetDsoById(id);
+            Dso dso = _dsoRepo.GetDsoById(id, userId);
             if (dso == null)
             {
                 return NotFound();

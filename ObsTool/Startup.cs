@@ -102,6 +102,7 @@ namespace ObsTool
 
             services.AddDbContext<MainDbContext>(ConfigureDatabaseProvider);
 
+            services.AddHttpContextAccessor();
             services.AddScoped<ObsSessionsRepo>();
             services.AddScoped<LocationsRepo>();
             services.AddScoped<IInstrumentsRepo, InstrumentsRepo>();
@@ -116,6 +117,7 @@ namespace ObsTool
             services.AddScoped<DsoObservationsRepo>();
             services.AddScoped<IMailService, MailService>();
             services.AddScoped<UserAccountService>();
+            services.AddScoped<CurrentUserService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

@@ -327,6 +327,25 @@ namespace ObsTool.Services
                 throw new InvalidOperationException("User not found.");
             }
 
+            var ownedData = new[]
+            {
+                ("observation sessions", _dbContext.ObsSessions.Any(s => s.UserId == userId)),
+                ("observations", _dbContext.Observations.Any(o => o.UserId == userId)),
+                ("DSO extras", _dbContext.DsoExtra.Any(e => e.UserId == userId)),
+                ("observation resources", _dbContext.ObsResources.Any(r => r.UserId == userId)),
+                ("locations", _dbContext.Locations.Any(l => l.UserId == userId)),
+                ("instruments", _dbContext.Instruments.Any(i => i.UserId == userId)),
+                ("eyepieces", _dbContext.Eyepieces.Any(e => e.UserId == userId))
+            }
+            .Where(item => item.Item2)
+            .Select(item => item.Item1)
+            .ToList();
+
+            if (ownedData.Count > 0)
+            {
+                throw new InvalidOperationException("Cannot delete this user because they still own " + string.Join(", ", ownedData) + ".");
+            }
+
             _dbContext.Users.Remove(user);
             _dbContext.SaveChanges();
         }
