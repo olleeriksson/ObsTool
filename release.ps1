@@ -66,7 +66,7 @@ function Invoke-GitCommand {
     $startInfo.CreateNoWindow = $true
     $startInfo.WorkingDirectory = (Get-Location).ProviderPath
 
-    Write-GitOutput "> git $($Arguments -join ' ')"
+    Write-GitCommand "> git $($Arguments -join ' ')"
 
     $process = [System.Diagnostics.Process]::Start($startInfo)
     $stdout = $process.StandardOutput.ReadToEnd()
@@ -101,6 +101,15 @@ function Write-GitOutput {
     )
 
     Write-Host $Text -ForegroundColor DarkGray
+}
+
+function Write-GitCommand {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Text
+    )
+
+    Write-Host $Text -ForegroundColor Green
 }
 
 function ConvertTo-ProcessArgument {
@@ -176,7 +185,9 @@ function Assert-OnBranch {
 function Add-ReleaseLine {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ReleaseFile
+        [string]$ReleaseFile,
+
+        [string]$Description
     )
 
     $today = Get-Date -Format 'yyyy-MM-dd'
@@ -196,7 +207,14 @@ function Add-ReleaseLine {
         $releaseName = '{0}-{1:D2}' -f $today, ($todaysReleaseCount + 1)
     }
 
-    Add-Content -LiteralPath $ReleaseFile -Value ('{0,-13} - ' -f $releaseName)
+    if ([string]::IsNullOrWhiteSpace($Description)) {
+        $releaseLine = '{0,-13} - ' -f $releaseName
+    }
+    else {
+        $releaseLine = ('{0,-13} - {1}' -f $releaseName, $Description.Trim())
+    }
+
+    Add-Content -LiteralPath $ReleaseFile -Value $releaseLine
 }
 
 $defaultBranch = $null
@@ -213,10 +231,12 @@ try {
 
     if (Confirm-Step 'Add a new release entry to RELEASES.txt?') {
         $releaseFile = Join-Path $repoRoot 'RELEASES.txt'
-        Add-ReleaseLine $releaseFile
+        $releaseDescription = Read-Host 'Release description (optional)'
+        Add-ReleaseLine $releaseFile $releaseDescription
 
         Write-Host ''
-        Write-Host 'Last 8 lines of RELEASES.txt:'
+        Write-Host 'RELEASES.txt:'
+        Write-Host '...'
         Get-Content -LiteralPath $releaseFile -Tail 8 | ForEach-Object { Write-Host $_ }
         Write-Host ''
 
@@ -225,7 +245,7 @@ try {
         }
 
         Invoke-Git @('add', '--', 'RELEASES.txt') 'Could not stage RELEASES.txt.'
-        Invoke-Git @('commit', '-m', 'Add release marker') 'Could not commit RELEASES.txt.'
+        Invoke-Git @('commit', '-m', 'Updated RELEASES.txt') 'Could not commit RELEASES.txt.'
     }
     else {
         Write-Host 'Skipping RELEASES.txt update.'
@@ -272,6 +292,6 @@ finally {
 }
 
 if ($releaseFailed) {
-    Write-Host "Release aborted: $releaseFailureMessage"
+    Write-Host "Release aborted: $releaseFailureMessage`n"
     exit 1
 }
