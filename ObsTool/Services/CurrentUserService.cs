@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace ObsTool.Services
 {
     public class CurrentUserService
-    {
+    { 
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CurrentUserService(IHttpContextAccessor httpContextAccessor)

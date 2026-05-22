@@ -1,6 +1,10 @@
 @echo off
 setlocal
 
+: This script starts a local MySQL database in a Docker container.
+: The database is used to verify the MySQL database before deploying to hosting provider.
+: Run this before running the backend with MYSQL-start-obstoll-backend.cmd.
+
 docker start obstool-mysql >nul 2>nul
 if %ERRORLEVEL% EQU 0 goto running
 

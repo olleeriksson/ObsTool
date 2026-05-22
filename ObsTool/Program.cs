@@ -13,9 +13,9 @@ namespace ObsTool
         public static void Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-            if (DatabaseBootstrapCommand.IsBootstrapCommand(args))
+            if (DatabaseSyncCommand.IsSyncCommand(args))
             {
-                DatabaseBootstrapCommand.Run(host.Services, args);
+                DatabaseSyncCommand.Run(host.Services, args);
                 return;
             }
             if (PasswordHashCommand.IsHashPasswordCommand(args))

@@ -1,6 +1,8 @@
 @echo off
 setlocal
 
+: This script starts the backend configured to connect to the local MySQL database.
+
 echo ----------------------------------------------------------------------
 echo(
 echo After the Backend is running, run the frontend  in another terminal:
@@ -15,14 +17,10 @@ set "ASPNETCORE_URLS=http://127.0.0.1:50996"
 set "Db__Provider=MySql"
 set "Db__ConnectionString=server=127.0.0.1;port=3306;database=obstool;user=obstool;password=obstool_dev_password;SslMode=Disabled;AllowPublicKeyRetrieval=True;"
 set "EnableAuthentication=true"
-set "Authentication__Users__0__Username=test"
-set "Authentication__Users__0__HashedPassword=AQAAAAIAAYagAAAAEAhi498U2xmW2gvkYChrI77klzS6xNoJQ1e5KiQubBaLd71GyzbqMT0mpsgFoBin7Q=="
-set "Authentication__Users__1__Username=sagittarius"
-set "Authentication__Users__1__HashedPassword=AQAAAAIAAYagAAAAEAy4Q/bH+H7URRHd6d51Nbg4PQGKAUqHu3ymMJc3s1UE+nTKUv8igrnHbJrctxSb0w=="
-set "Authentication__Users__2__Username=leoträffen"
-set "Authentication__Users__2__HashedPassword=AQAAAAIAAYagAAAAEGezACMMHXz1KgjNO76LqBz9zk7ad7YyrrHc1GzpoGVnnr7LPPBCDiYiCHO1jRF/+Q=="
-set "Authentication__Users__3__Username=leotraffen"
-set "Authentication__Users__3__HashedPassword=AQAAAAIAAYagAAAAEKAcuAgXZPVQCIgwZkFCP0uJHGMLXQ2LYZXdQL5sDB+smLEHGVeji99k6gaSkbqQHg=="
+set "Authentication__Users__0__Username=admin"
+set "Authentication__Users__0__HashedPassword=AQAAAAIAAYagAAAAECiTyk6FWkhb22kiREgy/FD4sv5phUmrXiNRWAYYl47K4bJnMjrx+EXVtgvJk8QSWw=="
+set "Authentication__Users__1__Username=test"
+set "Authentication__Users__1__HashedPassword=AQAAAAIAAYagAAAAEAhi498U2xmW2gvkYChrI77klzS6xNoJQ1e5KiQubBaLd71GyzbqMT0mpsgFoBin7Q=="
 
 echo(
 echo Login with username "test" and password "test" if authentication is enabled. See EnableAuthentication.

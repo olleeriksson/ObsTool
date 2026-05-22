@@ -19,7 +19,7 @@ The frontend has its own dedicated guidance at **`ObsTool/ObsToolClient/CLAUDE.m
 
 ## Working Rules
 
-- Document code that you write.
+- Always write code comments for functions and larger code blocks.
 
 ## Important rules
 
@@ -97,14 +97,7 @@ Preferred scripts:
 
 ```bash
 cd ObsTool/Scripts
-PROD-build-and-run-integrated.cmd
-```
-
-If the app has already been published:
-
-```bash
-cd ObsTool/Scripts
-PROD-run-integrated.cmd
+LOCAL-PROD-build-and-run-integrated.cmd
 ```
 
 The local production URL is `http://localhost:5000/obstool/`. The scripts set:
@@ -163,17 +156,29 @@ Classic ASP.NET Core layered structure (`Startup.cs` does service registration t
 - **Errors** - custom `ExceptionMiddleware`, wired via `ConfigureCustomExceptionMiddleware()`.
 - **Logging** - NLog via `UseNLog()` in `Program.cs`; config in `nlog.config`.
 
-### Database bootstrap for hosted MySQL
+### Database sync for hosted MySQL
 
-Keep `Database/DatabaseBootstrapCommand.cs` and the `db-bootstrap` command. It is intentional long-lived maintenance tooling, not temporary migration scaffolding. It supports hosted MySQL setup while preserving local SQLite development.
+Keep `Database/DatabaseSyncCommand.cs` and the `db-sync` command. It is intentional long-lived maintenance tooling, not temporary migration scaffolding. It supports hosted MySQL setup while preserving local SQLite development.
 
-The bootstrap command reads a local SQLite database and writes the target database configured through `Db:Provider` and `Db:ConnectionString`. It creates the target schema if needed and imports only reference/catalog tables:
+The db-sync command reads a local SQLite database and writes the target database configured through `Db:Provider` and `Db:ConnectionString`. It creates the target schema from the current EF Core model if needed. It does not translate SQLite DDL into MySQL DDL and it does not use EF migrations.
+
+Use `--update-general-tables` to upsert the shared catalog tables:
 
 - `Constellations`
 - `SacDeepSkyObjects`
 - `H2500`
 
-By default it skips a target reference table that already has rows. Use `--replace-reference-data` only for deliberate maintenance. `SacDeepSkyObjects` is expected to be stable except possible additions, while `H2500` is the table most likely to need future refreshes. Do not remove this command just because the initial hosted bootstrap has already been done.
+`--update-general-tables` inserts missing rows and updates existing rows by stable primary key. It does not delete target rows that are missing from the source SQLite database.
+
+Use `--replace-user-data` to replace user-owned observation data for the hardcoded database user `Users.Id = 1`:
+
+```bash
+db-sync --source-sqlite "<path-to-prod-sqlite>" --update-general-tables --replace-user-data
+```
+
+`--replace-user-data` intentionally has no command-line user id parameter. It leaves an existing target `Users.Id = 1` account row unchanged, inserts it from source if missing, deletes only UserId 1's owned rows, and reimports them from the source SQLite database. It must not affect other users' rows.
+
+To intentionally start over from a clean target, add `--recreate-target-schema`; the command prints a destructive warning and requires confirmation before dropping target tables. Use `--confirm-recreate-target-schema` only for deliberate non-interactive maintenance. Do not remove this command just because the initial hosted sync has already been done.
 
 Frontend is a React 18 SPA: global Redux state (`src/store/AppStore.ts` -> reducers in `src/reducers/`, thunks in `src/actions/`), all API calls through the static `Api` class in `src/api/Api.ts` (axios with cookie credentials), React Router v6 in `src/components/Routes.tsx`, MUI v6 with the tss-react `withStyles` shim - see `ObsTool/ObsToolClient/CLAUDE.md`.
 

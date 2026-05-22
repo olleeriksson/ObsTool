@@ -16,7 +16,7 @@ There's a 6 minute video demonstration of the app in action at https://youtu.be/
 
 ```
 cd <git root>\ObsTool\ObsToolClient
-npm start
+npm run dev
 ```
 
 #### Backend

@@ -1,15 +1,25 @@
+#=============================================
+# Four environments:
+#=============================================
 
-
-Usually what you do is build the frontend with npm run build and then deploy it with npm run deploy. But right now the
-deploy command does nothing. Instead, everything is built using dotnet publish and the Visual Studio project file.
+- Local Dev SQLite                            - http://localhost:3000/obstool
+- Local Prod: SQLite                          - http://localhost:5000/obstool
+- Local MySQL via Docker (for testing MySQL)  - http://localhost:3000/obstool
+- External Prod (MySQL) at SmarterASP.NET     - https://www.olle-eriksson.com/obstool
 
 
 #=============================================
-# Local Development
+# Run Local Development
 #=============================================
 
 For development it seems the integrated solution in Visual Studio with dotnet publish doesn't run the frontend.
 So you have to run the frontend manually with npm start, but the backend can be run from the Play button in Visual Studio.
+
+Backend
+---------------------
+  Run:
+    1. Run the project from Visual Studio in Debug mode.
+    2. Development API routes are below http://localhost:50996/obstool/api/
 
 Frontend
 ---------------------
@@ -18,23 +28,47 @@ Frontend
     2. npm start
     3. Open http://localhost:3000/obstool/
 
-Backend
+Super admins
 ---------------------
-  Run:
-    1. Run the project from Visual Studio in Debug mode.
-    2. Development API routes are below http://localhost:50996/obstool/api/
+In appsettings.json, legacy but usable, and only superadmin:
+  "AdminUser": {
+    "Username": "admin",
+    "HashedPassword": "..."    # is "admin"
+  }
 
+
+#=============================================
+# Run Local Production
+#=============================================
+
+Run:
+--------------------
+   Run LOCAL-PROD-build-and-run-integrated.cmd     (will start both backend and frontend)
+
+Super admins:
+--------------------
+  In LOCAL-PROD-build-and-run-integrated.cmd:
+    set "Authentication__Users__0__Username=admin"
+    set "Authentication__Users__0__HashedPassword=AQAAAAIAAYagAAAAECiTyk6FWkhb22kiREgy/FD4sv5phUmrXiNRWAYYl47K4bJnMjrx+EXVtgvJk8QSWw=="     # is "admin"
+    set "Authentication__Users__1__Username=test"
+    set "Authentication__Users__1__HashedPassword=AQAAAAIAAYagAAAAEAhi498U2xmW2gvkYChrI77klzS6xNoJQ1e5KiQubBaLd71GyzbqMT0mpsgFoBin7Q=="     # is "test"
 
 
 #=======================================================
 # Production Externally via GitHub to SmarterASP.NET
 #=======================================================
 
+Release
+---------------------
   Just push a new commit on the 'release' branch to github and it will deploy it.
 
+Transfer data
+---------------
+  ./Scripts/PROD-EXTERNAL-sync-db.cmd                                (just updates everything)
+  ./Scripts/PROD-EXTERNAL-sync-db.cmd --recreate-target-schema       (drops and recreates the schema)
 
-  To set up users in external production:
-
+Manage super admins
+---------------------
     SmarterASP:
       Control Panel > Advance > Pool Manager > Actions > Environment Variables
 
@@ -70,18 +104,25 @@ Backend
       Control Panel V5 > Hosting Control Panel > Advance > Pool Manager > Actions > Restart
 
 
-
 #=======================================================================
 # To test External Production at SmarterASP.NET but with local MySQL
 #=======================================================================
 
-Scripts\MYSQL-start-local-docker.cmd
-Scripts\MYSQL-start-obstool-backend.cmd
-Scripts\DEV-build-and-run-FE.cmd
+Run
+---------------
+Scripts\LOCAL-MYSQL-start-mysql-via-docker.cmd
+Scripts\LOCAL-MYSQL-start-obstool-backend.cmd
+Scripts\LOCAL-DEV-build-and-run-FE.cmd
+
+Transfer data
+---------------
+  ./Scripts/LOCAL-MYSQL-sync-db.cmd                                (just updates everything)
+  ./Scripts/LOCAL-MYSQL-sync-db.cmd --recreate-target-schema       (drops and recreates the schema)
 
 
 #=======================================================================
 # production locally integrated in visual studio / via dotnet publish
+# (NOT TESTED IN A WHILE)
 #=======================================================================
 
 Backend & Frontend together
