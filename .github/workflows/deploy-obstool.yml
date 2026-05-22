@@ -35,7 +35,7 @@ jobs:
         run: npm ci
 
       - name: Publish integrated app
-        run: dotnet publish ObsTool/ObsTool.csproj --configuration Release --self-contained false --output publish /p:EnvironmentName=Production
+        run: dotnet publish ObsTool/ObsTool.csproj --configuration Release --self-contained false --output publish /p:EnvironmentName=Production /p:UseAppHost=false
         env:
           VITE_API_URL: /obstool/api
           VITE_BASE_PATH: /obstool/
@@ -59,7 +59,7 @@ jobs:
 
       - name: Wait for IIS to release files
         shell: pwsh
-        run: Start-Sleep -Seconds 10
+        run: Start-Sleep -Seconds 45
 
       - name: Upload published app
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
@@ -69,7 +69,8 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: publish/
           server-dir: /
-          dangerous-clean-slate: false     # true deletes all files in the server directory before uploading, false only deletes files that are being replaced
+          # Keep steady-state deploys incremental. Setting this to true wipes the whole FTP server-dir before uploading.
+          dangerous-clean-slate: false
 
       - name: Remove app_offline marker from publish folder
         shell: pwsh
