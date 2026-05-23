@@ -44,7 +44,9 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path deployment/app-offline | Out-Null
-          '<!doctype html><html><body>ObsTool deployment in progress.</body></html>' | Set-Content -Path deployment/app-offline/app_offline.htm -Encoding utf8
+          # Keep the marker unique so FTP deploy updates app_offline.htm and IIS sees a fresh shutdown signal.
+          $offlineHtml = "<!doctype html><html><body>ObsTool deployment in progress. Run $env:GITHUB_RUN_ID attempt $env:GITHUB_RUN_ATTEMPT at $(Get-Date -Format o).</body></html>"
+          $offlineHtml | Set-Content -Path deployment/app-offline/app_offline.htm -Encoding utf8
           Copy-Item -Path deployment/app-offline/app_offline.htm -Destination publish/app_offline.htm -Force
 
       - name: Put app offline
