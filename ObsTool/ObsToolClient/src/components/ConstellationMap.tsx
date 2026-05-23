@@ -76,7 +76,7 @@ interface MapPadding {
     y: number;
 }
 
-const viewBoxWidth = 1000;
+const fallbackViewBoxWidth = 1000;
 const defaultHeight = 420;
 const boundaryPaddingRatio = 0.02;
 const labelFontSize = 12;
@@ -237,6 +237,8 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const [zoom, setZoom] = React.useState(1);
     const [isDragging, setIsDragging] = React.useState(false);
     const [selectedObjectInfo, setSelectedObjectInfo] = React.useState<string | null>(null);
+    const plotContainerRef = React.useRef<HTMLDivElement | null>(null);
+    const measuredPlotWidth = useElementWidth(plotContainerRef);
     const dragState = React.useRef<DragState | null>(null);
     const focusedBoundaryClipPathId = React.useId().replace(/:/g, "");
 
@@ -264,21 +266,24 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         );
     }
 
+    const viewBoxWidth = measuredPlotWidth ?? fallbackViewBoxWidth;
     const viewExtent = createViewExtent(extent, pan, zoom);
-    const mapPadding = getMapPadding(height);
+    const mapPadding = getMapPadding(viewBoxWidth, height);
     const foregroundKeys = new Set([...objects, ...highlightedObjects].map(getMapObjectKey));
     const highlightedKeys = new Set(highlightedObjects.map(getMapObjectKey));
     const projectedBackgroundObjects = projectObjects(
         uniqueObjects(backgroundObjects).filter(object => !foregroundKeys.has(getMapObjectKey(object))),
         viewExtent,
+        viewBoxWidth,
         height,
         3,
         activeLabelMode,
         mapPadding);
-    const projectedHighlightedObjects = projectObjects(uniqueObjects(highlightedObjects), viewExtent, height, 5, activeLabelMode, mapPadding);
+    const projectedHighlightedObjects = projectObjects(uniqueObjects(highlightedObjects), viewExtent, viewBoxWidth, height, 5, activeLabelMode, mapPadding);
     const projectedObjects = projectObjects(
         uniqueObjects(objects).filter(object => !highlightedKeys.has(getMapObjectKey(object))),
         viewExtent,
+        viewBoxWidth,
         height,
         4,
         activeLabelMode,
@@ -293,7 +298,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
 
     return (
         <div className={classes.root} style={{ width, minHeight: height }}>
-            <div className={classes.plotContainer}>
+            <div className={classes.plotContainer} ref={plotContainerRef}>
                 {renderPlot(
                     classes,
                     constellationId,
@@ -301,6 +306,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     focusedLineSegments,
                     viewExtent,
                     extent,
+                    viewBoxWidth,
                     height,
                     focusedBoundaryPositions,
                     projectedBackgroundObjects,
@@ -384,6 +390,7 @@ function renderPlot(
     focusedLineSegments: RawCoordinate[][],
     viewExtent: MapExtent,
     baseExtent: MapExtent,
+    viewBoxWidth: number,
     height: number,
     focusedBoundaryPositions: CelestialPosition[],
     projectedBackgroundObjects: ProjectedMapObject[],
@@ -405,7 +412,7 @@ function renderPlot(
     const surroundingLineSegments = getLineSegments(constellationLines.features.filter(feature => normalizeConstellationId(feature.id) !== focusedConstellationId));
     const gridSegments = createGridSegments(focusedBoundaryPositions);
     const focusedBoundaryFillPaths = focusedBoundaryRings
-        .map(ring => coordinatesToPath(ring, viewExtent, height, true, mapPadding, true))
+        .map(ring => coordinatesToPath(ring, viewExtent, viewBoxWidth, height, true, mapPadding, true))
         .filter((path): path is string => path != null);
 
     return (
@@ -416,13 +423,13 @@ function renderPlot(
             height={height}
             viewBox={`0 0 ${viewBoxWidth} ${height}`}
             onPointerDown={(event) => startDrag(event, pan, dragState, setIsDragging)}
-            onPointerMove={(event) => continueDrag(event, viewExtent, baseExtent, height, mapPadding, dragState, setPan)}
+            onPointerMove={(event) => continueDrag(event, viewExtent, baseExtent, viewBoxWidth, height, mapPadding, dragState, setPan)}
             onPointerUp={(event) => stopDrag(event, dragState, setIsDragging)}
             onPointerCancel={(event) => stopDrag(event, dragState, setIsDragging)}
             onLostPointerCapture={(event) => stopDrag(event, dragState, setIsDragging)}
             onWheel={(event) => {
                 if (allowZoom) {
-                    zoomFromWheel(event, zoom, viewExtent, baseExtent, height, mapPadding, setZoom, setPan);
+                    zoomFromWheel(event, zoom, viewExtent, baseExtent, viewBoxWidth, height, mapPadding, setZoom, setPan);
                 }
             }}
             onDragStart={(event) => event.preventDefault()}
@@ -437,28 +444,28 @@ function renderPlot(
             </defs>
             <rect x={0} y={0} width={viewBoxWidth} height={height} fill="#f4f4f4" />
             <g aria-hidden="true">
-                {surroundingBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, height, true, {
+                {surroundingBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, viewBoxWidth, height, true, {
                     key: `surrounding-boundary-${index}`,
                     className: classes.surroundingBoundary,
                 }, mapPadding))}
                 {focusedBoundaryFillPaths.length > 0 && <rect x={0} y={0} width={viewBoxWidth} height={height} fill="#ffffff" clipPath={`url(#${focusedBoundaryClipPathId})`} />}
-                {gridSegments.map((segment, index) => renderPath(segment, viewExtent, height, false, {
+                {gridSegments.map((segment, index) => renderPath(segment, viewExtent, viewBoxWidth, height, false, {
                     key: `grid-${index}`,
                     className: classes.gridLine,
                 }, mapPadding))}
-                {surroundingLineSegments.map((segment, index) => renderPath(segment, viewExtent, height, false, {
+                {surroundingLineSegments.map((segment, index) => renderPath(segment, viewExtent, viewBoxWidth, height, false, {
                     key: `surrounding-line-${index}`,
                     className: classes.surroundingLine,
                 }, mapPadding))}
-                {focusedBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, height, true, {
+                {focusedBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, viewBoxWidth, height, true, {
                     key: `boundary-${index}`,
                     className: classes.focusedBoundary,
                 }, mapPadding, true))}
-                {focusedLineSegments.map((segment, index) => renderPath(segment, viewExtent, height, false, {
+                {focusedLineSegments.map((segment, index) => renderPath(segment, viewExtent, viewBoxWidth, height, false, {
                     key: `line-${index}`,
                     className: classes.focusedLine,
                 }, mapPadding))}
-                {getUniqueLineVertices(surroundingLineSegments, viewExtent, height, mapPadding).map(vertex => (
+                {getUniqueLineVertices(surroundingLineSegments, viewExtent, viewBoxWidth, height, mapPadding).map(vertex => (
                     <circle
                         key={`surrounding-vertex-${vertex.key}`}
                         cx={vertex.point.x}
@@ -467,7 +474,7 @@ function renderPlot(
                         className={classes.surroundingVertex}
                     />
                 ))}
-                {getUniqueLineVertices(focusedLineSegments, viewExtent, height, mapPadding).map(vertex => (
+                {getUniqueLineVertices(focusedLineSegments, viewExtent, viewBoxWidth, height, mapPadding).map(vertex => (
                     <circle
                         key={`vertex-${vertex.key}`}
                         cx={vertex.point.x}
@@ -487,6 +494,37 @@ function renderPlot(
             </g>
         </svg>
     );
+}
+
+// Observes the plot container so the SVG projection uses the real viewport instead of a fixed aspect ratio.
+function useElementWidth(elementRef: React.RefObject<HTMLElement>) {
+    const [width, setWidth] = React.useState<number | null>(null);
+
+    React.useLayoutEffect(() => {
+        const element = elementRef.current;
+        if (element == null || typeof ResizeObserver === "undefined") {
+            return;
+        }
+
+        const updateWidth = (nextWidth: number) => {
+            if (nextWidth > 0) {
+                setWidth(Math.round(nextWidth));
+            }
+        };
+        const observer = new ResizeObserver(entries => {
+            const entry = entries[0];
+            if (entry != null) {
+                updateWidth(entry.contentRect.width);
+            }
+        });
+
+        updateWidth(element.getBoundingClientRect().width);
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [elementRef]);
+
+    return width;
 }
 
 function getConstellationFeatures(collection: GeoJsonFeatureCollection, constellationId: string) {
@@ -514,8 +552,8 @@ function toCelestialPosition(coordinate: RawCoordinate): CelestialPosition {
     };
 }
 
-function renderPath(coordinates: RawCoordinate[], extent: MapExtent, height: number, close: boolean, props: React.SVGProps<SVGPathElement>, padding: MapPadding, allowOffscreenPath = false) {
-    const path = coordinatesToPath(coordinates, extent, height, close, padding, allowOffscreenPath);
+function renderPath(coordinates: RawCoordinate[], extent: MapExtent, viewBoxWidth: number, height: number, close: boolean, props: React.SVGProps<SVGPathElement>, padding: MapPadding, allowOffscreenPath = false) {
+    const path = coordinatesToPath(coordinates, extent, viewBoxWidth, height, close, padding, allowOffscreenPath);
     if (path == null) {
         return null;
     }
@@ -523,7 +561,7 @@ function renderPath(coordinates: RawCoordinate[], extent: MapExtent, height: num
     return <path {...props} d={path} />;
 }
 
-function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, height: number, close: boolean, padding: MapPadding, allowOffscreenPath: boolean) {
+function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, viewBoxWidth: number, height: number, close: boolean, padding: MapPadding, allowOffscreenPath: boolean) {
     const commands: string[] = [];
     let isDrawingSegment = false;
     let hasGap = false;
@@ -531,7 +569,7 @@ function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, heig
     let segmentPointCount = 0;
 
     coordinates.forEach(coordinate => {
-        const point = projectCoordinate(coordinate, extent, height, padding);
+        const point = projectCoordinate(coordinate, extent, viewBoxWidth, height, padding);
         if (point == null) {
             hasGap = true;
             isDrawingSegment = false;
@@ -539,7 +577,7 @@ function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, heig
             return;
         }
 
-        if (isNearViewBox(point, height)) {
+        if (isNearViewBox(point, viewBoxWidth, height)) {
             hasNearPoint = true;
         }
 
@@ -557,13 +595,14 @@ function coordinatesToPath(coordinates: RawCoordinate[], extent: MapExtent, heig
     return close && !hasGap && segmentPointCount >= 2 ? `${path} Z` : path;
 }
 
-function projectCoordinate(coordinate: RawCoordinate, extent: MapExtent, height: number, padding: MapPadding) {
+function projectCoordinate(coordinate: RawCoordinate, extent: MapExtent, viewBoxWidth: number, height: number, padding: MapPadding) {
     return projectPosition(toCelestialPosition(coordinate), extent, viewBoxWidth, height, padding.x, padding.y);
 }
 
 function projectObjects(
     objects: IConstellationMapObject[],
     extent: MapExtent,
+    viewBoxWidth: number,
     height: number,
     markerRadius: number,
     labelMode: ConstellationMapLabelMode,
@@ -611,12 +650,12 @@ function getDefaultMaxLabels(objects: IConstellationMapObject[], highlightedObje
     return uniqueHighlightedObjects.length + uniqueNormalObjects.length;
 }
 
-function getUniqueLineVertices(lineSegments: RawCoordinate[][], extent: MapExtent, height: number, padding: MapPadding) {
+function getUniqueLineVertices(lineSegments: RawCoordinate[][], extent: MapExtent, viewBoxWidth: number, height: number, padding: MapPadding) {
     const vertices = new Map<string, { key: string; point: ProjectedPoint }>();
     lineSegments.forEach(segment => {
         segment.forEach(coordinate => {
-            const point = projectCoordinate(coordinate, extent, height, padding);
-            if (point == null || !isNearViewBox(point, height)) {
+            const point = projectCoordinate(coordinate, extent, viewBoxWidth, height, padding);
+            if (point == null || !isNearViewBox(point, viewBoxWidth, height)) {
                 return;
             }
 
@@ -720,7 +759,7 @@ function getObjectTooltip(object: IConstellationMapObject) {
     return object.herschelNo ? `${sacName} / ${object.herschelNo}` : sacName;
 }
 
-function isNearViewBox(point: ProjectedPoint, height: number) {
+function isNearViewBox(point: ProjectedPoint, viewBoxWidth: number, height: number) {
     const margin = 80;
     return point.x >= -margin &&
         point.x <= viewBoxWidth + margin &&
@@ -775,6 +814,7 @@ function continueDrag(
     event: React.PointerEvent<SVGSVGElement>,
     viewExtent: MapExtent,
     baseExtent: MapExtent,
+    viewBoxWidth: number,
     height: number,
     padding: MapPadding,
     dragState: React.MutableRefObject<DragState | null>,
@@ -785,7 +825,7 @@ function continueDrag(
     }
 
     event.preventDefault();
-    const scaleData = getProjectionScaleData(viewExtent, height, padding);
+    const scaleData = getProjectionScaleData(viewExtent, viewBoxWidth, height, padding);
     const deltaX = (event.clientX - drag.startClientX) / scaleData.scale;
     const deltaY = (event.clientY - drag.startClientY) / scaleData.scale;
     const nextPan = clampPan({ x: drag.startPan.x - deltaX, y: drag.startPan.y + deltaY }, baseExtent);
@@ -811,6 +851,7 @@ function zoomFromWheel(
     zoom: number,
     viewExtent: MapExtent,
     baseExtent: MapExtent,
+    viewBoxWidth: number,
     height: number,
     padding: MapPadding,
     setZoom: (zoom: number) => void,
@@ -818,7 +859,7 @@ function zoomFromWheel(
     event.preventDefault();
     const factor = event.deltaY < 0 ? 1.14 : 1 / 1.14;
     const nextZoom = clamp(zoom * factor, minZoom, maxZoom);
-    const planePoint = svgPointToPlane(event, viewExtent, height, padding);
+    const planePoint = svgPointToPlane(event, viewExtent, viewBoxWidth, height, padding);
     if (planePoint == null || nextZoom === zoom) {
         setZoom(nextZoom);
         return;
@@ -836,7 +877,7 @@ function zoomFromWheel(
     setPan(clampPan({ x: anchoredCenterX - baseCenterX, y: anchoredCenterY - baseCenterY }, baseExtent));
 }
 
-function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerEvent<SVGSVGElement> | React.WheelEvent<SVGSVGElement>, extent: MapExtent, height: number, padding: MapPadding) {
+function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerEvent<SVGSVGElement> | React.WheelEvent<SVGSVGElement>, extent: MapExtent, viewBoxWidth: number, height: number, padding: MapPadding) {
     const rect = event.currentTarget.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
         return null;
@@ -844,7 +885,7 @@ function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerE
 
     const svgX = (event.clientX - rect.left) / rect.width * viewBoxWidth;
     const svgY = (event.clientY - rect.top) / rect.height * height;
-    const scaleData = getProjectionScaleData(extent, height, padding);
+    const scaleData = getProjectionScaleData(extent, viewBoxWidth, height, padding);
 
     return {
         x: extent.minPlaneX + (svgX - scaleData.xOffset) / scaleData.scale,
@@ -852,7 +893,7 @@ function svgPointToPlane(event: React.MouseEvent<SVGSVGElement> | React.PointerE
     };
 }
 
-function getProjectionScaleData(extent: MapExtent, height: number, padding: MapPadding) {
+function getProjectionScaleData(extent: MapExtent, viewBoxWidth: number, height: number, padding: MapPadding) {
     const planeSpanX = Math.max(0.001, extent.maxPlaneX - extent.minPlaneX);
     const planeSpanY = Math.max(0.001, extent.maxPlaneY - extent.minPlaneY);
     const drawableWidth = Math.max(1, viewBoxWidth - padding.x * 2);
@@ -868,7 +909,7 @@ function getProjectionScaleData(extent: MapExtent, height: number, padding: MapP
     };
 }
 
-function getMapPadding(height: number): MapPadding {
+function getMapPadding(viewBoxWidth: number, height: number): MapPadding {
     return {
         x: viewBoxWidth * boundaryPaddingRatio,
         y: height * boundaryPaddingRatio,

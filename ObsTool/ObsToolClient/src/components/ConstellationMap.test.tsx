@@ -1,5 +1,5 @@
 import * as React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import ConstellationMap from "./ConstellationMap";
 
@@ -171,4 +171,46 @@ it("clips the white constellation fill to the focused boundary", () => {
 
     expect(clipPath).toBeInTheDocument();
     expect(clippedFill).toHaveAttribute("fill", "#ffffff");
+});
+
+it("fits the SVG viewBox to the measured plot viewport", async () => {
+    const originalResizeObserver = globalThis.ResizeObserver;
+
+    class MockResizeObserver {
+        private readonly callback: ResizeObserverCallback;
+
+        public constructor(callback: ResizeObserverCallback) {
+            this.callback = callback;
+        }
+
+        public observe() {
+            this.callback([{ contentRect: { width: 640 } as DOMRectReadOnly } as ResizeObserverEntry], this as unknown as ResizeObserver);
+        }
+
+        public unobserve() {
+        }
+
+        public disconnect() {
+        }
+    }
+
+    globalThis.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
+
+    try {
+        render(
+            <ConstellationMap
+                constellation="And"
+                objects={[]}
+                height={500}
+                showControls={false}
+            />
+        );
+
+        const map = screen.getByRole("img", { name: "Constellation map" });
+
+        await waitFor(() => expect(map).toHaveAttribute("viewBox", "0 0 640 500"));
+        expect(map.querySelector("rect[fill='#f4f4f4']")).toHaveAttribute("width", "640");
+    } finally {
+        globalThis.ResizeObserver = originalResizeObserver;
+    }
 });
