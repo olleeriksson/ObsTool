@@ -5,5 +5,7 @@ namespace ObsTool.Services
         public const string SectionName = "App";
 
         public string PublicBaseUrl { get; set; }
+
+        public int? DevelopmentAutoLoginUserId { get; set; }
     }
 }

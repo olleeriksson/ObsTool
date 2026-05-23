@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using ObsTool.Models;
 using ObsTool.Services;
@@ -16,13 +18,17 @@ namespace ObsTool.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private const string DevelopmentAutoLoginSuppressedCookieName = "obstool-dev-auto-login-suppressed";
+
         private readonly UserAccountService _userAccountService;
         private readonly AppOptions _appOptions;
+        private readonly IHostEnvironment _environment;
 
-        public AuthenticationController(UserAccountService userAccountService, IOptions<AppOptions> appOptions)
+        public AuthenticationController(UserAccountService userAccountService, IOptions<AppOptions> appOptions, IHostEnvironment environment)
         {
             _userAccountService = userAccountService;
             _appOptions = appOptions.Value;
+            _environment = environment;
         }
 
         [AllowAnonymous]
@@ -36,6 +42,7 @@ namespace ObsTool.Controllers
             }
 
             await SignInAsync(loginResult);
+            ClearDevelopmentAutoLoginSuppression();
             return Ok(ToAuthenticationStatus(loginResult));
         }
 
@@ -44,15 +51,16 @@ namespace ObsTool.Controllers
         public async Task<IActionResult> LogoutAsync()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            SuppressDevelopmentAutoLogin();
             return Ok(new AuthenticationStatusDto { IsLoggedIn = false });
         }
 
         [AllowAnonymous]
         [HttpGet("loggedin")]
-        public IActionResult LoggedIn()
+        public async Task<IActionResult> LoggedInAsync()
         {
             // The SPA uses this as its page-level auth gate before rendering database-backed views.
-            return Ok(GetAuthenticationStatusFromClaims());
+            return Ok(await GetAuthenticationStatusForCurrentRequestAsync());
         }
 
         [AllowAnonymous]
@@ -108,6 +116,7 @@ namespace ObsTool.Controllers
             {
                 var loginResult = _userAccountService.ResetPassword(requestDto);
                 await SignInAsync(loginResult);
+                ClearDevelopmentAutoLoginSuppression();
                 return Ok(ToAuthenticationStatus(loginResult));
             }
             catch (InvalidOperationException ex)
@@ -152,6 +161,29 @@ namespace ObsTool.Controllers
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+        }
+
+        private async Task<AuthenticationStatusDto> GetAuthenticationStatusForCurrentRequestAsync()
+        {
+            // Development auto-login signs user 1 into the normal cookie flow unless this browser explicitly logged out.
+            if (User.Identity?.IsAuthenticated ?? false)
+            {
+                return GetAuthenticationStatusFromClaims();
+            }
+
+            if (!ShouldUseDevelopmentAutoLogin())
+            {
+                return GetAuthenticationStatusFromClaims();
+            }
+
+            var loginResult = _userAccountService.GetLoginResultForUserId(_appOptions.DevelopmentAutoLoginUserId.Value);
+            if (!loginResult.Success)
+            {
+                return GetAuthenticationStatusFromClaims();
+            }
+
+            await SignInAsync(loginResult);
+            return ToAuthenticationStatus(loginResult);
         }
 
         private AuthenticationStatusDto GetAuthenticationStatusFromClaims()
@@ -199,6 +231,58 @@ namespace ObsTool.Controllers
             }
 
             return $"{Request.Scheme}://{Request.Host}{Request.PathBase}".TrimEnd('/');
+        }
+
+        private bool ShouldUseDevelopmentAutoLogin()
+        {
+            // ***********************************************************************
+            // Very important part!!
+            // Only local Development can opt into the automatic starting identity.
+            // ***********************************************************************
+            return _environment.IsDevelopment() &&
+                _appOptions.DevelopmentAutoLoginUserId.HasValue &&
+                IsDevelopmentAutoLoginHost() &&
+                !Request.Cookies.ContainsKey(DevelopmentAutoLoginSuppressedCookieName);
+        }
+
+        private bool IsDevelopmentAutoLoginHost()
+        {
+            // Keep the development shortcut tied to loopback hosts, even if a hosted app is misconfigured as Development.
+            var host = Request.Host.Host;
+            return string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(host, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void SuppressDevelopmentAutoLogin()
+        {
+            if (!_environment.IsDevelopment() || !_appOptions.DevelopmentAutoLoginUserId.HasValue)
+            {
+                return;
+            }
+
+            Response.Cookies.Append(DevelopmentAutoLoginSuppressedCookieName, "true", BuildDevelopmentAutoLoginCookieOptions());
+        }
+
+        private void ClearDevelopmentAutoLoginSuppression()
+        {
+            if (!_environment.IsDevelopment() || !_appOptions.DevelopmentAutoLoginUserId.HasValue)
+            {
+                return;
+            }
+
+            Response.Cookies.Delete(DevelopmentAutoLoginSuppressedCookieName, BuildDevelopmentAutoLoginCookieOptions());
+        }
+
+        private CookieOptions BuildDevelopmentAutoLoginCookieOptions()
+        {
+            // Match the auth cookie path so suppression applies only to this local app path.
+            return new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = Request.IsHttps,
+                Path = Request.PathBase.HasValue ? Request.PathBase.Value : "/"
+            };
         }
 
         private static void AddClaimIfValue(List<Claim> claims, string type, string value)

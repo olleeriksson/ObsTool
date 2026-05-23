@@ -108,6 +108,15 @@ namespace ObsTool.Services
             return ToLoginResult(user);
         }
 
+        public LoginResult GetLoginResultForUserId(int userId)
+        {
+            // Development auto-login needs the same claim data as a password login, without changing login timestamps.
+            var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+            return user == null
+                ? new LoginResult()
+                : ToLoginResult(user);
+        }
+
         public void Signup(SignupDto request, string publicBaseUrl)
         {
             var normalizedEmail = NormalizeEmail(request?.Email);
