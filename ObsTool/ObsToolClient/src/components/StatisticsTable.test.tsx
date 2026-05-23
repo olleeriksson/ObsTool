@@ -55,4 +55,7 @@ it("opens the constellation dialog from a constellation statistics row", async (
 
     await waitFor(() => expect(getObjects).toHaveBeenCalledWith("ORI"));
     expect(screen.getByText("Constellation: Orion")).toBeInTheDocument();
+    expect(await screen.findByRole("checkbox", { name: "Unseen Herschel 2500" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Already observed" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Unseen Herschel 400" })).toBeInTheDocument();
 });

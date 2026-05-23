@@ -86,6 +86,37 @@ it("renders a label style toggle and label count", () => {
     expect(screen.getByText(/Label count:/)).toBeInTheDocument();
 });
 
+it("toggles each marker type from the controls panel", () => {
+    const { container } = render(
+        <ConstellationMap
+            constellation="And"
+            objects={[{ name: "NGC 205", herschelNo: "H V-17", ra: "00 40.4", dec: "+41 41" }]}
+            backgroundObjects={[{ name: "NGC 206", herschelNo: "H V-16", ra: "00 40.5", dec: "+40 44" }]}
+            highlightedObjects={[{ name: "NGC 224", herschelNo: "H V-18", ra: "00 42.7", dec: "+41 16" }]}
+            objectLabel="Unseen Herschel 2500"
+            backgroundLabel="Already observed"
+            highlightedLabel="Unseen Herschel 400"
+            labelMode="herschel"
+        />
+    );
+
+    expect(container.querySelectorAll("line[stroke='#b4b4b4']")).toHaveLength(2);
+    expect(container.querySelectorAll("line[stroke='#0184bc']")).toHaveLength(2);
+    expect(container.querySelectorAll("line[stroke='#111111']")).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
+
+    expect(container.querySelectorAll("line[stroke='#b4b4b4']")).toHaveLength(0);
+    expect(container.querySelectorAll("line[stroke='#0184bc']")).toHaveLength(0);
+    expect(container.querySelectorAll("line[stroke='#111111']")).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+
+    expect(container.querySelectorAll("line[stroke='#0184bc']")).toHaveLength(2);
+});
+
 it("shows selected object information when a label is clicked", () => {
     render(
         <ConstellationMap

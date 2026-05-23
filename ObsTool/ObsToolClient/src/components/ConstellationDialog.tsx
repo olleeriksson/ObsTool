@@ -46,6 +46,9 @@ interface IConstellationDialogState {
     objects: IConstellationMapObject[];
 }
 
+/**
+ * Launched from the constellation stats table on the front page. Just the dialog, holds the ConstellationView.
+ */
 class ConstellationDialog extends React.Component<IConstellationDialogProps, IConstellationDialogState> {
     private loadRequestId = 0;
 
@@ -135,6 +138,9 @@ class ConstellationDialog extends React.Component<IConstellationDialogProps, ICo
                 constellationName={constellation.constellation}
                 constellationAbbrv={constellation.constellationAbbrv}
                 objects={this.state.objects}
+                objectLabel="Unseen Herschel 2500"
+                backgroundLabel="Already observed"
+                highlightedLabel="Unseen Herschel 400"
             />
         );
     }

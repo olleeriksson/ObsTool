@@ -1,4 +1,6 @@
 import * as React from "react";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -45,6 +47,9 @@ export interface IConstellationMapProps {
     objects: IConstellationMapObject[];
     backgroundObjects?: IConstellationMapObject[];
     highlightedObjects?: IConstellationMapObject[];
+    objectLabel?: string;
+    backgroundLabel?: string;
+    highlightedLabel?: string;
     maxNumLabels?: number;
     labelMode?: ConstellationMapLabelMode;
     width?: number | string;
@@ -82,6 +87,7 @@ const boundaryPaddingRatio = 0.02;
 const labelFontSize = 12;
 const minZoom = 1.0;
 const maxZoom = 6;
+type ConstellationMapMarkerKind = "background" | "normal" | "highlighted";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -196,6 +202,24 @@ const styles = (theme: Theme) => createStyles({
         color: "#666",
         marginTop: theme.spacing(1),
     },
+    markerVisibilityCaption: {
+        color: "#4d4d4d",
+        marginBottom: theme.spacing(0.25),
+        marginTop: theme.spacing(1.5),
+    },
+    markerVisibilityControl: {
+        display: "block",
+        marginLeft: -6,
+        marginRight: 0,
+        "& .MuiFormControlLabel-label": {
+            color: "#333",
+            fontSize: 12,
+        },
+    },
+    markerVisibilityCheckbox: {
+        paddingBottom: 2,
+        paddingTop: 2,
+    },
     selectedObjectInfo: {
         background: "#f8f8f8",
         border: "1px solid #b8b8b8",
@@ -221,6 +245,9 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         objects,
         backgroundObjects = [],
         highlightedObjects = [],
+        objectLabel = "Objects",
+        backgroundLabel = "Background objects",
+        highlightedLabel = "Highlighted objects",
         maxNumLabels,
         labelMode = "sac",
         width = "100%",
@@ -237,10 +264,16 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const [zoom, setZoom] = React.useState(1);
     const [isDragging, setIsDragging] = React.useState(false);
     const [selectedObjectInfo, setSelectedObjectInfo] = React.useState<string | null>(null);
+    const [visibleMarkers, setVisibleMarkers] = React.useState<Record<ConstellationMapMarkerKind, boolean>>({
+        background: true,
+        normal: true,
+        highlighted: true,
+    });
     const plotContainerRef = React.useRef<HTMLDivElement | null>(null);
     const measuredPlotWidth = useElementWidth(plotContainerRef);
     const dragState = React.useRef<DragState | null>(null);
     const focusedBoundaryClipPathId = React.useId().replace(/:/g, "");
+    const markerVisibilityOptions = getMarkerVisibilityOptions(objectLabel, backgroundLabel, highlightedLabel);
 
     React.useEffect(() => setActiveLabelMode(labelMode), [labelMode]);
     React.useEffect(() => setActiveMaxLabels(maxNumLabels ?? defaultMaxLabels), [maxNumLabels, defaultMaxLabels]);
@@ -271,17 +304,20 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const mapPadding = getMapPadding(viewBoxWidth, height);
     const foregroundKeys = new Set([...objects, ...highlightedObjects].map(getMapObjectKey));
     const highlightedKeys = new Set(highlightedObjects.map(getMapObjectKey));
+    const visibleBackgroundObjects = visibleMarkers.background ? backgroundObjects : [];
+    const visibleNormalObjects = visibleMarkers.normal ? objects : [];
+    const visibleHighlightedObjects = visibleMarkers.highlighted ? highlightedObjects : [];
     const projectedBackgroundObjects = projectObjects(
-        uniqueObjects(backgroundObjects).filter(object => !foregroundKeys.has(getMapObjectKey(object))),
+        uniqueObjects(visibleBackgroundObjects).filter(object => !foregroundKeys.has(getMapObjectKey(object))),
         viewExtent,
         viewBoxWidth,
         height,
         3,
         activeLabelMode,
         mapPadding);
-    const projectedHighlightedObjects = projectObjects(uniqueObjects(highlightedObjects), viewExtent, viewBoxWidth, height, 5, activeLabelMode, mapPadding);
+    const projectedHighlightedObjects = projectObjects(uniqueObjects(visibleHighlightedObjects), viewExtent, viewBoxWidth, height, 5, activeLabelMode, mapPadding);
     const projectedObjects = projectObjects(
-        uniqueObjects(objects).filter(object => !highlightedKeys.has(getMapObjectKey(object))),
+        uniqueObjects(visibleNormalObjects).filter(object => !highlightedKeys.has(getMapObjectKey(object))),
         viewExtent,
         viewBoxWidth,
         height,
@@ -372,6 +408,24 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     <Typography variant="caption" component="div" className={classes.zoomText}>
                         Zoom: {zoom.toFixed(1)}x
                     </Typography>
+                    <Typography variant="caption" component="div" className={classes.markerVisibilityCaption}>
+                        Markers
+                    </Typography>
+                    {markerVisibilityOptions.map(option => (
+                        <FormControlLabel
+                            key={option.kind}
+                            className={classes.markerVisibilityControl}
+                            control={
+                                <Checkbox
+                                    className={classes.markerVisibilityCheckbox}
+                                    size="small"
+                                    checked={visibleMarkers[option.kind]}
+                                    onChange={(_, checked) => setMarkerVisibility(option.kind, checked, setVisibleMarkers)}
+                                />
+                            }
+                            label={option.label}
+                        />
+                    ))}
                     {selectedObjectInfo && (
                         <div className={classes.selectedObjectInfo}>
                             {selectedObjectInfo}
@@ -381,6 +435,26 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
             )}
         </div>
     );
+}
+
+// Builds the controls in the same order as the map's public marker-label props.
+function getMarkerVisibilityOptions(objectLabel: string, backgroundLabel: string, highlightedLabel: string): Array<{ kind: ConstellationMapMarkerKind; label: string }> {
+    return [
+        { kind: "highlighted", label: highlightedLabel },
+        { kind: "normal", label: objectLabel },
+        { kind: "background", label: backgroundLabel },
+    ];
+}
+
+// Keeps each marker checkbox isolated while preserving the other marker visibility settings.
+function setMarkerVisibility(
+    markerKind: ConstellationMapMarkerKind,
+    isVisible: boolean,
+    setVisibleMarkers: React.Dispatch<React.SetStateAction<Record<ConstellationMapMarkerKind, boolean>>>) {
+    setVisibleMarkers(current => ({
+        ...current,
+        [markerKind]: isVisible,
+    }));
 }
 
 function renderPlot(

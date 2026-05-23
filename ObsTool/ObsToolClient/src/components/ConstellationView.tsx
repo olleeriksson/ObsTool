@@ -22,19 +22,26 @@ interface IConstellationViewProps extends WithStyles<typeof styles> {
     constellationName: string;
     constellationAbbrv: string;
     objects: IConstellationMapObject[];
+    objectLabel?: string;
+    backgroundLabel?: string;
+    highlightedLabel?: string;
 }
 
 interface IConstellationViewState {
     selectedTab: number;
 }
 
+/**
+ * Used in ConstellationDialog. Holds the tabs component with a Map tab and List tab.
+ * On the Map tab is a ConstellationMap.
+ */
 class ConstellationView extends React.Component<IConstellationViewProps, IConstellationViewState> {
     public state: IConstellationViewState = {
         selectedTab: 0,
     };
 
     public render() {
-        const { classes, constellationAbbrv, constellationName, objects } = this.props;
+        const { backgroundLabel, classes, constellationAbbrv, constellationName, highlightedLabel, objectLabel, objects } = this.props;
         const highlightedObjects = objects.filter(object => object.h400);
         const backgroundObjects = objects.filter(object => object.isObserved && !object.h400);
         const normalObjects = objects.filter(object => !object.isObserved && !object.h400);
@@ -56,6 +63,9 @@ class ConstellationView extends React.Component<IConstellationViewProps, IConste
                         objects={normalObjects}
                         backgroundObjects={backgroundObjects}
                         highlightedObjects={highlightedObjects}
+                        objectLabel={objectLabel}
+                        backgroundLabel={backgroundLabel}
+                        highlightedLabel={highlightedLabel}
                         labelMode="herschel"
                         height={760}
                     />
