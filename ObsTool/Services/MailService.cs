@@ -15,6 +15,7 @@ namespace ObsTool.Services
         Task<EmailTestResultDto> SendTestEmailAsync(EmailTestRequestDto request, string triggeredBy);
         Task SendEmailConfirmationAsync(string recipient, string fullName, string confirmationUrl);
         Task SendPasswordResetAsync(string recipient, string fullName, string resetUrl);
+        Task SendAdminNotificationAsync(string recipient, string subject, string body);
     }
 
     public class MailService : IMailService
@@ -92,6 +93,12 @@ namespace ObsTool.Services
                 "If you did not request a password reset, you can ignore this email.";
 
             return SendEmailAsync(recipient, "Reset your ObsTool password", body);
+        }
+
+        public Task SendAdminNotificationAsync(string recipient, string subject, string body)
+        {
+            // Admin notifications use the same SMTP transport but supply their own event-specific recipient and text.
+            return SendEmailAsync(recipient, subject, body);
         }
 
         private async Task SendEmailAsync(string recipient, string subject, string body)

@@ -27,12 +27,13 @@ namespace ObsTool.Controllers
         private ReportTextManager _reportTextManager;
         ObservationsService _observationsService;
         private readonly CurrentUserService _currentUserService;
+        private readonly SystemEventService _systemEventService;
         private readonly IMapper _mapper;
 
         public ObsSessionsController(ILogger<ObsSessionsController> logger, MainDbContext mainDbContext,
             ObsSessionsRepo obsSessionRepository, LocationsRepo locationsRepository, IInstrumentsRepo instrumentsRepo, IDsoRepo dsoRepo,
             IH2500Repo h2500Repo, ReportTextManager reportTextManager, ObservationsService observationsService,
-            CurrentUserService currentUserService, IMapper mapper)
+            CurrentUserService currentUserService, SystemEventService systemEventService, IMapper mapper)
         {
             _logger = logger;
             _mainDbContext = mainDbContext;
@@ -44,6 +45,7 @@ namespace ObsTool.Controllers
             _reportTextManager = reportTextManager;
             _observationsService = observationsService;
             _currentUserService = currentUserService;
+            _systemEventService = systemEventService;
             _mapper = mapper;
         }
 
@@ -208,6 +210,7 @@ namespace ObsTool.Controllers
 
             _logger.LogInformation("Created an observation session:");
             _logger.LogInformation(PocoPrinter.ToString(addedObsSession));
+            _systemEventService.RecordObsSessionCreated(userId, addedObsSession);
 
             ObsSessionDto addedObsSessionDto = _mapper.Map<ObsSessionDto>(addedObsSession);
 
@@ -266,6 +269,7 @@ namespace ObsTool.Controllers
 
             _logger.LogInformation("Updated an observation session:");
             _logger.LogInformation(PocoPrinter.ToString(obsSessionEntity));
+            _systemEventService.RecordObsSessionUpdated(userId, obsSessionEntity);
 
             ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, userId, true, true, true);
             var resultingDto = _mapper.Map<ObsSessionDto>(freshObsSessionEntity);

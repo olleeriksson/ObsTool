@@ -99,6 +99,7 @@ namespace ObsTool
 
             services.Configure<AppOptions>(Configuration.GetSection(AppOptions.SectionName));
             services.Configure<MailServiceOptions>(Configuration.GetSection(MailServiceOptions.SectionName));
+            services.Configure<AdminNotificationOptions>(Configuration.GetSection(AdminNotificationOptions.SectionName));
 
             services.AddDbContext<MainDbContext>(ConfigureDatabaseProvider);
 
@@ -116,6 +117,7 @@ namespace ObsTool
             services.AddScoped<ObsResourcesRepo>();
             services.AddScoped<DsoObservationsRepo>();
             services.AddScoped<IMailService, MailService>();
+            services.AddScoped<SystemEventService>();
             services.AddScoped<UserAccountService>();
             services.AddScoped<CurrentUserService>();
 

@@ -46,12 +46,14 @@ namespace ObsTool.Services
         private readonly MainDbContext _dbContext;
         private readonly IConfiguration _configuration;
         private readonly IMailService _mailService;
+        private readonly SystemEventService _systemEventService;
 
-        public UserAccountService(MainDbContext dbContext, IConfiguration configuration, IMailService mailService)
+        public UserAccountService(MainDbContext dbContext, IConfiguration configuration, IMailService mailService, SystemEventService systemEventService)
         {
             _dbContext = dbContext;
             _configuration = configuration;
             _mailService = mailService;
+            _systemEventService = systemEventService;
         }
 
         public LoginResult ValidateLogin(string identifier, string password)
@@ -101,6 +103,7 @@ namespace ObsTool.Services
 
             user.LastLoginUtc = DateTime.UtcNow;
             _dbContext.SaveChanges();
+            _systemEventService.RecordUserLoggedIn(user);
 
             return ToLoginResult(user);
         }
@@ -168,6 +171,8 @@ namespace ObsTool.Services
                 _dbContext.SaveChanges();
                 throw;
             }
+
+            _systemEventService.RecordUserRegistered(user);
         }
 
         public string ConfirmEmail(int userId, string token)
@@ -191,6 +196,7 @@ namespace ObsTool.Services
                 user.EmailConfirmationTokenExpiresUtc = null;
                 user.UpdatedUtc = DateTime.UtcNow;
                 _dbContext.SaveChanges();
+                _systemEventService.RecordUserEmailConfirmed(user);
             }
 
             return user.Email;

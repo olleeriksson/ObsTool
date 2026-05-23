@@ -61,6 +61,8 @@ namespace ObsTool.Database
 
         public DbSet<AppUser> Users { get; set; }
 
+        public DbSet<SystemEvent> Events { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder
@@ -84,6 +86,16 @@ namespace ObsTool.Database
             modelBuilder.Entity<AppUser>()
                 .HasIndex(user => user.NormalizedUsername)
                 .IsUnique();
+
+            modelBuilder.Entity<SystemEvent>()
+                .HasIndex(systemEvent => new { systemEvent.UserId, systemEvent.EventKey, systemEvent.OccurredUtc });
+
+            modelBuilder.Entity<SystemEvent>()
+                .HasOne(systemEvent => systemEvent.User)
+                .WithMany()
+                .HasForeignKey(systemEvent => systemEvent.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ObsSession>()
                 .HasAlternateKey(obsSession => new { obsSession.Id, obsSession.UserId });
