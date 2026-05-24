@@ -269,6 +269,11 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         });
     }
 
+    private handleBackToForm = () => {
+        // The observed-object cards use this to return to the edit form without changing the current session route.
+        this.setState({ activeTab: 0 });
+    }
+
     private touchStartX = 0;
 
     private handleTouchStart = (e: React.TouchEvent) => {
@@ -443,6 +448,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                 <ObservationList
                                     observations={observations}
                                     onSelectObservation={this.onSelectObservation}
+                                    onBackToForm={this.handleBackToForm}
                                     allowEditing={this.props.store.isLoggedIn}
                                 />
                             </div>

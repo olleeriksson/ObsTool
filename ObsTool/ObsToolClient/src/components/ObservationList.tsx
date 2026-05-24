@@ -8,6 +8,7 @@ import Grid from "@mui/material/Grid2";
 export interface IObservationListProps {
   observations: IObservation[];
   onSelectObservation: (observationId: number) => void;
+  onBackToForm: () => void;
   allowEditing: boolean;
 }
 
@@ -35,6 +36,7 @@ class ObservationList extends React.Component<IObservationListProps> {
               observation={observation}
               observationIndex={observationIndex}
               onSelectObservation={this.onSelectObsSessionCard}
+              onBackToForm={this.props.onBackToForm}
               allowEditing={this.props.allowEditing}
             />
           </Grid>

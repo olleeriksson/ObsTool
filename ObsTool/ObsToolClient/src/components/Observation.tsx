@@ -13,6 +13,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import classNames from "classnames";
 import DsoCard from "./DsoCard";
@@ -52,12 +53,16 @@ const styles = (theme: Theme) => createStyles({
   expandOpen: {
     transform: "rotate(180deg)",
   },
+  backToFormButton: {
+    color: theme.palette.grey[500],
+  },
 });
 
 export interface IObservationProps extends WithStyles<typeof styles> {
   observation: IObservation;
   observationIndex: number;
   onSelectObservation: (id: number) => void;
+  onBackToForm: () => void;
   allowEditing: boolean;
 }
 
@@ -75,11 +80,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       eyepieces: [],
     };
 
-    this.handleClickOnObservation = this.handleClickOnObservation.bind(this);
     this.handleExpandClick = this.handleExpandClick.bind(this);
-  }
-
-  private handleClickOnObservation = () => {
   }
 
   private handleExpandClick = () => {
@@ -196,8 +197,8 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
               <Grid>
                 <Grid container direction="column" style={{ height: "100%" }}>
                   <Grid size="grow">
-                    <IconButton onClick={this.handleClickOnObservation} >
-                      <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />
+                    <IconButton className={classes.backToFormButton} onClick={this.props.onBackToForm} aria-label="Back to observation form">
+                      <ArrowBackIcon />
                     </IconButton>
                   </Grid>
                   <Grid>
