@@ -30,6 +30,7 @@ import * as instrumentActions from "../actions/InstrumentActions";
 import * as eyepieceActions from "../actions/EyepieceActions";
 import * as utils from "../utils";
 import { getObservedObjectTargetId } from "./ObservationTarget";
+import { updateObservationResources } from "./ObsSessionResources";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -295,6 +296,13 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ activeTab: 0 });
     }
 
+    private handleObservationResourcesChanged = (observationId: number, resources: IObservation["obsResources"]) => {
+        // Resource edits are saved through a nested dialog, so patch the current session snapshot without reloading the whole page.
+        this.setState(prevState => ({
+            obsSession: updateObservationResources(prevState.obsSession, observationId, resources || []),
+        }));
+    }
+
     private touchStartX = 0;
 
     private handleTouchStart = (e: React.TouchEvent) => {
@@ -464,6 +472,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     observations={observations}
                                     onSelectObservation={this.onSelectObservation}
                                     onBackToForm={this.handleBackToForm}
+                                    onObservationResourcesChanged={this.handleObservationResourcesChanged}
                                     allowEditing={this.props.store.isLoggedIn}
                                 />
                                 <div className={classes.bottomTabControls}>

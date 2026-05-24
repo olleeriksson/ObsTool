@@ -63,6 +63,7 @@ export interface IObservationProps extends WithStyles<typeof styles> {
   observationIndex: number;
   onSelectObservation: (id: number) => void;
   onBackToForm: () => void;
+  onResourcesChanged?: (observationId: number, resources: IObservation["obsResources"]) => void;
   allowEditing: boolean;
 }
 
@@ -189,7 +190,12 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                       </Typography>
                     </div>
                     <div style={{ marginTop: 5 }}>
-                      <ImageList observationId={this.props.observation.id} resources={this.props.observation.obsResources} showAddButton={this.props.allowEditing} />
+                      <ImageList
+                        observationId={this.props.observation.id}
+                        resources={this.props.observation.obsResources}
+                        onResourcesChanged={this.props.onResourcesChanged}
+                        showAddButton={this.props.allowEditing}
+                      />
                     </div>
                   </Grid>
                 </Grid>

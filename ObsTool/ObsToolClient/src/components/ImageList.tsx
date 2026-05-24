@@ -99,6 +99,7 @@ const styles = (theme: Theme) => createStyles({
 export interface IImageListProps extends WithStyles<typeof styles> {
   observationId: number;
   resources?: IObsResource[];
+  onResourcesChanged?: (observationId: number, resources: IObsResource[]) => void;
   store: IDataState;
   actions: any;
   showAddButton: boolean;
@@ -203,6 +204,10 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       (response) => {
         const { data } = response;
         const updatedResources = data;
+        // Keep the session-level observation snapshot in sync so the tab cannot remount with stale resource props.
+        if (this.props.onResourcesChanged) {
+          this.props.onResourcesChanged(this.props.observationId, updatedResources);
+        }
         this.setState({
           isLoading: false,
           isError: false,

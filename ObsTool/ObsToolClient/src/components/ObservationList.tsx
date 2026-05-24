@@ -9,6 +9,7 @@ export interface IObservationListProps {
   observations: IObservation[];
   onSelectObservation: (observationId: number) => void;
   onBackToForm: () => void;
+  onObservationResourcesChanged?: (observationId: number, resources: IObservation["obsResources"]) => void;
   allowEditing: boolean;
 }
 
@@ -37,6 +38,7 @@ class ObservationList extends React.Component<IObservationListProps> {
               observationIndex={observationIndex}
               onSelectObservation={this.onSelectObsSessionCard}
               onBackToForm={this.props.onBackToForm}
+              onResourcesChanged={this.props.onObservationResourcesChanged}
               allowEditing={this.props.allowEditing}
             />
           </Grid>
