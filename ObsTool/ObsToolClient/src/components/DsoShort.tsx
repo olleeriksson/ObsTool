@@ -75,7 +75,7 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
             onClick={this.props.onNameClick}
             underline="always"
             variant="body2"
-            style={{ fontWeight: 700, textAlign: "left", textDecoration: this.props.nonDetection ? "underline line-through" : undefined }}
+            style={{ display: "block", fontWeight: 700, textAlign: "left", textDecoration: this.props.nonDetection ? "underline line-through" : undefined }}
             aria-label={`Show ${name} in observed objects`}
           >
             {name}
@@ -85,7 +85,7 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
         return (
           <div className="dsoShort">
             {nameContent}
-            <Typography color="textSecondary" variant="caption" gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
+            <Typography color="textSecondary" variant="caption" component={"div" as any} gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
               {this.state.dso.type}, {this.state.dso.con}
             </Typography>
           </div>
