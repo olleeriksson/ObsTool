@@ -29,6 +29,15 @@ function SingleObsSessionRoute() {
     );
 }
 
+function SessionsRoute() {
+    const { obsSessionId } = useParams<{ obsSessionId: string }>();
+    return (
+        <ProtectedLayout>
+            <ListView obsSessionId={obsSessionId ? Number(obsSessionId) : undefined} />
+        </ProtectedLayout>
+    );
+}
+
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
     return (
         <RequireLogin>
@@ -47,6 +56,7 @@ export const routes = (
         <Route path="/" element={<ProtectedLayout><Home /></ProtectedLayout>} />
         <Route path="/session/:obsSessionId" element={<SingleObsSessionRoute />} />
         <Route path="/observations" element={<ProtectedLayout><ObservedDsos /></ProtectedLayout>} />
+        <Route path="/sessions/:obsSessionId" element={<SessionsRoute />} />
         <Route path="/sessions" element={<ProtectedLayout><ListView /></ProtectedLayout>} />
         <Route path="/newsession" element={<ProtectedLayout><NewObsSessionView /></ProtectedLayout>} />
         <Route path="/search" element={<ProtectedLayout><SearchView /></ProtectedLayout>} />

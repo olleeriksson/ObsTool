@@ -37,6 +37,7 @@ const styles = (theme: Theme) => createStyles({
 interface IListViewProps extends WithStyles<typeof styles> {
     onIncrement?: () => void;
     onDecrement?: () => void;
+    obsSessionId?: number;
     store: ReadonlyDataState;
     actions: any;
 }
@@ -64,7 +65,19 @@ class ListView extends React.Component<IListViewProps> {
 
     public onSelectObsSession = (obsSessionId: number) => {
         if (this.props.store.obsSessions) {
+            // Keep the split view mounted so the session-list pagination does not reset while the URL reflects the selection.
             this.props.actions.selectObsSession(obsSessionId);
+            this.replaceSessionsUrl(obsSessionId);
+        }
+    }
+
+    private replaceSessionsUrl = (obsSessionId: number) => {
+        if (typeof window !== "undefined") {
+            const basePath = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL.replace(/\/$/, "");
+            const nextPath = `${basePath}/sessions/${obsSessionId}`;
+            if (window.location.pathname !== nextPath) {
+                window.history.pushState(null, "", nextPath);
+            }
         }
     }
 
@@ -96,9 +109,10 @@ class ListView extends React.Component<IListViewProps> {
         }
 
         let rightSideView;
-        if (this.props.store.selectedObsSessionId) { // default view
+        const selectedObsSessionId = this.props.store.selectedObsSessionId || this.props.obsSessionId;
+        if (selectedObsSessionId) { // default view
             rightSideView = (
-                <ObsSessionPage obsSessionId={this.props.store.selectedObsSessionId} />
+                <ObsSessionPage obsSessionId={selectedObsSessionId} />
             );
         } else { // empty view
             rightSideView = (

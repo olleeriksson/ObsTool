@@ -171,6 +171,20 @@ namespace ObsTool.Controllers
             }
         }
 
+        private ObsSessionDto BuildFullObsSessionDto(int id, int userId, bool includeHerschel)
+        {
+            // Save responses feed the session page directly, so they need the same hydrated object graph as the full-session GET path.
+            var obsSession = _obsSessionsRepository.GetObsSession(id, userId, includeLocation: true, includeObservations: true, includeDso: true);
+            var obsSessionDto = _mapper.Map<ObsSessionDto>(obsSession);
+
+            if (includeHerschel)
+            {
+                PopulateHerschelBadges(obsSessionDto);
+            }
+
+            return obsSessionDto;
+        }
+
         [HttpPost]
         public IActionResult Post([FromBody]ObsSessionDtoForCreation newObsSessionDto)
         {
@@ -212,7 +226,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation(PocoPrinter.ToString(addedObsSession));
             _systemEventService.RecordObsSessionCreated(userId, addedObsSession);
 
-            ObsSessionDto addedObsSessionDto = _mapper.Map<ObsSessionDto>(addedObsSession);
+            ObsSessionDto addedObsSessionDto = BuildFullObsSessionDto(addedObsSession.Id, userId, includeHerschel: true);
 
             return CreatedAtRoute("GetOneObsSession", new { id = addedObsSessionDto.Id }, addedObsSessionDto);
         }
@@ -271,8 +285,7 @@ namespace ObsTool.Controllers
             _logger.LogInformation(PocoPrinter.ToString(obsSessionEntity));
             _systemEventService.RecordObsSessionUpdated(userId, obsSessionEntity);
 
-            ObsSession freshObsSessionEntity = _obsSessionsRepository.GetObsSession(id, userId, true, true, true);
-            var resultingDto = _mapper.Map<ObsSessionDto>(freshObsSessionEntity);
+            var resultingDto = BuildFullObsSessionDto(id, userId, includeHerschel: true);
 
             return Ok(resultingDto);
         }

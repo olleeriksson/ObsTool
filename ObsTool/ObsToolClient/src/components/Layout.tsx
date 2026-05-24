@@ -241,9 +241,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             <AppBar position="static" color="default" className={classes.appBar}>
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
-                        <Link to="/" className="appbar-brand">
+                        <a href={import.meta.env.BASE_URL} className="appbar-brand">
                             <img src={logo} className="logo-appbar" alt="logo" /><span className="appbar-title">ObsTool</span>
-                        </Link>
+                        </a>
                     </Typography>
                     <div className={classes.navControls}>
                         <div className={classes.searchContainer}>

@@ -3,12 +3,59 @@ using NUnit.Framework;
 using System;
 using ObsTool.Entities;
 using ObsTool.Utils;
+using System.Linq;
+using System.Security.Claims;
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Moq;
+using ObsTool;
+using ObsTool.Database;
+using ObsTool.Models;
+using ObsTool.Services;
 
 namespace TestProject
 {
     [TestFixture]
     public class ObsSessionsControllerTests
     {
+        private SqliteConnection _connection;
+        private MainDbContext _dbContext;
+        private ObsSessionsController _controller;
+
+        [SetUp]
+        public void Setup()
+        {
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["Db:Migrate"]).Returns("false");
+            Startup.Configuration = configMock.Object;
+
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
+
+            var options = new DbContextOptionsBuilder<MainDbContext>()
+                .UseSqlite(_connection)
+                .Options;
+
+            _dbContext = new MainDbContext(options, new Mock<ILogger<MainDbContext>>().Object);
+            _dbContext.Database.EnsureCreated();
+            _controller = CreateController();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _dbContext.Dispose();
+            _connection.Close();
+            _connection.Dispose();
+        }
+
         //[Test]
         //public void testDummyMethod()
         //{
@@ -18,6 +65,47 @@ namespace TestProject
             //Assert.AreEqual(expected, result);
             //Assert.That(result, Is.EqualTo(expected));
         //}
+
+        [Test]
+        public void Post_ReturnsHerschelBadgesForParsedReportObjects()
+        {
+            SeedUser();
+            SeedDsoWithHerschelObject();
+
+            var result = (CreatedAtRouteResult)_controller.Post(new ObsSessionDtoForCreation
+            {
+                Date = DateTime.Today,
+                Title = "New session",
+                ReportText = "NGC 6440 was obvious tonight."
+            });
+
+            var obsSession = (ObsSessionDto)result.Value;
+            var dso = obsSession.Observations.Single().DsoObservations.Single().Dso;
+
+            Assert.That(dso.HerschelObjects, Has.Length.EqualTo(1));
+            Assert.That(dso.HerschelObjects[0].HerschelNo, Is.EqualTo("H I-150"));
+        }
+
+        [Test]
+        public void Put_ReturnsHerschelBadgesForParsedReportObjects()
+        {
+            SeedUser();
+            SeedDsoWithHerschelObject();
+            var obsSessionId = SeedObsSession();
+
+            var result = (OkObjectResult)_controller.Put(obsSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Updated session",
+                ReportText = "NGC 6440 was obvious tonight."
+            });
+
+            var obsSession = (ObsSessionDto)result.Value;
+            var dso = obsSession.Observations.Single().DsoObservations.Single().Dso;
+
+            Assert.That(dso.HerschelObjects, Has.Length.EqualTo(1));
+            Assert.That(dso.HerschelObjects[0].HerschelNo, Is.EqualTo("H I-150"));
+        }
 
         [Test]
         public void testPrintPoco()
@@ -66,6 +154,121 @@ namespace TestProject
 
             string text = PocoPrinter.ToString(obsSession);
             Console.WriteLine(text);
+        }
+
+        private ObsSessionsController CreateController()
+        {
+            // The controller save endpoints are tested through the real parser/repos so the response shape matches runtime behavior.
+            var mapper = new MapperConfiguration(c => c.AddProfile<AutoMapperProfile>(), NullLoggerFactory.Instance).CreateMapper();
+            var obsSessionsRepo = new ObsSessionsRepo(_dbContext);
+            var locationsRepo = new LocationsRepo(_dbContext);
+            var instrumentsRepo = new InstrumentsRepo(_dbContext);
+            var dsoRepo = new DsoRepo(_dbContext);
+            var h2500Repo = new H2500Repo(_dbContext);
+            var observationsRepo = new ObservationsRepo(_dbContext);
+            var dsoObservationsRepo = new DsoObservationsRepo(_dbContext);
+            var reportTextManager = new ReportTextManager(
+                _dbContext,
+                observationsRepo,
+                dsoRepo,
+                NullLogger<ReportTextManager>.Instance,
+                dsoObservationsRepo,
+                instrumentsRepo);
+            var observationsService = new ObservationsService(observationsRepo, obsSessionsRepo, _dbContext, mapper);
+            var systemEventService = new SystemEventService(
+                _dbContext,
+                Mock.Of<IMailService>(),
+                Options.Create(new AdminNotificationOptions()),
+                NullLogger<SystemEventService>.Instance);
+
+            return new ObsSessionsController(
+                NullLogger<ObsSessionsController>.Instance,
+                _dbContext,
+                obsSessionsRepo,
+                locationsRepo,
+                instrumentsRepo,
+                dsoRepo,
+                h2500Repo,
+                reportTextManager,
+                observationsService,
+                CreateCurrentUserService(),
+                systemEventService,
+                mapper);
+        }
+
+        private static CurrentUserService CreateCurrentUserService()
+        {
+            // Save endpoints require the authenticated user id claim to scope created and updated sessions.
+            var httpContextAccessor = new HttpContextAccessor
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(AuthClaimTypes.UserId, "1") }))
+                }
+            };
+            return new CurrentUserService(httpContextAccessor);
+        }
+
+        private void SeedUser()
+        {
+            _dbContext.Users.Add(new AppUser
+            {
+                Id = 1,
+                Email = "user@example.com",
+                NormalizedEmail = "USER@EXAMPLE.COM",
+                Username = "user",
+                NormalizedUsername = "USER",
+                FullName = "Test User",
+                PasswordHash = "hash",
+                CreatedUtc = DateTime.UtcNow
+            });
+            _dbContext.SaveChanges();
+        }
+
+        private int SeedObsSession()
+        {
+            var obsSession = new ObsSession
+            {
+                UserId = 1,
+                Date = DateTime.Today,
+                Title = "Existing session",
+                ReportText = ""
+            };
+            _dbContext.ObsSessions.Add(obsSession);
+            _dbContext.SaveChanges();
+            return obsSession.Id;
+        }
+
+        private void SeedDsoWithHerschelObject()
+        {
+            _dbContext.Dso.Add(new Dso
+            {
+                Id = 6440,
+                Catalog = "NGC",
+                CatalogNumber = "6440",
+                Name = "NGC 6440",
+                OtherNames = "",
+                CommonName = "",
+                AllCommonNames = "",
+                Type = "GLOCL",
+                Con = "SGR",
+                RA = "17 48",
+                DEC = "-20 21",
+                Mag = "10",
+                SB = "10",
+                U2K = 1,
+                TI = 1
+            });
+            _dbContext.H2500.Add(new H2500
+            {
+                HerschelId = 150,
+                HerschelNo = "H I-150",
+                Cat = "NGC",
+                CatNo = 6440,
+                H400 = true,
+                SacDeepSkyObjectsId = 6440
+            });
+            _dbContext.SaveChanges();
         }
     }
 }

@@ -166,7 +166,8 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                             const obsSession = response2.data;
                             this.handleSuccessDataFromApi(obsSession);
                             this.props.actions.updateObsSessionSuccess(obsSession);
-                            // this.setState({ redirectToSingleSessionPage: true });
+                            // Once the first real save has completed, move the new-session view onto the persisted session URL.
+                            this.setState({ redirectToSingleSessionPage: true });
                         },
                         (response2) => {
                             this.indicateError(response2.response);
