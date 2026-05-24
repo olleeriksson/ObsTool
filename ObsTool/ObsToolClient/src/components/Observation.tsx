@@ -20,6 +20,7 @@ import ObservationSecondary from "./ObservationSecondary";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
 import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
+import { getObservedObjectTargetId, getObservedObjectTargetKey } from "./ObservationTarget";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -55,6 +56,7 @@ const styles = (theme: Theme) => createStyles({
 
 export interface IObservationProps extends WithStyles<typeof styles> {
   observation: IObservation;
+  observationIndex: number;
   onSelectObservation: (id: number) => void;
   allowEditing: boolean;
 }
@@ -135,22 +137,24 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
     let dsoObjects;
     if (this.props.observation.dsoObservations) {
-      dsoObjects = this.props.observation.dsoObservations.map(o =>
-        <div style={{ marginBottom: "0.4em" }}>
-          <DsoCard
-            key={o.dso.id}
-            dso={o.dso}
-            customObjectName={o.customObjectName}
-            nonDetection={o.nonDetection || this.props.observation.nonDetection}
-            showBadge={false}
-            showDsoAnnotations={true}
-            showDsoExtra={true}
-            showObservations={false}
-            showPrevAndNextObservation={false}
-            startWithObservationsExpanded={false}
-          />
-        </div>
-      );
+      dsoObjects = this.props.observation.dsoObservations.map((o, dsoObsIndex) => {
+        const targetKey = getObservedObjectTargetKey(this.props.observation, this.props.observationIndex, o, dsoObsIndex);
+        return (
+          <div key={targetKey} id={getObservedObjectTargetId(targetKey)} style={{ marginBottom: "0.4em", scrollMarginTop: "1em" }}>
+            <DsoCard
+              dso={o.dso}
+              customObjectName={o.customObjectName}
+              nonDetection={o.nonDetection || this.props.observation.nonDetection}
+              showBadge={false}
+              showDsoAnnotations={true}
+              showDsoExtra={true}
+              showObservations={false}
+              showPrevAndNextObservation={false}
+              startWithObservationsExpanded={false}
+            />
+          </div>
+        );
+      });
     }
 
     const observationIcon = this.props.observation.nonDetection ? "eye-slash" : "binoculars";

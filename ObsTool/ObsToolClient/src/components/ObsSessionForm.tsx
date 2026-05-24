@@ -13,6 +13,7 @@ import SelectComponent, { IKeyValuePair } from "./SelectComponent";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
+import { getObservedObjectTargetKey } from "./ObservationTarget";
 
 const styles = (theme: Theme) => createStyles({
   form: {
@@ -170,6 +171,7 @@ export interface IObsSessionFormProps extends WithStyles<typeof styles> {
   instruments?: IInstrument[];
   eyepieces?: IEyepiece[];
   onSaveObsSession: (obsSession: IObsSession) => void;
+  onSelectObservedObject: (targetKey: string) => void;
   isLoading: boolean;
   allowEditing: boolean;
 }
@@ -310,13 +312,22 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
           if (o.dsoObservations) {
             const dsoShortLabels = o.dsoObservations
               .sort(this.sortDsoObsByDisplayOrder)
-              .map(dsoObs =>
-                <DsoShort key={dsoObs.dso.id} dso={dsoObs.dso} customObjectName={dsoObs.customObjectName} nonDetection={dsoObs.nonDetection || o.nonDetection} />
-              );
+              .map((dsoObs, dsoObsIndex) => {
+                const targetKey = getObservedObjectTargetKey(o, index, dsoObs, dsoObsIndex);
+                return (
+                  <DsoShort
+                    key={targetKey}
+                    dso={dsoObs.dso}
+                    customObjectName={dsoObs.customObjectName}
+                    nonDetection={dsoObs.nonDetection || o.nonDetection}
+                    onNameClick={() => this.props.onSelectObservedObject(targetKey)}
+                  />
+                );
+              });
             if (o.dsoObservations.length > 1) {
-              return <div key={o.id} className={classes.multipleDsoContainer}>{dsoShortLabels}</div>;
+              return <div key={o.id ?? `observation-${index}`} className={classes.multipleDsoContainer}>{dsoShortLabels}</div>;
             }
-            return <div key={o.id} className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
+            return <div key={o.id ?? `observation-${index}`} className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
           }
           const errorText = "Err " + o.id;
           return <DsoShort key={index} error={errorText} />;

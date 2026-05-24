@@ -29,6 +29,7 @@ import * as locationActions from "../actions/LocationActions";
 import * as instrumentActions from "../actions/InstrumentActions";
 import * as eyepieceActions from "../actions/EyepieceActions";
 import * as utils from "../utils";
+import { getObservedObjectTargetId } from "./ObservationTarget";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -256,6 +257,18 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ activeTab: value });
     }
 
+    private handleSelectObservedObject = (targetKey: string) => {
+        // The observed-object panel slides in with CSS, so wait for the tab switch before scrolling to the target.
+        this.setState({ activeTab: 1 }, () => {
+            window.setTimeout(() => {
+                const target = document.getElementById(getObservedObjectTargetId(targetKey));
+                if (target) {
+                    target.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            }, 375);
+        });
+    }
+
     private touchStartX = 0;
 
     private handleTouchStart = (e: React.TouchEvent) => {
@@ -421,6 +434,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     instruments={this.props.store.instruments || []}
                                     eyepieces={this.props.store.eyepieces || []}
                                     onSaveObsSession={this.onSaveObsSession}
+                                    onSelectObservedObject={this.handleSelectObservedObject}
                                     isLoading={this.state.isLoading}
                                     allowEditing={this.props.store.isLoggedIn}
                                 />

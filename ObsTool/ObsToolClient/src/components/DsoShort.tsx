@@ -2,6 +2,7 @@ import * as React from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
+import ButtonBase from "@mui/material/ButtonBase";
 
 export interface IDsoShortProps {
   id?: number;
@@ -9,6 +10,7 @@ export interface IDsoShortProps {
   error?: string;
   dso?: IDso;
   nonDetection?: boolean;
+  onNameClick?: () => void;
 }
 
 export interface IDsoShortState {
@@ -60,11 +62,27 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
       );
     } else {
       if (this.state.dso) {
+        const name = this.state.dso.name === "custom" ? this.props.customObjectName : this.state.dso.name;
+        const nameStyle = this.props.nonDetection ? { textDecoration: "line-through" } : undefined;
+        const nameTypography = (
+          <Typography variant="body2" style={nameStyle}>
+            {name}
+          </Typography>
+        );
+        const nameContent = this.props.onNameClick ? (
+          <ButtonBase
+            component="button"
+            onClick={this.props.onNameClick}
+            style={{ color: "inherit", display: "block", textAlign: "left" }}
+            aria-label={`Show ${name} in observed objects`}
+          >
+            {nameTypography}
+          </ButtonBase>
+        ) : nameTypography;
+
         return (
           <div className="dsoShort">
-            <Typography variant="body2" style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
-              {this.state.dso.name === "custom" ? this.props.customObjectName : this.state.dso.name}
-            </Typography>
+            {nameContent}
             <Typography color="textSecondary" variant="caption" gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
               {this.state.dso.type}, {this.state.dso.con}
             </Typography>

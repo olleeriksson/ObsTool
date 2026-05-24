@@ -28,12 +28,12 @@ class ObservationList extends React.Component<IObservationListProps> {
   public render() {
     const observations = this.props.observations
       .sort(this.sortByDisplayOrder)
-      .map(observation => {
+      .map((observation, observationIndex) => {
         return (
-          <Grid key={observation.id}>
+          <Grid key={observation.id ?? `observation-${observationIndex}`}>
             <Observation
-              key={observation.id}
               observation={observation}
+              observationIndex={observationIndex}
               onSelectObservation={this.onSelectObsSessionCard}
               allowEditing={this.props.allowEditing}
             />
