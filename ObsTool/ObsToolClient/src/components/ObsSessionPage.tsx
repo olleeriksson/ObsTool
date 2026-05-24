@@ -37,6 +37,11 @@ const styles = (theme: Theme) => createStyles({
     },
     header: {
         padding: theme.spacing(2),
+    },
+    bottomTabControls: {
+        borderTop: `1px solid ${theme.palette.divider}`,
+        marginTop: theme.spacing(2),
+        paddingTop: theme.spacing(1),
     }
 });
 
@@ -257,6 +262,22 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ activeTab: value });
     }
 
+    private renderTabControls = (listTabLabel: string) => {
+        // Render both tab bars from the same state so the top and bottom controls always stay synchronized.
+        return (
+            <Tabs
+                value={this.state.activeTab}
+                onChange={this.handleChange}
+                indicatorColor="primary"
+                textColor="primary"
+                centered={true}
+            >
+                <Tab label="Observation Form" />
+                <Tab label={listTabLabel} />
+            </Tabs>
+        );
+    }
+
     private handleSelectObservedObject = (targetKey: string) => {
         // The observed-object panel slides in with CSS, so wait for the tab switch before scrolling to the target.
         this.setState({ activeTab: 1 }, () => {
@@ -410,16 +431,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                             </Grid>
                         </Grid>
                     </div>
-                    <Tabs
-                        value={this.state.activeTab}
-                        onChange={this.handleChange}
-                        indicatorColor="primary"
-                        textColor="primary"
-                        centered={true}
-                    >
-                        <Tab label="Observation Form" />
-                        <Tab label={listTabLabel} />
-                    </Tabs>
+                    {this.renderTabControls(listTabLabel)}
                     <div
                         style={{ overflow: "hidden", width: "100%" }}
                         onTouchStart={this.handleTouchStart}
@@ -443,6 +455,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     isLoading={this.state.isLoading}
                                     allowEditing={this.props.store.isLoggedIn}
                                 />
+                                <div className={classes.bottomTabControls}>
+                                    {this.renderTabControls(listTabLabel)}
+                                </div>
                             </div>
                             <div role="tabpanel" style={{ width: "50%" }}>
                                 <ObservationList
@@ -451,6 +466,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     onBackToForm={this.handleBackToForm}
                                     allowEditing={this.props.store.isLoggedIn}
                                 />
+                                <div className={classes.bottomTabControls}>
+                                    {this.renderTabControls(listTabLabel)}
+                                </div>
                             </div>
                         </div>
                     </div>
