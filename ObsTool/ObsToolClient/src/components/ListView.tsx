@@ -51,6 +51,20 @@ class ListView extends React.Component<IListViewProps> {
 
     public componentDidMount() {
         this.loadAllObsSessions();
+        this.selectRouteObsSession();
+    }
+
+    public componentDidUpdate(prevProps: IListViewProps) {
+        if (this.props.obsSessionId !== prevProps.obsSessionId) {
+            this.selectRouteObsSession();
+        }
+    }
+
+    private selectRouteObsSession = () => {
+        if (this.props.obsSessionId && this.props.store.selectedObsSessionId !== this.props.obsSessionId) {
+            // Direct entry and post-create redirects carry the session id in the route; mirror it into the split-view selection state.
+            this.props.actions.selectObsSession(this.props.obsSessionId);
+        }
     }
 
     private loadAllObsSessions = () => {

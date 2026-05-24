@@ -282,7 +282,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         // Redirects
         // ----------------------------------------
         if (this.state.redirectToSingleSessionPage) {
-            const url = "/session/" + this.state.obsSession.id;
+            const url = "/sessions/" + this.state.obsSession.id;
             return <Navigate to={url} replace />;
         } else if (this.state.redirectToListView) {
             return <Navigate to="/sessions" replace />;
