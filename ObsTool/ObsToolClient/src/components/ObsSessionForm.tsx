@@ -88,6 +88,15 @@ const styles = (theme: Theme) => createStyles({
     marginBottom: "0.7em",
     marginTop: "0.7em"
   },
+  objectListColumn: {
+    paddingTop: theme.spacing(5),
+  },
+  objectListHeading: {
+    fontWeight: 900,
+    fontSize: "0.95rem",
+    fontStyle: "underline",
+    marginBottom: theme.spacing(1.5),
+  },
   helpReferenceRow: {
     marginTop: theme.spacing(1),
     marginLeft: theme.spacing(1),
@@ -502,7 +511,10 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     </Grid>
                   </Grid>
                 </Grid>
-                <Grid size={1}>
+                <Grid size={1} className={classes.objectListColumn}>
+                  <Typography variant="caption" color="textSecondary" component={"div" as any} className={classes.objectListHeading}>
+                    Objects:
+                  </Typography>
                   {dsoList}
                 </Grid>
               </Grid>
