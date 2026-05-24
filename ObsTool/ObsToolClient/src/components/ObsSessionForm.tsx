@@ -405,6 +405,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={"" + (this.state.obsSession.locationId || "")}
                 onChange={this.handleChange("locationId")}
                 options={locationOptions}
+                margin="dense"
               />
             </Grid>
             <Grid>
@@ -416,7 +417,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={this.state.obsSession.summary || ""}
                 onChange={this.handleChange("summary")}
                 className={classNames(classes.formControl, classes.textField)}
-                margin="normal"
+                margin="dense"
                 variant="outlined"
               />
             </Grid>
@@ -429,7 +430,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={this.state.obsSession.conditions || ""}
                 onChange={this.handleChange("conditions")}
                 className={classNames(classes.formControl, classes.textField)}
-                margin="normal"
+                margin="dense"
                 variant="outlined"
               />
             </Grid>
@@ -447,6 +448,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                             value={"" + this.state.obsSession.seeing}
                             onChange={this.handleChange("seeing")}
                             options={seeingOptions}
+                            margin="normal"
                           />
                           <SelectComponent
                             classes={classes.ratingSelect}
@@ -455,6 +457,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                             value={"" + this.state.obsSession.transparency}
                             onChange={this.handleChange("transparency")}
                             options={transparencyOptions}
+                            margin="normal"
                           />
                           <TextField
                             id="lm"

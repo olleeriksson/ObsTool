@@ -12,6 +12,7 @@ interface ISelectComponentProps {
   value: string;
   helperText?: string;
   classes: any;
+  margin?: "dense" | "normal" | "none";
   onChange: (event: any) => void;
 }
 
@@ -45,7 +46,7 @@ class SelectComponent extends React.Component<ISelectComponentProps> {
         onChange={this.handleChange}
         className={classes}
         variant="outlined"
-        margin="normal"
+        margin={this.props.margin || "normal"}
         InputLabelProps={{ shrink: true }}
         helperText={this.props.helperText}
       >

@@ -2,7 +2,7 @@ import * as React from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
-import ButtonBase from "@mui/material/ButtonBase";
+import Link from "@mui/material/Link";
 
 export interface IDsoShortProps {
   id?: number;
@@ -70,14 +70,16 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
           </Typography>
         );
         const nameContent = this.props.onNameClick ? (
-          <ButtonBase
+          <Link
             component="button"
             onClick={this.props.onNameClick}
-            style={{ color: "inherit", display: "block", textAlign: "left" }}
+            underline="always"
+            variant="body2"
+            style={{ fontWeight: 700, textAlign: "left", textDecoration: this.props.nonDetection ? "underline line-through" : undefined }}
             aria-label={`Show ${name} in observed objects`}
           >
-            {nameTypography}
-          </ButtonBase>
+            {name}
+          </Link>
         ) : nameTypography;
 
         return (
