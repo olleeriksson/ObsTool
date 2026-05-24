@@ -27,6 +27,7 @@ import { IAppState, IDataState } from "../types/Types";
 import * as obsSessionActions from "../actions/ObsSessionActions";
 import * as locationActions from "../actions/LocationActions";
 import * as instrumentActions from "../actions/InstrumentActions";
+import * as eyepieceActions from "../actions/EyepieceActions";
 import * as utils from "../utils";
 
 const styles = (theme: Theme) => createStyles({
@@ -83,6 +84,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
     public componentDidMount() {
         this.loadLocations();
         this.loadInstruments();
+        this.loadEyepieces();
         if (this.props.obsSessionId) {
             this.loadObsSession(this.props.obsSessionId);
         }
@@ -121,6 +123,20 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                 this.indicateError();
             }
         );
+    }
+
+    private loadEyepieces = () => {
+        if (!this.props.store.eyepieces) {
+            this.props.actions.getEyepiecesBegin();
+            Api.getEyepieces().then(
+                (response) => {
+                    this.props.actions.getEyepiecesSuccess(response.data);
+                },
+                () => {
+                    this.indicateError();
+                }
+            );
+        }
     }
 
     private loadObsSession = (obsSessionId: number) => {
@@ -403,6 +419,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     obsSession={this.state.obsSession}
                                     locations={this.props.store.locations || []}
                                     instruments={this.props.store.instruments || []}
+                                    eyepieces={this.props.store.eyepieces || []}
                                     onSaveObsSession={this.onSaveObsSession}
                                     isLoading={this.state.isLoading}
                                     allowEditing={this.props.store.isLoggedIn}
@@ -429,10 +446,10 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<obsSessionActions.ObsSessionAction | locationActions.LocationAction | instrumentActions.InstrumentAction>) => {
+const mapDispatchToProps = (dispatch: Dispatch<obsSessionActions.ObsSessionAction | locationActions.LocationAction | instrumentActions.InstrumentAction | eyepieceActions.EyepieceAction>) => {
     return {
         actions: bindActionCreators(
-            { ...obsSessionActions, ...locationActions, ...instrumentActions },
+            { ...obsSessionActions, ...locationActions, ...instrumentActions, ...eyepieceActions },
             dispatch
         )
     };

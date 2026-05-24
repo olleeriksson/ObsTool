@@ -6,12 +6,13 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import TextareaAutosize from "@mui/material/TextField";
 import DsoShort from "./DsoShort";
-import { IObsSession, ILocation, IInstrument, IObservation, IDsoObservation } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IObservation, IDsoObservation, IEyepiece } from "../types/Types";
 import classNames from "classnames";
 import Grid from "@mui/material/Grid2";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
+import Tooltip from "@mui/material/Tooltip";
 
 const styles = (theme: Theme) => createStyles({
   form: {
@@ -33,6 +34,26 @@ const styles = (theme: Theme) => createStyles({
   saveButton: {
     marginRight: `calc(5% - ${theme.spacing(1)})`,
   },
+  ratingSaveRow: {
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    width: "95%",
+    alignItems: "flex-end",
+  },
+  ratingControls: {
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  topActionColumn: {
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    alignSelf: "stretch",
+  },
+  bottomSaveButton: {
+    marginRight: 0,
+  },
   dateField: {
     width: 180,
     marginRight: theme.spacing(2),
@@ -49,6 +70,16 @@ const styles = (theme: Theme) => createStyles({
     width: 100,
     marginRight: theme.spacing(2),
   },
+  ratingSelect: {
+    width: 100,
+    marginLeft: 0,
+    marginRight: theme.spacing(2),
+  },
+  ratingLimitingMagnitude: {
+    width: 180,
+    marginLeft: 0,
+    marginRight: theme.spacing(2),
+  },
   singleDsoContainer: {
     marginBottom: "0.7em",
     marginTop: "0.7em"
@@ -56,6 +87,71 @@ const styles = (theme: Theme) => createStyles({
   multipleDsoContainer: {
     marginBottom: "0.7em",
     marginTop: "0.7em"
+  },
+  helpReferenceRow: {
+    marginTop: theme.spacing(1),
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    width: "95%",
+    alignItems: "flex-start",
+    columnGap: theme.spacing(1.5),
+    flexWrap: "nowrap",
+  },
+  helpTextColumn: {
+    flex: "0 0 390px",
+    maxWidth: 390,
+  },
+  helpText: {
+    lineHeight: 1.4,
+    whiteSpace: "nowrap",
+  },
+  bottomActionColumn: {
+    display: "flex",
+    justifyContent: "flex-end",
+    flex: "0 0 68px",
+    marginLeft: "auto",
+  },
+  keyReferenceColumn: {
+    lineHeight: 1.35,
+  },
+  eyepieceReferenceColumn: {
+    flex: "0 0 170px",
+    maxWidth: 170,
+  },
+  instrumentReferenceColumn: {
+    flex: "0 0 100px",
+    maxWidth: 100,
+  },
+  keyChipGrid: {
+    display: "grid",
+    gap: theme.spacing(0.5),
+  },
+  eyepieceKeyGrid: {
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  },
+  instrumentKeyGrid: {
+    gridTemplateColumns: "1fr",
+  },
+  referenceSection: {
+    marginBottom: theme.spacing(1),
+  },
+  referenceHeading: {
+    fontWeight: 700,
+  },
+  keyChip: {
+    border: "1px solid #d4d4d4",
+    borderRadius: 4,
+    backgroundColor: "#f1f1f1",
+    color: theme.palette.text.primary,
+    cursor: "pointer",
+    fontFamily: "Consolas, 'Courier New', monospace",
+    fontSize: "0.78rem",
+    lineHeight: 1.2,
+    padding: "2px 5px",
+    textAlign: "left",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   }
 });
 
@@ -63,6 +159,7 @@ export interface IObsSessionFormProps extends WithStyles<typeof styles> {
   obsSession: IObsSession;
   locations?: ILocation[];
   instruments?: IInstrument[];
+  eyepieces?: IEyepiece[];
   onSaveObsSession: (obsSession: IObsSession) => void;
   isLoading: boolean;
   allowEditing: boolean;
@@ -131,6 +228,66 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
   private sortDsoObsByDisplayOrder = (dsoObsA: IDsoObservation, dsoObsB: IDsoObservation) => {
     return (dsoObsA.displayOrder || 0) - (dsoObsB.displayOrder || 0);
+  }
+
+  private sortByKey = <T extends { key: string }>(itemA: T, itemB: T) => {
+    return itemA.key.localeCompare(itemB.key);
+  }
+
+  private copyKeyToClipboard = (key: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(key);
+    }
+  }
+
+  private getEyepieceTooltip = (eyepiece: IEyepiece) => {
+    const focalLengthText = eyepiece.focalLengthMm ? ` (${eyepiece.focalLengthMm} mm)` : "";
+    return `${eyepiece.name}${focalLengthText}\nClick to copy`;
+  }
+
+  private getInstrumentTooltip = (instrument: IInstrument) => {
+    return `${instrument.name}\nClick to copy`;
+  }
+
+  private renderKeyReferenceSection = <T extends { id?: number; key: string }>(
+    title: string,
+    items: T[],
+    getTooltip: (item: T) => string,
+    gridClassName: string
+  ) => {
+    // Keys are compact editing aids; names stay in the tooltip so the visible surface is easy to scan.
+    const sortedItems = [...items].sort(this.sortByKey);
+    const content = sortedItems.length === 0 ? (
+      <Typography variant="caption" color="textSecondary">None</Typography>
+    ) : (
+      <div className={classNames(this.props.classes.keyChipGrid, gridClassName)}>
+        {sortedItems.map(item => (
+          <Tooltip
+            key={item.id || item.key}
+            arrow={true}
+            placement="top"
+            title={<span style={{ whiteSpace: "pre-line" }}>{getTooltip(item)}</span>}
+          >
+            <button
+              type="button"
+              className={this.props.classes.keyChip}
+              onClick={() => this.copyKeyToClipboard(item.key)}
+            >
+              {item.key}
+            </button>
+          </Tooltip>
+        ))}
+      </div>
+    );
+
+    return (
+      <div className={this.props.classes.referenceSection}>
+        <Typography variant="caption" color="textSecondary" component={"div" as any} className={this.props.classes.referenceHeading}>
+          {title}
+        </Typography>
+        {content}
+      </div>
+    );
   }
 
   public render() {
@@ -257,45 +414,48 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               />
             </Grid>
             <Grid>
-              <SelectComponent
-                classes={classNames(classes.formControl, classes.select)}
-                label="Seeing"
-                name="seeing"
-                value={"" + this.state.obsSession.seeing}
-                onChange={this.handleChange("seeing")}
-                options={seeingOptions}
-              />
-              <SelectComponent
-                classes={classNames(classes.formControl, classes.select)}
-                label="Transparency"
-                name="transparency"
-                value={"" + this.state.obsSession.transparency}
-                onChange={this.handleChange("transparency")}
-                options={transparencyOptions}
-              />
-              <TextField
-                id="lm"
-                label="Lim. mag."
-                maxRows={10}
-                value={this.state.obsSession.limitingMagnitude || ""}
-                onChange={this.handleChange("limitingMagnitude")}
-                error={this.state.errorOnControl.limitingMagnitude !== undefined}
-                className={classNames(classes.formControl)}
-                margin="normal"
-                variant="outlined"
-                style={{ width: 180 }}
-              />
-            </Grid>
-            <Grid>
               <Grid container direction="row">
                 <Grid size="grow">
                   <Grid container direction="column">
-                    <Grid size="grow">
-                      <Grid container direction="row" justifyContent="flex-end">
-                        {circularProgress}
-                        <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.saveButton}>
-                          Save
-                        </Button>
+                    <Grid>
+                      <Grid container direction="row" className={classes.ratingSaveRow}>
+                        <Grid className={classes.ratingControls}>
+                          <SelectComponent
+                            classes={classes.ratingSelect}
+                            label="Seeing"
+                            name="seeing"
+                            value={"" + this.state.obsSession.seeing}
+                            onChange={this.handleChange("seeing")}
+                            options={seeingOptions}
+                          />
+                          <SelectComponent
+                            classes={classes.ratingSelect}
+                            label="Transparency"
+                            name="transparency"
+                            value={"" + this.state.obsSession.transparency}
+                            onChange={this.handleChange("transparency")}
+                            options={transparencyOptions}
+                          />
+                          <TextField
+                            id="lm"
+                            label="Lim. mag."
+                            maxRows={10}
+                            value={this.state.obsSession.limitingMagnitude || ""}
+                            onChange={this.handleChange("limitingMagnitude")}
+                            error={this.state.errorOnControl.limitingMagnitude !== undefined}
+                            className={classes.ratingLimitingMagnitude}
+                            margin="normal"
+                            variant="outlined"
+                          />
+                        </Grid>
+                        <Grid size="grow" className={classes.topActionColumn}>
+                          <div>
+                            {circularProgress}
+                            <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.bottomSaveButton}>
+                              Save
+                            </Button>
+                          </div>
+                        </Grid>
                       </Grid>
                     </Grid>
                     <Grid>
@@ -312,23 +472,33 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                       />
                     </Grid>
                     <Grid>
-                      <Grid container direction="row" justifyContent="flex-end">
-                        {circularProgress}
-                        <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.saveButton}>
-                          Save
-                        </Button>
+                      <Grid container direction="row" className={classes.helpReferenceRow}>
+                        <Grid className={classes.helpTextColumn}>
+                          <Typography variant="caption" color="textSecondary" component={"div" as any} className={classes.helpText}>
+                            <div><code>!!</code>{" - "}section not found</div>
+                            <div><code>!M 31!</code>{" - "}individual not found</div>
+                            <div><code>(M 31)</code>{" - "}suppress reference</div>
+                            <div><code>-1 +1 +2 * **</code>{" - "}rating</div>
+                            <div><code>revisit</code>{" / "}<code>come back</code>{" - "}follow-up</div>
+                            <div><code>Link: Image: Sketch: Jot:</code>{" - "}+ url</div>
+                            <div><code>Scope: KEY</code>{" - "}switch instrument from this point</div>
+                          </Typography>
+                        </Grid>
+                        <Grid className={classNames(classes.keyReferenceColumn, classes.eyepieceReferenceColumn)}>
+                          {this.renderKeyReferenceSection("Eyepieces", this.props.eyepieces || [], this.getEyepieceTooltip, classes.eyepieceKeyGrid)}
+                        </Grid>
+                        <Grid className={classNames(classes.keyReferenceColumn, classes.instrumentReferenceColumn)}>
+                          {this.renderKeyReferenceSection("Instruments", this.props.instruments || [], this.getInstrumentTooltip, classes.instrumentKeyGrid)}
+                        </Grid>
+                        <Grid size="grow" className={classes.bottomActionColumn}>
+                          <div>
+                            {circularProgress}
+                            <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.bottomSaveButton}>
+                              Save
+                            </Button>
+                          </div>
+                        </Grid>
                       </Grid>
-                    </Grid>
-                    <Grid>
-                      <Typography variant="caption" color="textSecondary" component={"div" as any} style={{ marginTop: 8, marginLeft: 8, lineHeight: 1.4 }}>
-                        <div><code>!!</code>{" - "}section not found</div>
-                        <div><code>!M 31!</code>{" - "}individual not found</div>
-                        <div><code>(M 31)</code>{" - "}suppress reference</div>
-                        <div><code>-1 +1 +2 * **</code>{" - "}rating</div>
-                        <div><code>revisit</code>{" / "}<code>come back</code>{" - "}follow-up</div>
-                        <div><code>Link: Image: Sketch: Jot:</code>{" - "}+ url</div>
-                        <div><code>Scope: KEY</code>{" - "}switch instrument from this point</div>
-                      </Typography>
                     </Grid>
                   </Grid>
                 </Grid>
