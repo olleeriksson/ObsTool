@@ -110,6 +110,7 @@ Manage super admins
 
 Run
 ---------------
+<Start Docker Desktop>
 Scripts\LOCAL-MYSQL-start-mysql-via-docker.cmd
 Scripts\LOCAL-MYSQL-start-obstool-backend.cmd
 Scripts\LOCAL-DEV-build-and-run-FE.cmd

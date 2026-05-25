@@ -22,7 +22,7 @@ namespace ObsTool.Database
         private const string RecreateTargetSchemaOption = "--recreate-target-schema";
         private const string ConfirmRecreateTargetSchemaOption = "--confirm-recreate-target-schema";
         private const string RecreateConfirmationPhrase = "RECREATE TARGET SCHEMA";
-        private const int ReplaceUserDataUserId = 1;
+        private static readonly IReadOnlyCollection<int> AllowedReplaceUserDataUserIds = new[] { 1, 2 };
 
         private static readonly IReadOnlyList<GeneralTableSync> GeneralTables = new[]
         {
@@ -52,7 +52,8 @@ namespace ObsTool.Database
         {
             var sourceSqlitePath = GetRequiredSourceSqlitePath(args);
             var updateGeneralTables = HasFlag(args, UpdateGeneralTablesOption);
-            var replaceUserData = HasFlag(args, ReplaceUserDataOption);
+            var replaceUserDataUserIds = GetReplaceUserDataUserIds(args);
+            var replaceUserData = replaceUserDataUserIds.Count > 0;
             var recreateTargetSchema = HasFlag(args, RecreateTargetSchemaOption);
 
             if (!updateGeneralTables && !replaceUserData)
@@ -73,7 +74,7 @@ namespace ObsTool.Database
             Console.WriteLine($"Operation: {string.Join(" ", GetOperationNames(updateGeneralTables, replaceUserData))}");
             if (replaceUserData)
             {
-                Console.WriteLine($"{ReplaceUserDataOption}: hardcoded target/source Users.Id {ReplaceUserDataUserId}");
+                Console.WriteLine($"{ReplaceUserDataOption}: target/source Users.Id {string.Join(", ", replaceUserDataUserIds)}");
             }
 
             if (recreateTargetSchema)
@@ -104,7 +105,10 @@ namespace ObsTool.Database
 
                 if (replaceUserData)
                 {
-                    ReplaceUserData(sourceConnection, targetConnection, targetTransaction, targetContext.Database.ProviderName);
+                    foreach (var replaceUserDataUserId in replaceUserDataUserIds)
+                    {
+                        ReplaceUserData(sourceConnection, targetConnection, targetTransaction, targetContext.Database.ProviderName, replaceUserDataUserId);
+                    }
                 }
 
                 targetTransaction.Commit();
@@ -144,6 +148,51 @@ namespace ObsTool.Database
             {
                 yield return ReplaceUserDataOption;
             }
+        }
+
+        // Parses the required user id list for the replace-user-data operation.
+        private static IReadOnlyList<int> GetReplaceUserDataUserIds(string[] args)
+        {
+            var replaceUserDataUserIds = new List<int>();
+            foreach (var arg in args)
+            {
+                if (string.Equals(arg, ReplaceUserDataOption, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"{ReplaceUserDataOption} requires a user id. Use {ReplaceUserDataOption}=1, {ReplaceUserDataOption}=2, or {ReplaceUserDataOption}=1,2.");
+                }
+
+                if (arg.StartsWith(ReplaceUserDataOption + "=", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (replaceUserDataUserIds.Count > 0)
+                    {
+                        throw new InvalidOperationException($"{ReplaceUserDataOption} can only be supplied once per db-sync run.");
+                    }
+
+                    var optionValue = arg.Substring(ReplaceUserDataOption.Length + 1);
+                    foreach (var userIdPart in optionValue.Split(','))
+                    {
+                        var trimmedUserId = userIdPart.Trim();
+                        if (string.IsNullOrWhiteSpace(trimmedUserId) || !int.TryParse(trimmedUserId, out var userId))
+                        {
+                            throw new InvalidOperationException($"{ReplaceUserDataOption} must contain only 1 and/or 2. Example: {ReplaceUserDataOption}=1,2.");
+                        }
+
+                        if (!AllowedReplaceUserDataUserIds.Contains(userId))
+                        {
+                            throw new InvalidOperationException($"{ReplaceUserDataOption} is only allowed for Users.Id 1 and 2.");
+                        }
+
+                        if (replaceUserDataUserIds.Contains(userId))
+                        {
+                            throw new InvalidOperationException($"{ReplaceUserDataOption} cannot include the same user id more than once.");
+                        }
+
+                        replaceUserDataUserIds.Add(userId);
+                    }
+                }
+            }
+
+            return replaceUserDataUserIds;
         }
 
         private static void ConfirmRecreateTargetSchema(string[] args, MainDbContext targetContext)
@@ -389,28 +438,29 @@ ORDER BY name";
             SqliteConnection sourceConnection,
             DbConnection targetConnection,
             DbTransaction targetTransaction,
-            string targetProvider)
+            string targetProvider,
+            int userId)
         {
-            ValidateSourceUserExists(sourceConnection);
-            EnsureTargetUserExists(sourceConnection, targetConnection, targetTransaction, targetProvider);
-            DeleteTargetUserData(targetConnection, targetTransaction, targetProvider);
+            ValidateSourceUserExists(sourceConnection, userId);
+            EnsureTargetUserExists(sourceConnection, targetConnection, targetTransaction, targetProvider, userId);
+            DeleteTargetUserData(targetConnection, targetTransaction, targetProvider, userId);
 
             foreach (var tableImport in ReplaceUserDataTables)
             {
-                InsertFilteredRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableImport);
+                InsertFilteredRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableImport, userId);
             }
         }
 
-        private static void ValidateSourceUserExists(SqliteConnection sourceConnection)
+        private static void ValidateSourceUserExists(SqliteConnection sourceConnection, int userId)
         {
             using var command = sourceConnection.CreateCommand();
             command.CommandText = "SELECT COUNT(*) FROM \"Users\" WHERE \"Id\" = @userId";
-            AddUserIdParameter(command);
+            AddUserIdParameter(command, userId);
 
             var rows = Convert.ToInt64(command.ExecuteScalar());
             if (rows != 1)
             {
-                throw new InvalidOperationException($"Source SQLite must contain exactly one Users row with Id {ReplaceUserDataUserId}; found {rows}.");
+                throw new InvalidOperationException($"Source SQLite must contain exactly one Users row with Id {userId}; found {rows}.");
             }
         }
 
@@ -418,7 +468,8 @@ ORDER BY name";
             SqliteConnection sourceConnection,
             DbConnection targetConnection,
             DbTransaction targetTransaction,
-            string targetProvider)
+            string targetProvider,
+            int userId)
         {
             var targetRows = CountRows(
                 targetConnection,
@@ -426,11 +477,11 @@ ORDER BY name";
                 targetProvider,
                 "Users",
                 $"{QuoteIdentifier(targetProvider, "Id")} = @userId",
-                AddUserIdParameter);
+                command => AddUserIdParameter(command, userId));
 
             if (targetRows > 0)
             {
-                Console.WriteLine($"{ReplaceUserDataOption}: Users: target user {ReplaceUserDataUserId} already exists; leaving account row unchanged.");
+                Console.WriteLine($"{ReplaceUserDataOption}: Users: target user {userId} already exists; leaving account row unchanged.");
                 return;
             }
 
@@ -439,24 +490,25 @@ ORDER BY name";
                 targetConnection,
                 targetTransaction,
                 targetProvider,
-                new TableImport("Users", "source.\"Id\" = @userId"));
+                new TableImport("Users", "source.\"Id\" = @userId"),
+                userId);
         }
 
-        private static void DeleteTargetUserData(DbConnection targetConnection, DbTransaction targetTransaction, string targetProvider)
+        private static void DeleteTargetUserData(DbConnection targetConnection, DbTransaction targetTransaction, string targetProvider, int userId)
         {
             var observationsTable = QuoteIdentifier(targetProvider, "Observations");
             var userIdColumn = QuoteIdentifier(targetProvider, "UserId");
             var observationIdColumn = QuoteIdentifier(targetProvider, "ObservationId");
             var observationIdSubquery = $"SELECT {QuoteIdentifier(targetProvider, "Id")} FROM {observationsTable} WHERE {userIdColumn} = @userId";
 
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "ObsResources", $"{userIdColumn} = @userId");
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "DsoObservations", $"{observationIdColumn} IN ({observationIdSubquery})");
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "DsoExtra", $"{userIdColumn} = @userId");
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Observations", $"{userIdColumn} = @userId");
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "ObsSessions", $"{userIdColumn} = @userId");
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Eyepieces", $"{userIdColumn} = @userId");
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Instruments", $"{userIdColumn} = @userId");
-            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Locations", $"{userIdColumn} = @userId");
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "ObsResources", $"{userIdColumn} = @userId", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "DsoObservations", $"{observationIdColumn} IN ({observationIdSubquery})", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "DsoExtra", $"{userIdColumn} = @userId", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Observations", $"{userIdColumn} = @userId", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "ObsSessions", $"{userIdColumn} = @userId", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Eyepieces", $"{userIdColumn} = @userId", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Instruments", $"{userIdColumn} = @userId", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Locations", $"{userIdColumn} = @userId", userId);
         }
 
         private static void ExecuteUserDelete(
@@ -464,12 +516,13 @@ ORDER BY name";
             DbTransaction targetTransaction,
             string targetProvider,
             string tableName,
-            string whereClause)
+            string whereClause,
+            int userId)
         {
             using var command = targetConnection.CreateCommand();
             command.Transaction = targetTransaction;
             command.CommandText = $"DELETE FROM {QuoteIdentifier(targetProvider, tableName)} WHERE {whereClause}";
-            AddUserIdParameter(command);
+            AddUserIdParameter(command, userId);
 
             var deletedRows = command.ExecuteNonQuery();
             Console.WriteLine($"{ReplaceUserDataOption}: {tableName}: deleted {deletedRows} row(s).");
@@ -480,7 +533,8 @@ ORDER BY name";
             DbConnection targetConnection,
             DbTransaction targetTransaction,
             string targetProvider,
-            TableImport tableImport)
+            TableImport tableImport,
+            int userId)
         {
             var sourceColumns = GetSqliteColumns(sourceConnection, tableImport.TableName);
             if (sourceColumns.Count == 0)
@@ -495,7 +549,7 @@ ORDER BY name";
             }
 
             var columnsToCopy = GetCommonColumns(sourceColumns, targetColumns, tableImport.TableName);
-            var insertedRows = InsertRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableImport, columnsToCopy);
+            var insertedRows = InsertRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableImport, columnsToCopy, userId);
             Console.WriteLine($"{ReplaceUserDataOption}: {tableImport.TableName}: inserted {insertedRows} row(s) using {columnsToCopy.Count} column(s).");
         }
 
@@ -505,7 +559,8 @@ ORDER BY name";
             DbTransaction targetTransaction,
             string targetProvider,
             TableImport tableImport,
-            IReadOnlyList<string> columns)
+            IReadOnlyList<string> columns,
+            int userId)
         {
             var tableName = tableImport.TableName;
             var sourceColumnSql = string.Join(", ", columns.Select(c => $"source.{QuoteIdentifier("sqlite", c)}"));
@@ -514,7 +569,7 @@ ORDER BY name";
             if (!string.IsNullOrWhiteSpace(tableImport.SourceWhereClause))
             {
                 sourceCommand.CommandText += $" WHERE {tableImport.SourceWhereClause}";
-                AddUserIdParameter(sourceCommand);
+                AddUserIdParameter(sourceCommand, userId);
             }
 
             using var sourceReader = sourceCommand.ExecuteReader();
@@ -565,11 +620,11 @@ ORDER BY name";
             }
         }
 
-        private static void AddUserIdParameter(DbCommand command)
+        private static void AddUserIdParameter(DbCommand command, int userId)
         {
             var parameter = command.CreateParameter();
             parameter.ParameterName = "@userId";
-            parameter.Value = ReplaceUserDataUserId;
+            parameter.Value = userId;
             command.Parameters.Add(parameter);
         }
 

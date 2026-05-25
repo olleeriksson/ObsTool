@@ -37,7 +37,9 @@ Operations
 Choose one or both of these operations:
 
     --update-general-tables
-    --replace-user-data
+    --replace-user-data=1
+    --replace-user-data=2
+    --replace-user-data=1,2
 
 --update-general-tables
 -----------------------
@@ -62,25 +64,29 @@ rows that are missing from the source SQLite database.
 This operation is intended to be safe after multiple users exist because it does
 not touch user-owned observation data.
 
---replace-user-data
--------------------
+--replace-user-data={userid}
+----------------------------
 
---replace-user-data replaces user-owned data for one hardcoded database user:
+--replace-user-data={userid} replaces user-owned data for one allowlisted
+database user, or for both allowlisted users when passed as a comma-separated list:
 
     Users.Id = 1
+    Users.Id = 2
 
-There is intentionally no command-line user id parameter. This avoids
-accidentally replacing another user's data.
+The user id value is required. The bare --replace-user-data flag is invalid.
+Comma-separated values may only contain 1 and/or 2, so another user's data
+cannot be replaced accidentally.
 
-The operation validates that Users.Id 1 exists in the source SQLite database.
-If Users.Id 1 does not exist in the target MySQL database, it inserts that
-single Users row. If the target user already exists, the account row is left
-unchanged.
+The operation validates that every selected Users.Id exists in the source
+SQLite database. If a selected user does not exist in the target MySQL database,
+it inserts that single Users row. If the target user already exists, the account
+row is left unchanged.
 
-Then it deletes and reimports only rows owned by UserId 1 from these tables:
+Then, for each selected UserId, it deletes and reimports only rows owned by that
+user from these tables:
 
     ObsResources
-    DsoObservations linked through UserId 1 Observations
+    DsoObservations linked through selected-user Observations
     DsoExtra
     Observations
     ObsSessions
@@ -107,14 +113,14 @@ For a clean local MySQL rebuild from the local production SQLite database:
 
 The helper script runs both operations:
 
-    --update-general-tables --replace-user-data
+    --update-general-tables --replace-user-data=1,2
 
 Equivalent local MySQL environment overrides:
 
     set "ASPNETCORE_ENVIRONMENT=Development"
     set "Db__Provider=MySql"
     set "Db__ConnectionString=server=127.0.0.1;port=3306;database=obstool;user=obstool;password=obstool_dev_password;SslMode=Disabled;AllowPublicKeyRetrieval=True;"
-    dotnet run --no-build --no-launch-profile --project ..\ObsTool.csproj -- db-sync --source-sqlite "G:\My Drive\Docs\Astronomy\Observations\ObsTool\obstool_database.db" --update-general-tables --replace-user-data
+    dotnet run --no-build --no-launch-profile --project ..\ObsTool.csproj -- db-sync --source-sqlite "G:\My Drive\Docs\Astronomy\Observations\ObsTool\obstool_database.db" --update-general-tables --replace-user-data=1,2
 
 AllowPublicKeyRetrieval=True is only for this local Docker setup. It lets the MySQL 8
 caching_sha2_password handshake work over the intentionally insecure local connection.
