@@ -94,7 +94,7 @@ class Home extends React.Component<IHomeProps> {
                             </Typography>
                         </CardContent>
                         <CardActions className={classes.cardActions}>
-                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToSessions}>
+                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToObservedObjects}>
                                 Observations
                             </Button>
                         </CardActions>

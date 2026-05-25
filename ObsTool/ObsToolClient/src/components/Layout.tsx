@@ -108,7 +108,6 @@ const LinkToNewSession = React.forwardRef<HTMLAnchorElement, any>((props, ref) =
 const LinkToLocations = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/locations" ref={ref} {...props} />);
 const LinkToInstruments = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/instruments" ref={ref} {...props} />);
 const LinkToEyepieces = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/eyepieces" ref={ref} {...props} />);
-const LinkToSearch = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/search" ref={ref} {...props} />);
 const LinkToLogin = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/login" ref={ref} {...props} />);
 
 export interface ILayoutState {
@@ -269,9 +268,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         </Button>
                         <Button component={LinkToEyepieces} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="eye" className="faSpaceAfter" /> Eyepieces
-                        </Button>
-                        <Button component={LinkToSearch} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="search" className="faSpaceAfter" /> Search
                         </Button>
                         {userMenuComponent}
                     </div>
