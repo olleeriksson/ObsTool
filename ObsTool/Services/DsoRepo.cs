@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ObsTool.Database;
@@ -12,10 +11,18 @@ namespace ObsTool.Services
     public class DsoRepo : IDsoRepo
     {
         private MainDbContext _dbContext;
+        private readonly DsoCatalogSearchIndex _searchIndex;
+        private readonly Dictionary<int, Dso> _dsoByIdCache = new Dictionary<int, Dso>();
 
         public DsoRepo(MainDbContext dbContext)
+            : this(dbContext, new DsoCatalogSearchIndex())
+        {
+        }
+
+        public DsoRepo(MainDbContext dbContext, DsoCatalogSearchIndex searchIndex)
         {
             _dbContext = dbContext;
+            _searchIndex = searchIndex;
         }
 
         // Note!! Changed from ICollection to List because of a bug in .NET Core 3.0 (https://github.com/aspnet/EntityFrameworkCore/issues/17342)
@@ -41,41 +48,17 @@ namespace ObsTool.Services
 
         public ICollection<Dso> GetMultipleDsoByQueryString(string queryString, bool normalize = true)
         {
-            // Normalize if needed
-            string normalizedQueryString = normalize ? normalizeDsoString(queryString) : queryString;
-            normalizedQueryString = normalizedQueryString.ToLower();
-
-            // Look for the normalized name in Name and OtherNames
-            return _dbContext.Dso.Where(dso =>
-                dso.Name.ToLower().Contains(normalizedQueryString) ||
-                dso.OtherNames.ToLower().Contains(normalizedQueryString) ||
-                dso.CommonName.ToLower().Contains(queryString)
-                )
-                .ToList();
+            // Search the cached catalog projection, then load only the matching EF rows for this context.
+            IReadOnlyList<int> matchedIds = _searchIndex.Search(_dbContext, queryString, normalize);
+            return LoadDsoByIdsPreservingOrder(matchedIds);
         }
 
         public ICollection<Dso> GetMultipleDsoByQueryString(string queryString, bool normalize, int userId)
         {
-            // Normalize if needed
-            string normalizedQueryString = normalize ? normalizeDsoString(queryString) : queryString;
-            normalizedQueryString = normalizedQueryString.ToLower();
-
-            ICollection<Dso> foundDso = null;
-
-            // Look for the normalized name in Name and OtherNames
-            foundDso = AddUserDsoExtra(_dbContext.Dso, userId).Where(dso =>
-                dso.Name.ToLower().Contains(normalizedQueryString) ||
-                dso.OtherNames.ToLower().Contains(normalizedQueryString) ||
-                dso.CommonName.ToLower().Contains(queryString)
-                )
-                .ToList();
+            // Search the cached catalog projection, then load only the matching EF rows with user extras.
+            IReadOnlyList<int> matchedIds = _searchIndex.Search(_dbContext, queryString, normalize);
+            ICollection<Dso> foundDso = LoadDsoByIdsPreservingOrder(AddUserDsoExtra(_dbContext.Dso, userId), matchedIds);
             PopulateUserDsoExtra(foundDso, userId);
-
-            //// If not found, look for the query string in CommonName and AllCommonNames
-            //if (foundDso == null)
-            //{
-            //    foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.CommonName == queryString || dso.AllCommonNames.Contains(queryString));
-            //}
 
             return foundDso;
         }
@@ -92,62 +75,20 @@ namespace ObsTool.Services
 
         public Dso GetDsoByName(string nameString, bool normalize = true)
         {
-            // Normalize if needed
-            string normalizedName = normalize ? normalizeDsoString(nameString) : nameString;
-
-            Dso foundDso = null;
-
-            // Look for a perfect match with the normalized name
-            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.Name == normalizedName);
-            if (foundDso != null)
-            {
-                return foundDso;
-            }
-
-            // If no perfect match was found, look for other names that contain this name
-            foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
-            if (foundDso != null)
-            {
-                return foundDso;
-            }
-
-            // If not found, look for the query string in CommonName and AllCommonNames
-            if (foundDso == null)
-            {
-                foundDso = _dbContext.Dso.FirstOrDefault(dso => dso.CommonName == nameString || dso.AllCommonNames.Contains(nameString));
-            }
-
-            return foundDso;
+            int? matchedId = _searchIndex.FindExactId(_dbContext, nameString);
+            return matchedId.HasValue ? GetDsoByIdCached(matchedId.Value) : null;
         }
 
         public Dso GetDsoByName(string nameString, bool normalize, int userId)
         {
-            // Normalize if needed
-            string normalizedName = normalize ? normalizeDsoString(nameString) : nameString;
-
-            Dso foundDso = null;
-
-            // Look for a perfect match with the normalized name
-            var query = AddUserDsoExtra(_dbContext.Dso, userId);
-            foundDso = query.FirstOrDefault(dso => dso.Name == normalizedName);
-            if (foundDso != null)
+            // Match the object id from the cached projection, then reload it through the user-aware query.
+            int? matchedId = _searchIndex.FindExactId(_dbContext, nameString);
+            if (!matchedId.HasValue)
             {
-                return PopulateUserDsoExtra(foundDso, userId);
+                return null;
             }
 
-            // If no perfect match was found, look for other names that contain this name
-            foundDso = query.FirstOrDefault(dso => dso.OtherNames.Contains(normalizedName));
-            if (foundDso != null)
-            {
-                return PopulateUserDsoExtra(foundDso, userId);
-            }
-
-            // If not found, look for the query string in CommonName and AllCommonNames
-            if (foundDso == null)
-            {
-                foundDso = query.FirstOrDefault(dso => dso.CommonName == nameString || dso.AllCommonNames.Contains(nameString));
-            }
-
+            Dso foundDso = AddUserDsoExtra(_dbContext.Dso, userId).FirstOrDefault(dso => dso.Id == matchedId.Value);
             return PopulateUserDsoExtra(foundDso, userId);
         }
 
@@ -176,23 +117,47 @@ namespace ObsTool.Services
             return _dbContext.DsoExtra.FirstOrDefault(dsoExtra => dsoExtra.Id == id && dsoExtra.UserId == userId);
         }
 
-
-        private string normalizeDsoString(string queryString)
+        /// <summary>
+        /// Loads matched DSO rows and restores the order produced by the search index.
+        /// </summary>
+        private List<Dso> LoadDsoByIdsPreservingOrder(IReadOnlyList<int> dsoIds)
         {
-            //var regex = new Regex(@"([a-zA-Z]+)(\ |-)?(([0-9]+[+-.]*)*[0-9]*)");
-            var regex = new Regex(@"([a-zA-Z]+)(\ |-)?([0-9]+([+-.]?[0-9]+)*)");
-            if (regex.IsMatch(queryString))
+            return LoadDsoByIdsPreservingOrder(_dbContext.Dso, dsoIds);
+        }
+
+        /// <summary>
+        /// Loads matched DSO rows from the supplied query and restores the order produced by the search index.
+        /// </summary>
+        private List<Dso> LoadDsoByIdsPreservingOrder(IQueryable<Dso> query, IReadOnlyList<int> dsoIds)
+        {
+            if (dsoIds.Count == 0)
             {
-                MatchCollection matches = regex.Matches(queryString);
-                foreach (Match match in matches)
-                {
-                    string catalog = match.Groups[1].Value;
-                    string catalogNo = match.Groups[3].Value;
-                    string lookupName = catalog + " " + catalogNo;
-                    return lookupName;
-                }
+                return new List<Dso>();
             }
-            return queryString;
+
+            var matchedOrder = dsoIds
+                .Select((id, index) => new { id, index })
+                .ToDictionary(item => item.id, item => item.index);
+
+            return query
+                .Where(dso => dsoIds.Contains(dso.Id))
+                .AsEnumerable()
+                .OrderBy(dso => matchedOrder[dso.Id])
+                .ToList();
+        }
+
+        /// <summary>
+        /// Loads one tracked DSO row for this repository scope and keeps it available for repeated parser lookups.
+        /// </summary>
+        private Dso GetDsoByIdCached(int dsoId)
+        {
+            if (!_dsoByIdCache.TryGetValue(dsoId, out Dso dso))
+            {
+                dso = _dbContext.Dso.FirstOrDefault(row => row.Id == dsoId);
+                _dsoByIdCache[dsoId] = dso;
+            }
+
+            return dso;
         }
 
         public ICollection<string> GetAllCatalogs()

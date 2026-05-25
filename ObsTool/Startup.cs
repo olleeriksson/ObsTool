@@ -104,6 +104,7 @@ namespace ObsTool
             services.AddDbContext<MainDbContext>(ConfigureDatabaseProvider);
 
             services.AddHttpContextAccessor();
+            services.AddSingleton<DsoCatalogSearchIndex>();
             services.AddScoped<ObsSessionsRepo>();
             services.AddScoped<LocationsRepo>();
             services.AddScoped<IInstrumentsRepo, InstrumentsRepo>();

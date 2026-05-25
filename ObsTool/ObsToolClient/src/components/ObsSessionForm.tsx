@@ -115,6 +115,11 @@ const styles = (theme: Theme) => createStyles({
     padding: theme.spacing(1),
     width: "95%",
   },
+  formErrorText: {
+    fontSize: "1rem",
+    fontWeight: 600,
+    lineHeight: 1.45,
+  },
   objectListColumn: {
     paddingTop: theme.spacing(5),
   },
@@ -599,7 +604,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     {this.props.errorMessage && (
                       <Grid>
                         <div role="alert" className={classes.formError}>
-                          <Typography variant="body2">{this.props.errorMessage}</Typography>
+                          <Typography variant="body1" className={classes.formErrorText}>{this.props.errorMessage}</Typography>
                         </div>
                       </Grid>
                     )}
@@ -624,10 +629,10 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         </Grid>
                         <Grid size="grow" className={classes.bottomActionColumn}>
                           <div>
-                            {circularProgress}
                             <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.bottomSaveButton}>
                               Save
                             </Button>
+                            {circularProgress}
                           </div>
                         </Grid>
                       </Grid>

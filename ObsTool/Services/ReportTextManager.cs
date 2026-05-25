@@ -43,7 +43,14 @@ namespace ObsTool.Services
 
         public void DisplayName() => Console.WriteLine(ToString());
 
-        public string RegExpJoinCatalogs(IEnumerable<string> catalogs) => string.Join("|", catalogs);
+        /// <summary>
+        /// Builds a safe catalog alternation, preferring longer catalog names so Sh2 is matched before Sh.
+        /// </summary>
+        public string RegExpJoinCatalogs(IEnumerable<string> catalogs) => string.Join("|", catalogs
+            .Where(catalog => !string.IsNullOrWhiteSpace(catalog))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(catalog => catalog.Length)
+            .Select(Regex.Escape));
 
         public void ParseAndStoreObservations(ObsSession obsSession)
         {
@@ -304,6 +311,9 @@ namespace ObsTool.Services
             string regexpAllCatalogs = RegExpJoinCatalogs(allCatalogs);
             string introRegexp = @"(?:\s|\G)";  // non-capturing group of \s or end-of-previous-match (for when the designator starts at the beginning of the line)
             string startingMarkerRegexp = @"([(!])?";  // Start markers: ( and !
+            string firstCatalogNumberPartRegexp = @"[+-]?\s*[0-9]+[A-Za-z]?";
+            string additionalCatalogNumberPartRegexp = @"(?:\s*[\+\-\.]\s*[A-Za-z]?\s*[0-9]+[A-Za-z]?)*";
+            string catalogNumberRegexp = "(" + firstCatalogNumberPartRegexp + additionalCatalogNumberPartRegexp + ")";
             string endingMarkerRegexp = @"([)!])?";    // End markers: ) and !
             string outroRegexp = @"(?=\s|[\.,]|$)";
 
@@ -311,7 +321,8 @@ namespace ObsTool.Services
             // This results in the fourth group always being the ending marker (parenthesis or bang).
             string dsoNameRegexp = introRegexp
                 + startingMarkerRegexp
-                + "(" + regexpAllCatalogs + @")[\ |-]?([0-9]+(?:[+-\.]?[0-9]+)*)"
+                + "(" + regexpAllCatalogs + @")(?:\s+|-)?"
+                + catalogNumberRegexp
                 + endingMarkerRegexp
                 + outroRegexp;
             var findDsoNamesRegexp = new Regex(dsoNameRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -390,7 +401,7 @@ namespace ObsTool.Services
                         if (startIsBang != endIsBang)
                         {
                             throw new ObsToolException(
-                                $"DSO {dsoName} has unmatched non-detection markers — wrap it on both sides: !{dsoName}!");
+                                $"Save aborted. DSO {dsoName} has unmatched non-detection markers — wrap it on both sides: !{dsoName}!");
                         }
                         bool isNonDetectionDso = startIsBang && endIsBang;
 
@@ -417,7 +428,7 @@ namespace ObsTool.Services
                             }
                             if (foundUnmatchedDsoNames.Contains(unmatchedDsoName))
                             {
-                                throw new ObsToolException("Unmatched DSO " + unmatchedDsoName + " found in more than one section of the report text!");
+                                throw new ObsToolException("Save aborted. Unmatched DSO " + unmatchedDsoName + " found in more than one section of the report text!");
                             }
 
                             unmatchedDsoNamesInSection.Add(unmatchedDsoName, isNonDetectionDso);
@@ -431,7 +442,7 @@ namespace ObsTool.Services
 
                         if (foundDsoIds.Contains(dso.Id))
                         {
-                            throw new ObsToolException("DSO " + dso.ToString() + " found in more than one section of the report text!");
+                            throw new ObsToolException("Save aborted. DSO " + dso.ToString() + " found in more than one section of the report text!");
                         }
                         if (dsosInSection.ContainsKey(dso.Id))
                         {
