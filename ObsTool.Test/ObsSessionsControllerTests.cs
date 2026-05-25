@@ -108,6 +108,129 @@ namespace TestProject
         }
 
         [Test]
+        public void Put_ThrowsWhenIdentifiedObservationWithResourcesNoLongerMatches()
+        {
+            SeedUser();
+            SeedDso(1234, "NGC", "1234", "NGC 1234");
+            var obsSessionId = SeedObsSession();
+            var identifier = $"{obsSessionId}-1234";
+            var reportText = $"NGC 9999 used to resolve through an old alias.\n#{identifier}";
+
+            SeedObservation(
+                obsSessionId,
+                identifier,
+                "NGC 9999 used to resolve through an old alias.",
+                new[] { 1234 },
+                new ObsResource { UserId = 1, Type = "image", Url = "https://example.com/old-resource.jpg" });
+
+            var exception = Assert.Throws<ObsToolException>(() => _controller.Put(obsSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Updated session",
+                ReportText = reportText
+            }));
+
+            Assert.That(exception.Message, Does.Contain("Save aborted"));
+            Assert.That(_dbContext.Observations.Count(), Is.EqualTo(1));
+            Assert.That(_dbContext.DsoObservations.Count(), Is.EqualTo(1));
+            Assert.That(_dbContext.ObsResources.Count(), Is.EqualTo(1));
+            Assert.That(_dbContext.Observations.Single().Identifier, Is.EqualTo(identifier));
+        }
+
+        [Test]
+        public void Put_RemovesIdentifiedObservationWithoutResourcesWhenReportDsoNoLongerMatches()
+        {
+            SeedUser();
+            SeedDso(1234, "NGC", "1234", "NGC 1234");
+            var obsSessionId = SeedObsSession();
+            var identifier = $"{obsSessionId}-1234";
+            var reportText = $"NGC 9999 used to resolve through an old alias.\n#{identifier}";
+
+            SeedObservation(
+                obsSessionId,
+                identifier,
+                "NGC 9999 used to resolve through an old alias.",
+                new[] { 1234 });
+
+            _controller.Put(obsSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Updated session",
+                ReportText = reportText
+            });
+
+            Assert.That(_dbContext.Observations.Count(), Is.EqualTo(0));
+            Assert.That(_dbContext.DsoObservations.Count(), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Put_RemovesExistingDsoObservationWithoutResourcesWhenIdentifiedSectionHasUnmatchedDsoName()
+        {
+            SeedUser();
+            SeedDso(6440, "NGC", "6440", "NGC 6440");
+            SeedDso(9998, "NGC", "9998", "NGC 9998");
+            var obsSessionId = SeedObsSession();
+            var identifier = $"{obsSessionId}-6440-9998";
+            var reportText = $"NGC 6440 and NGC 9999 were observed together.\n#{identifier}";
+
+            SeedObservation(
+                obsSessionId,
+                identifier,
+                "NGC 6440 and NGC 9999 were observed together.",
+                new[] { 6440, 9998 });
+
+            _controller.Put(obsSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Updated session",
+                ReportText = reportText
+            });
+
+            var dsoIds = _dbContext.DsoObservations
+                .AsNoTracking()
+                .Select(dsoObservation => dsoObservation.DsoId)
+                .OrderBy(id => id)
+                .ToArray();
+
+            Assert.That(dsoIds, Is.EqualTo(new[] { 6440 }));
+        }
+
+        [Test]
+        public void Put_ThrowsWhenIdentifiedSectionWithResourcesHasUnmatchedDsoName()
+        {
+            SeedUser();
+            SeedDso(6440, "NGC", "6440", "NGC 6440");
+            SeedDso(9998, "NGC", "9998", "NGC 9998");
+            var obsSessionId = SeedObsSession();
+            var identifier = $"{obsSessionId}-6440-9998";
+            var reportText = $"NGC 6440 and NGC 9999 were observed together.\n#{identifier}";
+
+            SeedObservation(
+                obsSessionId,
+                identifier,
+                "NGC 6440 and NGC 9999 were observed together.",
+                new[] { 6440, 9998 },
+                new ObsResource { UserId = 1, Type = "image", Url = "https://example.com/group-resource.jpg" });
+
+            var exception = Assert.Throws<ObsToolException>(() => _controller.Put(obsSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Updated session",
+                ReportText = reportText
+            }));
+
+            var dsoIds = _dbContext.DsoObservations
+                .AsNoTracking()
+                .Select(dsoObservation => dsoObservation.DsoId)
+                .OrderBy(id => id)
+                .ToArray();
+
+            Assert.That(exception.Message, Does.Contain("Save aborted"));
+            Assert.That(dsoIds, Is.EqualTo(new[] { 6440, 9998 }));
+            Assert.That(_dbContext.ObsResources.Count(), Is.EqualTo(1));
+        }
+
+        [Test]
         public void testPrintPoco()
         {
             ObsSession obsSession = new ObsSession
@@ -241,12 +364,28 @@ namespace TestProject
 
         private void SeedDsoWithHerschelObject()
         {
+            SeedDso(6440, "NGC", "6440", "NGC 6440");
+            _dbContext.H2500.Add(new H2500
+            {
+                HerschelId = 150,
+                HerschelNo = "H I-150",
+                Cat = "NGC",
+                CatNo = 6440,
+                H400 = true,
+                SacDeepSkyObjectsId = 6440
+            });
+            _dbContext.SaveChanges();
+        }
+
+        private void SeedDso(int id, string catalog, string catalogNumber, string name)
+        {
+            // Tests only need the required catalog fields, but the real entity maps several SAC columns as required.
             _dbContext.Dso.Add(new Dso
             {
-                Id = 6440,
-                Catalog = "NGC",
-                CatalogNumber = "6440",
-                Name = "NGC 6440",
+                Id = id,
+                Catalog = catalog,
+                CatalogNumber = catalogNumber,
+                Name = name,
                 OtherNames = "",
                 CommonName = "",
                 AllCommonNames = "",
@@ -259,16 +398,43 @@ namespace TestProject
                 U2K = 1,
                 TI = 1
             });
-            _dbContext.H2500.Add(new H2500
-            {
-                HerschelId = 150,
-                HerschelNo = "H I-150",
-                Cat = "NGC",
-                CatNo = 6440,
-                H400 = true,
-                SacDeepSkyObjectsId = 6440
-            });
             _dbContext.SaveChanges();
+        }
+
+        private int SeedObservation(
+            int obsSessionId,
+            string identifier,
+            string text,
+            int[] dsoIds,
+            ObsResource obsResource = null)
+        {
+            // Seed through the aggregate shape used at runtime so EF creates the child rows with the observation.
+            var observation = new Observation
+            {
+                UserId = 1,
+                ObsSessionId = obsSessionId,
+                Identifier = identifier,
+                Text = text,
+                DisplayOrder = 0
+            };
+
+            for (int index = 0; index < dsoIds.Length; index++)
+            {
+                observation.DsoObservations.Add(new DsoObservation
+                {
+                    DsoId = dsoIds[index],
+                    DisplayOrder = index
+                });
+            }
+
+            if (obsResource != null)
+            {
+                observation.ObsResources.Add(obsResource);
+            }
+
+            _dbContext.Observations.Add(observation);
+            _dbContext.SaveChanges();
+            return observation.Id;
         }
     }
 }

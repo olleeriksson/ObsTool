@@ -46,7 +46,10 @@ namespace ObsTool.Services
         public void ParseAndStoreObservations(ObsSession obsSession)
         {
             // Parse
-            OrderedDictionary<string, Observation> updatedObservations = Parse(obsSession);
+            OrderedDictionary<string, Observation> updatedObservations = Parse(
+                obsSession,
+                out ISet<string> identifiersFoundInReportText,
+                out ISet<string> identifiersWithUnmatchedDsoNames);
             // All returned observations are to be either updated or added, that is decided further down
             // by looking at the currently stored observations.
 
@@ -54,7 +57,7 @@ namespace ObsTool.Services
             _dbContext.Entry(obsSession).Collection("Observations").Load();
 
             List<Observation> observationsToDelete = obsSession.Observations
-                .Where(oldObs => !updatedObservations.ContainsKey(oldObs.Identifier))  // those where there is (not any/no) match in the updatedObservations list
+                .Where(oldObs => ShouldDeleteExistingObservation(oldObs, updatedObservations, identifiersFoundInReportText))
                 .ToList();
 
             // Find out which observations to delete (and not just update)
@@ -85,13 +88,17 @@ namespace ObsTool.Services
             IDictionary<string, Observation> existingObservations = new Dictionary<string, Observation>();
             foreach (Observation existingObservation in obsSession.Observations)
             {
-                existingObservations.Add(existingObservation.Identifier, existingObservation);
+                if (!string.IsNullOrEmpty(existingObservation.Identifier))
+                {
+                    existingObservations.Add(existingObservation.Identifier, existingObservation);
+                }
             }
 
             // Then go through observations that already existed, and that should be updated with the new data
             foreach (Observation existingObservation in obsSession.Observations)
             {
-                if (updatedObservations.ContainsKey(existingObservation.Identifier))
+                if (!string.IsNullOrEmpty(existingObservation.Identifier)
+                    && updatedObservations.ContainsKey(existingObservation.Identifier))
                 {
                     Observation updatedObservation = updatedObservations[existingObservation.Identifier];
 
@@ -112,7 +119,10 @@ namespace ObsTool.Services
                         dsoObservation.ObservationId = existingObservation.Id;
                     }
 
-                    UpdateDsoObservations(existingObservation, updatedObservation);
+                    UpdateDsoObservations(
+                        existingObservation,
+                        updatedObservation,
+                        identifiersWithUnmatchedDsoNames.Contains(existingObservation.Identifier));
                     AddNewObsResources(existingObservation, updatedObservation);
                 }
             }
@@ -135,10 +145,42 @@ namespace ObsTool.Services
         }
 
         /// <summary>
+        /// Decides whether an existing observation should be removed after the report text has been reparsed.
+        /// </summary>
+        private bool ShouldDeleteExistingObservation(
+            Observation existingObservation,
+            OrderedDictionary<string, Observation> updatedObservations,
+            ISet<string> identifiersFoundInReportText)
+        {
+            if (!string.IsNullOrEmpty(existingObservation.Identifier)
+                && updatedObservations.ContainsKey(existingObservation.Identifier))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(existingObservation.Identifier)
+                && identifiersFoundInReportText.Contains(existingObservation.Identifier))
+            {
+                _dbContext.Entry(existingObservation).Collection("ObsResources").Load();
+                if (existingObservation.ObsResources.Count > 0)
+                {
+                    throw new ObsToolException(
+                        $"Save aborted: observation {existingObservation.Identifier} still exists in the report text, "
+                        + "but its object names no longer resolve to the catalog. It has attached resources, so update the object name or catalog alias before saving.");
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Updates the existing list of DsoObservations for the current Observation with
         /// a new list of DsoObservations, which might contain new, some updated, and some removed.
         /// </summary>
-        private void UpdateDsoObservations(Observation existingObservation, Observation updatedObservation)
+        private void UpdateDsoObservations(
+            Observation existingObservation,
+            Observation updatedObservation,
+            bool sectionHasUnmatchedDsoNames)
         {
             List<DsoObservation> existingDsoObservations = existingObservation.DsoObservations;
             List<DsoObservation> updatedDsoObservations = updatedObservation.DsoObservations;
@@ -149,6 +191,14 @@ namespace ObsTool.Services
             {
                 if (!updatedDsoObservations.Contains(existingDsoObservation))
                 {
+                    if (sectionHasUnmatchedDsoNames && existingObservation.ObsResources.Count > 0)
+                    {
+                        throw new ObsToolException(
+                            $"Save aborted: observation {existingObservation.Identifier} has attached resources, "
+                            + "and at least one object name in that report section no longer resolves to the catalog. "
+                            + "Update the object name or catalog alias before saving.");
+                    }
+
                     toRemove.Add(existingDsoObservation);  // mark for removal
                 }
             }
@@ -204,9 +254,22 @@ namespace ObsTool.Services
 
         public OrderedDictionary<string, Observation> Parse(ObsSession obsSession)
         {
+            return Parse(obsSession, out _, out _);
+        }
+
+        /// <summary>
+        /// Parses report text and reports identifiers whose existing resource links need save-time validation.
+        /// </summary>
+        private OrderedDictionary<string, Observation> Parse(
+            ObsSession obsSession,
+            out ISet<string> identifiersFoundInReportText,
+            out ISet<string> identifiersWithUnmatchedDsoNames)
+        {
             string reportText = obsSession.ReportText;
             OrderedDictionary<string, Observation> observationsDict = new OrderedDictionary<string, Observation>();
             IDictionary<Match, string> newSectionMatchesDict = new Dictionary<Match, string>();
+            identifiersFoundInReportText = FindExistingObsIdentifiers(reportText);
+            identifiersWithUnmatchedDsoNames = new HashSet<string>();
 
             // If report text is empty, just return
             if (reportText == null)
@@ -278,6 +341,8 @@ namespace ObsTool.Services
                 foreach (Match sectionsMatch in sectionsMatches)
                 {
                     string sectionText = sectionsMatch.Value.Trim();  // the whole section, including resource links
+                    string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
+                    var observationsIdentifier = FindExistingObsIdentifier(replacedDeprectedIdentifiers);
                     int? sectionInstrumentId = GetInstrumentIdForSection(obsSession.UserId, obsSession.InstrumentId, scopeMatches, sectionsMatch.Index);
 
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
@@ -321,6 +386,11 @@ namespace ObsTool.Services
                             : _dsoRepo.GetDsoByName(dsoName, normalize: false);
                         if (dso == null)
                         {
+                            if (!string.IsNullOrEmpty(observationsIdentifier))
+                            {
+                                identifiersWithUnmatchedDsoNames.Add(observationsIdentifier);
+                            }
+
                             Debug.WriteLine("Could not match name");
                             continue;
                         }
@@ -426,10 +496,7 @@ namespace ObsTool.Services
                         }
                     }
 
-                    string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
-
                     // Find any existing observations identifier based on the DSO objects the observation contains
-                    var observationsIdentifier = FindExistingObsIdentifier(sectionText);
                     if (string.IsNullOrEmpty(observationsIdentifier))
                     {
                         // If none was found in the section text, create one and remember it
@@ -504,6 +571,26 @@ namespace ObsTool.Services
             obsSession.ReportText = reportText;
 
             return observationsDict;
+        }
+
+        /// <summary>
+        /// Finds all persisted observation identifiers that are still present in the report text.
+        /// </summary>
+        private ISet<string> FindExistingObsIdentifiers(string reportText)
+        {
+            var identifiers = new HashSet<string>();
+            if (string.IsNullOrEmpty(reportText))
+            {
+                return identifiers;
+            }
+
+            MatchCollection matches = Regex.Matches(reportText, @"\s(#(\d*(-\d+)*))[\s\.$]?", RegexOptions.IgnoreCase);
+            foreach (Match match in matches)
+            {
+                identifiers.Add(match.Groups[2].Value);
+            }
+
+            return identifiers;
         }
 
         private int? GetInstrumentIdForSection(int userId, int? defaultInstrumentId, List<Match> scopeMatches, int sectionStartIndex)
