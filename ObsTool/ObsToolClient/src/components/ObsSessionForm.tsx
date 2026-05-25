@@ -618,7 +618,6 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                             <div><code>-1 +1 +2 * **</code>{" - "}rating</div>
                             <div><code>revisit</code>{" / "}<code>come back</code>{" - "}follow-up</div>
                             <div><code>Link: Image: Sketch: Jot:</code>{" - "}+ url</div>
-                            <div><code>Scope: KEY</code>{" - "}switch instrument from this point</div>
                           </Typography>
                         </Grid>
                         <Grid className={classNames(classes.keyReferenceColumn, classes.eyepieceReferenceColumn)}>

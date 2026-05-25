@@ -31,6 +31,12 @@ namespace TestProject
                     Id = generatedDsoId++,
                     Name = name
                 }); ;
+            obsRepoMock.Setup(x => x.GetDsoByName(It.IsAny<string>(), false, It.IsAny<int>()))
+                .Returns((string name, bool normalize, int userId) => new Dso
+                {
+                    Id = generatedDsoId++,
+                    Name = name
+                }); ;
         }
 
         [Test]
@@ -421,7 +427,7 @@ namespace TestProject
         }
 
         [Test]
-        public void testInstrumentFromObsSessionUsedWhenNoScopeDirective()
+        public void testInstrumentFromObsSessionUsedWhenNoInstrumentKey()
         {
             var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
             ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
@@ -442,26 +448,30 @@ namespace TestProject
         }
 
         [Test]
-        public void testScopeDirectiveOverridesInstrumentForFollowingObservations()
+        public void testInstrumentKeyParagraphOverridesInstrumentForFollowingObservations()
         {
             var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
-            instrumentsRepoMock.Setup(x => x.GetInstrumentByKey("Dob10")).Returns(new Instrument { Id = 10, Key = "Dob10" });
-            instrumentsRepoMock.Setup(x => x.GetInstrumentByKey("ED80")).Returns(new Instrument { Id = 20, Key = "ED80" });
+            instrumentsRepoMock.Setup(x => x.GetInstruments(1)).Returns(new List<Instrument>
+            {
+                new Instrument { Id = 10, Key = "Dob10" },
+                new Instrument { Id = 20, Key = "ED80" }
+            });
 
             ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
             ObsSession obsSession = new ObsSession
             {
                 Id = 5,
                 Date = DateTime.Now,
+                UserId = 1,
                 InstrumentId = 77,
                 ReportText =
                     @"M 31 first object.
 
-                    Scope: Dob10
+                    I switched over to the Dob10 for the rest of the night.
 
                     NGC 206 second object.
 
-                    Scope: ED80
+                    For the wide-field scan I used ED80 tonight.
 
                     M 42 third object."
             };
@@ -471,6 +481,89 @@ namespace TestProject
             Assert.That(observationsMap.GetAt(0).Value.InstrumentId, Is.EqualTo(77));
             Assert.That(observationsMap.GetAt(1).Value.InstrumentId, Is.EqualTo(10));
             Assert.That(observationsMap.GetAt(2).Value.InstrumentId, Is.EqualTo(20));
+        }
+
+        [Test]
+        public void testInstrumentKeyInObservationParagraphOverridesInstrumentForThatSectionAndFollowingSections()
+        {
+            var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
+            instrumentsRepoMock.Setup(x => x.GetInstruments(1)).Returns(new List<Instrument>
+            {
+                new Instrument { Id = 10, Key = "Dob10" }
+            });
+
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                UserId = 1,
+                InstrumentId = 77,
+                ReportText =
+                    @"M 31 first object through Dob10.
+
+                    NGC 206 second object."
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
+            Assert.That(observationsMap.GetAt(0).Value.InstrumentId, Is.EqualTo(10));
+            Assert.That(observationsMap.GetAt(1).Value.InstrumentId, Is.EqualTo(10));
+        }
+
+        [TestCase("ED80. M 31 first object.")]
+        [TestCase("M 31 first object. So for example ED80.")]
+        public void testInstrumentKeyCanStartOrEndSentenceInObservationParagraph(string firstSectionText)
+        {
+            var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
+            instrumentsRepoMock.Setup(x => x.GetInstruments(1)).Returns(new List<Instrument>
+            {
+                new Instrument { Id = 20, Key = "ED80" }
+            });
+
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                UserId = 1,
+                InstrumentId = 77,
+                ReportText = firstSectionText + "\r\n\r\nNGC 206 second object."
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
+            Assert.That(observationsMap.GetAt(0).Value.InstrumentId, Is.EqualTo(20));
+            Assert.That(observationsMap.GetAt(1).Value.InstrumentId, Is.EqualTo(20));
+        }
+
+        [Test]
+        public void testInstrumentKeyMustBeItsOwnWord()
+        {
+            var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
+            instrumentsRepoMock.Setup(x => x.GetInstruments(1)).Returns(new List<Instrument>
+            {
+                new Instrument { Id = 10, Key = "Dob10" }
+            });
+
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                UserId = 1,
+                InstrumentId = 77,
+                ReportText =
+                    @"M 31 first object.
+
+                    This Dob10ish text should not switch instruments.
+
+                    NGC 206 second object."
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
+            Assert.That(observationsMap.Values.All(o => o.InstrumentId == 77), Is.True);
         }
 
     }

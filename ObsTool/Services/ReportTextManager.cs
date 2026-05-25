@@ -24,6 +24,19 @@ namespace ObsTool.Services
         private ILogger<ReportTextManager> _logger;
         private DsoObservationsRepo _dsoObservationsRepo;
 
+        private sealed class InstrumentDirective
+        {
+            public int Index { get; set; }
+            public string Key { get; set; }
+            public int? InstrumentId { get; set; }
+        }
+
+        private sealed class ReportParagraph
+        {
+            public int Index { get; set; }
+            public string Text { get; set; }
+        }
+
         public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
             ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
             : this(dbContext, observationsRepo, dsoRepo, logger, dsoObservationsRepo, null)
@@ -353,12 +366,7 @@ namespace ObsTool.Services
             string followUpRegexp = @"\s(re-?visit|come back|telescope)" + flagOutro;
             var findFollowUpRegexp = new Regex(followUpRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            var scopeMatches = Regex.Matches(
-                reportText,
-                @"^\s*Scope:\s*(.+?)\s*$",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline)
-                .Cast<Match>()
-                .ToList();
+            var instrumentDirectives = FindInstrumentDirectives(obsSession.UserId, reportText);
 
             if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
             {
@@ -372,7 +380,8 @@ namespace ObsTool.Services
                     string sectionText = sectionsMatch.Value.Trim();  // the whole section, including resource links
                     string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
                     var observationsIdentifier = FindExistingObsIdentifier(replacedDeprectedIdentifiers);
-                    int? sectionInstrumentId = GetInstrumentIdForSection(obsSession.UserId, obsSession.InstrumentId, scopeMatches, sectionsMatch.Index);
+                    int sectionEndIndex = sectionsMatch.Index + sectionsMatch.Value.Length;
+                    int? sectionInstrumentId = GetInstrumentIdForSection(obsSession.InstrumentId, instrumentDirectives, sectionEndIndex);
 
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
                     var dsosInSection = new Dictionary<int, Dso>();
@@ -648,37 +657,112 @@ namespace ObsTool.Services
             return identifiers;
         }
 
-        private int? GetInstrumentIdForSection(int userId, int? defaultInstrumentId, List<Match> scopeMatches, int sectionStartIndex)
+        /// <summary>
+        /// Finds instrument keys mentioned as standalone words and treats them as instrument changes.
+        /// </summary>
+        private List<InstrumentDirective> FindInstrumentDirectives(int userId, string reportText)
+        {
+            if (_instrumentsRepo == null)
+            {
+                return new List<InstrumentDirective>();
+            }
+
+            List<Instrument> instruments = (userId > 0
+                ? _instrumentsRepo.GetInstruments(userId)
+                : _instrumentsRepo.GetInstruments())?.ToList();
+            if (instruments == null)
+            {
+                return new List<InstrumentDirective>();
+            }
+
+            var instrumentDirectives = new List<InstrumentDirective>();
+            foreach (ReportParagraph paragraph in GetReportParagraphs(reportText))
+            {
+                var matchingInstruments = instruments
+                    .Where(instrument => !string.IsNullOrWhiteSpace(instrument.Key))
+                    .Select(instrument => new
+                    {
+                        Instrument = instrument,
+                        Match = BuildInstrumentKeyRegex(instrument.Key).Match(paragraph.Text)
+                    })
+                    .Where(match => match.Match.Success)
+                    .GroupBy(match => match.Instrument.Key, StringComparer.OrdinalIgnoreCase)
+                    .Select(group => group.First())
+                    .ToList();
+
+                if (matchingInstruments.Count > 1)
+                {
+                    string keys = string.Join(", ", matchingInstruments.Select(match => match.Instrument.Key));
+                    throw new ObsToolException($"Ambiguous instrument key paragraph contains multiple instruments: {keys}");
+                }
+
+                if (matchingInstruments.Count == 1)
+                {
+                    var match = matchingInstruments[0];
+                    instrumentDirectives.Add(new InstrumentDirective
+                    {
+                        Index = paragraph.Index + match.Match.Index,
+                        Key = match.Instrument.Key,
+                        InstrumentId = match.Instrument.Id
+                    });
+                }
+            }
+
+            return instrumentDirectives.OrderBy(instrumentDirective => instrumentDirective.Index).ToList();
+        }
+
+        /// <summary>
+        /// Splits report text into blank-line-delimited paragraphs while keeping each paragraph's source index.
+        /// </summary>
+        private IEnumerable<ReportParagraph> GetReportParagraphs(string reportText)
+        {
+            MatchCollection paragraphMatches = Regex.Matches(
+                reportText,
+                @"(?s)(^|(?:\r?\n){2,})(.*?)(?=(?:\r?\n){2,}|$)",
+                RegexOptions.Compiled);
+
+            foreach (Match paragraphMatch in paragraphMatches)
+            {
+                string paragraphText = paragraphMatch.Groups[2].Value;
+                if (string.IsNullOrWhiteSpace(paragraphText))
+                {
+                    continue;
+                }
+
+                yield return new ReportParagraph
+                {
+                    Index = paragraphMatch.Index + paragraphMatch.Groups[1].Length,
+                    Text = paragraphText
+                };
+            }
+        }
+
+        /// <summary>
+        /// Builds a regex that treats an instrument key as its own word without requiring it to occupy the whole line.
+        /// </summary>
+        private Regex BuildInstrumentKeyRegex(string instrumentKey)
+        {
+            string escapedKey = Regex.Escape(instrumentKey);
+            return new Regex(
+                $@"(?<![\p{{L}}\p{{N}}_]){escapedKey}(?![\p{{L}}\p{{N}}_])",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        /// <summary>
+        /// Resolves the last instrument directive that appears before or inside the current DSO section.
+        /// </summary>
+        private int? GetInstrumentIdForSection(int? defaultInstrumentId, List<InstrumentDirective> instrumentDirectives, int sectionEndIndex)
         {
             int? sectionInstrumentId = defaultInstrumentId;
 
-            foreach (var scopeMatch in scopeMatches)
+            foreach (InstrumentDirective instrumentDirective in instrumentDirectives)
             {
-                if (scopeMatch.Index > sectionStartIndex)
+                if (instrumentDirective.Index > sectionEndIndex)
                 {
                     break;
                 }
 
-                string scopeKey = scopeMatch.Groups[1].Value.Trim();
-                if (string.IsNullOrWhiteSpace(scopeKey))
-                {
-                    sectionInstrumentId = null;
-                    continue;
-                }
-
-                if (_instrumentsRepo == null)
-                {
-                    continue;
-                }
-
-                Instrument instrument = userId > 0
-                    ? _instrumentsRepo.GetInstrumentByKey(scopeKey, userId)
-                    : _instrumentsRepo.GetInstrumentByKey(scopeKey);
-                if (instrument == null)
-                {
-                    throw new ObsToolException($"Unknown instrument key in scope directive: '{scopeKey}'");
-                }
-                sectionInstrumentId = instrument.Id;
+                sectionInstrumentId = instrumentDirective.InstrumentId;
             }
 
             return sectionInstrumentId;
