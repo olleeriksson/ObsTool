@@ -259,6 +259,66 @@ namespace TestProject
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].Dso.Name, Is.EqualTo("M 31"));
         }
 
+        [Test]
+        public void testLowercaseCatalogNamesAreCanonicalizedBeforeLookup()
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = "klsdlk m100 sdflkj m101",
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Key, Is.EqualTo("5-0-1"));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].Dso.Name, Is.EqualTo("M 100"));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[1].Dso.Name, Is.EqualTo("M 101"));
+        }
+
+        [Test]
+        public void testUnmatchedDsoCreatesObservationWithIdentifierToken()
+        {
+            obsRepoMock.Setup(x => x.GetDsoByName("NGC 34534", false)).Returns((Dso)null);
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = "NGC 34534 ldkf lsdkfj lskdflksdf slkdfj.",
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Key, Is.EqualTo("5-!NGC34534!"));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Count, Is.EqualTo(0));
+            Assert.That(obsSession.ReportText, Does.Contain("#5-!NGC34534!"));
+        }
+
+        [Test]
+        public void testMixedMatchedAndUnmatchedDsoIdentifierToken()
+        {
+            obsRepoMock.Setup(x => x.GetDsoByName("NGC 34534", false)).Returns((Dso)null);
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = "M 31 and NGC 34534 were in the same section.",
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Key, Is.EqualTo("5-0-!NGC34534!"));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].Dso.Name, Is.EqualTo("M 31"));
+            Assert.That(obsSession.ReportText, Does.Contain("#5-0-!NGC34534!"));
+        }
+
 
         [TestCase("Found M 31. Did not find !NGC 206!.")]
         //[TestCase("Found M 31. Did not find !NGC 206!")]  // fails

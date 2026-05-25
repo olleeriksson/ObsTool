@@ -18,8 +18,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
 import DeleteDialog from "./DeleteDialog";
-import Snackbar from "@mui/material/Snackbar";
-import MySnackbar from "./MySnackbar";
 import Api from "../api/Api";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
@@ -247,11 +245,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         this.setState({ isError: true });
     }
 
-    private clearError = () => {
-        this.setState({ isError: false });
-        this.setState({ errorMsg: undefined });
-    }
-
     public onSelectObsSession = (obsSessionId: number) => {
     }
 
@@ -351,18 +344,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             return <Navigate to="/sessions" replace />;
         }
 
-        const snackbar = <Snackbar
-            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            open={this.state.isError}
-            autoHideDuration={1000}
-        >
-            <MySnackbar
-                variant="error"
-                message={this.state.errorMsg || "Something went wrong!"}
-                onClose={this.clearError}
-            />
-        </Snackbar>;
-
         let observations: IObservation[] = [];
         if (this.state.obsSession && this.state.obsSession.observations) {
             observations = this.state.obsSession.observations;
@@ -408,7 +389,6 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
         return (
             <div className="circularProgressSuperContainer">
-                {snackbar}
                 {/* {circularProgress} */}
                 <DeleteDialog isOpen={this.state.isDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleDeleteDialogClosed} />
                 <div className={classes.root} >
@@ -462,6 +442,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     onSelectObservedObject={this.handleSelectObservedObject}
                                     isLoading={this.state.isLoading}
                                     allowEditing={this.props.store.isLoggedIn}
+                                    errorMessage={this.state.isError ? this.state.errorMsg : undefined}
                                 />
                                 <div className={classes.bottomTabControls}>
                                     {this.renderTabControls(listTabLabel)}

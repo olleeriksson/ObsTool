@@ -138,7 +138,7 @@ namespace TestProject
         }
 
         [Test]
-        public void Put_RemovesIdentifiedObservationWithoutResourcesWhenReportDsoNoLongerMatches()
+        public void Put_RetainsIdentifiedObservationWithoutResourcesAsUnmatchedWhenReportDsoNoLongerMatches()
         {
             SeedUser();
             SeedDso(1234, "NGC", "1234", "NGC 1234");
@@ -159,8 +159,9 @@ namespace TestProject
                 ReportText = reportText
             });
 
-            Assert.That(_dbContext.Observations.Count(), Is.EqualTo(0));
+            Assert.That(_dbContext.Observations.Count(), Is.EqualTo(1));
             Assert.That(_dbContext.DsoObservations.Count(), Is.EqualTo(0));
+            Assert.That(_dbContext.Observations.Single().Identifier, Is.EqualTo(identifier));
         }
 
         [Test]
@@ -228,6 +229,66 @@ namespace TestProject
             Assert.That(exception.Message, Does.Contain("Save aborted"));
             Assert.That(dsoIds, Is.EqualTo(new[] { 6440, 9998 }));
             Assert.That(_dbContext.ObsResources.Count(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Put_PreservesResourcesWhenIdentifierRemovedFromLowercaseCatalogSection()
+        {
+            SeedUser();
+            SeedDso(100, "M", "100", "M 100");
+            SeedDso(101, "M", "101", "M 101");
+            var obsSessionId = SeedObsSession();
+            var identifier = $"{obsSessionId}-100-101";
+            var observationId = SeedObservation(
+                obsSessionId,
+                identifier,
+                "klsdlk m100 sdflkj m101",
+                new[] { 100, 101 },
+                new ObsResource { UserId = 1, Type = "sketch", Url = "https://example.com/sketch.jpg" });
+
+            _controller.Put(obsSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Updated session",
+                ReportText = "klsdlk m100 sdflkj m101"
+            });
+
+            var observation = _dbContext.Observations
+                .Include(o => o.ObsResources)
+                .Include(o => o.DsoObservations)
+                .Single();
+
+            Assert.That(observation.Id, Is.EqualTo(observationId));
+            Assert.That(observation.Identifier, Is.EqualTo(identifier));
+            Assert.That(observation.ObsResources.Count, Is.EqualTo(1));
+            Assert.That(observation.DsoObservations.Select(dsoObservation => dsoObservation.DsoId).OrderBy(id => id).ToArray(), Is.EqualTo(new[] { 100, 101 }));
+        }
+
+        [Test]
+        public void Put_ThrowsWhenObservationWithResourcesWouldBeDeletedAfterIdentifierRemoval()
+        {
+            SeedUser();
+            SeedDso(100, "M", "100", "M 100");
+            var obsSessionId = SeedObsSession();
+            var staleIdentifier = $"{obsSessionId}-9999";
+            SeedObservation(
+                obsSessionId,
+                staleIdentifier,
+                "M 100 used to be stored under a stale identifier.",
+                new[] { 100 },
+                new ObsResource { UserId = 1, Type = "sketch", Url = "https://example.com/stale-sketch.jpg" });
+
+            var exception = Assert.Throws<ObsToolException>(() => _controller.Put(obsSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Updated session",
+                ReportText = "M 100 used to be stored under a stale identifier."
+            }));
+
+            Assert.That(exception.Message, Does.Contain("would be removed or replaced"));
+            Assert.That(_dbContext.Observations.Count(), Is.EqualTo(1));
+            Assert.That(_dbContext.ObsResources.Count(), Is.EqualTo(1));
+            Assert.That(_dbContext.Observations.Single().Identifier, Is.EqualTo(staleIdentifier));
         }
 
         [Test]

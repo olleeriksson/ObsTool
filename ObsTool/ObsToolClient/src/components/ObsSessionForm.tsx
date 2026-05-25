@@ -15,6 +15,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
 import { getObservedObjectTargetKey } from "./ObservationTarget";
 
+const hiddenObservationIdentifierRegexp = /#\d+(?:-(?:\d+|![A-Z0-9]+!))*/gi;
+const unmatchedObservationIdentifierRegexp = /!([A-Za-z0-9]+)!/g;
+
 const styles = (theme: Theme) => createStyles({
   form: {
     display: "flex",
@@ -82,12 +85,35 @@ const styles = (theme: Theme) => createStyles({
     marginRight: theme.spacing(2),
   },
   singleDsoContainer: {
-    marginBottom: "0.7em",
-    marginTop: "0.7em"
+    marginBottom: "0.8em",
+    marginTop: "0.8em"
   },
   multipleDsoContainer: {
-    marginBottom: "0.7em",
-    marginTop: "0.7em"
+    marginBottom: "0.8em",
+    marginTop: "0.8em"
+  },
+  unmatchedObservationContainer: {
+    borderLeft: "3px solid #b26a00",
+    marginBottom: "0.8em",
+    marginTop: "0.8em",
+    paddingLeft: theme.spacing(0.6),
+  },
+  unmatchedObservationText: {
+    color: theme.palette.text.secondary,
+    fontWeight: 700,
+    fontSize: "0.825rem",
+    lineHeight: 1.25,
+    overflowWrap: "anywhere",
+  },
+  formError: {
+    backgroundColor: "#fff5f5",
+    borderLeft: `3px solid ${theme.palette.error.main}`,
+    color: theme.palette.error.dark,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    marginTop: theme.spacing(0.5),
+    padding: theme.spacing(1),
+    width: "95%",
   },
   objectListColumn: {
     paddingTop: theme.spacing(5),
@@ -174,6 +200,7 @@ export interface IObsSessionFormProps extends WithStyles<typeof styles> {
   onSelectObservedObject: (targetKey: string) => void;
   isLoading: boolean;
   allowEditing: boolean;
+  errorMessage?: string;
 }
 
 export interface IObsSessionFormState {
@@ -251,6 +278,63 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     }
   }
 
+  // Pulls normalized unmatched object names out of parser identifiers such as 5-0-!NGC12345!.
+  private getUnmatchedIdentifierLabels = (identifier?: string) => {
+    if (!identifier) {
+      return [];
+    }
+
+    unmatchedObservationIdentifierRegexp.lastIndex = 0;
+    const labels: string[] = [];
+    let match = unmatchedObservationIdentifierRegexp.exec(identifier);
+    while (match) {
+      labels.push(match[1]);
+      match = unmatchedObservationIdentifierRegexp.exec(identifier);
+    }
+    return labels;
+  }
+
+  // Builds a compact fallback label for observation sections without parser-provided unmatched object names.
+  private getUnmatchedObservationLabel = (observation: IObservation) => {
+    const normalizedText = (observation.text || "")
+      .replace(hiddenObservationIdentifierRegexp, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!normalizedText) {
+      return "Untitled section";
+    }
+
+    const firstSentence = normalizedText.split(/[.!?]/)[0].trim() || normalizedText;
+    return firstSentence.length > 56 ? `${firstSentence.slice(0, 53)}...` : firstSentence;
+  }
+
+  // Prefer explicit unmatched identifier tokens, while still supporting older unmatched observations.
+  private getUnmatchedObservationLabels = (observation: IObservation) => {
+    const identifierLabels = this.getUnmatchedIdentifierLabels(observation.identifier);
+    return identifierLabels.length > 0 ? identifierLabels : [this.getUnmatchedObservationLabel(observation)];
+  }
+
+  // Renders an unmatched observation as a warning-style row in the compact object list.
+  private renderUnmatchedObservation = (observation: IObservation, observationIndex: number, label?: string, unmatchedIndex = 0) => {
+    const { classes } = this.props;
+    const displayLabel = label || this.getUnmatchedObservationLabel(observation);
+    const tooltipTitle = `${displayLabel} did not match any known object.`;
+    const key = label
+      ? `${observation.id ?? `unmatched-observation-${observationIndex}`}-${label}-${unmatchedIndex}`
+      : observation.id ?? `unmatched-observation-${observationIndex}`;
+
+    return (
+      <Tooltip key={key} arrow={true} placement="left" title={tooltipTitle}>
+        <div className={classes.unmatchedObservationContainer}>
+          <Typography variant="caption" component={"div" as any} className={classes.unmatchedObservationText}>
+            {displayLabel}
+          </Typography>
+        </div>
+      </Tooltip>
+    );
+  }
+
   private getEyepieceTooltip = (eyepiece: IEyepiece) => {
     const focalLengthText = eyepiece.focalLengthMm ? ` (${eyepiece.focalLengthMm} mm)` : "";
     return `${eyepiece.name}${focalLengthText}\nClick to copy`;
@@ -306,11 +390,12 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
     let dsoObjects: any = [];
     if (this.state.obsSession.observations) {
-      dsoObjects = this.state.obsSession.observations
+      dsoObjects = [...this.state.obsSession.observations]
         .sort(this.sortObsByDisplayOrder)
         .map((o, index) => {
-          if (o.dsoObservations) {
-            const dsoShortLabels = o.dsoObservations
+          const unmatchedLabels = this.getUnmatchedIdentifierLabels(o.identifier);
+          if (o.dsoObservations && o.dsoObservations.length > 0) {
+            const dsoShortLabels = [...o.dsoObservations]
               .sort(this.sortDsoObsByDisplayOrder)
               .map((dsoObs, dsoObsIndex) => {
                 const targetKey = getObservedObjectTargetKey(o, index, dsoObs, dsoObsIndex);
@@ -324,10 +409,27 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                   />
                 );
               });
-            if (o.dsoObservations.length > 1) {
-              return <div key={o.id ?? `observation-${index}`} className={classes.multipleDsoContainer}>{dsoShortLabels}</div>;
+            const unmatchedShortLabels = unmatchedLabels.map((label, unmatchedIndex) =>
+              this.renderUnmatchedObservation(o, index, label, unmatchedIndex)
+            );
+            const objectLabels = [...dsoShortLabels, ...unmatchedShortLabels];
+            if (objectLabels.length > 1) {
+              return <div key={o.id ?? `observation-${index}`} className={classes.multipleDsoContainer}>{objectLabels}</div>;
             }
-            return <div key={o.id ?? `observation-${index}`} className={classes.singleDsoContainer}>{dsoShortLabels}</div>;
+            return <div key={o.id ?? `observation-${index}`} className={classes.singleDsoContainer}>{objectLabels}</div>;
+          }
+          if (o.dsoObservations && o.dsoObservations.length === 0) {
+            const unmatchedObservationLabels = this.getUnmatchedObservationLabels(o);
+            if (unmatchedObservationLabels.length > 1) {
+              return (
+                <div key={o.id ?? `observation-${index}`} className={classes.multipleDsoContainer}>
+                  {unmatchedObservationLabels.map((label, unmatchedIndex) =>
+                    this.renderUnmatchedObservation(o, index, label, unmatchedIndex)
+                  )}
+                </div>
+              );
+            }
+            return this.renderUnmatchedObservation(o, index, unmatchedObservationLabels[0]);
           }
           const errorText = "Err " + o.id;
           return <DsoShort key={index} error={errorText} />;
@@ -494,6 +596,13 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         variant="outlined"
                       />
                     </Grid>
+                    {this.props.errorMessage && (
+                      <Grid>
+                        <div role="alert" className={classes.formError}>
+                          <Typography variant="body2">{this.props.errorMessage}</Typography>
+                        </div>
+                      </Grid>
+                    )}
                     <Grid>
                       <Grid container direction="row" className={classes.helpReferenceRow}>
                         <Grid className={classes.helpTextColumn}>

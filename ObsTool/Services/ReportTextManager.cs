@@ -1,5 +1,4 @@
-﻿
-using ObsTool.Entities;
+﻿using ObsTool.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,6 +14,9 @@ namespace ObsTool.Services
 {
     public class ReportTextManager
     {
+        private const string ObservationIdentifierPattern = @"\d+(?:-(?:\d+|![A-Z0-9]+!))*";
+        private const string DecoratedObservationIdentifierPattern = @"\s(#(" + ObservationIdentifierPattern + @"))[\s\.$]?";
+
         private MainDbContext _dbContext;
         private ObservationsRepo _observationsRepo;
         private IDsoRepo _dsoRepo;
@@ -161,8 +163,7 @@ namespace ObsTool.Services
             if (!string.IsNullOrEmpty(existingObservation.Identifier)
                 && identifiersFoundInReportText.Contains(existingObservation.Identifier))
             {
-                _dbContext.Entry(existingObservation).Collection("ObsResources").Load();
-                if (existingObservation.ObsResources.Count > 0)
+                if (ObservationHasResources(existingObservation))
                 {
                     throw new ObsToolException(
                         $"Save aborted: observation {existingObservation.Identifier} still exists in the report text, "
@@ -170,7 +171,23 @@ namespace ObsTool.Services
                 }
             }
 
+            if (ObservationHasResources(existingObservation))
+            {
+                throw new ObsToolException(
+                    $"Save aborted: observation {existingObservation.Identifier} would be removed or replaced after reparsing the report text, "
+                    + "and it has attached resources. Remove those resources explicitly first, or keep the observation identifier intact.");
+            }
+
             return true;
+        }
+
+        /// <summary>
+        /// Loads the resource collection before checking it because delete decisions run on observations from the session aggregate.
+        /// </summary>
+        private bool ObservationHasResources(Observation observation)
+        {
+            _dbContext.Entry(observation).Collection("ObsResources").Load();
+            return observation.ObsResources.Count > 0;
         }
 
         /// <summary>
@@ -288,7 +305,7 @@ namespace ObsTool.Services
             string introRegexp = @"(?:\s|\G)";  // non-capturing group of \s or end-of-previous-match (for when the designator starts at the beginning of the line)
             string startingMarkerRegexp = @"([(!])?";  // Start markers: ( and !
             string endingMarkerRegexp = @"([)!])?";    // End markers: ) and !
-            string outroRegexp = @"[\s\.,]";
+            string outroRegexp = @"(?=\s|[\.,]|$)";
 
             // The ?: at the start of one of the groups is to make that the group is non-capturing.
             // This results in the fourth group always being the ending marker (parenthesis or bang).
@@ -336,6 +353,7 @@ namespace ObsTool.Services
             {
                 int obsIndex = 0;
                 ISet<int> foundDsoIds = new HashSet<int>();
+                ISet<string> foundUnmatchedDsoNames = new HashSet<string>();
 
                 MatchCollection sectionsMatches = findSectionsRegexp.Matches(reportText);  // matching on the whole report text
                 foreach (Match sectionsMatch in sectionsMatches)
@@ -348,6 +366,7 @@ namespace ObsTool.Services
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
                     var dsosInSection = new Dictionary<int, Dso>();
                     var nonDetectionDsosInSection = new Dictionary<int, bool>();
+                    var unmatchedDsoNamesInSection = new Dictionary<string, bool>();
                     var obsResourcesInSection = new List<ObsResource>();
 
                     // Collect all the DSO's in the section text.
@@ -355,7 +374,7 @@ namespace ObsTool.Services
                     foreach (Match dsoNameMatch in dsoNameMatches)
                     {
                         string startMarker = dsoNameMatch.Groups[1].Value;
-                        string catalog = dsoNameMatch.Groups[2].Value;
+                        string catalog = GetCanonicalCatalogName(dsoNameMatch.Groups[2].Value, allCatalogs);
                         string catalogNo = dsoNameMatch.Groups[3].Value;
                         string endMarker = dsoNameMatch.Groups[4].Value;
                         string dsoName = $"{catalog} {catalogNo}";
@@ -386,11 +405,22 @@ namespace ObsTool.Services
                             : _dsoRepo.GetDsoByName(dsoName, normalize: false);
                         if (dso == null)
                         {
+                            string unmatchedDsoName = NormalizeUnmatchedDsoName(dsoName);
                             if (!string.IsNullOrEmpty(observationsIdentifier))
                             {
                                 identifiersWithUnmatchedDsoNames.Add(observationsIdentifier);
                             }
 
+                            if (unmatchedDsoNamesInSection.ContainsKey(unmatchedDsoName))
+                            {
+                                continue;
+                            }
+                            if (foundUnmatchedDsoNames.Contains(unmatchedDsoName))
+                            {
+                                throw new ObsToolException("Unmatched DSO " + unmatchedDsoName + " found in more than one section of the report text!");
+                            }
+
+                            unmatchedDsoNamesInSection.Add(unmatchedDsoName, isNonDetectionDso);
                             Debug.WriteLine("Could not match name");
                             continue;
                         }
@@ -458,19 +488,25 @@ namespace ObsTool.Services
 
                     // If section contained matches regex'ly but that could not be matched against anything
                     // in the DSO database
-                    if (dsosInSection.Count == 0)
+                    if (dsosInSection.Count == 0 && unmatchedDsoNamesInSection.Count == 0)
                     {
                         continue;
                     }
 
-                    if (sectionNonDetection && nonDetectionDsosInSection.Values.Any(isNonDet => isNonDet))
+                    if (sectionNonDetection && (
+                        nonDetectionDsosInSection.Values.Any(isNonDet => isNonDet)
+                        || unmatchedDsoNamesInSection.Values.Any(isNonDet => isNonDet)))
                     {
                         throw new ObsToolException(
                             "A section is marked as a non-detection (!!) and also contains a DSO individually marked as a non-detection (!…!). Use one or the other.");
                     }
 
-                    bool allDsosNonDetected = dsosInSection.Keys.All(id => nonDetectionDsosInSection.ContainsKey(id) && nonDetectionDsosInSection[id]);
-                    bool nonDetection = sectionNonDetection || allDsosNonDetected;
+                    int numTargetsInSection = dsosInSection.Count + unmatchedDsoNamesInSection.Count;
+                    bool allTargetsNonDetected =
+                        numTargetsInSection > 0
+                        && dsosInSection.Keys.All(id => nonDetectionDsosInSection.ContainsKey(id) && nonDetectionDsosInSection[id])
+                        && unmatchedDsoNamesInSection.Values.All(isNonDet => isNonDet);
+                    bool nonDetection = sectionNonDetection || allTargetsNonDetected;
 
                     // Add any ratings or follow up flags to the DSO's
                     foreach (Dso dso in dsosInSection.Values)
@@ -500,7 +536,10 @@ namespace ObsTool.Services
                     if (string.IsNullOrEmpty(observationsIdentifier))
                     {
                         // If none was found in the section text, create one and remember it
-                        observationsIdentifier = CreateNewObsIdentifier(obsSession.Id, dsosInSection.Values.ToList());
+                        observationsIdentifier = CreateNewObsIdentifier(
+                            obsSession.Id,
+                            dsosInSection.Values.ToList(),
+                            unmatchedDsoNamesInSection.Keys.ToList());
                         newSectionMatchesDict.Add(sectionsMatch, observationsIdentifier);
                     }
 
@@ -534,6 +573,11 @@ namespace ObsTool.Services
 
                         // Add the DSOs as DsoObservation's to the observation
                         observation.DsoObservations.Add(dsoObservation);
+                    }
+                    foreach (string unmatchedDsoName in unmatchedDsoNamesInSection.Keys)
+                    {
+                        // Remember unresolved names too so their generated identifier cannot collide with another section.
+                        foundUnmatchedDsoNames.Add(unmatchedDsoName);
                     }
 
                     // Add all obs resources to the observation
@@ -584,7 +628,7 @@ namespace ObsTool.Services
                 return identifiers;
             }
 
-            MatchCollection matches = Regex.Matches(reportText, @"\s(#(\d*(-\d+)*))[\s\.$]?", RegexOptions.IgnoreCase);
+            MatchCollection matches = Regex.Matches(reportText, DecoratedObservationIdentifierPattern, RegexOptions.IgnoreCase);
             foreach (Match match in matches)
             {
                 identifiers.Add(match.Groups[2].Value);
@@ -631,7 +675,7 @@ namespace ObsTool.Services
 
         private string FindExistingObsIdentifier(string sectionText)
         {
-            Match match = Regex.Match(sectionText, @"\s(#(\d*(-\d+)*))[\s\.$]?", RegexOptions.IgnoreCase);
+            Match match = Regex.Match(sectionText, DecoratedObservationIdentifierPattern, RegexOptions.IgnoreCase);
             if (match.Success)
             {
                 return match.Groups[2].Value;
@@ -643,7 +687,7 @@ namespace ObsTool.Services
         {
             // Just for test right now
             var deprecatedRegexes = new List<string> {
-                @"\s(##(\d*(-\d+)*))[\s\.$]?"
+                @"\s(##(" + ObservationIdentifierPattern + @"))[\s\.$]?"
             };
 
             foreach (var deprecatedRegex in deprecatedRegexes)
@@ -675,12 +719,13 @@ namespace ObsTool.Services
             return url;
         }
 
-        private string CreateNewObsIdentifier(int obsSessionId, List<Dso> dsoList)
+        private string CreateNewObsIdentifier(int obsSessionId, List<Dso> dsoList, List<string> unmatchedDsoNames)
         {
-            //var result = Guid.NewGuid();
-            string dsoIds = string.Join("-", dsoList.OrderBy(d => d.Id).Select(d => d.Id));
-            string full = obsSessionId + "-" + dsoIds;
-            return full.Replace(" ", "");
+            // Keep identifiers deterministic so the same section round-trips even when objects are mentioned in a different order.
+            var identifierParts = new List<string> { obsSessionId.ToString() };
+            identifierParts.AddRange(dsoList.OrderBy(d => d.Id).Select(d => d.Id.ToString()));
+            identifierParts.AddRange(unmatchedDsoNames.OrderBy(name => name).Select(name => $"!{name}!"));
+            return string.Join("-", identifierParts);
         }
 
         private string DecorateObsIdentifier(string bareIdentifier)
@@ -692,6 +737,23 @@ namespace ObsTool.Services
         {
             int indexOfNewline = text.IndexOf("\n");
             return indexOfNewline == -1 ? text : text.Substring(0, indexOfNewline);
+        }
+
+        private string NormalizeUnmatchedDsoName(string dsoName)
+        {
+            // Unmatched object tokens live inside the hidden identifier, so restrict them to stable ASCII letters and digits.
+            string withoutSpaces = Regex.Replace(dsoName, @"\s+", "");
+            string normalized = Regex.Replace(withoutSpaces, @"[^A-Za-z0-9]", "");
+            return normalized.ToUpperInvariant();
+        }
+
+        /// <summary>
+        /// Returns the catalog spelling used by the database even when the report text uses different casing.
+        /// </summary>
+        private string GetCanonicalCatalogName(string catalog, IEnumerable<string> allCatalogs)
+        {
+            // Regex matching is case-insensitive, but DSO lookup is exact when parsing report text.
+            return allCatalogs.FirstOrDefault(c => string.Equals(c, catalog, StringComparison.OrdinalIgnoreCase)) ?? catalog;
         }
 
         public bool SaveChanges()

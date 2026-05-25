@@ -98,6 +98,7 @@ export interface IEmailTestSettings {
 
 export interface IObservation {
     id: number;
+    identifier?: string;
     dsoObservations: IDsoObservation[];
     text: string;
     obsSession?: IObsSession;
