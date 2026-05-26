@@ -87,6 +87,13 @@ class Api {
         return axios.delete(import.meta.env.VITE_API_URL + "/obsSessions/" + obsSessionId);
     }
 
+    // Downloads the authenticated user's data export as a browser Blob.
+    public static exportUserData(exportType: "simple" | "advanced") {
+        return axios.get<Blob>(
+            import.meta.env.VITE_API_URL + "/userDataExport/" + exportType,
+            { responseType: "blob" });
+    }
+
     public static getLocations() {
         return axios.get<ILocation[]>(import.meta.env.VITE_API_URL + "/locations/");
     }

@@ -117,6 +117,7 @@ namespace ObsTool
             services.AddScoped<ObservationsService>();
             services.AddScoped<ObsResourcesRepo>();
             services.AddScoped<DsoObservationsRepo>();
+            services.AddScoped<UserDataExportService>();
             services.AddScoped<IMailService, MailService>();
             services.AddScoped<SystemEventService>();
             services.AddScoped<UserAccountService>();

@@ -1,5 +1,6 @@
 .vs
 .codex-run
+.playwright*
 .dotnet-cli-home/
 */**/bin/Debug
 */**/bin/Release

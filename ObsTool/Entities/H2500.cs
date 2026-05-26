@@ -22,6 +22,9 @@ namespace ObsTool.Entities
         [MaxLength(50)]
         public string Name { get; set; }
 
+        [MaxLength(50)]
+        public string Type { get; set; }
+
         public int? Status { get; set; }
 
         public bool H400 { get; set; }

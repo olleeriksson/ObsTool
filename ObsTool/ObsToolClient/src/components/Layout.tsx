@@ -14,6 +14,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import LogoutIcon from "@mui/icons-material/Logout";
 import classNames from "classnames";
@@ -21,6 +22,7 @@ import logo from "../assets/images/obstool-logo-navbar-55px.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Layout.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import ExportDataDialog from "./ExportDataDialog";
 import SearchInput from "./SearchInput";
 import Api from "src/api/Api";
 import { IAppState, IDataState } from "src/types/Types";
@@ -112,6 +114,7 @@ const LinkToLogin = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Li
 
 export interface ILayoutState {
     userMenuAnchorEl: HTMLElement | null;
+    exportDialogOpen: boolean;
 }
 
 export interface ILayoutProps extends WithStyles<typeof styles> {
@@ -127,7 +130,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         super(props);
 
         this.state = {
-            userMenuAnchorEl: null
+            userMenuAnchorEl: null,
+            exportDialogOpen: false
         };
     }
 
@@ -160,6 +164,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private handleClickUserAdmin = () => {
         this.handleCloseUserMenu();
         this.props.navigate("/user-admin");
+    }
+
+    // Opens the data export dialog from the authenticated user's top-nav menu.
+    private handleClickExportData = () => {
+        this.handleCloseUserMenu();
+        this.setState({
+            exportDialogOpen: true
+        });
+    }
+
+    // Closes the export dialog after the dialog component permits closing.
+    private handleCloseExportDialog = () => {
+        this.setState({
+            exportDialogOpen: false
+        });
     }
 
     public render() {
@@ -207,6 +226,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 <LockResetIcon fontSize="small" />
                             </ListItemIcon>
                             <ListItemText>Change password</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={this.handleClickExportData}>
+                            <ListItemIcon>
+                                <FileDownloadIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>Export data</ListItemText>
                         </MenuItem>
                         {this.props.store.isSuperAdmin && (
                             <MenuItem onClick={this.handleClickUserAdmin}>
@@ -273,6 +298,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     </div>
                 </Toolbar>
             </AppBar>
+            <ExportDataDialog
+                open={this.state.exportDialogOpen}
+                onClose={this.handleCloseExportDialog}
+            />
             <main className={classes.layout}>
                 {this.props.children}
             </main>
