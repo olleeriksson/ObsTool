@@ -1,0 +1,8 @@
+Modify the three numbers in objectListColumn to change the width of the object list column.
+
+  objectListColumn: {
+    flex: "0 0 100px",
+    maxWidth: 100,
+    minWidth: 100,
+    paddingTop: theme.spacing(5),
+  },

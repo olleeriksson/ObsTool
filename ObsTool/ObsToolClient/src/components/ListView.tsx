@@ -138,13 +138,13 @@ class ListView extends React.Component<IListViewProps> {
 
         return <div className={classes.root}>
             <Grid container spacing={5} alignItems="flex-start">
-                <Grid size={{ xs: 12, md: 4 }} className={classes.column}>
+                <Grid size={{ xs: 12, lg: 4 }} className={classes.column}>
                     <Typography variant="h6" align="center" color="textPrimary" component="p">
                         <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" /> Sessions
                     </Typography>
                     {leftSideView}
                 </Grid>
-                <Grid size={{ xs: 12, md: 8 }} className={classes.column}>
+                <Grid size={{ xs: 12, lg: 8 }} className={classes.column}>
                     <Paper className={classes.observationPaper} elevation={1}>
                         {rightSideView}
                     </Paper>

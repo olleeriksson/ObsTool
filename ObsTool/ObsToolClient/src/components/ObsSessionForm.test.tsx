@@ -1,9 +1,9 @@
 import * as React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { vi } from "vitest";
 import ObsSessionForm from "./ObsSessionForm";
-import { IDso, IObsSession } from "../types/Types";
+import { IDso, IEyepiece, IInstrument, IObsSession } from "../types/Types";
 
 const theme = createTheme();
 
@@ -135,4 +135,47 @@ it("shows save errors directly below the report text", () => {
 
   expect(alert).toHaveTextContent("Save aborted: observation has attached resources.");
   expect(reportText.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
+it("uses section-specific key-label widths and hides copy feedback after 1.2 seconds", () => {
+  vi.useFakeTimers();
+
+  const eyepieces: IEyepiece[] = [
+    { id: 1, key: "E10", name: "10 mm", focalLengthMm: "10" },
+    { id: 2, key: "WIDE-EYEPIECE", name: "Wide eyepiece", focalLengthMm: "30" },
+  ];
+  const instruments: IInstrument[] = [
+    { id: 1, key: "BIGSCOPE123456", name: "Big scope", diameterMm: 250, focalLengthMm: 1200 },
+  ];
+
+  render(
+    <ObsSessionForm
+      obsSession={{ id: 7, title: "Test session", date: "2026-05-25", reportText: "", observations: [] }}
+      locations={[]}
+      instruments={instruments}
+      eyepieces={eyepieces}
+      onSaveObsSession={vi.fn()}
+      onSelectObservedObject={vi.fn()}
+      isLoading={false}
+      allowEditing={true}
+    />,
+    { wrapper }
+  );
+
+  const eyepieceButton = screen.getByRole("button", { name: "WIDE-EYEPIECE" });
+  const instrumentButton = screen.getByRole("button", { name: "BIGSCOPE123456" });
+
+  expect(eyepieceButton.parentElement).toHaveStyle("--key-chip-width: calc(13ch + 2.25rem)");
+  expect(instrumentButton.parentElement).toHaveStyle("--key-chip-width: calc(14ch + 2.25rem)");
+
+  fireEvent.click(eyepieceButton);
+
+  expect(screen.getByTestId("key-chip-feedback-Eyepieces:WIDE-EYEPIECE")).toBeInTheDocument();
+
+  act(() => {
+    vi.advanceTimersByTime(1200);
+  });
+
+  expect(screen.queryByTestId("key-chip-feedback-Eyepieces:WIDE-EYEPIECE")).not.toBeInTheDocument();
+  vi.useRealTimers();
 });
