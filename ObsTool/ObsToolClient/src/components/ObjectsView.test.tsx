@@ -97,25 +97,53 @@ it("shows backend validation messages instead of rendering object-shaped errors"
     expect(await screen.findByText("A user object named 'Race Object' already exists.")).toBeInTheDocument();
 });
 
-it("allows names that only match SAC common-name text", async () => {
+it("keeps SAC lookup out of typing and allows names that only match SAC common-name text", async () => {
+    const addUserObject = vi.spyOn(Api, "addUserObject").mockResolvedValue({
+        data: { id: 20, name: "Jupiter", objectKind: "User" },
+    } as any);
     const { searchDso } = renderObjectsView(emptyObjectList, [ghostOfJupiter]);
 
     fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "Jupiter" } });
 
-    await waitFor(() => expect(searchDso).toHaveBeenCalledWith("Jupiter", false));
-    await waitFor(() => expect(screen.queryByText(/SAC object already exists/)).not.toBeInTheDocument());
+    expect(searchDso).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(searchDso).toHaveBeenCalledWith("Jupiter", false));
+    await waitFor(() => expect(addUserObject).toHaveBeenCalledWith(expect.objectContaining({
+        name: "Jupiter",
+    })));
+    expect(screen.queryByText(/SAC object already exists/)).not.toBeInTheDocument();
 });
 
 it("blocks exact SAC object names from being saved as user objects", async () => {
     const addUserObject = vi.spyOn(Api, "addUserObject");
-    renderObjectsView(emptyObjectList, [ngc102]);
+    const { searchDso } = renderObjectsView(emptyObjectList, [ngc102]);
 
     fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "NGC 102" } });
+    expect(searchDso).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     expect(await screen.findByText("SAC object already exists: NGC 102")).toBeInTheDocument();
+    await waitFor(() => expect(searchDso).toHaveBeenCalledWith("NGC 102", false));
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(addUserObject).not.toHaveBeenCalled();
+});
+
+it("blocks exact SAC object names from being saved as other objects", async () => {
+    const addOtherObject = vi.spyOn(Api, "addOtherObject");
+    const { searchDso } = renderObjectsView({ ...emptyObjectList, canCreateOtherObjects: true }, [ngc102]);
+
+    fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "NGC 102" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "User defined object" }));
+    expect(searchDso).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("SAC object already exists: NGC 102")).toBeInTheDocument();
+    await waitFor(() => expect(searchDso).toHaveBeenCalledWith("NGC 102", false));
+    expect(addOtherObject).not.toHaveBeenCalled();
 });
 
 it("saves custom free-text type values from the SAC type dropdown", async () => {

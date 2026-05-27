@@ -145,8 +145,6 @@ interface IObjectsViewState {
 }
 
 export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsViewState> {
-    private similarCheckTimeout?: number;
-
     constructor(props: IObjectsViewProps) {
         super(props);
 
@@ -167,12 +165,6 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
 
     public componentDidMount() {
         this.loadObjectsFromApi();
-    }
-
-    public componentWillUnmount() {
-        if (this.similarCheckTimeout) {
-            window.clearTimeout(this.similarCheckTimeout);
-        }
     }
 
     // Builds the empty editable form object used when adding a new user object.
@@ -221,11 +213,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             similarSacObjects: name === "name" ? [] : prevState.similarSacObjects,
             isError: false,
             errorMessage: undefined,
-        }), () => {
-            if (name === "name") {
-                this.scheduleSimilarSacObjectCheck();
-            }
-        });
+        }));
     }
 
     // Updates the free-text Type dropdown while storing known selections as SAC type codes.
@@ -274,49 +262,26 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             saveAsUserObject: event.target.checked,
             isError: false,
             errorMessage: undefined,
-        }, () => {
-            this.scheduleSimilarSacObjectCheck();
         });
     }
 
-    // Debounces SAC checks so typing stays responsive and the first Save click is not used for validation work.
-    private scheduleSimilarSacObjectCheck = () => {
-        if (this.similarCheckTimeout) {
-            window.clearTimeout(this.similarCheckTimeout);
-        }
-
-        const name = (this.state.currentObject.name || "").trim();
-        if (this.state.currentObject.id || name.length < 2 || this.getDuplicateCurrentObjectConflict()) {
-            this.setState({ similarSacObjects: [], isCheckingSimilar: false });
-            return;
-        }
-
+    // Performs the final SAC identity check after local duplicate checks and before any create request.
+    private checkSacConflictBeforeCreate = (name: string) => {
         this.setState({ similarSacObjects: [], isCheckingSimilar: true });
-        this.similarCheckTimeout = window.setTimeout(this.checkSimilarSacObjects, 300);
-    }
-
-    // Performs the SAC identity check for new object names as the user types.
-    private checkSimilarSacObjects = () => {
-        const name = (this.state.currentObject.name || "").trim();
-        if (this.state.currentObject.id || name.length < 2 || this.getDuplicateCurrentObjectConflict()) {
-            this.setState({ similarSacObjects: [], isCheckingSimilar: false });
-            return;
-        }
-
-        const checkedName = name;
-        Api.searchDso(name, false).then(response => {
-            if (this.normalizeCompactText(this.state.currentObject.name || "") !== this.normalizeCompactText(checkedName)) {
-                return;
-            }
+        return Api.searchDso(name, false).then(response => {
+            const exactMatches = (response.data.data || [])
+                .filter(dso => this.isExactSacCatalogIdentityMatch(name, dso))
+                .slice(0, 5);
 
             this.setState({
                 isCheckingSimilar: false,
-                similarSacObjects: (response.data.data || [])
-                    .filter(dso => this.isExactSacCatalogIdentityMatch(checkedName, dso))
-                    .slice(0, 5),
+                similarSacObjects: exactMatches,
             });
+
+            return exactMatches;
         }).catch(() => {
             this.setState({ isCheckingSimilar: false, similarSacObjects: [] });
+            throw new Error("Failed to verify the object name before saving.");
         });
     }
 
@@ -512,11 +477,6 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             return;
         }
 
-        if (this.state.isCheckingSimilar) {
-            this.setState({ isError: true, errorMessage: "Wait for the SAC object check to finish." });
-            return;
-        }
-
         if (this.state.similarSacObjects.length > 0 && !this.state.currentObject.id) {
             this.setState({
                 isError: true,
@@ -525,23 +485,47 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             return;
         }
 
-        this.setState({ isSaving: true, isError: false, errorMessage: undefined });
         const currentId = this.state.currentObject.id;
         const payload = this.getSavePayload();
-        const request = currentId
-            ? this.state.currentObject.objectKind === "Other"
-                ? Api.updateOtherObject(currentId, payload)
-                : Api.updateUserObject(currentId, payload)
-            : this.state.saveAsUserObject
-                ? Api.addUserObject(payload)
-                : Api.addOtherObject(payload);
+        const saveObject = () => {
+            this.setState({ isSaving: true, isError: false, errorMessage: undefined });
+            const request = currentId
+                ? this.state.currentObject.objectKind === "Other"
+                    ? Api.updateOtherObject(currentId, payload)
+                    : Api.updateUserObject(currentId, payload)
+                : this.state.saveAsUserObject
+                    ? Api.addUserObject(payload)
+                    : Api.addOtherObject(payload);
 
-        request.then(() => {
-            this.setState({ isSaving: false });
-            this.loadObjectsFromApi();
+            request.then(() => {
+                this.setState({ isSaving: false });
+                this.loadObjectsFromApi();
+            }).catch(error => {
+                const message = this.getApiErrorMessage(error, "Failed to save object.");
+                this.setState({ isSaving: false, isError: true, errorMessage: message });
+            });
+        };
+
+        if (currentId) {
+            saveObject();
+            return;
+        }
+
+        this.checkSacConflictBeforeCreate(payload.name).then(exactMatches => {
+            if (exactMatches.length > 0) {
+                this.setState({
+                    isError: true,
+                    errorMessage: `A SAC object named '${exactMatches[0].name}' already exists.`,
+                });
+                return;
+            }
+
+            saveObject();
         }).catch(error => {
-            const message = this.getApiErrorMessage(error, "Failed to save object.");
-            this.setState({ isSaving: false, isError: true, errorMessage: message });
+            this.setState({
+                isError: true,
+                errorMessage: error.message || "Failed to verify the object name before saving.",
+            });
         });
     }
 
