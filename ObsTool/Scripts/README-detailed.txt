@@ -39,7 +39,8 @@ Choose one or both of these operations:
     --update-general-tables
     --replace-user-data=1
     --replace-user-data=2
-    --replace-user-data=1,2
+    --replace-user-data=3
+    --replace-user-data=1,2,3
 
 --update-general-tables
 -----------------------
@@ -68,13 +69,14 @@ not touch user-owned observation data.
 ----------------------------
 
 --replace-user-data={userid} replaces user-owned data for one allowlisted
-database user, or for both allowlisted users when passed as a comma-separated list:
+database user, or for multiple allowlisted users when passed as a comma-separated list:
 
     Users.Id = 1
     Users.Id = 2
+    Users.Id = 3
 
 The user id value is required. The bare --replace-user-data flag is invalid.
-Comma-separated values may only contain 1 and/or 2, so another user's data
+Comma-separated values may only contain 1, 2, and/or 3, so another user's data
 cannot be replaced accidentally.
 
 The operation validates that every selected Users.Id exists in the source
@@ -113,14 +115,14 @@ For a clean local MySQL rebuild from the local production SQLite database:
 
 The helper script runs both operations:
 
-    --update-general-tables --replace-user-data=1,2
+    --update-general-tables --replace-user-data=1,2,3
 
 Equivalent local MySQL environment overrides:
 
     set "ASPNETCORE_ENVIRONMENT=Development"
     set "Db__Provider=MySql"
     set "Db__ConnectionString=server=127.0.0.1;port=3306;database=obstool;user=obstool;password=obstool_dev_password;SslMode=Disabled;AllowPublicKeyRetrieval=True;"
-    dotnet run --no-build --no-launch-profile --project ..\ObsTool.csproj -- db-sync --source-sqlite "G:\My Drive\Docs\Astronomy\Observations\ObsTool\obstool_database.db" --update-general-tables --replace-user-data=1,2
+    dotnet run --no-build --no-launch-profile --project ..\ObsTool.csproj -- db-sync --source-sqlite "G:\My Drive\Docs\Astronomy\Observations\ObsTool\obstool_database.db" --update-general-tables --replace-user-data=1,2,3
 
 AllowPublicKeyRetrieval=True is only for this local Docker setup. It lets the MySQL 8
 caching_sha2_password handshake work over the intentionally insecure local connection.

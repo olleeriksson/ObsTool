@@ -1,5 +1,5 @@
--- Generated seed data for production demo user 2.
--- This script resets user-owned observation/equipment rows for Users.Id = 2, then inserts generated demo data.
+-- Generated seed data for production demo users 2 and 3.
+-- This script resets user-owned observation/equipment rows for Users.Id = 2 and Users.Id = 3, then inserts generated demo data.
 -- Resource URLs are stored only in ObsResources; ReportText intentionally contains no Link/Photo/Sketch tags.
 PRAGMA foreign_keys = ON;
 BEGIN TRANSACTION;
@@ -431,5 +431,274 @@ M 109 showed as a wide low-contrast haze; It was modest, but distinct enough to 
 
 I stopped while the galaxy fields were still well placed, mostly because my hands were getting too cold for careful notes. The last view was not the deepest, but it gave the whole loop useful context.'
 FROM __seed_sessions S WHERE ObsSessions.Id = S.Id AND S.Seq = 5;
+
+COMMIT;
+
+-- Demo user 3: separate generated data for the demo2 account.
+BEGIN TRANSACTION;
+
+DELETE FROM ObsResources WHERE UserId = 3;
+DELETE FROM DsoObservations WHERE ObservationId IN (SELECT Id FROM Observations WHERE UserId = 3);
+DELETE FROM DsoExtra WHERE UserId = 3;
+DELETE FROM Observations WHERE UserId = 3;
+DELETE FROM UserObjects WHERE UserId = 3;
+DELETE FROM ObsSessions WHERE UserId = 3;
+DELETE FROM Eyepieces WHERE UserId = 3;
+DELETE FROM Instruments WHERE UserId = 3;
+DELETE FROM Locations WHERE UserId = 3;
+
+INSERT INTO Users (Id, Email, NormalizedEmail, Username, NormalizedUsername, FullName, PasswordHash, EmailConfirmed, EmailConfirmationTokenHash, EmailConfirmationTokenExpiresUtc, PasswordResetTokenHash, PasswordResetTokenExpiresUtc, CreatedUtc, UpdatedUtc, LastLoginUtc)
+VALUES (3, 'demo2@example.invalid', 'DEMO2@EXAMPLE.INVALID', 'demo2', 'DEMO2', 'Demo2 Demosson', 'AQAAAAIAAYagAAAAEPya2iH4xoDtEZUEElppDqNBaUMzPBuC9clQ/2jC9rsHCTVWU9iat5jFLOSx233jlw==', 1, NULL, NULL, NULL, NULL, '2026-05-27 00:00:00', NULL, NULL)
+ON CONFLICT(Id) DO UPDATE SET
+    Email = excluded.Email,
+    NormalizedEmail = excluded.NormalizedEmail,
+    Username = excluded.Username,
+    NormalizedUsername = excluded.NormalizedUsername,
+    FullName = excluded.FullName,
+    PasswordHash = excluded.PasswordHash,
+    EmailConfirmed = excluded.EmailConfirmed,
+    EmailConfirmationTokenHash = NULL,
+    EmailConfirmationTokenExpiresUtc = NULL,
+    PasswordResetTokenHash = NULL,
+    PasswordResetTokenExpiresUtc = NULL,
+    UpdatedUtc = '2026-05-27 00:00:00';
+
+CREATE TEMP TABLE __seed2_locations (Seq INTEGER PRIMARY KEY, Id INTEGER NOT NULL);
+INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Ravlunda backar, Skane, Sweden', '55.7104', '14.1936', 'Ravlunda Backar');
+INSERT INTO __seed2_locations (Seq, Id) VALUES (1, last_insert_rowid());
+INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Kullaberg north meadow, Skane, Sweden', '56.3001', '12.4529', 'Kullaberg North Meadow');
+INSERT INTO __seed2_locations (Seq, Id) VALUES (2, last_insert_rowid());
+INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Tiveden forest clearing, Narke, Sweden', '58.7198', '14.5910', 'Tiveden Forest Clearing');
+INSERT INTO __seed2_locations (Seq, Id) VALUES (3, last_insert_rowid());
+INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Hokangen lake road, Smaland, Sweden', '57.1674', '14.4720', 'Hokangen Lake Road');
+INSERT INTO __seed2_locations (Seq, Id) VALUES (4, last_insert_rowid());
+
+CREATE TEMP TABLE __seed2_instruments (Seq INTEGER PRIMARY KEY, Id INTEGER NOT NULL, Key TEXT NOT NULL);
+INSERT INTO Instruments (UserId, Key, Name, DiameterMm, FocalLengthMm) VALUES (3, '10"f5', '10" f/5 Dob', 254, 1270);
+INSERT INTO __seed2_instruments (Seq, Id, Key) VALUES (1, last_insert_rowid(), '10"f5');
+INSERT INTO Instruments (UserId, Key, Name, DiameterMm, FocalLengthMm) VALUES (3, 'ED80', '80mm ED refractor', 80, 560);
+INSERT INTO __seed2_instruments (Seq, Id, Key) VALUES (2, last_insert_rowid(), 'ED80');
+
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'Pan27', 'Panoptic 27mm', '27');
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'Nag13', 'Nagler 13mm', '13');
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'Delos10', 'Delos 10mm', '10');
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'Delite7', 'DeLite 7mm', '7');
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'UFF18', 'APM UFF 18mm', '18');
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'Zoom8-24', '8-24mm zoom', '16');
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'Plossl32', '32mm Plossl', '32');
+INSERT INTO Eyepieces (UserId, Key, Name, FocalLengthMm) VALUES (3, 'Ortho6', '6mm ortho', '6');
+
+CREATE TEMP TABLE __seed2_sessions (Seq INTEGER PRIMARY KEY, Id INTEGER NOT NULL);
+CREATE TEMP TABLE __seed2_observations (SessionSeq INTEGER NOT NULL, DisplayOrder INTEGER NOT NULL, Id INTEGER NOT NULL, PRIMARY KEY (SessionSeq, DisplayOrder));
+
+-- Session 1: September Cygnus sweep
+INSERT INTO ObsSessions (UserId, Conditions, Date, LimitingMagnitude, LocationId, ReportText, Seeing, Summary, Title, Transparency, InstrumentId)
+SELECT 3, 'Dry evening with a mild sea breeze and a steady Milky Way through Cygnus.', '2024-09-06 00:00:00', 5.70, L.Id, NULL, 3, 'A relaxed Cygnus and Vulpecula sweep using both wide-field and higher-power views.', 'September Cygnus sweep', 4, I.Id
+FROM __seed2_locations L JOIN __seed2_instruments I ON I.Seq = 1 WHERE L.Seq = 1;
+INSERT INTO __seed2_sessions (Seq, Id) VALUES (1, last_insert_rowid());
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-8564', S.Id, 'NGC 6818 in Pan27 showed as a compact bluish bead that took magnification well. Delite7 made the edge firmer and the center slightly uneven.', 0, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 1;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 0, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 8564 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 0;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'NGC 6818 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%206818&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed2_observations O WHERE O.SessionSeq = 1 AND O.DisplayOrder = 0;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-8202-8489-8465', S.Id, 'M 16 in UFF18 was broad and uneven; Nag13 helped separate the cluster from the haze. M 17 in Delos10 held its bent shape clearly. NGC 6603 stayed granular and faint in the same stretch of sky.', 1, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 1;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 1, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 8202 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8489 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8465 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 1;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-8389-8381-8398', S.Id, 'M 8 filled the low field in Plossl32 and still showed knots after the filter was removed. M 20 was subtler but held with averted vision. NGC 6530 looked crisp against the remaining glow.', 2, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 2 WHERE S.Seq = 1;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 2, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 8389 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8381 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8398 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 2;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 8 field sketch', O.Id, 'sketch', '1PZ4a-demo2-lagoon-field-sketch&usp=drive_fs', 0, 0, 255, 100 FROM __seed2_observations O WHERE O.SessionSeq = 1 AND O.DisplayOrder = 2;
+UPDATE ObsSessions
+SET ReportText = 'Ravlunda opened with a pale western horizon but Cygnus was already clean overhead. I began with the dob on compact targets and changed to ED80 after midnight for the wider southern fields.
+
+NGC 6818 in Pan27 showed as a compact bluish bead that took magnification well. Delite7 made the edge firmer and the center slightly uneven.
+#' || S.Id || '-8564
+
+M 16 in UFF18 was broad and uneven; Nag13 helped separate the cluster from the haze. M 17 in Delos10 held its bent shape clearly. NGC 6603 stayed granular and faint in the same stretch of sky.
+#' || S.Id || '-8202-8489-8465
+
+M 8 filled the low field in Plossl32 and still showed knots after the filter was removed. M 20 was subtler but held with averted vision. NGC 6530 looked crisp against the remaining glow.
+#' || S.Id || '-8389-8381-8398
+
+I ended the session with dry charts and a short list of follow-ups for a darker Sagittarius horizon.'
+FROM __seed2_sessions S WHERE ObsSessions.Id = S.Id AND S.Seq = 1;
+
+-- Session 2: Andromeda roadside notes
+INSERT INTO ObsSessions (UserId, Conditions, Date, LimitingMagnitude, LocationId, ReportText, Seeing, Summary, Title, Transparency, InstrumentId)
+SELECT 3, 'Cold, still, and transparent with short patches of high haze toward the north.', '2024-10-19 00:00:00', 5.65, L.Id, NULL, 4, 'Autumn galaxies and clusters from a sheltered roadside field.', 'Andromeda roadside notes', 4, I.Id
+FROM __seed2_locations L JOIN __seed2_instruments I ON I.Seq = 1 WHERE L.Seq = 2;
+INSERT INTO __seed2_sessions (Seq, Id) VALUES (2, last_insert_rowid());
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-60-59', S.Id, 'M 31 stretched far past the field edge in Pan27, with the core bright but not harsh. M 32 sat beside it as a compact round companion in the same sweep.', 0, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 2;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 0, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 60 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 59 AS DsoId, 1 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 0;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 31 SIMBAD reference', O.Id, 'link', 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=M%2031', 0, 0, 0, 100 FROM __seed2_observations O WHERE O.SessionSeq = 2 AND O.DisplayOrder = 0;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-8726-121-1321', S.Id, 'M 33 was wide and faint in Plossl32, needing slow sweeps to hold the disk. NGC 752 was bright enough to reset my eye. NGC 457 looked playful and obvious after the galaxies.', 1, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 2 WHERE S.Seq = 2;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 1, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 8726 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 121 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 1321 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 1;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 33 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2033&fov=1.96&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed2_observations O WHERE O.SessionSeq = 2 AND O.DisplayOrder = 1;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-7044-4487-4485-690', S.Id, 'M 34 was loose and bright in UFF18. M 35 had richer texture through Nag13, while NGC 2158 remained a tight unresolved patch nearby. M 36 closed the cluster run with a clean wedge of stars.', 2, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 2;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 2, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 7044 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 4487 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 4485 AS DsoId, 2 AS DisplayOrder UNION ALL SELECT 690 AS DsoId, 3 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 2;
+UPDATE ObsSessions
+SET ReportText = 'Kullaberg stayed sheltered from the wind and the autumn targets felt easy to navigate. I alternated between the dob and ED80 instead of forcing one instrument to do every job.
+
+M 31 stretched far past the field edge in Pan27, with the core bright but not harsh. M 32 sat beside it as a compact round companion in the same sweep.
+#' || S.Id || '-60-59
+
+M 33 was wide and faint in Plossl32, needing slow sweeps to hold the disk. NGC 752 was bright enough to reset my eye. NGC 457 looked playful and obvious after the galaxies.
+#' || S.Id || '-8726-121-1321
+
+M 34 was loose and bright in UFF18. M 35 had richer texture through Nag13, while NGC 2158 remained a tight unresolved patch nearby. M 36 closed the cluster run with a clean wedge of stars.
+#' || S.Id || '-7044-4487-4485-690
+
+I left once haze reached Perseus, with enough cluster notes to make the galaxy sketches feel less bare.'
+FROM __seed2_sessions S WHERE ObsSessions.Id = S.Id AND S.Seq = 2;
+
+-- Session 3: Winter nebula checkpoint
+INSERT INTO ObsSessions (UserId, Conditions, Date, LimitingMagnitude, LocationId, ReportText, Seeing, Summary, Title, Transparency, InstrumentId)
+SELECT 3, 'Frosty and clear, with average seeing but excellent contrast after moonset.', '2025-01-04 00:00:00', 5.55, L.Id, NULL, 3, 'A winter checkpoint through Auriga, Orion, Taurus, and Monoceros.', 'Winter nebula checkpoint', 4, I.Id
+FROM __seed2_locations L JOIN __seed2_instruments I ON I.Seq = 1 WHERE L.Seq = 3;
+INSERT INTO __seed2_sessions (Seq, Id) VALUES (3, last_insert_rowid());
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-703-688', S.Id, 'M 37 was the best Auriga cluster of the night, packed and evenly bright in Nag13. M 38 looked larger and looser, with a faint cross-like pattern that came and went.', 0, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 3;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 0, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 703 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 688 AS DsoId, 1 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 0;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-6326-6342-6562-6578', S.Id, 'M 42 was structured even before full dark adaptation and kept improving in Delos10. NGC 1977 appeared as a softer northern wash, NGC 1981 as a loose cap of stars, and NGC 2024 needed the most patience near Alnitak.', 1, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 3;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 1, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 6326 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 6342 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6562 AS DsoId, 2 AS DisplayOrder UNION ALL SELECT 6578 AS DsoId, 3 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 1;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 42 field sketch', O.Id, 'sketch', '1PZ4a-demo2-orion-field-sketch&usp=drive_fs', 0, 0, 255, 100 FROM __seed2_observations O WHERE O.SessionSeq = 3 AND O.DisplayOrder = 1;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-8596-8658-6195', S.Id, 'M 45 was better in ED80 than in the dob, with more dark space around the brightest stars. M 1 was a muted oval in Zoom8-24. NGC 2264 showed a broad triangular star pattern and a hint of surrounding haze.', 2, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 2 WHERE S.Seq = 3;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 2, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 8596 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8658 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6195 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 2;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 45 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2045&fov=2.80&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed2_observations O WHERE O.SessionSeq = 3 AND O.DisplayOrder = 2;
+UPDATE ObsSessions
+SET ReportText = 'Tiveden was cold enough that the cases frosted before I finished alignment. I kept the dob on Orion and Auriga, then moved to ED80 for the broad winter fields.
+
+M 37 was the best Auriga cluster of the night, packed and evenly bright in Nag13. M 38 looked larger and looser, with a faint cross-like pattern that came and went.
+#' || S.Id || '-703-688
+
+M 42 was structured even before full dark adaptation and kept improving in Delos10. NGC 1977 appeared as a softer northern wash, NGC 1981 as a loose cap of stars, and NGC 2024 needed the most patience near Alnitak.
+#' || S.Id || '-6326-6342-6562-6578
+
+M 45 was better in ED80 than in the dob, with more dark space around the brightest stars. M 1 was a muted oval in Zoom8-24. NGC 2264 showed a broad triangular star pattern and a hint of surrounding haze.
+#' || S.Id || '-8596-8658-6195
+
+The winter notes were short because the paper stiffened in the cold, but the object list was clean and the identifiers checked out before packing.'
+FROM __seed2_sessions S WHERE ObsSessions.Id = S.Id AND S.Seq = 3;
+
+-- Session 4: Spring Virgo comparison
+INSERT INTO ObsSessions (UserId, Conditions, Date, LimitingMagnitude, LocationId, ReportText, Seeing, Summary, Title, Transparency, InstrumentId)
+SELECT 3, 'Mild spring air, good transparency, and a slow-moving breeze across the field.', '2025-04-18 00:00:00', 5.80, L.Id, NULL, 3, 'A compact Virgo and Coma comparison session with several galaxy groups.', 'Spring Virgo comparison', 4, I.Id
+FROM __seed2_locations L JOIN __seed2_instruments I ON I.Seq = 1 WHERE L.Seq = 4;
+INSERT INTO __seed2_sessions (Seq, Id) VALUES (4, last_insert_rowid());
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-9697-9709-9739', S.Id, 'M 84 and M 86 were easy anchors in Pan27. NGC 4438, one of The Eyes, showed as a pulled smudge after I raised the power with Nag13.', 0, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 4;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 0, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 9697 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9709 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9739 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 0;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'Markarian chain field sketch', O.Id, 'sketch', '1PZ4a-demo2-virgo-chain-sketch&usp=drive_fs', 0, 0, 255, 100 FROM __seed2_observations O WHERE O.SessionSeq = 4 AND O.DisplayOrder = 0;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-9768-9764-9762', S.Id, 'M 87 was rounder and steadier than the nearby companions. NGC 4478 and NGC 4476 were small threshold patches that made the field feel crowded but navigable.', 1, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 4;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 1, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 9768 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9764 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9762 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 1;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-2581-9815-9817-2517-2538', S.Id, 'M 88 was brighter than expected in the refractor. NGC 4567 and NGC 4568 sat as a close pair, while M 99 and M 100 gave a wider Messier comparison before the breeze picked up.', 2, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 2 WHERE S.Seq = 4;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 2, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 2581 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9815 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9817 AS DsoId, 2 AS DisplayOrder UNION ALL SELECT 2517 AS DsoId, 3 AS DisplayOrder UNION ALL SELECT 2538 AS DsoId, 4 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 2;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 99 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2099&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed2_observations O WHERE O.SessionSeq = 4 AND O.DisplayOrder = 2;
+UPDATE ObsSessions
+SET ReportText = 'Hokangen had enough shelter that the charts stayed still, which made Virgo less tiring than usual. I used the dob for the dense chain and ED80 once I wanted wider comparisons.
+
+M 84 and M 86 were easy anchors in Pan27. NGC 4438, one of The Eyes, showed as a pulled smudge after I raised the power with Nag13.
+#' || S.Id || '-9697-9709-9739
+
+M 87 was rounder and steadier than the nearby companions. NGC 4478 and NGC 4476 were small threshold patches that made the field feel crowded but navigable.
+#' || S.Id || '-9768-9764-9762
+
+M 88 was brighter than expected in the refractor. NGC 4567 and NGC 4568 sat as a close pair, while M 99 and M 100 gave a wider Messier comparison before the breeze picked up.
+#' || S.Id || '-2581-9815-9817-2517-2538
+
+I stopped while the route was still making sense, rather than pushing one more faint group into tired notes.'
+FROM __seed2_sessions S WHERE ObsSessions.Id = S.Id AND S.Seq = 4;
+
+-- Session 5: Ursa Major cold finish
+INSERT INTO ObsSessions (UserId, Conditions, Date, LimitingMagnitude, LocationId, ReportText, Seeing, Summary, Title, Transparency, InstrumentId)
+SELECT 3, 'Clear and chilly with steady stars and a dark northern horizon.', '2026-03-20 00:00:00', 5.90, L.Id, NULL, 4, 'A late-winter Ursa Major loop with galaxy pairs and one planetary nebula.', 'Ursa Major cold finish', 5, I.Id
+FROM __seed2_locations L JOIN __seed2_instruments I ON I.Seq = 1 WHERE L.Seq = 3;
+INSERT INTO __seed2_sessions (Seq, Id) VALUES (5, last_insert_rowid());
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-8856-8958-8965', S.Id, 'M 81 was broad and calm in Pan27, while M 82 cut a sharper streak beside it. NGC 3077 was smaller but distinct once I settled the field.', 0, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 5;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 0, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 8856 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8958 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8965 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 0;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 81 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2081&fov=0.75&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed2_observations O WHERE O.SessionSeq = 5 AND O.DisplayOrder = 0;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-9074-9069-8963', S.Id, 'M 97 was a soft round disk in Delos10 and took averted vision well. M 108 looked flatter and more difficult, and NGC 3079 needed careful chart checking before I trusted the detection.', 1, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 1 WHERE S.Seq = 5;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 1, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 9074 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9069 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8963 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 1;
+INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
+SELECT 3, S.Id || '-9355-9361-9374-9231-9211', S.Id, 'M 101 was a broad low-surface-brightness patch in ED80. NGC 5474 and NGC 5585 gave the field texture, then M 109 and NGC 3953 closed the night with smaller galaxy shapes near the bowl.', 2, 0, I.Id
+FROM __seed2_sessions S JOIN __seed2_instruments I ON I.Seq = 2 WHERE S.Seq = 5;
+INSERT INTO __seed2_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 2, last_insert_rowid());
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed2_observations O JOIN (SELECT 9355 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9361 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9374 AS DsoId, 2 AS DisplayOrder UNION ALL SELECT 9231 AS DsoId, 3 AS DisplayOrder UNION ALL SELECT 9211 AS DsoId, 4 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 2;
+INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
+SELECT 3, 'M 101 field sketch', O.Id, 'sketch', '1PZ4a-demo2-m101-field-sketch&usp=drive_fs', 0, 0, 255, 100 FROM __seed2_observations O WHERE O.SessionSeq = 5 AND O.DisplayOrder = 2;
+UPDATE ObsSessions
+SET ReportText = 'Tiveden was darker to the north than I expected, so I spent the last cold session of the season in Ursa Major. The dob handled the brighter pairs and ED80 finished the larger fields.
+
+M 81 was broad and calm in Pan27, while M 82 cut a sharper streak beside it. NGC 3077 was smaller but distinct once I settled the field.
+#' || S.Id || '-8856-8958-8965
+
+M 97 was a soft round disk in Delos10 and took averted vision well. M 108 looked flatter and more difficult, and NGC 3079 needed careful chart checking before I trusted the detection.
+#' || S.Id || '-9074-9069-8963
+
+M 101 was a broad low-surface-brightness patch in ED80. NGC 5474 and NGC 5585 gave the field texture, then M 109 and NGC 3953 closed the night with smaller galaxy shapes near the bowl.
+#' || S.Id || '-9355-9361-9374-9231-9211
+
+I quit before midnight with the notes still legible and the finder still clear, which was enough for a satisfying March finish.'
+FROM __seed2_sessions S WHERE ObsSessions.Id = S.Id AND S.Seq = 5;
 
 COMMIT;

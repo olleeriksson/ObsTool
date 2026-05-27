@@ -22,7 +22,7 @@ namespace ObsTool.Database
         private const string RecreateTargetSchemaOption = "--recreate-target-schema";
         private const string ConfirmRecreateTargetSchemaOption = "--confirm-recreate-target-schema";
         private const string RecreateConfirmationPhrase = "RECREATE TARGET SCHEMA";
-        private static readonly IReadOnlyCollection<int> AllowedReplaceUserDataUserIds = new[] { 1, 2 };
+        private static readonly IReadOnlyCollection<int> AllowedReplaceUserDataUserIds = new[] { 1, 2, 3 };
 
         private static readonly IReadOnlyList<GeneralTableSync> GeneralTables = new[]
         {
@@ -160,7 +160,7 @@ namespace ObsTool.Database
             {
                 if (string.Equals(arg, ReplaceUserDataOption, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new InvalidOperationException($"{ReplaceUserDataOption} requires a user id. Use {ReplaceUserDataOption}=1, {ReplaceUserDataOption}=2, or {ReplaceUserDataOption}=1,2.");
+                    throw new InvalidOperationException($"{ReplaceUserDataOption} requires a user id. Use {ReplaceUserDataOption}=1, {ReplaceUserDataOption}=2, {ReplaceUserDataOption}=3, or {ReplaceUserDataOption}=1,2,3.");
                 }
 
                 if (arg.StartsWith(ReplaceUserDataOption + "=", StringComparison.OrdinalIgnoreCase))
@@ -176,12 +176,12 @@ namespace ObsTool.Database
                         var trimmedUserId = userIdPart.Trim();
                         if (string.IsNullOrWhiteSpace(trimmedUserId) || !int.TryParse(trimmedUserId, out var userId))
                         {
-                            throw new InvalidOperationException($"{ReplaceUserDataOption} must contain only 1 and/or 2. Example: {ReplaceUserDataOption}=1,2.");
+                            throw new InvalidOperationException($"{ReplaceUserDataOption} must contain only 1, 2, and/or 3. Example: {ReplaceUserDataOption}=1,2,3.");
                         }
 
                         if (!AllowedReplaceUserDataUserIds.Contains(userId))
                         {
-                            throw new InvalidOperationException($"{ReplaceUserDataOption} is only allowed for Users.Id 1 and 2.");
+                            throw new InvalidOperationException($"{ReplaceUserDataOption} is only allowed for Users.Id 1, 2, and 3.");
                         }
 
                         if (replaceUserDataUserIds.Contains(userId))

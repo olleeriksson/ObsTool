@@ -170,15 +170,16 @@ Use `--update-general-tables` to upsert the shared catalog tables:
 
 `--update-general-tables` inserts missing rows and updates existing rows by stable primary key. It does not delete target rows that are missing from the source SQLite database.
 
-Use `--replace-user-data={userid}` to replace user-owned observation data for a hardcoded allowlist of database users. Pass a comma-separated list to replace both allowed users in one run:
+Use `--replace-user-data={userid}` to replace user-owned observation data for a hardcoded allowlist of database users. Pass a comma-separated list to replace all allowed users in one run:
 
 ```bash
 db-sync --source-sqlite "<path-to-prod-sqlite>" --update-general-tables --replace-user-data=1
 db-sync --source-sqlite "<path-to-prod-sqlite>" --update-general-tables --replace-user-data=2
-db-sync --source-sqlite "<path-to-prod-sqlite>" --update-general-tables --replace-user-data=1,2
+db-sync --source-sqlite "<path-to-prod-sqlite>" --update-general-tables --replace-user-data=3
+db-sync --source-sqlite "<path-to-prod-sqlite>" --update-general-tables --replace-user-data=1,2,3
 ```
 
-The only allowed user ids are `Users.Id = 1` and `Users.Id = 2`; `--replace-user-data` without an explicit value is invalid, and comma-separated values may only contain `1` and/or `2`. The command leaves an existing target account row unchanged, inserts it from source if missing, deletes only the selected user's owned rows, and reimports them from the source SQLite database. It must not affect other users' rows.
+The only allowed user ids are `Users.Id = 1`, `Users.Id = 2`, and `Users.Id = 3`; `--replace-user-data` without an explicit value is invalid, and comma-separated values may only contain `1`, `2`, and/or `3`. The command leaves an existing target account row unchanged, inserts it from source if missing, deletes only the selected user's owned rows, and reimports them from the source SQLite database. It must not affect other users' rows.
 
 To intentionally start over from a clean target, add `--recreate-target-schema`; the command prints a destructive warning and requires confirmation before dropping target tables. Use `--confirm-recreate-target-schema` only for deliberate non-interactive maintenance. Do not remove this command just because the initial hosted sync has already been done.
 

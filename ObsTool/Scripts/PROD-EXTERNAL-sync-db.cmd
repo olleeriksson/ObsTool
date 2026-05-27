@@ -21,4 +21,4 @@ set "Db__ConnectionString=server=%SMARTERASP_HOST%;port=%SMARTERASP_PORT%;databa
 
 set "SOURCE_SQLITE=G:\My Drive\Docs\Astronomy\Observations\ObsTool\obstool_database.db"
 
-dotnet run --no-build --no-launch-profile --project "%~dp0..\ObsTool.csproj" -- db-sync --source-sqlite "%SOURCE_SQLITE%" --update-general-tables --replace-user-data=1,2 %*
+dotnet run --no-build --no-launch-profile --project "%~dp0..\ObsTool.csproj" -- db-sync --source-sqlite "%SOURCE_SQLITE%" --update-general-tables --replace-user-data=1,2,3 %*
