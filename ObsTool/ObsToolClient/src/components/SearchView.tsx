@@ -50,7 +50,11 @@ interface ISearchViewState {
 This component is used to render the search page. It has a search input field and the results are a list
 of rendered DsoCard components.
  */
-class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
+export class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
+    private activeSearchController?: AbortController;
+    private latestSearchQuery = "";
+    private latestSearchRequestId = 0;
+
     constructor(props: ISearchViewProps) {
         super(props);
 
@@ -67,6 +71,8 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
 
     private receiveAndResetSearchQueryFromRedux(queryFromRedux: string) {
         const trimmedQuery = queryFromRedux.trim();
+        this.latestSearchQuery = trimmedQuery;
+        this.cancelActiveSearchRequest();
         this.setState({ query: trimmedQuery });
         if (trimmedQuery !== "") {
             this.loadDsoFromApi(trimmedQuery);
@@ -88,6 +94,11 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
         }
     }
 
+    public componentWillUnmount() {
+        (this.loadDsoFromApi as any).cancel?.();
+        this.cancelActiveSearchRequest();
+    }
+
     private loadDsoFromApi(query: string) {
         const trimmedQuery = query.trim();
         if (trimmedQuery === "") {
@@ -95,26 +106,58 @@ class SearchView extends React.Component<ISearchViewProps, ISearchViewState> {
             return;
         }
 
-        Api.searchDso(trimmedQuery, true).then(
+        const requestId = ++this.latestSearchRequestId;
+        const controller = new AbortController();
+        this.activeSearchController = controller;
+        this.setState({ isLoading: true, isError: false });
+
+        Api.searchDso(trimmedQuery, true, controller.signal).then(
             (response) => {
+                if (requestId !== this.latestSearchRequestId || trimmedQuery !== this.latestSearchQuery) {
+                    return;
+                }
                 const pagedResult: IPagedDsoList = response.data;
 
-                this.setState({ moreHits: pagedResult.more });
-                this.setState({ dsoList: pagedResult.data });
+                this.setState({ moreHits: pagedResult.more, dsoList: pagedResult.data });
             }).catch(
                 (error) => {
+                    if (this.isCanceledSearchError(error) || requestId !== this.latestSearchRequestId) {
+                        return;
+                    }
                     this.setState({ isError: true });
                 }
-            );
+            ).finally(() => {
+                if (this.activeSearchController === controller) {
+                    this.activeSearchController = undefined;
+                }
+                if (requestId === this.latestSearchRequestId) {
+                    this.setState({ isLoading: false });
+                }
+            });
+    }
+
+    private cancelActiveSearchRequest = () => {
+        this.latestSearchRequestId++;
+        if (this.activeSearchController) {
+            this.activeSearchController.abort();
+            this.activeSearchController = undefined;
+        }
+    }
+
+    private isCanceledSearchError = (error: any) => {
+        return error?.code === "ERR_CANCELED" || error?.name === "CanceledError" || error?.name === "AbortError";
     }
 
     private handleChange = (event: any) => {
         const query = event.target.value;
         const trimmedQuery = query.trim();
+        this.latestSearchQuery = trimmedQuery;
+        this.cancelActiveSearchRequest();
         this.setState({ query: query });
         if (trimmedQuery !== "") {
             this.loadDsoFromApi(trimmedQuery);
         } else {
+            (this.loadDsoFromApi as any).cancel?.();
             this.setState({ dsoList: [], moreHits: 0, isError: false });
         }
     }

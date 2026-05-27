@@ -142,8 +142,10 @@ class Api {
         return axios.delete(import.meta.env.VITE_API_URL + "/eyepieces/" + eyepieceId);
     }
 
-    public static searchDso(query: string, includeHerschel = false) {
-        return axios.get<IPagedDsoList>(import.meta.env.VITE_API_URL + "/dso?query=" + encodeURIComponent(query) + "&includeHerschel=" + includeHerschel);
+    public static searchDso(query: string, includeHerschel = false, signal?: AbortSignal) {
+        return axios.get<IPagedDsoList>(
+            import.meta.env.VITE_API_URL + "/dso?query=" + encodeURIComponent(query) + "&includeHerschel=" + includeHerschel,
+            { signal });
     }
 
     public static getAllDsosAndTheirObservations() {

@@ -38,7 +38,11 @@ interface ISearchInputState {
     redirectToSearchPage: boolean;
 }
 
-class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> {
+export class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> {
+    private activeSearchController?: AbortController;
+    private latestSearchQuery = "";
+    private latestSearchRequestId = 0;
+
     constructor(props: ISearchInputProps) {
         super(props);
 
@@ -56,8 +60,15 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
             return;
         }
 
-        Api.searchDso(trimmedQuery).then(
+        const requestId = ++this.latestSearchRequestId;
+        const controller = new AbortController();
+        this.activeSearchController = controller;
+
+        Api.searchDso(trimmedQuery, false, controller.signal).then(
             (response) => {
+                if (requestId !== this.latestSearchRequestId || trimmedQuery !== this.latestSearchQuery) {
+                    return;
+                }
                 const pagedResult: IPagedDsoList = response.data;
                 const options: ISuggestion[] = pagedResult.data.map(dso => ({ dso }));
                 if (pagedResult.more > 0) {
@@ -65,16 +76,39 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
                 }
                 this.setState({ options });
             }).catch((error) => {
+                if (this.isCanceledSearchError(error) || requestId !== this.latestSearchRequestId) {
+                    return;
+                }
                 this.setState({ options: [{ altText: String(error) }] });
+            }).finally(() => {
+                if (this.activeSearchController === controller) {
+                    this.activeSearchController = undefined;
+                }
             });
     }, 300);
+
+    private cancelActiveSearchRequest = () => {
+        this.latestSearchRequestId++;
+        if (this.activeSearchController) {
+            this.activeSearchController.abort();
+            this.activeSearchController = undefined;
+        }
+    }
+
+    private isCanceledSearchError = (error: any) => {
+        return error?.code === "ERR_CANCELED" || error?.name === "CanceledError" || error?.name === "AbortError";
+    }
 
     private handleInputChange = (_event: any, newValue: string, reason: string) => {
         this.setState({ inputValue: newValue });
         if (reason === "input") {
+            const trimmedQuery = newValue.trim();
+            this.latestSearchQuery = trimmedQuery;
+            this.cancelActiveSearchRequest();
             if (newValue.trim() !== "") {
                 this.loadDsoFromApi(newValue);
             } else {
+                this.loadDsoFromApi.cancel();
                 this.setState({ options: [] });
             }
         }
@@ -104,6 +138,11 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
         if (!prevProps.onSearchView && this.props.onSearchView && this.state.redirectToSearchPage) {
             this.setState({ redirectToSearchPage: false });
         }
+    }
+
+    public componentWillUnmount() {
+        this.loadDsoFromApi.cancel();
+        this.cancelActiveSearchRequest();
     }
 
     public render() {
