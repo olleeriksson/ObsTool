@@ -28,6 +28,7 @@ namespace ObsTool.Database
         {
             new GeneralTableSync("Constellations", new[] { "Id" }),
             new GeneralTableSync("SacDeepSkyObjects", new[] { "Id" }),
+            new GeneralTableSync("OtherObjects", new[] { "Id" }),
             new GeneralTableSync("H2500", new[] { "HerschelId" })
         };
 
@@ -38,6 +39,7 @@ namespace ObsTool.Database
             new TableImport("Eyepieces", "source.\"UserId\" = @userId"),
             new TableImport("ObsSessions", "source.\"UserId\" = @userId"),
             new TableImport("Observations", "source.\"UserId\" = @userId"),
+            new TableImport("UserObjects", "source.\"UserId\" = @userId"),
             new TableImport("DsoObservations", "EXISTS (SELECT 1 FROM \"Observations\" AS observation WHERE observation.\"Id\" = source.\"ObservationId\" AND observation.\"UserId\" = @userId)"),
             new TableImport("DsoExtra", "source.\"UserId\" = @userId"),
             new TableImport("ObsResources", "source.\"UserId\" = @userId")
@@ -505,6 +507,7 @@ ORDER BY name";
             ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "DsoObservations", $"{observationIdColumn} IN ({observationIdSubquery})", userId);
             ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "DsoExtra", $"{userIdColumn} = @userId", userId);
             ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Observations", $"{userIdColumn} = @userId", userId);
+            ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "UserObjects", $"{userIdColumn} = @userId", userId);
             ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "ObsSessions", $"{userIdColumn} = @userId", userId);
             ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Eyepieces", $"{userIdColumn} = @userId", userId);
             ExecuteUserDelete(targetConnection, targetTransaction, targetProvider, "Instruments", $"{userIdColumn} = @userId", userId);

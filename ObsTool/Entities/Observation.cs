@@ -34,8 +34,6 @@ namespace ObsTool.Entities
 
         public List<DsoObservation> DsoObservations { get; set; } = new List<DsoObservation>();
 
-        //public string CustomObjectName { get; set; }
-
         [MaxLength(4000)]
         public string Text { get; set; }
 

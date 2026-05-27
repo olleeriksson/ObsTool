@@ -45,10 +45,10 @@ it("shows error prop message", () => {
     expect(screen.getByText("DSO not found")).toBeInTheDocument();
 });
 
-it("shows custom object label when dso name is 'custom'", () => {
-    const customDso: IDso = { ...baseDso, name: "custom" };
-    render(<DsoCard dso={customDso} customObjectName="My Star" />, { wrapper });
-    expect(screen.getByText(/Custom object: My Star/)).toBeInTheDocument();
+it("shows user object names through the same card path", () => {
+    const userDso: IDso = { ...baseDso, objectKind: "User", name: "My Star" };
+    render(<DsoCard dso={userDso} />, { wrapper });
+    expect(screen.getByText(/My Star/)).toBeInTheDocument();
 });
 
 it("shows no Herschel badge for non-Herschel DSOs", () => {

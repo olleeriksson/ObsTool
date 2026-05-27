@@ -12,7 +12,7 @@ export function getObservedObjectTargetKey(
   }
 
   const observationKey = observation.id ?? observation.displayOrder ?? observationIndex;
-  const dsoKey = dsoObservation.dso?.id ?? dsoObservation.customObjectName ?? dsoObservationIndex;
+  const dsoKey = dsoObservation.objectKey ?? dsoObservation.dso?.objectKey ?? dsoObservation.dso?.id ?? dsoObservationIndex;
   const dsoOrder = dsoObservation.displayOrder ?? dsoObservationIndex;
   return `obs-${observationKey}-dso-${dsoKey}-order-${dsoOrder}`;
 }

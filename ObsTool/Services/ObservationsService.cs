@@ -56,7 +56,12 @@ namespace ObsTool.Services
 
                 foreach (var dsoObservation in observationDto.DsoObservations)
                 {
-                    int dsoId = dsoObservation.DsoId;
+                    if (!dsoObservation.DsoId.HasValue)
+                    {
+                        continue;
+                    }
+
+                    int dsoId = dsoObservation.DsoId.Value;
 
                     // For observations of a newly encountered DSO create a list for it in the map
                     if (!mapOfOtherObservations.ContainsKey(dsoId))
@@ -64,6 +69,52 @@ namespace ObsTool.Services
                         mapOfOtherObservations.Add(dsoId, new List<ObservationDto>());
                     }
                     mapOfOtherObservations[dsoId].Add(observationDto);
+                }
+            }
+
+            return mapOfOtherObservations;
+        }
+
+        /// <summary>
+        /// Maps observations by polymorphic object key so SAC, Other, and User objects can reuse the same lookup path.
+        /// </summary>
+        public Dictionary<string, ICollection<ObservationDto>> GetAllObservationDtosMappedByObjectKey(
+            int userId,
+            IEnumerable<string> objectKeys,
+            int[] exludeObservationIds = null,
+            bool includePrevAndNextObservations = false)
+        {
+            var objectKeySet = objectKeys == null
+                ? null
+                : new HashSet<string>(objectKeys.Where(key => !string.IsNullOrWhiteSpace(key)));
+            int[] exludeObservationIdList = exludeObservationIds ?? (new int[] { });
+            var observations = GetAllObservationsWithExtra(
+                _observationsRepo.GetAllObservations(userId),
+                userId,
+                includePrevAndNextObservations);
+            var mapOfOtherObservations = new Dictionary<string, ICollection<ObservationDto>>();
+
+            foreach (var observationDto in observations)
+            {
+                if (exludeObservationIdList.Contains(observationDto.Id))
+                {
+                    continue;
+                }
+
+                foreach (var dsoObservation in observationDto.DsoObservations)
+                {
+                    string objectKey = dsoObservation.ObjectKey;
+                    if (string.IsNullOrWhiteSpace(objectKey) || (objectKeySet != null && !objectKeySet.Contains(objectKey)))
+                    {
+                        continue;
+                    }
+
+                    if (!mapOfOtherObservations.ContainsKey(objectKey))
+                    {
+                        mapOfOtherObservations.Add(objectKey, new List<ObservationDto>());
+                    }
+
+                    mapOfOtherObservations[objectKey].Add(observationDto);
                 }
             }
 

@@ -145,7 +145,6 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
           <div key={targetKey} id={getObservedObjectTargetId(targetKey)} style={{ marginBottom: "0.4em", scrollMarginTop: "1em" }}>
             <DsoCard
               dso={o.dso}
-              customObjectName={o.customObjectName}
               nonDetection={o.nonDetection || this.props.observation.nonDetection}
               showBadge={false}
               showDsoAnnotations={true}

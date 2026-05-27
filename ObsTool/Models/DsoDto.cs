@@ -11,6 +11,8 @@ namespace ObsTool.Models
         private string _otherCommonNames;
 
         public int Id { get; set; }
+        public string ObjectKind { get; set; } = ObservedObjectKind.Sac;
+        public string ObjectKey { get; set; }
         public string Catalog { get; set; }
         public string CatalogNumber { get; set; }
         public string Name { get; set; }
@@ -20,7 +22,7 @@ namespace ObsTool.Models
         public string OtherCommonNames {
             get
             {
-                if (AllCommonNames != null && AllCommonNames.Contains(CommonName))
+                if (!string.IsNullOrWhiteSpace(AllCommonNames) && !string.IsNullOrWhiteSpace(CommonName) && AllCommonNames.Contains(CommonName))
                 {
                     this._otherCommonNames = AllCommonNames
                         .Replace(", " + CommonName, "")
@@ -55,5 +57,114 @@ namespace ObsTool.Models
         public int NumObservations { get; set; }
         public ObservationDto[] Observations { get; set; }
         public HerschelInfoDto[] HerschelObjects { get; set; }
+
+        /// <summary>
+        /// Projects a SAC entity into the common object DTO used by object cards.
+        /// </summary>
+        public static DsoDto FromDso(ObsTool.Entities.Dso dso)
+        {
+            if (dso == null)
+            {
+                return null;
+            }
+
+            return new DsoDto
+            {
+                Id = dso.Id,
+                ObjectKind = ObservedObjectKind.Sac,
+                ObjectKey = $"{ObservedObjectKind.Sac}:{dso.Id}",
+                Catalog = dso.Catalog,
+                CatalogNumber = dso.CatalogNumber,
+                Name = dso.Name,
+                OtherNames = dso.OtherNames,
+                CommonName = dso.CommonName,
+                AllCommonNames = dso.AllCommonNames,
+                Type = dso.Type,
+                Con = dso.Con,
+                RA = dso.RA,
+                DEC = dso.DEC,
+                Mag = dso.Mag,
+                SB = dso.SB,
+                U2K = dso.U2K,
+                TI = dso.TI,
+                SizeMax = dso.SizeMax,
+                SizeMin = dso.SizeMin,
+                PA = dso.PA,
+                Class = dso.Class,
+                NSTS = dso.NSTS,
+                BRSTR = dso.BRSTR,
+                BCHM = dso.BCHM,
+                DreyerDesc = dso.DreyerDesc,
+                Notes = dso.Notes,
+                DsoExtra = dso.DsoExtra == null
+                    ? null
+                    : new DsoExtraDto
+                    {
+                        Id = dso.DsoExtra.Id,
+                        Rating = dso.DsoExtra.Rating,
+                        FollowUp = dso.DsoExtra.FollowUp
+                    }
+            };
+        }
+
+        /// <summary>
+        /// Projects a shared non-SAC object into the common card DTO shape.
+        /// </summary>
+        public static DsoDto FromOtherObject(ObsTool.Entities.OtherObject otherObject)
+        {
+            if (otherObject == null)
+            {
+                return null;
+            }
+
+            return new DsoDto
+            {
+                Id = otherObject.Id,
+                ObjectKind = ObservedObjectKind.Other,
+                ObjectKey = $"{ObservedObjectKind.Other}:{otherObject.Id}",
+                Catalog = "",
+                CatalogNumber = "",
+                Name = otherObject.Name,
+                OtherNames = otherObject.OtherNames,
+                CommonName = otherObject.CommonName,
+                AllCommonNames = otherObject.AllCommonNames,
+                Type = otherObject.Type,
+                Con = otherObject.Const,
+                RA = otherObject.RA,
+                DEC = otherObject.DEC,
+                Mag = otherObject.Mag,
+                Notes = otherObject.Notes
+            };
+        }
+
+        /// <summary>
+        /// Projects a user-owned object into the common card DTO shape.
+        /// </summary>
+        public static DsoDto FromUserObject(ObsTool.Entities.UserObject userObject)
+        {
+            if (userObject == null)
+            {
+                return null;
+            }
+
+            return new DsoDto
+            {
+                Id = userObject.Id,
+                ObjectKind = ObservedObjectKind.User,
+                ObjectKey = $"{ObservedObjectKind.User}:{userObject.Id}",
+                Catalog = "",
+                CatalogNumber = "",
+                Name = userObject.Name,
+                OtherNames = userObject.OtherNames,
+                CommonName = userObject.CommonName,
+                AllCommonNames = userObject.AllCommonNames,
+                Type = userObject.Type,
+                Con = userObject.Const,
+                RA = userObject.RA,
+                DEC = userObject.DEC,
+                Mag = userObject.Mag,
+                Notes = userObject.Notes
+            };
+        }
     }
 }

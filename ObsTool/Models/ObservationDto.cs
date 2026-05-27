@@ -21,8 +21,6 @@ namespace ObsTool.Models
 
         public List<DsoObservationDto> DsoObservations { get; set; }
 
-        //public string CustomObjectName { get; set; }
-
         public string Text { get; set; }
 
         // Can not have this on the corresponding entity because it creates a self referencing loop between ObsSession and Observation

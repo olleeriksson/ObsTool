@@ -64,7 +64,6 @@ const styles = (theme: Theme) => createStyles({
 
 interface IDsoCardProps extends WithStyles<typeof styles> {
   dso?: IDso;
-  customObjectName?: string;
   error?: string;
   nonDetection?: boolean;
   showBadge?: boolean;
@@ -150,21 +149,6 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
       );
     }
 
-    if (dso.name === "custom") {
-      return (
-        <Grid container>
-          <Grid size={"auto"}>
-            <img src={CosmosIcon} width="20" height="20" style={{ marginRight: 10, marginTop: 2 }} />
-          </Grid>
-          <Grid size={"grow"}>
-            <Typography variant="subtitle1">
-              Custom object: {this.props.customObjectName}
-            </Typography>
-          </Grid>
-        </Grid>
-      );
-    }
-
     let expandButton;
     if (this.props.showObservations && dso.observations && dso.observations.length > 0) {
       expandButton = (
@@ -202,7 +186,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
       <DsoExtra dso={dso} />
     );
 
-    const allowHerschelDetails = this.props.allowHerschelDetails !== false;
+    const allowHerschelDetails = this.props.allowHerschelDetails !== false && (dso.objectKind === undefined || dso.objectKind === "Sac");
     const herschelBadge = dso.herschelObjects && dso.herschelObjects.length > 0 && (
       <Grid size={"auto"} style={{ marginTop: "0.8em" }}>
         <HerschelBadge

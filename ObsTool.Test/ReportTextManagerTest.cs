@@ -8,6 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using ObsTool;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using ObsTool.Database;
 
 namespace TestProject
 {
@@ -21,6 +26,9 @@ namespace TestProject
         public void Setup()
         {
             generatedDsoId = 0;
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["Db:Migrate"]).Returns("false");
+            Startup.Configuration = configMock.Object;
             obsRepoMock = new Mock<IDsoRepo>();
             obsRepoMock.CallBase = true;
             obsRepoMock.Setup(x => x.GetAllCatalogs())
@@ -323,6 +331,98 @@ namespace TestProject
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Count, Is.EqualTo(1));
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].Dso.Name, Is.EqualTo("M 31"));
             Assert.That(obsSession.ReportText, Does.Contain("#5-0-!NGC34534!"));
+        }
+
+        [Test]
+        public void testOtherAndUserObjectsCreateTypedIdentifierTokens()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.OtherObjects.Add(new OtherObject { Id = 10, Name = "Jupiter", Type = "PLANET" });
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "Barnard's Star", Type = "STAR" });
+            dbContext.SaveChanges();
+
+            var reportTextManager = new ReportTextManager(
+                dbContext,
+                null,
+                obsRepoMock.Object,
+                null,
+                null,
+                null,
+                new ObjectsRepo(dbContext));
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                UserId = 1,
+                Date = DateTime.Now,
+                ReportText = "M 31, Jupiter, and Barnard's Star were all observed.",
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Key, Is.EqualTo("5-0-[Jupiter]-{Barnard's Star}"));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Count, Is.EqualTo(3));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Any(dsoObs => dsoObs.DsoId == 0), Is.True);
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Any(dsoObs => dsoObs.OtherObjectId == 10), Is.True);
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Any(dsoObs => dsoObs.UserObjectId == 20), Is.True);
+            Assert.That(obsSession.ReportText, Does.Contain("#5-0-[Jupiter]-{Barnard's Star}"));
+        }
+
+        [Test]
+        public void testUserObjectWinsWhenNameAlsoLooksLikeSacObject()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "M 31", Type = "ASTER" });
+            dbContext.OtherObjects.Add(new OtherObject { Id = 10, Name = "M 31", Type = "PLANET" });
+            dbContext.SaveChanges();
+
+            var reportTextManager = new ReportTextManager(
+                dbContext,
+                null,
+                obsRepoMock.Object,
+                null,
+                null,
+                null,
+                new ObjectsRepo(dbContext));
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                UserId = 1,
+                Date = DateTime.Now,
+                ReportText = "M 31 was recorded as my custom target.",
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.GetAt(0).Key, Is.EqualTo("5-{M 31}"));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].UserObjectId, Is.EqualTo(20));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].DsoId, Is.Null);
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].OtherObjectId, Is.Null);
+        }
+
+        private MainDbContext CreateObjectParserContext(SqliteConnection connection)
+        {
+            var options = new DbContextOptionsBuilder<MainDbContext>()
+                .UseSqlite(connection)
+                .Options;
+            var dbContext = new MainDbContext(options, new Mock<ILogger<MainDbContext>>().Object);
+            dbContext.Database.EnsureCreated();
+            dbContext.Users.Add(new AppUser
+            {
+                Id = 1,
+                Email = "observer@example.test",
+                NormalizedEmail = "OBSERVER@EXAMPLE.TEST",
+                FullName = "Observer",
+                PasswordHash = "hash",
+                CreatedUtc = DateTime.UtcNow
+            });
+            dbContext.SaveChanges();
+            return dbContext;
         }
 
 

@@ -69,6 +69,7 @@ namespace ObsTool.Services
                 .Where(h => h.SacDeepSkyObjectsId != null &&
                     _dbContext.DsoObservations.Any(dsoObservation =>
                         dsoObservation.Observation.UserId == userId &&
+                        dsoObservation.DsoId.HasValue &&
                         dsoObservation.DsoId == h.SacDeepSkyObjectsId &&
                         (includeNonDetections || (!dsoObservation.NonDetection && !dsoObservation.Observation.NonDetection))));
         }

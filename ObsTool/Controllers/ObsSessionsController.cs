@@ -97,14 +97,17 @@ namespace ObsTool.Controllers
             // Retrieving also all the earlier/other observations of these objects will make this the biggest query ever :)
             if (includeOtherObservations)
             {
-                // Get the list of all DSO id's
-                List<int> dsoIds = obsSession.Observations.SelectMany(obs => obs.DsoObservations.Select(dsoObs => dsoObs.DsoId)).ToList<int>();
+                // Get the list of all parsed object keys, regardless of source table.
+                List<string> objectKeys = obsSession.Observations
+                    .SelectMany(obs => obs.DsoObservations.Select(dsoObs => dsoObs.GetObjectKey()))
+                    .Where(objectKey => !string.IsNullOrWhiteSpace(objectKey))
+                    .ToList();
 
                 // We need to know which are the primary observation id's so we can filter them out
                 int[] primaryObservationIds = obsSession.Observations.Select(o => o.Id).ToArray();
 
-                var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(
-                    userId, dsoIds, exludeObservationIds: primaryObservationIds, includePrevAndNextObservations);
+                var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByObjectKey(
+                    userId, objectKeys, exludeObservationIds: primaryObservationIds, includePrevAndNextObservations);
 
                 // Go through each observation and..
                 foreach (var observationDto in obsSessionDto.Observations)
@@ -115,9 +118,9 @@ namespace ObsTool.Controllers
                     foreach (var dsoObservation in observationDto.DsoObservations)
                     {
                         // ..and add any other observations for that DSO object to this observation
-                        if (mapOfOtherObservations.ContainsKey(dsoObservation.DsoId))
+                        if (mapOfOtherObservations.ContainsKey(dsoObservation.ObjectKey))
                         {
-                            var allObservationsOfDso = mapOfOtherObservations[dsoObservation.DsoId];
+                            var allObservationsOfDso = mapOfOtherObservations[dsoObservation.ObjectKey];
                             observationDto.OtherObservations.AddRange(allObservationsOfDso);
                         }
                     }
@@ -142,7 +145,7 @@ namespace ObsTool.Controllers
             var dsoDtos = obsSessionDto.Observations?
                 .SelectMany(o => o.DsoObservations)
                 .Select(dsoObservation => dsoObservation.Dso)
-                .Where(dso => dso != null)
+                .Where(dso => dso != null && dso.ObjectKind == ObservedObjectKind.Sac)
                 .GroupBy(dso => dso.Id)
                 .Select(g => g.First())
                 .ToList();

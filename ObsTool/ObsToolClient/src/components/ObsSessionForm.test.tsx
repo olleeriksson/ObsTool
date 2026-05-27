@@ -81,7 +81,6 @@ it("shows unmatched identifier tokens beside matched objects", async () => {
             id: 1,
             dso: m31Dso,
             obsSession: {} as IObsSession,
-            customObjectName: "",
             displayOrder: 0,
             nonDetection: false,
           },

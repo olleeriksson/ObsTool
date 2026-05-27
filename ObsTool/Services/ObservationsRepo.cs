@@ -22,7 +22,9 @@ namespace ObsTool.Services
         {
             return _dbContext.Observations
                 .Include(o => o.ObsResources)
-                .Include(o => o.DsoObservations)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.Instrument)
                 .ToList();
         }
@@ -32,7 +34,9 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Where(o => o.UserId == userId)
                 .Include(o => o.ObsResources)
-                .Include(o => o.DsoObservations)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.Instrument)
                 .ToList();
         }
@@ -41,6 +45,8 @@ namespace ObsTool.Services
         {
             return _dbContext.Observations.Where(o => o.Id == id)
                 .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.ObsResources)
                 .Include(o => o.Instrument)
                 .FirstOrDefault();
@@ -50,6 +56,8 @@ namespace ObsTool.Services
         {
             return _dbContext.Observations.Where(o => o.Id == id && o.UserId == userId)
                 .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.ObsResources)
                 .Include(o => o.Instrument)
                 .FirstOrDefault();
@@ -60,6 +68,9 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Where(o => o.DsoObservations.Any(obs => obs.DsoId == dsoId))
                 .Include(o => o.ObsResources)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.Instrument)
                 .ToList();
         }
@@ -70,6 +81,9 @@ namespace ObsTool.Services
                 .Where(o => o.UserId == userId)
                 .Where(o => o.DsoObservations.Any(obs => obs.DsoId == dsoId))
                 .Include(o => o.ObsResources)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.Instrument)
                 .ToList();
         }
@@ -79,9 +93,11 @@ namespace ObsTool.Services
         public ICollection<Observation> GetObservationsByMultipleDsoIds(List<int> dsoIds)
         {
             return _dbContext.Observations
-                .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))
+                .Where(o => o.DsoObservations.Any(obs => obs.DsoId.HasValue && dsoIds.Contains(obs.DsoId.Value)))
                 .Include(o => o.ObsResources)
-                .Include(o => o.DsoObservations)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.Instrument)
                 .ToList();
         }
@@ -90,9 +106,11 @@ namespace ObsTool.Services
         {
             return _dbContext.Observations
                 .Where(o => o.UserId == userId)
-                .Where(o => o.DsoObservations.Any(obs => dsoIds.Contains(obs.DsoId)))
+                .Where(o => o.DsoObservations.Any(obs => obs.DsoId.HasValue && dsoIds.Contains(obs.DsoId.Value)))
                 .Include(o => o.ObsResources)
-                .Include(o => o.DsoObservations)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.Dso)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                .Include(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                 .Include(o => o.Instrument)
                 .ToList();
         }

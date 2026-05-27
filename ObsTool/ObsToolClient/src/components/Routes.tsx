@@ -19,6 +19,7 @@ import InstrumentsView from "./InstrumentsView";
 import EyepiecesView from "./EyepiecesView";
 import EmailDiagnosticsView from "./EmailDiagnosticsView";
 import UserAdminPage from "./UserAdminPage";
+import ObjectsView from "./ObjectsView";
 
 function SingleObsSessionRoute() {
     const { obsSessionId } = useParams<{ obsSessionId: string }>();
@@ -60,6 +61,7 @@ export const routes = (
         <Route path="/sessions" element={<ProtectedLayout><ListView /></ProtectedLayout>} />
         <Route path="/newsession" element={<ProtectedLayout><NewObsSessionView /></ProtectedLayout>} />
         <Route path="/search" element={<ProtectedLayout><SearchView /></ProtectedLayout>} />
+        <Route path="/objects" element={<ProtectedLayout><ObjectsView /></ProtectedLayout>} />
         <Route path="/locations" element={<ProtectedLayout><LocationsView /></ProtectedLayout>} />
         <Route path="/instruments" element={<ProtectedLayout><InstrumentsView /></ProtectedLayout>} />
         <Route path="/eyepieces" element={<ProtectedLayout><EyepiecesView /></ProtectedLayout>} />

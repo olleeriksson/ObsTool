@@ -51,7 +51,9 @@ namespace ObsTool.Services
         public int GetNumDetections(int userId)
         {
             return DetectedDsoObservations(userId)
-                .Select(d => d.DsoId)
+                .AsEnumerable()
+                .Select(d => d.GetObjectKey())
+                .Where(objectKey => !string.IsNullOrWhiteSpace(objectKey))
                 .Distinct()
                 .Count();
         }
@@ -59,14 +61,19 @@ namespace ObsTool.Services
         public int GetNumNonDetections(int userId)
         {
             var detectedDsoIds = DetectedDsoObservations(userId)
-                .Select(d => d.DsoId)
-                .Distinct();
+                .AsEnumerable()
+                .Select(d => d.GetObjectKey())
+                .Where(objectKey => !string.IsNullOrWhiteSpace(objectKey))
+                .Distinct()
+                .ToHashSet();
 
             return _dbContext.DsoObservations
                 .Where(d => d.Observation.UserId == userId)
                 .Where(d => d.NonDetection || d.Observation.NonDetection)
-                .Where(d => !detectedDsoIds.Contains(d.DsoId))
-                .Select(d => d.DsoId)
+                .AsEnumerable()
+                .Where(d => !detectedDsoIds.Contains(d.GetObjectKey()))
+                .Select(d => d.GetObjectKey())
+                .Where(objectKey => !string.IsNullOrWhiteSpace(objectKey))
                 .Distinct()
                 .Count();
         }
@@ -76,7 +83,9 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Where(o => o.UserId == userId)
                 .SelectMany(o => o.DsoObservations)
-                .Select(dsoObs => dsoObs.Dso.Id)
+                .AsEnumerable()
+                .Select(dsoObs => dsoObs.GetObjectKey())
+                .Where(objectKey => !string.IsNullOrWhiteSpace(objectKey))
                 .Distinct()
                 .Count();
         }
@@ -145,7 +154,8 @@ namespace ObsTool.Services
 
             var observedDsoIds = DetectedDsoObservations(userId)
                 .AsNoTracking()
-                .Select(dsoObservation => dsoObservation.DsoId)
+                .Where(dsoObservation => dsoObservation.DsoId.HasValue)
+                .Select(dsoObservation => dsoObservation.DsoId.Value)
                 .Distinct()
                 .ToHashSet();
 
@@ -181,7 +191,8 @@ namespace ObsTool.Services
 
             var observedDsoIds = DetectedDsoObservations(userId)
                 .AsNoTracking()
-                .Select(dsoObservation => dsoObservation.DsoId)
+                .Where(dsoObservation => dsoObservation.DsoId.HasValue)
+                .Select(dsoObservation => dsoObservation.DsoId.Value)
                 .Distinct()
                 .ToHashSet();
 
@@ -189,15 +200,17 @@ namespace ObsTool.Services
                 .AsNoTracking()
                 .Where(dsoObservation => dsoObservation.Observation.UserId == userId)
                 .Where(dsoObservation => dsoObservation.NonDetection || dsoObservation.Observation.NonDetection)
-                .Select(dsoObservation => dsoObservation.DsoId)
+                .Where(dsoObservation => dsoObservation.DsoId.HasValue)
+                .Select(dsoObservation => dsoObservation.DsoId.Value)
                 .Distinct()
                 .ToHashSet();
 
             var observedObjectsByConstellation = DetectedDsoObservations(userId)
                 .AsNoTracking()
+                .Where(dsoObservation => dsoObservation.DsoId.HasValue)
                 .Select(dsoObservation => new
                 {
-                    dsoObservation.DsoId,
+                    DsoId = dsoObservation.DsoId.Value,
                     Constellation = dsoObservation.Dso.Con
                 })
                 .ToList()
@@ -264,7 +277,7 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Where(o => o.UserId == userId)
                 .SelectMany(o => o.DsoObservations)
-                .Where(dsoObs => dsoObs.Dso.Type == type)
+                .Where(dsoObs => dsoObs.DsoId.HasValue && dsoObs.Dso.Type == type)
                 .Select(dsoObs => dsoObs.Dso.Id)
                 .Distinct()
                 .Count();
@@ -275,7 +288,7 @@ namespace ObsTool.Services
             return _dbContext.Observations
                 .Where(o => o.UserId == userId)
                 .SelectMany(o => o.DsoObservations)
-                .Where(dsoObs => dsoObs.Dso.Catalog == catalog)
+                .Where(dsoObs => dsoObs.DsoId.HasValue && dsoObs.Dso.Catalog == catalog)
                 .Select(dsoObs => dsoObs.Dso.Id)
                 .Distinct()
                 .Count();
@@ -288,6 +301,7 @@ namespace ObsTool.Services
                 .Where(h => h.SacDeepSkyObjectsId != null &&
                     _dbContext.DsoObservations.Any(dsoObservation =>
                         dsoObservation.Observation.UserId == userId &&
+                        dsoObservation.DsoId.HasValue &&
                         dsoObservation.DsoId == h.SacDeepSkyObjectsId &&
                         (includeNonDetections || (!dsoObservation.NonDetection && !dsoObservation.Observation.NonDetection))));
         }

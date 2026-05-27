@@ -107,6 +107,7 @@ const LinkToHome = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Lin
 const LinkToObservedDsos = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/observations" ref={ref} {...props} />);
 const LinkToSessions = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/sessions" ref={ref} {...props} />);
 const LinkToNewSession = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/newsession" ref={ref} {...props} />);
+const LinkToObjects = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/objects" ref={ref} {...props} />);
 const LinkToLocations = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/locations" ref={ref} {...props} />);
 const LinkToInstruments = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/instruments" ref={ref} {...props} />);
 const LinkToEyepieces = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/eyepieces" ref={ref} {...props} />);
@@ -284,6 +285,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         </Button>
                         <Button component={LinkToNewSession} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
+                        </Button>
+                        <Button component={LinkToObjects} className={classes.appbarButton}>
+                            <FontAwesomeIcon icon="star" className="faSpaceAfter" /> Objects
                         </Button>
                         <Button component={LinkToLocations} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="map-marked" className="faSpaceAfter" /> Locations

@@ -112,9 +112,9 @@ function LoginPage(props: ILoginPageProps) {
             <AppBar position="static" color="default">
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false}>
-                        <Link to="/login" className="appbar-brand">
+                        <a href={import.meta.env.BASE_URL} className="appbar-brand">
                             <img src={logo} className="logo-appbar" alt="logo" /><span className="appbar-title">ObsTool</span>
-                        </Link>
+                        </a>
                     </Typography>
                 </Toolbar>
             </AppBar>

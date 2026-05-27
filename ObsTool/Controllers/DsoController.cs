@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,15 +20,17 @@ namespace ObsTool
         private IDsoRepo _dsoRepo;
         private IH2500Repo _h2500Repo;
         private ObservationsService _observationsService;
+        private ObjectsRepo _objectsRepo;
         private readonly CurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
         public DsoController(IDsoRepo dsoRepo, IH2500Repo h2500Repo, ObservationsService observationsService,
-            CurrentUserService currentUserService, IMapper mapper)
+            ObjectsRepo objectsRepo, CurrentUserService currentUserService, IMapper mapper)
         {
             _dsoRepo = dsoRepo;
             _h2500Repo = h2500Repo;
             _observationsService = observationsService;
+            _objectsRepo = objectsRepo;
             _currentUserService = currentUserService;
             _mapper = mapper;
         }
@@ -37,40 +39,23 @@ namespace ObsTool
         public IActionResult GetAllObservedDso(bool includeHerschel = false)
         {
             var userId = _currentUserService.GetRequiredUserId();
-            // Get all observations in the whole database, mapped by DSO id
-            var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(userId);
-
-            // Secondly, get the DSOs
-            var dsoIds = observationsMapByDsoId.Keys.ToList();
-            ICollection<Dso> dsoList = _dsoRepo.GetMultipleDsoByIds(dsoIds, userId);
+            var observationsMapByObjectKey = _observationsService.GetAllObservationDtosMappedByObjectKey(userId, null);
 
             int maxCount = 2000;
-            var truncatedDsoList = dsoList.Take(maxCount);
-            IEnumerable<DsoDto> truncatedDsoDtoList = _mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
+            var observedObjects = GetObjectDtosByKeys(userId, observationsMapByObjectKey.Keys).ToList();
+            var truncatedDsoDtoList = observedObjects.Take(maxCount).ToList();
             if (includeHerschel)
             {
                 PopulateHerschelBadges(truncatedDsoDtoList);
             }
 
-            foreach (DsoDto dso in truncatedDsoDtoList)
-            {
-                if (observationsMapByDsoId.ContainsKey(dso.Id))
-                {
-                    var observations = observationsMapByDsoId[dso.Id];
-
-                    // Order observations by date
-                    var sortedObservations = observations.OrderByDescending(o => DateTime.Parse(o.ObsSession.Date));
-
-                    dso.NumObservations = observations.Count;
-                    dso.Observations = sortedObservations.ToArray();
-                }
-            }
+            AttachObservationsByObjectKey(truncatedDsoDtoList, observationsMapByObjectKey, orderByDate: true);
 
             // Order DSOs by number of observations
             var orderedDsoList = truncatedDsoDtoList.OrderByDescending(d => d.NumObservations);
 
             PagedResultDto<DsoDto> pagedResult = new PagedResultDto<DsoDto>();
-            int count = dsoList.Count;
+            int count = observedObjects.Count;
             pagedResult.Count = count > maxCount ? maxCount : count;
             pagedResult.Total = count;
             pagedResult.More = count > maxCount ? count - maxCount : 0;
@@ -102,30 +87,27 @@ namespace ObsTool
                 dsoList = _dsoRepo.GetMultipleDsoByQueryString(query, normalize: true, userId: userId);
 
                 int maxCount = 15;
-                var truncatedDsoList = dsoList.Take(maxCount);
-                IEnumerable<DsoDto> truncatedDsoDtoList = _mapper.Map<IEnumerable<DsoDto>>(truncatedDsoList);
+                var userObjectDtos = _objectsRepo.GetUserObjectsByQueryString(query, userId).Select(DsoDto.FromUserObject);
+                var dsoDtos = _mapper.Map<IEnumerable<DsoDto>>(dsoList);
+                var otherObjectDtos = _objectsRepo.GetOtherObjectsByQueryString(query).Select(DsoDto.FromOtherObject);
+                var matchingObjectDtos = userObjectDtos
+                    .Concat(dsoDtos)
+                    .Concat(otherObjectDtos)
+                    .ToList();
+                var truncatedDsoDtoList = matchingObjectDtos.Take(maxCount).ToList();
                 if (includeHerschel)
                 {
                     PopulateHerschelBadges(truncatedDsoDtoList);
                 }
 
-                var dsoIds = truncatedDsoDtoList.Select(dso => dso.Id).ToList<int>();
-
                 bool includePrevAndNextObservations = true;  // This is the only place where we pass true to include prev and next observations
-                var observationsMapByDsoId = _observationsService.GetAllObservationDtosMappedByDsoIdForMultipleDsoIds(userId, dsoIds, null, includePrevAndNextObservations);
-                
-                foreach (DsoDto dso in truncatedDsoDtoList)
-                {
-                    if (observationsMapByDsoId.ContainsKey(dso.Id))
-                    {
-                        var observations = observationsMapByDsoId[dso.Id];
-                        dso.NumObservations = observations.Count;
-                        dso.Observations = observations.ToArray();
-                    }
-                }
+                var objectKeys = truncatedDsoDtoList.Select(dso => dso.ObjectKey);
+                var observationsMapByObjectKey = _observationsService.GetAllObservationDtosMappedByObjectKey(
+                    userId, objectKeys, null, includePrevAndNextObservations);
+                AttachObservationsByObjectKey(truncatedDsoDtoList, observationsMapByObjectKey, orderByDate: false);
 
                 PagedResultDto<DsoDto> pagedResult = new PagedResultDto<DsoDto>();
-                int count = dsoList.Count;
+                int count = matchingObjectDtos.Count;
                 pagedResult.Count = count > maxCount ? maxCount : count;
                 pagedResult.Total = count;
                 pagedResult.More = count > maxCount ? count - maxCount : 0;
@@ -202,7 +184,9 @@ namespace ObsTool
 
         private void PopulateHerschelBadges(IEnumerable<DsoDto> dsoDtos)
         {
-            var dsoList = dsoDtos.ToList();
+            var dsoList = dsoDtos
+                .Where(dso => dso.ObjectKind == ObservedObjectKind.Sac)
+                .ToList();
             var herschelByDsoId = _h2500Repo.GetH2500ObjectsByDsoIds(dsoList.Select(d => d.Id))
                 .Where(h => h.SacDeepSkyObjectsId != null)
                 .GroupBy(h => h.SacDeepSkyObjectsId.Value)
@@ -214,6 +198,64 @@ namespace ObsTool
                 {
                     dso.HerschelObjects = herschelByDsoId[dso.Id];
                 }
+            }
+        }
+
+        /// <summary>
+        /// Loads SAC, User, and Other object DTOs for the object keys found in observations.
+        /// </summary>
+        private IEnumerable<DsoDto> GetObjectDtosByKeys(int userId, IEnumerable<string> objectKeys)
+        {
+            var objectKeySet = new HashSet<string>(objectKeys.Where(key => !string.IsNullOrWhiteSpace(key)));
+            var dsoIds = GetObjectIds(objectKeySet, ObservedObjectKind.Sac);
+            var otherObjectIds = GetObjectIds(objectKeySet, ObservedObjectKind.Other);
+            var userObjectIds = GetObjectIds(objectKeySet, ObservedObjectKind.User);
+
+            var dsoDtos = _mapper.Map<IEnumerable<DsoDto>>(_dsoRepo.GetMultipleDsoByIds(dsoIds, userId));
+            var userObjectDtos = _objectsRepo.GetUserObjects(userId)
+                .Where(userObject => userObjectIds.Contains(userObject.Id))
+                .Select(DsoDto.FromUserObject);
+            var otherObjectDtos = _objectsRepo.GetOtherObjects()
+                .Where(otherObject => otherObjectIds.Contains(otherObject.Id))
+                .Select(DsoDto.FromOtherObject);
+
+            return dsoDtos.Concat(userObjectDtos).Concat(otherObjectDtos);
+        }
+
+        /// <summary>
+        /// Extracts typed integer ids from object keys like Sac:1, Other:2, and User:3.
+        /// </summary>
+        private static List<int> GetObjectIds(IEnumerable<string> objectKeys, string objectKind)
+        {
+            string keyPrefix = objectKind + ":";
+            return objectKeys
+                .Where(key => key.StartsWith(keyPrefix, StringComparison.Ordinal))
+                .Select(key => key.Substring(keyPrefix.Length))
+                .Where(idPart => int.TryParse(idPart, out _))
+                .Select(int.Parse)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Attaches observation lists to mixed object DTOs using object keys instead of table-local ids.
+        /// </summary>
+        private static void AttachObservationsByObjectKey(
+            IEnumerable<DsoDto> objectDtos,
+            IReadOnlyDictionary<string, ICollection<ObservationDto>> observationsMapByObjectKey,
+            bool orderByDate)
+        {
+            foreach (DsoDto objectDto in objectDtos)
+            {
+                if (string.IsNullOrWhiteSpace(objectDto.ObjectKey) || !observationsMapByObjectKey.ContainsKey(objectDto.ObjectKey))
+                {
+                    continue;
+                }
+
+                var observations = observationsMapByObjectKey[objectDto.ObjectKey];
+                objectDto.NumObservations = observations.Count;
+                objectDto.Observations = orderByDate
+                    ? observations.OrderByDescending(o => DateTime.Parse(o.ObsSession.Date)).ToArray()
+                    : observations.ToArray();
             }
         }
 

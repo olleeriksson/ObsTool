@@ -15,7 +15,6 @@ import { IConstellationMapObject } from "../types/Types";
 
 export interface IDsoExtraProps extends WithStyles<typeof styles> {
   id?: number;
-  customObjectName?: string;
   error?: string;
   dso?: IDso;
 }
@@ -58,8 +57,8 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
     }
 
     const mapObject: IConstellationMapObject = {
-      dsoId: dso.id,
-      id: dso.id,
+      dsoId: dso.objectKind === undefined || dso.objectKind === "Sac" ? dso.id : undefined,
+      id: dso.objectKey || dso.id,
       name: dso.name,
       catalog: dso.catalog,
       catalogNumber: dso.catalogNumber,
@@ -81,25 +80,32 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
       );
     } else {
       if (this.props.dso) {
-        const sizeSeparator = this.props.dso.sizeMax && this.props.dso.sizeMax.trim() !== "" && this.props.dso.sizeMin && this.props.dso.sizeMin.trim() !== "" && " - ";
-
         // Prepare a search terms for Google image search
-        const translatedDsoType = obsToolUtils.translateDsoType(this.props.dso.type);
+        const translatedDsoType = obsToolUtils.translateDsoType(this.props.dso.type || "");
         const searchTerms = [this.props.dso.name || "", translatedDsoType || ""];
 
         const selectedObject = this.toMapObject();
         const canShowMap = selectedObject != null;
+        const detailItems = [
+          { label: "Type", value: this.props.dso.type },
+          { label: "Const", value: this.props.dso.con },
+          { label: "Mag", value: this.props.dso.mag },
+          { label: "SB", value: this.props.dso.sb },
+          { label: "Class", value: this.props.dso.class },
+          { label: "Dreyer", value: this.props.dso.dreyerDesc },
+          { label: "Size", value: [this.props.dso.sizeMax, this.props.dso.sizeMin].filter(Boolean).join(" - ") },
+          { label: "Notes", value: this.props.dso.notes },
+        ].filter(item => item.value && `${item.value}`.trim() !== "");
+
         return (
           <div className={classes.dsoExtra}>
             <Typography variant="caption" color="textSecondary" gutterBottom={true}>
-              <strong>Type:</strong> {this.props.dso.type} &nbsp;
-              <strong>Const:</strong> {this.props.dso.con} &nbsp;
-              <strong>Mag:</strong> {this.props.dso.mag} &nbsp;
-              <strong>SB:</strong> {this.props.dso.sb} &nbsp;
-              <strong>Class:</strong> {this.props.dso.class} &nbsp;
-              <strong>Dreyer:</strong> {this.props.dso.dreyerDesc} &nbsp;
-              <strong>Size:</strong> {this.props.dso.sizeMax} {sizeSeparator} {this.props.dso.sizeMin} &nbsp;
-              <strong>Notes:</strong> {this.props.dso.notes} &nbsp;|&nbsp;
+              {detailItems.map(item => (
+                <React.Fragment key={item.label}>
+                  <strong>{item.label}:</strong> {item.value} &nbsp;
+                </React.Fragment>
+              ))}
+              {detailItems.length > 0 && <>|&nbsp;</>}
               <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} />&nbsp;|&nbsp;
               <AladinLiteLink linkTitle="Aladin Lite" searchTerm={this.props.dso.name} />
               {canShowMap && (
@@ -144,7 +150,7 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
       } else {
         return (
           <Typography color="textSecondary" gutterBottom={true}>
-            Unable to load DSO object!
+            Unable to load object!
           </Typography>
         );
       }

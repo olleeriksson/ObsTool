@@ -125,7 +125,7 @@ class SearchInput extends React.Component<ISearchInputProps, ISearchInputState> 
                         }}
                         getOptionKey={(option) => {
                             if (typeof option === "string") return option;
-                            return option.dso ? `dso-${option.dso.id}` : `alt-${option.altText ?? ""}`;
+                            return option.dso ? (option.dso.objectKey || `Sac:${option.dso.id}`) : `alt-${option.altText ?? ""}`;
                         }}
                         filterOptions={(x) => x}
                         inputValue={this.state.inputValue}

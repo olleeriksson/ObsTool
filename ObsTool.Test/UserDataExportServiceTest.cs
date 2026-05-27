@@ -68,8 +68,8 @@ namespace TestProject
             var text = Encoding.UTF8.GetString(exportFile.Contents);
 
             Assert.That(exportFile.FileName, Does.EndWith(".txt"));
-            Assert.That(text, Does.Contain("Session title: Current user session"));
-            Assert.That(text, Does.Contain("Session instrument name: Current scope"));
+            Assert.That(text, Does.Contain("Title: Current user session"));
+            Assert.That(text, Does.Contain("Instrument: Current scope"));
             Assert.That(text, Does.Not.Contain("Other user session"));
             Assert.That(text, Does.Not.Contain("Other user report"));
         }
@@ -95,17 +95,17 @@ namespace TestProject
             Assert.That(workbookXml, Does.Contain("Resources"));
             Assert.That(workbookXml, Does.Contain("Herschel"));
             Assert.That(allWorksheetXml, Does.Contain("Current user session"));
-            Assert.That(allWorksheetXml, Does.Contain("Observation display order"));
-            Assert.That(allWorksheetXml, Does.Contain("Object names"));
-            Assert.That(allWorksheetXml, Does.Contain("Group detected"));
-            Assert.That(allWorksheetXml, Does.Contain("Object detected"));
+            Assert.That(allWorksheetXml, Does.Contain("Display order"));
+            Assert.That(allWorksheetXml, Does.Contain("Objects"));
+            Assert.That(allWorksheetXml, Does.Contain("All in group detected"));
+            Assert.That(allWorksheetXml, Does.Contain("Detected"));
             Assert.That(allWorksheetXml, Does.Not.Contain("Observed objects"));
             Assert.That(allWorksheetXml, Does.Not.Contain("DsoObservation detection"));
             Assert.That(allWorksheetXml, Does.Contain("Current observation text"));
             Assert.That(allWorksheetXml, Does.Contain("Observation scope"));
             Assert.That(allWorksheetXml, Does.Contain("Observed object"));
             Assert.That(allWorksheetXml, Does.Contain("Non-detected object"));
-            Assert.That(allWorksheetXml, Does.Contain("Session-local observation identifier"));
+            Assert.That(allWorksheetXml, Does.Contain("Session-local internal identifier"));
             Assert.That(allWorksheetXml, Does.Contain("Sketch one"));
             Assert.That(allWorksheetXml, Does.Contain("H I-1"));
             Assert.That(allWorksheetXml, Does.Contain("Herschel one"));
@@ -200,8 +200,8 @@ namespace TestProject
                     Instrument = observationInstrument,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { ObservationId = 1, DsoId = 1, CustomObjectName = "", DisplayOrder = 1, NonDetection = false },
-                        new DsoObservation { ObservationId = 1, DsoId = 2, CustomObjectName = "", DisplayOrder = 2, NonDetection = true }
+                        new DsoObservation { ObservationId = 1, DsoId = 1, DisplayOrder = 1, NonDetection = false },
+                        new DsoObservation { ObservationId = 1, DsoId = 2, DisplayOrder = 2, NonDetection = true }
                     },
                     ObsResources = new List<ObsResource>
                     {
@@ -217,7 +217,7 @@ namespace TestProject
                     Text = "Other user observation",
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { ObservationId = 2, DsoId = 3, CustomObjectName = "", DisplayOrder = 1, NonDetection = false }
+                        new DsoObservation { ObservationId = 2, DsoId = 3, DisplayOrder = 1, NonDetection = false }
                     }
                 });
             _dbContext.SaveChanges();

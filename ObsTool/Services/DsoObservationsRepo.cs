@@ -22,15 +22,14 @@ namespace ObsTool.Services
         public DsoObservation GetDsoObservation(int observationId, int dsoId)
         {
             DsoObservation dsoObservation = _dbContext.DsoObservations
-                .Single(dsoObs => dsoObs.CustomObjectName == "" && dsoObs.ObservationId == observationId
-                    && dsoObs.DsoId == dsoId);
+                .Single(dsoObs => dsoObs.ObservationId == observationId && dsoObs.DsoId == dsoId);
             return dsoObservation;
         }
 
         public DsoObservation GetDsoObservation(int observationId, int dsoId, int userId)
         {
             DsoObservation dsoObservation = _dbContext.DsoObservations
-                .Single(dsoObs => dsoObs.CustomObjectName == "" && dsoObs.ObservationId == observationId
+                .Single(dsoObs => dsoObs.ObservationId == observationId
                     && dsoObs.DsoId == dsoId && dsoObs.Observation.UserId == userId);
             return dsoObservation;
         }
@@ -41,6 +40,8 @@ namespace ObsTool.Services
 
             dsoObservation.Observation = null;
             dsoObservation.Dso = null;
+            dsoObservation.OtherObject = null;
+            dsoObservation.UserObject = null;
             _dbContext.DsoObservations.Remove(dsoObservation);
 
             return (_dbContext.SaveChanges() > 0);

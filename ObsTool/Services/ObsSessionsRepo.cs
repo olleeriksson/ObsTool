@@ -95,6 +95,8 @@ namespace ObsTool.Services
             {
                 query = query
                     .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtras)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                     .Include(s => s.Observations).ThenInclude(o => o.ObsResources)
                     .Include(s => s.Observations).ThenInclude(o => o.Instrument);
             }
@@ -102,6 +104,8 @@ namespace ObsTool.Services
             {
                 query = query
                     .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.Dso).ThenInclude(dso => dso.DsoExtras)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.OtherObject)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(obs => obs.UserObject)
                     .Include(s => s.Observations).ThenInclude(o => o.ObsResources)
                     .Include(s => s.Observations).ThenInclude(o => o.Instrument);
             }

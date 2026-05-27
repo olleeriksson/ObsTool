@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings, IAuthenticationStatus, ISignupRequest, IConfirmEmailRequest, IConfirmEmailResult, IForgotPasswordRequest, IResetPasswordRequest, IChangePasswordRequest, IUserAdminList, IAdminChangePasswordRequest } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings, IAuthenticationStatus, ISignupRequest, IConfirmEmailRequest, IConfirmEmailResult, IForgotPasswordRequest, IResetPasswordRequest, IChangePasswordRequest, IUserAdminList, IAdminChangePasswordRequest, IObjectList, IObservedObject, IUserObjectForSave } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
@@ -148,6 +148,36 @@ class Api {
 
     public static getAllDsosAndTheirObservations() {
         return axios.get<IPagedDsoList>(import.meta.env.VITE_API_URL + "/dso/observed?includeHerschel=true");
+    }
+
+    // Loads user-owned and shared non-SAC objects for the Objects page.
+    public static getObjects() {
+        return axios.get<IObjectList>(import.meta.env.VITE_API_URL + "/objects/");
+    }
+
+    // Creates a user object with Name as its stable parser identifier.
+    public static addUserObject(newObject: IUserObjectForSave) {
+        return axios.post<IObservedObject>(import.meta.env.VITE_API_URL + "/objects/user", newObject);
+    }
+
+    // Creates a shared readonly object; the backend enforces who may curate this list.
+    public static addOtherObject(newObject: IUserObjectForSave) {
+        return axios.post<IObservedObject>(import.meta.env.VITE_API_URL + "/objects/other", newObject);
+    }
+
+    // Updates user-object metadata; the backend ignores Name changes after creation.
+    public static updateUserObject(objectId: number, updatedObject: IUserObjectForSave) {
+        return axios.put<IObservedObject>(import.meta.env.VITE_API_URL + "/objects/user/" + objectId, updatedObject);
+    }
+
+    // Updates shared-object metadata; the backend enforces who may curate this list.
+    public static updateOtherObject(objectId: number, updatedObject: IUserObjectForSave) {
+        return axios.put<IObservedObject>(import.meta.env.VITE_API_URL + "/objects/other/" + objectId, updatedObject);
+    }
+
+    // Deletes a user object only when the backend confirms it is unreferenced.
+    public static deleteUserObject(objectId: number) {
+        return axios.delete(import.meta.env.VITE_API_URL + "/objects/user/" + objectId);
     }
 
     public static getHerschelDetails(dsoId: number) {

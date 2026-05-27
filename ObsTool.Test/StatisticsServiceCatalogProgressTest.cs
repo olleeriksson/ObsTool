@@ -159,7 +159,7 @@ namespace TestProject
                     NonDetection = false,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 1, CustomObjectName = "", NonDetection = false }
+                        new DsoObservation { DsoId = 1, NonDetection = false }
                     }
                 },
                 new Observation
@@ -170,7 +170,7 @@ namespace TestProject
                     NonDetection = false,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 2, CustomObjectName = "", NonDetection = true }
+                        new DsoObservation { DsoId = 2, NonDetection = true }
                     }
                 },
                 new Observation
@@ -181,7 +181,7 @@ namespace TestProject
                     NonDetection = true,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 3, CustomObjectName = "", NonDetection = false }
+                        new DsoObservation { DsoId = 3, NonDetection = false }
                     }
                 },
                 new Observation
@@ -192,8 +192,8 @@ namespace TestProject
                     NonDetection = false,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 4, CustomObjectName = "", NonDetection = false },
-                        new DsoObservation { DsoId = 6, CustomObjectName = "", NonDetection = false }
+                        new DsoObservation { DsoId = 4, NonDetection = false },
+                        new DsoObservation { DsoId = 6, NonDetection = false }
                     }
                 }
             );

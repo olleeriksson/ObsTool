@@ -52,38 +52,38 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-8389', S.Id, 'With ES82 24mm, M 8 came into view after a careful hop and looked like a soft oval glow, a cluster with nebulosity that needed a measured look. The name Lagoon Nebula suited the impression. It held after a few steady seconds. I checked the surrounding stars before moving on.', 0, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 1;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 0, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8389 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 0;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8389 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 0;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 8 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%208&fov=1.29&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 1 AND O.DisplayOrder = 0;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8381', S.Id, 'With XW10, M 20 came into view after a careful hop and looked like a wide low-contrast haze, a cluster with nebulosity that needed a measured look. The name Trifid Nebula suited the impression. It was modest, but distinct enough to trust. I checked the surrounding stars before moving on.', 1, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 1;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 1, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8381 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 1;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8381 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 1;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8398', S.Id, 'With Morpheus12.5, NGC 6530 came into view after a careful hop and looked like a loose star spray, a open cluster that needed a measured look. The name Herschel 36 suited the impression. The best view came while the field drifted. I checked the surrounding stars before moving on.', 2, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 1;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 2, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8398 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 2;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8398 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 2;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 6530 reused field sketch', O.Id, 'sketch', '13aKMVEMlGQYsotOguZjlkV30BqpF7-Hc&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 1 AND O.DisplayOrder = 2;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8202-8489-8465', S.Id, 'M 16 in UFF30 showed as a uneven glow; Averted vision helped frame the shape. M 17 in XW20 showed as a compact misty knot; It held after a few steady seconds. NGC 6603 in Morpheus9 showed as a grainy unresolved patch; It was modest, but distinct enough to trust.', 3, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 1;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 3, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8202 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8489 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8465 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 3;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8202 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8489 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8465 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 3;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 6603 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%206603&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 1 AND O.DisplayOrder = 3;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8525-8495-8507', S.Id, 'M 22 in HiFW12.5 showed as a small brightening; The best view came while the field drifted. NGC 6624 in ES92 17mm showed as a thin washed streak; Averted vision helped frame the shape. NGC 6638 in Morpheus14 showed as a soft oval glow; It held after a few steady seconds.', 4, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 1;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 4, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8525 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8495 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8507 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 4;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8525 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8495 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8507 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 6624 reused field sketch', O.Id, 'sketch', '1uHCqNLiDXlEuRfSskhzmYmQhdauxWYmH&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 1 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
@@ -92,8 +92,8 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-8511-8386-8564', S.Id, 'M 25 in BHZ showed as a wide low-contrast haze; It was modest, but distinct enough to trust. NGC 6520 in ES82 24mm showed as a loose star spray; The best view came while the field drifted. NGC 6818 in XW10 showed as a uneven glow; Averted vision helped frame the shape.', 5, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 1;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (1, 5, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8511 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8386 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8564 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 5;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8511 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8386 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8564 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 1 AND O.DisplayOrder = 5;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 6520 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%206520&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 1 AND O.DisplayOrder = 5;
 UPDATE ObsSessions
@@ -131,28 +131,28 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-60', S.Id, 'With Morpheus12.5, M 31 came into view after a careful hop and looked like a compact misty knot, a galaxy that needed a measured look. The name Andromeda Galaxy suited the impression. It held after a few steady seconds. I checked the surrounding stars before moving on.', 0, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 2;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 0, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 60 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 0;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 60 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 0;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 31 reused field sketch', O.Id, 'sketch', '1Cl4q2zhn8HhQHBnGNQxrcP0Fnhm5l4zj&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 2 AND O.DisplayOrder = 0;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-59', S.Id, 'With UFF30, M 32 came into view after a careful hop and looked like a grainy unresolved patch, a galaxy that needed a measured look. It was modest, but distinct enough to trust. I checked the surrounding stars before moving on.', 1, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 2;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 1, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 59 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 1;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 59 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 1;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-135', S.Id, 'With XW20, NGC 891 came into view after a careful hop and looked like a small brightening, a galaxy that needed a measured look. The best view came while the field drifted. I checked the surrounding stars before moving on.', 2, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 2;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 2, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 135 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 2;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 135 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 2;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8726-121-1321', S.Id, 'M 33 in Morpheus9 showed as a thin washed streak; Averted vision helped frame the shape. NGC 752 in HiFW12.5 showed as a soft oval glow; It held after a few steady seconds. NGC 457 in ES92 17mm showed as a wide low-contrast haze; It was modest, but distinct enough to trust.', 3, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 2;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 3, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8726 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 121 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 1321 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 3;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8726 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 121 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 1321 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 3;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 33 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2033&fov=1.96&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 2 AND O.DisplayOrder = 3;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
@@ -161,16 +161,16 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-7044-4487-4485', S.Id, 'M 34 in Morpheus14 showed as a loose star spray; The best view came while the field drifted. M 35 in BHZ showed as a uneven glow; Averted vision helped frame the shape. NGC 2158 in ES82 24mm showed as a compact misty knot; It held after a few steady seconds.', 4, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 2;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 4, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 7044 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 4487 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 4485 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 4;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 7044 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 4487 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 4485 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 2158 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%202158&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 2 AND O.DisplayOrder = 4;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-690-1400-6791', S.Id, 'M 36 in XW10 showed as a grainy unresolved patch; It was modest, but distinct enough to trust. NGC 7789 in Morpheus12.5 showed as a small brightening; The best view came while the field drifted. NGC 7331 in UFF30 showed as a thin washed streak; Averted vision helped frame the shape.', 5, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 2;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (2, 5, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 690 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 1400 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6791 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 5;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 690 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 1400 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6791 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 2 AND O.DisplayOrder = 5;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 7789 reused field sketch', O.Id, 'sketch', '1uB7mk5YPABL42h8nOpDodXLzRTF8kT_Y&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 2 AND O.DisplayOrder = 5;
 UPDATE ObsSessions
@@ -208,36 +208,36 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-703', S.Id, 'With XW20, M 37 came into view after a careful hop and looked like a soft oval glow, a open cluster that needed a measured look. The name January Salt-and-Pepper Cluster suited the impression. It held after a few steady seconds. I checked the surrounding stars before moving on.', 0, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 3;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 0, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 703 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 0;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 703 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 0;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-688', S.Id, 'With Morpheus9, M 38 came into view after a careful hop and looked like a wide low-contrast haze, a open cluster that needed a measured look. The name Starfish Cluster suited the impression. It was modest, but distinct enough to trust. I checked the surrounding stars before moving on.', 1, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 3;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 1, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 688 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 1;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 688 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 1;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 38 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2038&fov=0.60&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 3 AND O.DisplayOrder = 1;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-6578', S.Id, 'With HiFW12.5, NGC 2024 came into view after a careful hop and looked like a loose star spray, a bright nebula that needed a measured look. The name Flame Nebula suited the impression. The best view came while the field drifted. I checked the surrounding stars before moving on.', 2, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 3;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 2, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 6578 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 2;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 6578 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 2;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-6326-6342-6562', S.Id, 'M 42 in ES92 17mm showed as a uneven glow; Averted vision helped frame the shape. NGC 1977 in Morpheus14 showed as a compact misty knot; It held after a few steady seconds. NGC 1981 in BHZ showed as a grainy unresolved patch; It was modest, but distinct enough to trust.', 3, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 3;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 3, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 6326 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 6342 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6562 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 3;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 6326 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 6342 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6562 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 3;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 42 reused field sketch', O.Id, 'sketch', '1yahsh8na5gbhdqpKxUg64NS_uc7kDVC6&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 3 AND O.DisplayOrder = 3;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8596-8658-6195', S.Id, 'M 45 in ES82 24mm showed as a small brightening; The best view came while the field drifted. M 1 in XW10 showed as a thin washed streak; Averted vision helped frame the shape. NGC 2264 in Morpheus12.5 showed as a soft oval glow; It held after a few steady seconds.', 4, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 3;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 4, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8596 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8658 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6195 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 4;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8596 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 8658 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 6195 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 45 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2045&fov=2.80&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 3 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
@@ -246,8 +246,8 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-7638-2235-7640', S.Id, 'M 46 in UFF30 showed as a wide low-contrast haze; It was modest, but distinct enough to trust. NGC 2362 in XW20 showed as a loose star spray; The best view came while the field drifted. NGC 2440 in Morpheus9 showed as a uneven glow; Averted vision helped frame the shape.', 5, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 3;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (3, 5, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 7638 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 2235 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 7640 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 5;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 7638 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 2235 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 7640 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 3 AND O.DisplayOrder = 5;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 2440 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%202440&fov=1.54&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 3 AND O.DisplayOrder = 5;
 UPDATE ObsSessions
@@ -285,36 +285,36 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-9697', S.Id, 'With HiFW12.5, M 84 came into view after a careful hop and looked like a compact misty knot, a galaxy that needed a measured look. The name Markarian''s Chain suited the impression. It held after a few steady seconds. I checked the surrounding stars before moving on.', 0, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 4;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 0, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9697 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 0;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9697 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 0;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-9709', S.Id, 'With ES92 17mm, M 86 came into view after a careful hop and looked like a grainy unresolved patch, a galaxy that needed a measured look. The name Faust V051 suited the impression. It was modest, but distinct enough to trust. I checked the surrounding stars before moving on.', 1, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 4;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 1, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9709 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 1;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9709 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 1;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 86 reused field sketch', O.Id, 'sketch', '1iLwuvyx0nLkmiDrb6bZodpykSFkDoHci&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 4 AND O.DisplayOrder = 1;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-9739', S.Id, 'With Morpheus14, NGC 4438 came into view after a careful hop and looked like a small brightening, a galaxy that needed a measured look. The name The Eyes suited the impression. The best view came while the field drifted. I checked the surrounding stars before moving on.', 2, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 4;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 2, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9739 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 2;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9739 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 2;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-9768-9764-9762', S.Id, 'M 87 in BHZ showed as a thin washed streak; Averted vision helped frame the shape. NGC 4478 in ES82 24mm showed as a soft oval glow; It held after a few steady seconds. NGC 4476 in XW10 showed as a wide low-contrast haze; It was modest, but distinct enough to trust.', 3, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 4;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 3, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9768 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9764 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9762 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 3;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9768 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9764 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9762 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 3;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 4478 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%204478&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 4 AND O.DisplayOrder = 3;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-2581-9815-9817', S.Id, 'M 88 showed as a loose star spray; The best view came while the field drifted. NGC 4567 showed as a uneven glow; Averted vision helped frame the shape. NGC 4568 showed as a compact misty knot; It held after a few steady seconds.', 4, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 4;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 4, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 2581 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9815 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9817 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 4;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 2581 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9815 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9817 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 88 reused field sketch', O.Id, 'sketch', '1y0Hng5J8lU7GbMECAtBgOPRftAHPpLhE&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 4 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
@@ -323,8 +323,8 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-2517-2538-2527', S.Id, 'M 99 showed as a grainy unresolved patch; It was modest, but distinct enough to trust. M 100 showed as a small brightening; The best view came while the field drifted. NGC 4298 showed as a thin washed streak; Averted vision helped frame the shape.', 5, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 4;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (4, 5, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 2517 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 2538 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 2527 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 5;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 2517 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 2538 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 2527 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 4 AND O.DisplayOrder = 5;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 99 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=M%2099&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 4 AND O.DisplayOrder = 5;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
@@ -364,44 +364,44 @@ INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, 
 SELECT 2, S.Id || '-8856', S.Id, 'M 81 came into view after a careful hop and looked like a soft oval glow, a galaxy that needed a measured look. The name Bode''s Galaxy suited the impression. It held after a few steady seconds. I checked the surrounding stars before moving on.', 0, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 5;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 0, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8856 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 0;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8856 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 0;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8958', S.Id, 'M 82 came into view after a careful hop and looked like a wide low-contrast haze, a galaxy that needed a measured look. The name Cigar Galaxy suited the impression. It was modest, but distinct enough to trust. I checked the surrounding stars before moving on.', 1, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 5;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 1, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8958 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 1;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8958 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 1;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-8965', S.Id, 'NGC 3077 came into view after a careful hop and looked like a loose star spray, a galaxy that needed a measured look. The name The Garland Galaxy suited the impression. The best view came while the field drifted. I checked the surrounding stars before moving on.', 2, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 5;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 2, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8965 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 2;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 8965 AS DsoId, 0 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 2;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 3077 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%203077&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 5 AND O.DisplayOrder = 2;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-9074-9069-8963', S.Id, 'M 97 showed as a uneven glow; Averted vision helped frame the shape. M 108 showed as a compact misty knot; It held after a few steady seconds. NGC 3079 showed as a grainy unresolved patch; It was modest, but distinct enough to trust.', 3, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 1 WHERE S.Seq = 5;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 3, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9074 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9069 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8963 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 3;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9074 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9069 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 8963 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 3;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 108 reused field sketch', O.Id, 'sketch', '1--N-pbYTzkhx5T9bgP4mSRtJ688Zg7Fl&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 5 AND O.DisplayOrder = 3;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-9355-9361-9374', S.Id, 'M 101 showed as a small brightening; The best view came while the field drifted. NGC 5474 showed as a thin washed streak; Averted vision helped frame the shape. NGC 5585 showed as a soft oval glow; It held after a few steady seconds.', 4, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 5;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 4, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9355 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9361 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9374 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 4;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9355 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9361 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 9374 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 4;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'NGC 5474 DSS2 color photo', O.Id, 'image', 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS/P/DSS2/color&object=NGC%205474&fov=0.30&width=900&height=900&projection=TAN&coordsys=icrs&format=jpg&stretch=asinh', 0, 0, 0, 100 FROM __seed_observations O WHERE O.SessionSeq = 5 AND O.DisplayOrder = 4;
 INSERT INTO Observations (UserId, Identifier, ObsSessionId, Text, DisplayOrder, NonDetection, InstrumentId)
 SELECT 2, S.Id || '-9231-9211-2995', S.Id, 'M 109 showed as a wide low-contrast haze; It was modest, but distinct enough to trust. NGC 3953 showed as a loose star spray; The best view came while the field drifted. NGC 4217 showed as a uneven glow; Averted vision helped frame the shape.', 5, 0, I.Id
 FROM __seed_sessions S JOIN __seed_instruments I ON I.Seq = 2 WHERE S.Seq = 5;
 INSERT INTO __seed_observations (SessionSeq, DisplayOrder, Id) VALUES (5, 5, last_insert_rowid());
-INSERT INTO DsoObservations (CustomObjectName, ObservationId, DsoId, DisplayOrder, NonDetection)
-SELECT '', O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9231 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9211 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 2995 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 5;
+INSERT INTO DsoObservations (ObservationId, DsoId, DisplayOrder, NonDetection)
+SELECT O.Id, D.DsoId, D.DisplayOrder, 0 FROM __seed_observations O JOIN (SELECT 9231 AS DsoId, 0 AS DisplayOrder UNION ALL SELECT 9211 AS DsoId, 1 AS DisplayOrder UNION ALL SELECT 2995 AS DsoId, 2 AS DisplayOrder) D WHERE O.SessionSeq = 5 AND O.DisplayOrder = 5;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)
 SELECT 2, 'M 109 reused field sketch', O.Id, 'sketch', '1aKDO0kPvsJTMi8lgg6yqKvubuAwrnDW3&usp=drive_fs', 0, 0, 255, 100 FROM __seed_observations O WHERE O.SessionSeq = 5 AND O.DisplayOrder = 5;
 INSERT INTO ObsResources (UserId, Name, ObservationId, Type, Url, Rotation, Inverted, BackgroundColor, ZoomLevel)

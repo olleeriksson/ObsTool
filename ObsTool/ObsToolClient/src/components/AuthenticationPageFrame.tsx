@@ -5,7 +5,6 @@ import Paper from "@mui/material/Paper";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import type { Theme } from "@mui/material/styles";
-import { Link } from "react-router-dom";
 import logo from "../assets/images/obstool-logo-navbar-55px.png";
 import { createStyles, withStyles } from "src/muiCompat";
 import type { WithStyles } from "src/muiCompat";
@@ -40,9 +39,9 @@ function AuthenticationPageFrame(props: IAuthenticationPageFrameProps) {
             <AppBar position="static" color="default">
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false}>
-                        <Link to="/login" className="appbar-brand">
+                        <a href={import.meta.env.BASE_URL} className="appbar-brand">
                             <img src={logo} className="logo-appbar" alt="logo" /><span className="appbar-title">ObsTool</span>
-                        </Link>
+                        </a>
                     </Typography>
                 </Toolbar>
             </AppBar>

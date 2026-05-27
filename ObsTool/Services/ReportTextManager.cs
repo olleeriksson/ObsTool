@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ObsTool.Utils;
 using ObsTool.Database;
+using ObsTool.Models;
 
 namespace ObsTool.Services
 {
     public class ReportTextManager
     {
-        private const string ObservationIdentifierPattern = @"\d+(?:-(?:\d+|![A-Z0-9]+!))*";
+        private const string ObservationIdentifierTokenPattern = @"(?:\d+|\[[^\]\r\n]+\]|\{[^\}\r\n]+\}|![A-Z0-9]+!)";
+        private const string ObservationIdentifierPattern = @"\d+(?:-" + ObservationIdentifierTokenPattern + @")*";
         private const string DecoratedObservationIdentifierPattern = @"\s(#(" + ObservationIdentifierPattern + @"))[\s\.$]?";
 
         private MainDbContext _dbContext;
@@ -23,6 +25,7 @@ namespace ObsTool.Services
         private IInstrumentsRepo _instrumentsRepo;
         private ILogger<ReportTextManager> _logger;
         private DsoObservationsRepo _dsoObservationsRepo;
+        private ObjectsRepo _objectsRepo;
 
         private sealed class InstrumentDirective
         {
@@ -37,6 +40,29 @@ namespace ObsTool.Services
             public string Text { get; set; }
         }
 
+        private sealed class ParsedObjectTarget
+        {
+            public int Index { get; set; }
+            public bool NonDetection { get; set; }
+            public Dso Dso { get; set; }
+            public OtherObject OtherObject { get; set; }
+            public UserObject UserObject { get; set; }
+            public string ObjectKey { get; set; }
+        }
+
+        private sealed class NamedObjectMatch<TObject>
+        {
+            public int Index { get; set; }
+            public int Length { get; set; }
+            public TObject Object { get; set; }
+        }
+
+        private sealed class TextSpan
+        {
+            public int Index { get; set; }
+            public int Length { get; set; }
+        }
+
         public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
             ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo)
             : this(dbContext, observationsRepo, dsoRepo, logger, dsoObservationsRepo, null)
@@ -44,7 +70,7 @@ namespace ObsTool.Services
         }
 
         public ReportTextManager(MainDbContext dbContext, ObservationsRepo observationsRepo, IDsoRepo dsoRepo,
-            ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo, IInstrumentsRepo instrumentsRepo)
+            ILogger<ReportTextManager> logger, DsoObservationsRepo dsoObservationsRepo, IInstrumentsRepo instrumentsRepo, ObjectsRepo objectsRepo = null)
         {
             _dbContext = dbContext;
             _observationsRepo = observationsRepo;
@@ -52,6 +78,7 @@ namespace ObsTool.Services
             _logger = logger;
             _dsoObservationsRepo = dsoObservationsRepo;
             _instrumentsRepo = instrumentsRepo;
+            _objectsRepo = objectsRepo;
         }
 
         public void DisplayName() => Console.WriteLine(ToString());
@@ -304,7 +331,7 @@ namespace ObsTool.Services
         {
             string reportText = obsSession.ReportText;
             OrderedDictionary<string, Observation> observationsDict = new OrderedDictionary<string, Observation>();
-            IDictionary<Match, string> newSectionMatchesDict = new Dictionary<Match, string>();
+            IDictionary<ReportParagraph, string> newSectionMatchesDict = new Dictionary<ReportParagraph, string>();
             identifiersFoundInReportText = FindExistingObsIdentifiers(reportText);
             identifiersWithUnmatchedDsoNames = new HashSet<string>();
 
@@ -366,28 +393,60 @@ namespace ObsTool.Services
             string followUpRegexp = @"\s(re-?visit|come back|telescope)" + flagOutro;
             var findFollowUpRegexp = new Regex(followUpRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+            var userObjects = _objectsRepo?.GetUserObjects(obsSession.UserId).ToList() ?? new List<UserObject>();
+            var otherObjects = _objectsRepo?.GetOtherObjects().ToList() ?? new List<OtherObject>();
+            var reportParagraphs = GetReportParagraphs(reportText).ToList();
             var instrumentDirectives = FindInstrumentDirectives(obsSession.UserId, reportText);
 
-            if (findSectionsRegexp.IsMatch(reportText))  // matches anywhere
+            if (reportParagraphs.Any())  // matches anywhere
             {
                 int obsIndex = 0;
-                ISet<int> foundDsoIds = new HashSet<int>();
+                ISet<string> foundObjectKeys = new HashSet<string>();
                 ISet<string> foundUnmatchedDsoNames = new HashSet<string>();
 
-                MatchCollection sectionsMatches = findSectionsRegexp.Matches(reportText);  // matching on the whole report text
-                foreach (Match sectionsMatch in sectionsMatches)
+                foreach (ReportParagraph sectionsMatch in reportParagraphs)
                 {
-                    string sectionText = sectionsMatch.Value.Trim();  // the whole section, including resource links
+                    string sectionText = sectionsMatch.Text.Trim();  // the whole section, including resource links
                     string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
                     var observationsIdentifier = FindExistingObsIdentifier(replacedDeprectedIdentifiers);
-                    int sectionEndIndex = sectionsMatch.Index + sectionsMatch.Value.Length;
+                    int sectionEndIndex = sectionsMatch.Index + sectionsMatch.Text.Length;
                     int? sectionInstrumentId = GetInstrumentIdForSection(obsSession.InstrumentId, instrumentDirectives, sectionEndIndex);
 
                     string sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
-                    var dsosInSection = new Dictionary<int, Dso>();
-                    var nonDetectionDsosInSection = new Dictionary<int, bool>();
+                    var parsedTargetsInSection = new List<ParsedObjectTarget>();
+                    var objectKeysInSection = new HashSet<string>();
+                    var targetSpansInSection = new List<TextSpan>();
                     var unmatchedDsoNamesInSection = new Dictionary<string, bool>();
                     var obsResourcesInSection = new List<ObsResource>();
+
+                    // User objects intentionally take priority over SAC and Other objects when names overlap.
+                    foreach (NamedObjectMatch<UserObject> userObjectMatch in FindUserObjectMatches(sectionObsText, userObjects))
+                    {
+                        if (OverlapsAny(userObjectMatch.Index, userObjectMatch.Length, targetSpansInSection))
+                        {
+                            continue;
+                        }
+
+                        string objectKey = $"{ObservedObjectKind.User}:{userObjectMatch.Object.Id}";
+                        if (foundObjectKeys.Contains(objectKey))
+                        {
+                            throw new ObsToolException("Save aborted. User object " + userObjectMatch.Object.Name + " found in more than one section of the report text!");
+                        }
+
+                        if (!objectKeysInSection.Add(objectKey))
+                        {
+                            continue;
+                        }
+
+                        parsedTargetsInSection.Add(new ParsedObjectTarget
+                        {
+                            Index = userObjectMatch.Index,
+                            NonDetection = false,
+                            UserObject = userObjectMatch.Object,
+                            ObjectKey = objectKey
+                        });
+                        targetSpansInSection.Add(new TextSpan { Index = userObjectMatch.Index, Length = userObjectMatch.Length });
+                    }
 
                     // Collect all the DSO's in the section text.
                     MatchCollection dsoNameMatches = findDsoNamesRegexp.Matches(sectionObsText);  // matching on a single section
@@ -416,6 +475,11 @@ namespace ObsTool.Services
 
                         // Ignore pattern if it's surrounded by parenthesis (existing behaviour)
                         if (startMarker == "(" || endMarker == ")")
+                        {
+                            continue;
+                        }
+
+                        if (OverlapsAny(dsoNameMatch.Index, dsoNameMatch.Length, targetSpansInSection))
                         {
                             continue;
                         }
@@ -449,19 +513,55 @@ namespace ObsTool.Services
                             Debug.WriteLine("Found: " + dso.ToString());
                         }
 
-                        if (foundDsoIds.Contains(dso.Id))
+                        string objectKey = $"{ObservedObjectKind.Sac}:{dso.Id}";
+                        if (foundObjectKeys.Contains(objectKey))
                         {
                             throw new ObsToolException("Save aborted. DSO " + dso.ToString() + " found in more than one section of the report text!");
                         }
-                        if (dsosInSection.ContainsKey(dso.Id))
+                        if (!objectKeysInSection.Add(objectKey))
                         {
                             continue;  // ignore when the same object is mentioned more than one
                         }
 
-                        dsosInSection.Add(dso.Id, dso);
-                        nonDetectionDsosInSection[dso.Id] = isNonDetectionDso;
+                        parsedTargetsInSection.Add(new ParsedObjectTarget
+                        {
+                            Index = dsoNameMatch.Index,
+                            NonDetection = isNonDetectionDso,
+                            Dso = dso,
+                            ObjectKey = objectKey
+                        });
+                        targetSpansInSection.Add(new TextSpan { Index = dsoNameMatch.Index, Length = dsoNameMatch.Length });
 
                         Debug.WriteLine("---------------------------------------------------------");
+                    }
+
+                    // Other objects are checked last so they do not steal text already resolved as User or SAC objects.
+                    foreach (NamedObjectMatch<OtherObject> otherObjectMatch in FindOtherObjectMatches(sectionObsText, otherObjects))
+                    {
+                        if (OverlapsAny(otherObjectMatch.Index, otherObjectMatch.Length, targetSpansInSection))
+                        {
+                            continue;
+                        }
+
+                        string objectKey = $"{ObservedObjectKind.Other}:{otherObjectMatch.Object.Id}";
+                        if (foundObjectKeys.Contains(objectKey))
+                        {
+                            throw new ObsToolException("Save aborted. Other object " + otherObjectMatch.Object.Name + " found in more than one section of the report text!");
+                        }
+
+                        if (!objectKeysInSection.Add(objectKey))
+                        {
+                            continue;
+                        }
+
+                        parsedTargetsInSection.Add(new ParsedObjectTarget
+                        {
+                            Index = otherObjectMatch.Index,
+                            NonDetection = false,
+                            OtherObject = otherObjectMatch.Object,
+                            ObjectKey = objectKey
+                        });
+                        targetSpansInSection.Add(new TextSpan { Index = otherObjectMatch.Index, Length = otherObjectMatch.Length });
                     }
 
                     // Collect all the obs resources
@@ -508,28 +608,28 @@ namespace ObsTool.Services
 
                     // If section contained matches regex'ly but that could not be matched against anything
                     // in the DSO database
-                    if (dsosInSection.Count == 0 && unmatchedDsoNamesInSection.Count == 0)
+                    if (parsedTargetsInSection.Count == 0 && unmatchedDsoNamesInSection.Count == 0)
                     {
                         continue;
                     }
 
                     if (sectionNonDetection && (
-                        nonDetectionDsosInSection.Values.Any(isNonDet => isNonDet)
+                        parsedTargetsInSection.Any(target => target.NonDetection)
                         || unmatchedDsoNamesInSection.Values.Any(isNonDet => isNonDet)))
                     {
                         throw new ObsToolException(
                             "A section is marked as a non-detection (!!) and also contains a DSO individually marked as a non-detection (!…!). Use one or the other.");
                     }
 
-                    int numTargetsInSection = dsosInSection.Count + unmatchedDsoNamesInSection.Count;
+                    int numTargetsInSection = parsedTargetsInSection.Count + unmatchedDsoNamesInSection.Count;
                     bool allTargetsNonDetected =
                         numTargetsInSection > 0
-                        && dsosInSection.Keys.All(id => nonDetectionDsosInSection.ContainsKey(id) && nonDetectionDsosInSection[id])
+                        && parsedTargetsInSection.All(target => target.NonDetection)
                         && unmatchedDsoNamesInSection.Values.All(isNonDet => isNonDet);
                     bool nonDetection = sectionNonDetection || allTargetsNonDetected;
 
                     // Add any ratings or follow up flags to the DSO's
-                    foreach (Dso dso in dsosInSection.Values)
+                    foreach (Dso dso in parsedTargetsInSection.Where(target => target.Dso != null).Select(target => target.Dso))
                     {
                         bool noExistingDsoExtra = (dso.DsoExtra == null);
                         if (noExistingDsoExtra)
@@ -558,7 +658,9 @@ namespace ObsTool.Services
                         // If none was found in the section text, create one and remember it
                         observationsIdentifier = CreateNewObsIdentifier(
                             obsSession.Id,
-                            dsosInSection.Values.ToList(),
+                            parsedTargetsInSection.Where(target => target.Dso != null).Select(target => target.Dso).ToList(),
+                            parsedTargetsInSection.Where(target => target.OtherObject != null).Select(target => target.OtherObject).ToList(),
+                            parsedTargetsInSection.Where(target => target.UserObject != null).Select(target => target.UserObject).ToList(),
                             unmatchedDsoNamesInSection.Keys.ToList());
                         newSectionMatchesDict.Add(sectionsMatch, observationsIdentifier);
                     }
@@ -575,23 +677,27 @@ namespace ObsTool.Services
                         InstrumentId = sectionInstrumentId
                     };
 
-                    // Add all DSOs to the observation
+                    // Add all resolved targets to the observation.
                     int dsoObsIndex = 0;
-                    foreach (Dso dso in dsosInSection.Values)
+                    foreach (ParsedObjectTarget parsedTarget in parsedTargetsInSection.OrderBy(target => target.Index).ThenBy(target => target.ObjectKey))
                     {
-                        // Remember all the DSOs in this section for the checks in the next section, and the next etc..
-                        foundDsoIds.Add(dso.Id);
+                        // Remember all objects in this section for the checks in the next section, and the next etc..
+                        foundObjectKeys.Add(parsedTarget.ObjectKey);
 
                         var dsoObservation = new DsoObservation
                         {
-                            Dso = dso,
-                            DsoId = dso.Id,
+                            Dso = parsedTarget.Dso,
+                            DsoId = parsedTarget.Dso?.Id,
+                            OtherObject = parsedTarget.OtherObject,
+                            OtherObjectId = parsedTarget.OtherObject?.Id,
+                            UserObject = parsedTarget.UserObject,
+                            UserObjectId = parsedTarget.UserObject?.Id,
                             DisplayOrder = dsoObsIndex++,
-                            NonDetection = (nonDetectionDsosInSection.ContainsKey(dso.Id) && nonDetectionDsosInSection[dso.Id]) || sectionNonDetection
+                            NonDetection = parsedTarget.NonDetection || sectionNonDetection
                             // no need to add observation.Id since it's just a POCO anyway ??????
                         };
 
-                        // Add the DSOs as DsoObservation's to the observation
+                        // Add the targets as DsoObservation's to the observation
                         observation.DsoObservations.Add(dsoObservation);
                     }
                     foreach (string unmatchedDsoName in unmatchedDsoNamesInSection.Keys)
@@ -609,13 +715,13 @@ namespace ObsTool.Services
 
                 // Insert the identifier at the end of all new section matches in the report text.
                 // Do it from back to front to keep the match indices from becoming obsolete when you add to the text.
-                foreach (var sectionsMatch in sectionsMatches.Cast<Match>().Reverse())
+                foreach (ReportParagraph sectionsMatch in reportParagraphs.AsEnumerable().Reverse())
                 {
                     if (newSectionMatchesDict.ContainsKey(sectionsMatch))  // only the new ones
                     {
                         // Using the trimmed length to find the end position of the text to be replaced so that the
                         // inserted obs identifier doesn't end up two newlines below, at the start of the next section.
-                        int trimmedLength = sectionsMatch.Value.Trim().Length;
+                        int trimmedLength = sectionsMatch.Text.Trim().Length;
                         int sectionEndPos = sectionsMatch.Index + trimmedLength;
                         string newObsIdentifier = newSectionMatchesDict[sectionsMatch];
                         string decoratedIdentifier = DecorateObsIdentifier(newObsIdentifier);
@@ -814,11 +920,130 @@ namespace ObsTool.Services
             return url;
         }
 
-        private string CreateNewObsIdentifier(int obsSessionId, List<Dso> dsoList, List<string> unmatchedDsoNames)
+        /// <summary>
+        /// Finds User object names in a paragraph using the same normalized search variants as the broader DSO search path.
+        /// </summary>
+        private List<NamedObjectMatch<UserObject>> FindUserObjectMatches(string sectionObsText, IEnumerable<UserObject> userObjects)
         {
-            // Keep identifiers deterministic so the same section round-trips even when objects are mentioned in a different order.
+            return FindNamedObjectMatches(sectionObsText, userObjects, userObject => userObject.Id, userObject => userObject.Name);
+        }
+
+        /// <summary>
+        /// Finds shared Other object names in a paragraph using the same normalized search variants as the broader DSO search path.
+        /// </summary>
+        private List<NamedObjectMatch<OtherObject>> FindOtherObjectMatches(string sectionObsText, IEnumerable<OtherObject> otherObjects)
+        {
+            return FindNamedObjectMatches(sectionObsText, otherObjects, otherObject => otherObject.Id, otherObject => otherObject.Name);
+        }
+
+        /// <summary>
+        /// Searches one paragraph for every stored object name and keeps the earliest, longest match per object.
+        /// </summary>
+        private List<NamedObjectMatch<TObject>> FindNamedObjectMatches<TObject>(
+            string sectionObsText,
+            IEnumerable<TObject> objects,
+            Func<TObject, int> getId,
+            Func<TObject, string> getName)
+        {
+            var matches = new List<NamedObjectMatch<TObject>>();
+            if (string.IsNullOrWhiteSpace(sectionObsText) || objects == null)
+            {
+                return matches;
+            }
+
+            foreach (TObject storedObject in objects)
+            {
+                string objectName = getName(storedObject);
+                foreach (Regex objectNameRegex in BuildObjectNameRegexes(objectName))
+                {
+                    foreach (Match objectNameMatch in objectNameRegex.Matches(sectionObsText))
+                    {
+                        matches.Add(new NamedObjectMatch<TObject>
+                        {
+                            Index = objectNameMatch.Index,
+                            Length = objectNameMatch.Length,
+                            Object = storedObject
+                        });
+                    }
+                }
+            }
+
+            return matches
+                .GroupBy(match => getId(match.Object))
+                .Select(group => group.OrderBy(match => match.Index).ThenByDescending(match => match.Length).First())
+                .OrderBy(match => match.Index)
+                .ThenByDescending(match => match.Length)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Builds exact and compact object-name regexes bounded by non-name characters.
+        /// </summary>
+        private IEnumerable<Regex> BuildObjectNameRegexes(string objectName)
+        {
+            string normalizedName = NormalizeObjectIdentifierTokenName(objectName);
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                yield break;
+            }
+
+            var patterns = new HashSet<string>();
+            patterns.Add(BuildStandaloneNamePattern(BuildWhitespaceFlexiblePattern(normalizedName)));
+
+            string compactName = DsoDesignationNormalizer.NormalizeCompactText(normalizedName);
+            if (!string.IsNullOrWhiteSpace(compactName)
+                && Regex.IsMatch(normalizedName, @"\s"))
+            {
+                patterns.Add(BuildStandaloneNamePattern(Regex.Escape(compactName)));
+            }
+
+            foreach (string pattern in patterns)
+            {
+                yield return new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            }
+        }
+
+        /// <summary>
+        /// Escapes a stored name while allowing the report text to use any whitespace between name parts.
+        /// </summary>
+        private string BuildWhitespaceFlexiblePattern(string name)
+        {
+            return string.Join(@"\s+", Regex.Split(name, @"\s+").Where(part => part.Length > 0).Select(Regex.Escape));
+        }
+
+        /// <summary>
+        /// Wraps a name pattern so it cannot match inside a larger word-like token.
+        /// </summary>
+        private string BuildStandaloneNamePattern(string escapedNamePattern)
+        {
+            return $@"(?<![\p{{L}}\p{{N}}_]){escapedNamePattern}(?![\p{{L}}\p{{N}}_])";
+        }
+
+        /// <summary>
+        /// Checks whether a candidate text match overlaps any higher-priority object match.
+        /// </summary>
+        private bool OverlapsAny(int index, int length, IEnumerable<TextSpan> spans)
+        {
+            return spans.Any(span => index < span.Index + span.Length && span.Index < index + length);
+        }
+
+        private string CreateNewObsIdentifier(
+            int obsSessionId,
+            List<Dso> dsoList,
+            List<OtherObject> otherObjects,
+            List<UserObject> userObjects,
+            List<string> unmatchedDsoNames)
+        {
+            // Hidden identifier tokens are deliberately grouped as SAC, Other, User, then unmatched text.
+            // The old behavior sorted SAC ids first and unmatched !TEXT! tokens last; keeping those positions avoids rewriting existing identifiers.
             var identifierParts = new List<string> { obsSessionId.ToString() };
             identifierParts.AddRange(dsoList.OrderBy(d => d.Id).Select(d => d.Id.ToString()));
+            identifierParts.AddRange(otherObjects
+                .OrderBy(otherObject => otherObject.Name)
+                .Select(otherObject => $"[{NormalizeObjectIdentifierTokenName(otherObject.Name)}]"));
+            identifierParts.AddRange(userObjects
+                .OrderBy(userObject => userObject.Name)
+                .Select(userObject => $"{{{NormalizeObjectIdentifierTokenName(userObject.Name)}}}"));
             identifierParts.AddRange(unmatchedDsoNames.OrderBy(name => name).Select(name => $"!{name}!"));
             return string.Join("-", identifierParts);
         }
@@ -840,6 +1065,14 @@ namespace ObsTool.Services
             string withoutSpaces = Regex.Replace(dsoName, @"\s+", "");
             string normalized = Regex.Replace(withoutSpaces, @"[^A-Za-z0-9]", "");
             return normalized.ToUpperInvariant();
+        }
+
+        /// <summary>
+        /// Normalizes Other/User object names before putting them inside hidden square/curly identifier tokens.
+        /// </summary>
+        private string NormalizeObjectIdentifierTokenName(string objectName)
+        {
+            return string.IsNullOrWhiteSpace(objectName) ? string.Empty : Regex.Replace(objectName.Trim(), @"\s+", " ");
         }
 
         /// <summary>

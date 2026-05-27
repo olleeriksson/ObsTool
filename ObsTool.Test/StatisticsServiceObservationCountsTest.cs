@@ -71,8 +71,8 @@ namespace TestProject
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 1, CustomObjectName = "" },
-                        new DsoObservation { DsoId = 2, CustomObjectName = "" }
+                        new DsoObservation { DsoId = 1 },
+                        new DsoObservation { DsoId = 2 }
                     }
                 },
                 new Observation
@@ -83,7 +83,7 @@ namespace TestProject
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 3, CustomObjectName = "" }
+                        new DsoObservation { DsoId = 3 }
                     }
                 }
             );
@@ -108,8 +108,8 @@ namespace TestProject
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 1, CustomObjectName = "" },
-                        new DsoObservation { DsoId = 2, CustomObjectName = "" }
+                        new DsoObservation { DsoId = 1 },
+                        new DsoObservation { DsoId = 2 }
                     }
                 },
                 new Observation
@@ -120,8 +120,8 @@ namespace TestProject
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 3, CustomObjectName = "", NonDetection = true },
-                        new DsoObservation { DsoId = 4, CustomObjectName = "", NonDetection = false }
+                        new DsoObservation { DsoId = 3, NonDetection = true },
+                        new DsoObservation { DsoId = 4, NonDetection = false }
                     }
                 }
             );
@@ -142,7 +142,7 @@ namespace TestProject
                     ObsSessionId = 1,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 1, CustomObjectName = "" }
+                        new DsoObservation { DsoId = 1 }
                     }
                 },
                 new Observation
@@ -153,7 +153,7 @@ namespace TestProject
                     ObsSessionId = 2,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 1, CustomObjectName = "" }
+                        new DsoObservation { DsoId = 1 }
                     }
                 },
                 new Observation
@@ -164,7 +164,7 @@ namespace TestProject
                     ObsSessionId = 3,
                     DsoObservations = new List<DsoObservation>
                     {
-                        new DsoObservation { DsoId = 2, CustomObjectName = "", NonDetection = true }
+                        new DsoObservation { DsoId = 2, NonDetection = true }
                     }
                 }
             );

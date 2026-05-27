@@ -11,7 +11,8 @@ namespace ObsTool
         {
             //CreateMap<Department, DepartmentDTO>().ReverseMap();
             // disabling because the full ObsSession object gives a recursive problem when asking for a dso's observations
-            CreateMap<Entities.DsoObservation, Models.DsoObservationDto>();
+            CreateMap<Entities.DsoObservation, Models.DsoObservationDto>()
+                .ConvertUsing(dsoObservation => Models.DsoObservationDto.FromEntity(dsoObservation));
             CreateMap<Entities.ObsSession, Models.ObsSessionDto>();
             CreateMap<Entities.ObsSession, Models.ObsSessionDtoSimple>();
             CreateMap<Models.ObsSessionDto, Entities.ObsSession>();
@@ -29,7 +30,12 @@ namespace ObsTool
             CreateMap<Models.EyepieceDto, Entities.Eyepiece>();
             CreateMap<Models.EyepieceDtoForCreation, Entities.Eyepiece>();
             CreateMap<Models.EyepieceDtoForUpdate, Entities.Eyepiece>();
-            CreateMap<Entities.Dso, Models.DsoDto>();
+            CreateMap<Entities.Dso, Models.DsoDto>()
+                .AfterMap((dso, dsoDto) =>
+                {
+                    dsoDto.ObjectKind = Models.ObservedObjectKind.Sac;
+                    dsoDto.ObjectKey = $"{Models.ObservedObjectKind.Sac}:{dso.Id}";
+                });
             CreateMap<Entities.Observation, Models.ObservationDto>();
             CreateMap<Models.ObservationDto, Entities.Observation>();
             CreateMap<Entities.ObsResource, Models.ObsResourceDto>();

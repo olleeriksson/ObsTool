@@ -408,7 +408,6 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                   <DsoShort
                     key={targetKey}
                     dso={dsoObs.dso}
-                    customObjectName={dsoObs.customObjectName}
                     nonDetection={dsoObs.nonDetection || o.nonDetection}
                     onNameClick={() => this.props.onSelectObservedObject(targetKey)}
                   />

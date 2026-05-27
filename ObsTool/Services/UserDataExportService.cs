@@ -152,10 +152,10 @@ namespace ObsTool.Services
             return observations
                 .Where(observation => !observation.NonDetection && sessionById.ContainsKey(observation.ObsSessionId))
                 .SelectMany(observation => observation.DsoObservations
-                    .Where(dsoObservation => !dsoObservation.NonDetection)
+                    .Where(dsoObservation => !dsoObservation.NonDetection && dsoObservation.DsoId.HasValue)
                     .Select(dsoObservation => new
                     {
-                        dsoObservation.DsoId,
+                        DsoId = dsoObservation.DsoId.Value,
                         Date = sessionById[observation.ObsSessionId].Date
                     }))
                 .GroupBy(row => row.DsoId)

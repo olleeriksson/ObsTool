@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -54,7 +55,7 @@ namespace TestProject
                     User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(AuthClaimTypes.UserId, "1") }))
                 }
             };
-            _controller = new DsoController(new DsoRepo(_dbContext), new H2500Repo(_dbContext), observationsService, new CurrentUserService(httpContextAccessor), mapper);
+            _controller = new DsoController(new DsoRepo(_dbContext), new H2500Repo(_dbContext), observationsService, new ObjectsRepo(_dbContext), new CurrentUserService(httpContextAccessor), mapper);
         }
 
         [TearDown]
@@ -82,6 +83,35 @@ namespace TestProject
             Assert.That(withHerschelDto.HerschelObjects[0].H400, Is.True);
         }
 
+        [Test]
+        public void GetDso_QueryIncludesUserAndOtherObjectMatches()
+        {
+            SeedUserAndOtherObjectObservations();
+
+            var result = (OkObjectResult)_controller.GetDso(query: "solar", name: null, includeHerschel: true);
+            var pagedResult = (PagedResultDto<DsoDto>)result.Value;
+
+            Assert.That(pagedResult.Total, Is.EqualTo(2));
+            Assert.That(pagedResult.Data.Select(dso => dso.ObjectKey), Is.EquivalentTo(new[] { "User:10", "Other:20" }));
+            Assert.That(pagedResult.Data.Single(dso => dso.ObjectKind == ObservedObjectKind.User).Observations, Has.Length.EqualTo(1));
+            Assert.That(pagedResult.Data.Single(dso => dso.ObjectKind == ObservedObjectKind.Other).Observations, Has.Length.EqualTo(1));
+            Assert.That(pagedResult.Data.All(dso => dso.HerschelObjects == null), Is.True);
+        }
+
+        [Test]
+        public void GetAllObservedDso_IncludesUserAndOtherObjects()
+        {
+            SeedUserAndOtherObjectObservations();
+
+            var result = (OkObjectResult)_controller.GetAllObservedDso(includeHerschel: true);
+            var pagedResult = (PagedResultDto<DsoDto>)result.Value;
+
+            Assert.That(pagedResult.Total, Is.EqualTo(2));
+            Assert.That(pagedResult.Data.Select(dso => dso.ObjectKey), Is.EquivalentTo(new[] { "User:10", "Other:20" }));
+            Assert.That(pagedResult.Data.All(dso => dso.NumObservations == 1), Is.True);
+            Assert.That(pagedResult.Data.All(dso => dso.HerschelObjects == null), Is.True);
+        }
+
         private void SeedDsoWithHerschelObjects()
         {
             _dbContext.Dso.Add(CreateDso(1));
@@ -89,6 +119,69 @@ namespace TestProject
                 CreateH2500Object(1, "H I-1", true),
                 CreateH2500Object(2, "H II-2", false)
             );
+            _dbContext.SaveChanges();
+        }
+
+        private void SeedUserAndOtherObjectObservations()
+        {
+            _dbContext.Users.Add(new AppUser
+            {
+                Id = 1,
+                Email = "observer@example.com",
+                NormalizedEmail = "OBSERVER@EXAMPLE.COM",
+                Username = "observer",
+                NormalizedUsername = "OBSERVER",
+                FullName = "Test Observer",
+                PasswordHash = "hash",
+                CreatedUtc = new DateTime(2024, 1, 1)
+            });
+            _dbContext.UserObjects.Add(new UserObject
+            {
+                Id = 10,
+                UserId = 1,
+                Name = "Mars",
+                OtherNames = "Solar System Object"
+            });
+            _dbContext.OtherObjects.Add(new OtherObject
+            {
+                Id = 20,
+                Name = "Moon",
+                CommonName = "Solar System Object"
+            });
+            _dbContext.ObsSessions.Add(new ObsSession
+            {
+                Id = 100,
+                UserId = 1,
+                Date = new DateTime(2024, 1, 2),
+                Title = "Solar system night"
+            });
+            _dbContext.Observations.AddRange(
+                new Observation
+                {
+                    Id = 1000,
+                    UserId = 1,
+                    ObsSessionId = 100,
+                    Text = "Mars was bright.",
+                    Identifier = "100-{Mars}",
+                    DisplayOrder = 0,
+                    DsoObservations = new List<DsoObservation>
+                    {
+                        new DsoObservation { UserObjectId = 10, DisplayOrder = 0 }
+                    }
+                },
+                new Observation
+                {
+                    Id = 1001,
+                    UserId = 1,
+                    ObsSessionId = 100,
+                    Text = "Moon showed good terminator contrast.",
+                    Identifier = "100-[Moon]",
+                    DisplayOrder = 1,
+                    DsoObservations = new List<DsoObservation>
+                    {
+                        new DsoObservation { OtherObjectId = 20, DisplayOrder = 0 }
+                    }
+                });
             _dbContext.SaveChanges();
         }
 

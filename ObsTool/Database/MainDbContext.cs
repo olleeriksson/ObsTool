@@ -43,6 +43,10 @@ namespace ObsTool.Database
 
         public DbSet<Dso> Dso { get; set; }
 
+        public DbSet<OtherObject> OtherObjects { get; set; }
+
+        public DbSet<UserObject> UserObjects { get; set; }
+
         public DbSet<DsoExtra> DsoExtra { get; set; }
 
         public DbSet<ObsSession> ObsSessions { get; set; }
@@ -77,7 +81,7 @@ namespace ObsTool.Database
         {
             modelBuilder.Entity<ArticleConstellations>().HasKey(ac => new { ac.ArticleId, ac.ConstellationId });
             modelBuilder.Entity<ArticleDsoObjects>().HasKey(ad => new { ad.ArticleId, ad.DsoId});
-            modelBuilder.Entity<DsoObservation>().HasKey(ad => new { ad.ObservationId, ad.DsoId, ad.CustomObjectName });
+            modelBuilder.Entity<DsoObservation>().HasKey(dsoObservation => dsoObservation.Id);
 
             modelBuilder.Entity<AppUser>()
                 .HasIndex(user => user.NormalizedEmail)
@@ -108,6 +112,14 @@ namespace ObsTool.Database
 
             modelBuilder.Entity<Instrument>()
                 .HasAlternateKey(instrument => new { instrument.Id, instrument.UserId });
+
+            modelBuilder.Entity<UserObject>()
+                .HasIndex(userObject => new { userObject.UserId, userObject.Name })
+                .IsUnique();
+
+            modelBuilder.Entity<OtherObject>()
+                .HasIndex(otherObject => otherObject.Name)
+                .IsUnique();
 
             modelBuilder.Entity<ObsSession>()
                 .HasOne(obsSession => obsSession.User)
@@ -149,6 +161,12 @@ namespace ObsTool.Database
                 .HasOne(eyepiece => eyepiece.User)
                 .WithMany()
                 .HasForeignKey(eyepiece => eyepiece.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserObject>()
+                .HasOne(userObject => userObject.User)
+                .WithMany()
+                .HasForeignKey(userObject => userObject.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ObsSession>()
@@ -198,7 +216,25 @@ namespace ObsTool.Database
             modelBuilder.Entity<DsoObservation>()
                 .HasOne(dsoObs => dsoObs.Dso)
                 .WithMany(dso => dso.DsoObservations)
-                .HasForeignKey(dsoObs => dsoObs.DsoId);
+                .HasForeignKey(dsoObs => dsoObs.DsoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DsoObservation>()
+                .HasOne(dsoObs => dsoObs.OtherObject)
+                .WithMany(otherObject => otherObject.DsoObservations)
+                .HasForeignKey(dsoObs => dsoObs.OtherObjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DsoObservation>()
+                .HasOne(dsoObs => dsoObs.UserObject)
+                .WithMany(userObject => userObject.DsoObservations)
+                .HasForeignKey(dsoObs => dsoObs.UserObjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DsoObservation>()
+                .ToTable(table => table.HasCheckConstraint(
+                    "CK_DsoObservations_ExactlyOneObject",
+                    "((DsoId IS NOT NULL AND OtherObjectId IS NULL AND UserObjectId IS NULL) OR (DsoId IS NULL AND OtherObjectId IS NOT NULL AND UserObjectId IS NULL) OR (DsoId IS NULL AND OtherObjectId IS NULL AND UserObjectId IS NOT NULL))"));
 
             modelBuilder.Entity<DsoExtra>()
                 .HasIndex(dsoExtra => new { dsoExtra.UserId, dsoExtra.DsoId })

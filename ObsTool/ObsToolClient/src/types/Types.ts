@@ -114,9 +114,13 @@ export interface IObservation {
 
 export interface IDsoObservation {
     id: number;
+    dsoId?: number;
+    otherObjectId?: number;
+    userObjectId?: number;
+    objectKind?: "Sac" | "Other" | "User";
+    objectKey?: string;
     dso: IDso;
     obsSession: IObsSession;
-    customObjectName: string;
     displayOrder: number;
     nonDetection: boolean;
 }
@@ -134,20 +138,22 @@ export interface IObsResource {
 
 export interface IDso {
     id: number;
+    objectKind?: "Sac" | "Other" | "User";
+    objectKey?: string;
     catalog: string;
     catalogNumber?: string;
     name: string;
     otherNames?: string;
-    commonName: string;
-    otherCommonNames: string;
-    type: string;
-    con: string;
+    commonName?: string;
+    otherCommonNames?: string;
+    type?: string;
+    con?: string;
     ra?: string;
     dec?: string;
-    mag: string;
-    sb: string;
-    u2k: string;
-    ti: string;
+    mag?: string;
+    sb?: string;
+    u2k?: string;
+    ti?: string;
     sizeMax?: string;
     sizeMin?: string;
     ps?: string;
@@ -186,6 +192,46 @@ export interface IPagedDsoList {
     count: number;
     more: number;
 }
+
+export interface IObjectList {
+    userObjects: IObservedObject[];
+    otherObjects: IObservedObject[];
+    constellations?: IConstellationOption[];
+    canCreateOtherObjects?: boolean;
+}
+
+export interface IConstellationOption {
+    name: string;
+    abbreviation: string;
+}
+
+export interface IObservedObject {
+    id?: number;
+    objectKind?: "Other" | "User";
+    objectKey?: string;
+    name: string;
+    otherNames?: string;
+    commonName?: string;
+    allCommonNames?: string;
+    notes?: string;
+    type?: string;
+    const?: string;
+    ra?: string;
+    dec?: string;
+    mag?: string;
+    numReferences?: number;
+    referencedSessionDates?: string[];
+    references?: IObjectReference[];
+    canEdit?: boolean;
+    canDelete?: boolean;
+}
+
+export interface IObjectReference {
+    obsSessionId: number;
+    date: string;
+}
+
+export type IUserObjectForSave = Omit<IObservedObject, "id" | "objectKind" | "objectKey" | "numReferences" | "referencedSessionDates" | "references" | "canEdit" | "canDelete">;
 
 export interface IObsSession {
     id?: number;

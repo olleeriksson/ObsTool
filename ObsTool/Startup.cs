@@ -111,6 +111,7 @@ namespace ObsTool
             services.AddScoped<EyepiecesRepo>();
             services.AddScoped<IDsoRepo, DsoRepo>();
             services.AddScoped<IH2500Repo, H2500Repo>();
+            services.AddScoped<ObjectsRepo>();
             services.AddScoped<ObservationsRepo>();
             services.AddScoped<StatisticsService>();
             services.AddScoped<ReportTextManager>();
