@@ -108,7 +108,7 @@ namespace ObsTool.Services
                 return false;
             }
 
-            return userId == null || _options.SuppressedUserId == null || userId.Value != _options.SuppressedUserId.Value;
+            return userId == null || !_options.SuppressedUserIds.Contains(userId.Value);
         }
 
         private string BuildAdminNotificationBody(SystemEvent systemEvent)

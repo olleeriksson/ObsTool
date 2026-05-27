@@ -8,6 +8,6 @@ namespace ObsTool.Services
 
         public string AdminEmail { get; set; } = "mail@olle-eriksson.com";
 
-        public int? SuppressedUserId { get; set; } = 1;
+        public int[] SuppressedUserIds { get; set; } = new[] { 1 };
     }
 }

@@ -73,12 +73,26 @@ namespace TestProject
         public void RecordObsSessionUpdated_SuppressedUserStillLogsEventWithoutSendingMail()
         {
             AddUser(1);
-            var service = CreateService(new AdminNotificationOptions { Enabled = true, AdminEmail = "admin@example.com", SuppressedUserId = 1 });
+            var service = CreateService(new AdminNotificationOptions { Enabled = true, AdminEmail = "admin@example.com", SuppressedUserIds = new[] { 1 } });
 
             service.RecordObsSessionUpdated(1, new ObsSession { Id = 10, Title = "Clear night", Date = new DateTime(2026, 5, 23) });
 
             var systemEvent = _dbContext.Events.Single();
             Assert.That(systemEvent.EventKey, Is.EqualTo("ObsSessionUpdated:10"));
+            Assert.That(systemEvent.AdminNotificationSentUtc, Is.Null);
+            Assert.That(_mailService.AdminNotifications, Is.Empty);
+        }
+
+        [Test]
+        public void RecordObsSessionUpdated_SuppressesAnyConfiguredUserId()
+        {
+            AddUser(3);
+            var service = CreateService(new AdminNotificationOptions { Enabled = true, AdminEmail = "admin@example.com", SuppressedUserIds = new[] { 1, 2, 3 } });
+
+            service.RecordObsSessionUpdated(3, new ObsSession { Id = 11, Title = "Demo night", Date = new DateTime(2026, 5, 24) });
+
+            var systemEvent = _dbContext.Events.Single();
+            Assert.That(systemEvent.UserId, Is.EqualTo(3));
             Assert.That(systemEvent.AdminNotificationSentUtc, Is.Null);
             Assert.That(_mailService.AdminNotifications, Is.Empty);
         }
