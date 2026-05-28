@@ -274,7 +274,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
 
         return <div className={classes.root}>
             <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
-                <FontAwesomeIcon icon="map-marked" className="faSpaceAfter" /> Locations
+                <FontAwesomeIcon icon="map-marked" className="faSpaceAfter" size="lg" /> Locations
             </Typography>
             <Grid container spacing={5} justifyContent="center" direction="row">
                 <Grid size={{ xs: 12, md: 8 }}>

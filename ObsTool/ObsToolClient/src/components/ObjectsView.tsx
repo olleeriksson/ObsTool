@@ -876,7 +876,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         return (
             <div className={classes.root}>
                 <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
-                    <FontAwesomeIcon icon="star" className="faSpaceAfter" /> Managing Objects
+                    <FontAwesomeIcon icon="star" className="faSpaceAfter" size="lg" /> Managing Objects
                 </Typography>
                 <Grid container spacing={3} justifyContent="center">
                     <Grid size={{ xs: 12, lg: 8 }}>

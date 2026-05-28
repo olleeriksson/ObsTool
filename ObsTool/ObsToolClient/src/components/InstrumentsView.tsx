@@ -23,6 +23,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import * as instrumentActions from "../actions/InstrumentActions";
+import TelescopeIcon from "./icons/TelescopeIcon";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -313,7 +314,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
         return <div className={classes.root}>
             {confirmDeleteDialog}
             <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
-                <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" /> Instruments
+                <TelescopeIcon variant="telescope1" className="faSpaceAfter" size={30} /> Instruments
             </Typography>
             <Grid container spacing={5} justifyContent="center" direction="row">
                 <Grid size={{ xs: 12, md: 8 }}>

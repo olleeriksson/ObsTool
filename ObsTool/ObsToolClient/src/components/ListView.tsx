@@ -16,6 +16,7 @@ import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/ObsSessionActions";
 import Api from "../api/Api";
+import TelescopeIcon from "./icons/TelescopeIcon";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -131,7 +132,7 @@ class ListView extends React.Component<IListViewProps> {
         } else { // empty view
             rightSideView = (
                 <Typography variant="h6" align="center" color="textPrimary" component="p">
-                    <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" /> Observations
+                    <TelescopeIcon variant="telescope1" className="faSpaceAfter" /> Observations
                 </Typography>
             );
         }

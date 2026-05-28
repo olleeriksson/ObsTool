@@ -29,6 +29,7 @@ import { IAppState, IDataState } from "src/types/Types";
 import * as authenticationAction from "../actions/AuthenticationActions";
 import { bindActionCreators, Dispatch } from "redux";
 import { connect } from "react-redux";
+import TelescopeIcon from "./icons/TelescopeIcon";
 
 const styles = (theme: Theme) => createStyles({
     appBar: {
@@ -98,6 +99,25 @@ const styles = (theme: Theme) => createStyles({
     appbarButton: {
         margin: theme.spacing(0.25),
         whiteSpace: "nowrap",
+        overflow: "visible",
+    },
+    navButtonIcon: {
+        color: "#000",
+        fontSize: "1.35em",
+        verticalAlign: "baseline",
+        transformOrigin: "bottom center",
+        transform: "translateY(-4px)",
+        marginRight: theme.spacing(1)
+    },
+    instrumentsNavButton: {
+        overflow: "visible",
+    },
+    navTelescopeIcon: {
+        color: "#000",
+        transform: "translateY(-8px)",
+    },
+    userMenuIcon: {
+        color: "#000",
     },
 });
 
@@ -204,7 +224,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         aria-controls={isUserMenuOpen ? "user-menu" : undefined}
                         aria-haspopup="true"
                         aria-expanded={isUserMenuOpen ? "true" : undefined}
-                        startIcon={<AccountCircleIcon />}
+                        startIcon={<AccountCircleIcon className={classes.userMenuIcon} />}
                     >
                         {userMenuLabel}
                     </Button>
@@ -254,7 +274,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } else {
             userMenuComponent = (
                 <Button component={LinkToLogin} color="primary" className={classes.appbarButton}>
-                    <FontAwesomeIcon icon="key" className="faSpaceAfter" /> Login
+                    <FontAwesomeIcon icon="key" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Login
                 </Button>
             );
         }
@@ -275,28 +295,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <SearchInput onSearchView={weAreOnSearchView} />
                         </div>
                         <Button component={LinkToHome} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="home" className="faSpaceAfter" />Home
+                            <FontAwesomeIcon icon="home" className={classNames("faSpaceAfter", classes.navButtonIcon)} />Home
                         </Button>
                         <Button component={LinkToObservedDsos} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Observations
+                            <FontAwesomeIcon icon="table" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Observations
                         </Button>
                         <Button component={LinkToSessions} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="table" className="faSpaceAfter" /> Sessions
+                            <FontAwesomeIcon icon="table" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Sessions
                         </Button>
                         <Button component={LinkToNewSession} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
+                            <FontAwesomeIcon icon="plus" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> New session
                         </Button>
                         <Button component={LinkToObjects} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="star" className="faSpaceAfter" /> Objects
+                            <FontAwesomeIcon icon="star" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Objects
                         </Button>
                         <Button component={LinkToLocations} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="map-marked" className="faSpaceAfter" /> Locations
+                            <FontAwesomeIcon icon="map-marked" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Locations
                         </Button>
-                        <Button component={LinkToInstruments} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="binoculars" className="faSpaceAfter" /> Instruments
+                        <Button component={LinkToInstruments} className={classNames(classes.appbarButton, classes.instrumentsNavButton)}>
+                            <TelescopeIcon variant="telescope1" size={24} className={classNames("faSpaceAfter", classes.navButtonIcon, classes.navTelescopeIcon)} /> Instruments
                         </Button>
                         <Button component={LinkToEyepieces} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="eye" className="faSpaceAfter" /> Eyepieces
+                            <FontAwesomeIcon icon="eye" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Eyepieces
                         </Button>
                         {userMenuComponent}
                     </div>
