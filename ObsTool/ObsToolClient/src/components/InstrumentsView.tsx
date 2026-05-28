@@ -326,7 +326,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
         return <div className={classes.root}>
             {confirmDeleteDialog}
             <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
-                <TelescopeIcon variant="telescope1" className="faSpaceAfter" size={30} /> Instruments
+                <TelescopeIcon variant="tableTop" className="faSpaceAfter" size={30} /> Instruments
             </Typography>
             <Grid container spacing={5} justifyContent="center" direction="row">
                 <Grid size={{ xs: 12, md: 8 }}>

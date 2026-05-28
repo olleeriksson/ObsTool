@@ -10,7 +10,6 @@ import { IEyepiece, IObservation } from "../types/Types";
 import Grid from "@mui/material/Grid2";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -32,8 +31,10 @@ const styles = (theme: Theme) => createStyles({
     paddingTop: theme.spacing(2),
   },
   image: {
-    border: 1,
-    margin: 10
+    margin: 10,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   img: {
     margin: "auto",
@@ -165,14 +166,12 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
           <Grid size={12}>
             <Grid container spacing={2} wrap="nowrap">
               <Grid>
-                <ButtonBase className={classes.image}>
-                  <Typography variant="h4">
-                    {this.props.observation.nonDetection
-                      ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: 32 }} className="faSpaceAfter" />
-                      : <TelescopeIcon variant="telescope1" size={38} className="faSpaceAfter" />}
-                  </Typography>
-                </ButtonBase>
-                <div style={{ marginLeft: 10, marginTop: -4 }}>
+                <div className={classes.image}>
+                  {this.props.observation.nonDetection
+                    ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: 32 }} />
+                    : <TelescopeIcon variant="visual" size={50} />}
+                </div>
+                <div style={{ width: 48, textAlign: "center", marginTop: -4 }}>
                   <InstrumentBadge instrument={this.props.observation.instrument} compact={true} />
                 </div>
               </Grid>

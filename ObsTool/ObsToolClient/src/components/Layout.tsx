@@ -313,7 +313,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <FontAwesomeIcon icon="map-marked" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Locations
                         </Button>
                         <Button component={LinkToInstruments} className={classNames(classes.appbarButton, classes.instrumentsNavButton)}>
-                            <TelescopeIcon variant="telescope1" size={24} className={classNames("faSpaceAfter", classes.navButtonIcon, classes.navTelescopeIcon)} /> Instruments
+                            <TelescopeIcon variant="tableTop" size={24} className={classNames("faSpaceAfter", classes.navButtonIcon, classes.navTelescopeIcon)} /> Instruments
                         </Button>
                         <Button component={LinkToEyepieces} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="eye" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Eyepieces

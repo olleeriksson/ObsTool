@@ -1,8 +1,24 @@
 import * as React from "react";
-import telescope1Svg from "src/assets/svg/telescope1.svg";
-import telescope2Svg from "src/assets/svg/telescope2.svg";
+import telescopeBigDobSvg from "src/assets/svg/scope-big-dob.svg";
+import telescopeBinoSvg from "src/assets/svg/scope-bino.svg";
+import telescopeDobSvg from "src/assets/svg/scope-dob.svg";
+import telescopeMakSvg from "src/assets/svg/scope-mak.svg";
+import telescopeRefractorSvg from "src/assets/svg/scope-refractor.svg";
+import telescopeTableTopSvg from "src/assets/svg/scope-tabletop.svg";
+import telescopeSchmidtCassSvg from "src/assets/svg/scope-schmidt-cass.svg";
+import telescopeSmallRefractorSvg from "src/assets/svg/scope-small-refractor.svg";
+import telescopeVisualSvg from "src/assets/svg/scope-visual.svg";
 
-type TelescopeIconVariant = "telescope1" | "telescope2";
+type TelescopeIconVariant =
+    | "bigDob"
+    | "bino"
+    | "dob"
+    | "mak"
+    | "refractor"
+    | "schmidtCass"
+    | "smallRefractor"
+    | "tableTop"
+    | "visual";
 
 interface ITelescopeIconProps {
     variant?: TelescopeIconVariant;
@@ -11,14 +27,21 @@ interface ITelescopeIconProps {
 }
 
 const iconByVariant: Record<TelescopeIconVariant, string> = {
-    telescope1: telescope1Svg,
-    telescope2: telescope2Svg
+    bigDob: telescopeBigDobSvg,
+    bino: telescopeBinoSvg,
+    dob: telescopeDobSvg,
+    mak: telescopeMakSvg,
+    refractor: telescopeRefractorSvg,
+    schmidtCass: telescopeSchmidtCassSvg,
+    smallRefractor: telescopeSmallRefractorSvg,
+    tableTop: telescopeTableTopSvg,
+    visual: telescopeVisualSvg
 };
 
 /**
  * Renders one of the custom telescope SVG icons.
  */
-const TelescopeIcon: React.FC<ITelescopeIconProps> = ({ variant = "telescope1", className, size = 26 }) => {
+const TelescopeIcon: React.FC<ITelescopeIconProps> = ({ variant = "tableTop", className, size = 26 }) => {
     const iconSource = iconByVariant[variant];
     return (
         <img

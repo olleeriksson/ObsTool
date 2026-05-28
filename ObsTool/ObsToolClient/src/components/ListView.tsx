@@ -132,7 +132,7 @@ class ListView extends React.Component<IListViewProps> {
         } else { // empty view
             rightSideView = (
                 <Typography variant="h6" align="center" color="textPrimary" component="p">
-                    <TelescopeIcon variant="telescope1" className="faSpaceAfter" /> Observations
+                    <TelescopeIcon variant="tableTop" className="faSpaceAfter" /> Observations
                 </Typography>
             );
         }
