@@ -140,11 +140,9 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
     }
 
     private isCurrentInstrumentValid = (): boolean => {
-        const { key, name, diameterMm, focalLengthMm } = this.state.currentInstrument;
+        const { key, name } = this.state.currentInstrument;
         return !!key.trim()
-            && !!name.trim()
-            && diameterMm !== undefined
-            && focalLengthMm !== undefined;
+            && !!name.trim();
     }
 
     private handleClickResource = (instrumentId?: number) => (event: any) => {
@@ -319,8 +317,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                     </a>
                 </Typography>
                 <Typography variant="caption" gutterBottom={true}>
-                    Diameter: <strong>{instrument.diameterMm} mm</strong>,{" "}
-                    Focal length: <strong>{instrument.focalLengthMm ?? "N/A"} mm</strong>
+                    Diameter: <strong>{instrument.diameterMm !== undefined && instrument.diameterMm !== null ? `${instrument.diameterMm} mm` : "N/A"}</strong>,{" "}
+                    Focal length: <strong>{instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `${instrument.focalLengthMm} mm` : "N/A"}</strong>
                 </Typography>
             </Grid>
         ));

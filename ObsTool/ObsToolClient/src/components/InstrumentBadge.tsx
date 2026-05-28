@@ -15,7 +15,13 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
       return null;
     }
 
-    const details = `${instrument.name} | ${instrument.diameterMm} mm | FL ${instrument.focalLengthMm ?? "N/A"} mm`;
+    const diameterText = instrument.diameterMm !== undefined && instrument.diameterMm !== null
+      ? `${instrument.diameterMm} mm`
+      : "N/A";
+    const focalLengthText = instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null
+      ? `FL ${instrument.focalLengthMm} mm`
+      : "FL N/A";
+    const details = `${instrument.name} | ${diameterText} | ${focalLengthText}`;
     const variant = this.props.compact ? "caption" : "body2";
 
     return (

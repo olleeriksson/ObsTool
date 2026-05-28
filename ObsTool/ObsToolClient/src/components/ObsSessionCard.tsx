@@ -87,6 +87,10 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
 
   public render() {
     const { classes } = this.props;
+    const instrument = this.props.obsSession.instrument;
+    const instrumentText = instrument
+      ? `${instrument.name} (${instrument.diameterMm !== undefined && instrument.diameterMm !== null ? `${instrument.diameterMm} mm` : "N/A"}, ${instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `FL ${instrument.focalLengthMm} mm` : "FL N/A"})`
+      : undefined;
 
     let expandedGridItem;
     if (this.state.isExpanded) {
@@ -102,8 +106,8 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
             <strong>Instrument:</strong>
           </Typography>
           <Typography variant="body1">
-            {this.props.obsSession.instrument
-              ? `${this.props.obsSession.instrument.name} (${this.props.obsSession.instrument.diameterMm} mm, FL ${this.props.obsSession.instrument.focalLengthMm ?? "N/A"} mm)`
+            {instrumentText
+              ? instrumentText
               : <span>N/A</span>}
           </Typography>
           <Typography variant="body1">

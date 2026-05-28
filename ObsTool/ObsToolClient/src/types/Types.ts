@@ -316,8 +316,8 @@ export interface IInstrument {
     id?: number;
     key: string;
     name: string;
-    diameterMm?: number;
-    focalLengthMm?: number;
+    diameterMm?: number | null;
+    focalLengthMm?: number | null;
 }
 
 export interface IEyepiece {
