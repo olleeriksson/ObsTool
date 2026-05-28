@@ -6,17 +6,18 @@ import "./Observation.css";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IEyepiece, IObservation } from "../types/Types";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
+import TelescopeIcon from "./icons/TelescopeIcon";
 import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 
 const styles = (theme: Theme) => createStyles({
@@ -183,8 +184,6 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     const obsSessionDate = this.props.observation.obsSession && this.props.observation.obsSession.date;
     const obsSessionTitle = this.props.observation.obsSession && this.props.observation.obsSession.title && this.props.observation.obsSession.title;
     const obsSessionLocation = this.props.observation.obsSession && this.props.observation.obsSession.location && "(" + this.props.observation.obsSession.location.name + ")";
-    const observationIcon = this.props.observation.nonDetection ? "eye-slash" : "binoculars";
-
     return (
       <Grid container spacing={0} direction="column" className={classes.root}>
         <Grid size={12}>
@@ -192,7 +191,9 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
             <Grid>
               <ButtonBase className={classes.image}>
                 <Typography gutterBottom={false} variant="h6">
-                  <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
+                  {this.props.observation.nonDetection
+                    ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: 26 }}className="faSpaceAfter" />
+                    : <TelescopeIcon variant="telescope1" size={24} className="faSpaceAfter" />}
                 </Typography>
               </ButtonBase>
               <div style={{ width: 48, textAlign: "center", marginTop: -2 }}>

@@ -6,7 +6,6 @@ import "./Observation.css";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IEyepiece, IObservation } from "../types/Types";
 import Grid from "@mui/material/Grid2";
 import Paper from "@mui/material/Paper";
@@ -15,11 +14,13 @@ import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import classNames from "classnames";
 import DsoCard from "./DsoCard";
 import ObservationSecondary from "./ObservationSecondary";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
+import TelescopeIcon from "./icons/TelescopeIcon";
 import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 import { getObservedObjectTargetId, getObservedObjectTargetKey } from "./ObservationTarget";
 
@@ -158,8 +159,6 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       });
     }
 
-    const observationIcon = this.props.observation.nonDetection ? "eye-slash" : "binoculars";
-
     return (
       <Paper className={classes.root}>
         <Grid container spacing={2} direction="column">
@@ -168,7 +167,9 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
               <Grid>
                 <ButtonBase className={classes.image}>
                   <Typography variant="h4">
-                    <FontAwesomeIcon icon={observationIcon} className="faSpaceAfter" />
+                    {this.props.observation.nonDetection
+                      ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: 32 }} className="faSpaceAfter" />
+                      : <TelescopeIcon variant="telescope1" size={38} className="faSpaceAfter" />}
                   </Typography>
                 </ButtonBase>
                 <div style={{ marginLeft: 10, marginTop: -4 }}>
