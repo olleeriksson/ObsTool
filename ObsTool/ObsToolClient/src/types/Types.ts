@@ -5,6 +5,7 @@ export interface ILoginInfo {
 
 export interface IAuthenticationStatus {
     isLoggedIn: boolean;
+    userId?: number;
     username?: string;
     email?: string;
     fullName?: string;
@@ -330,6 +331,7 @@ export interface IEyepiece {
 
 export interface IDataState {
     isLoggedIn: boolean;
+    loggedInUserId?: number;
     loggedInUsername?: string;
     loggedInEmail?: string;
     loggedInFullName?: string;
@@ -354,6 +356,7 @@ export interface IDataState {
 
 export interface IReadonlyDataState {
     isLoggedIn: boolean;
+    loggedInUserId?: number;
     loggedInUsername?: string;
     loggedInEmail?: string;
     loggedInFullName?: string;

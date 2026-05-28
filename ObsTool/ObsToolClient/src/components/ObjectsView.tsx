@@ -15,6 +15,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid2";
 import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -29,13 +30,16 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import ClearIcon from "@mui/icons-material/Clear";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SaveIcon from "@mui/icons-material/Save";
 import Api from "../api/Api";
 import { IAppState, IConstellationOption, IDataState, IDso, IObservedObject, IUserObjectForSave } from "../types/Types";
 import { connect } from "react-redux";
-import { getDsoTypeOptions, resolveDsoTypeCode, translateDsoType } from "../obsToolUtils";
+import { DSO_TYPE_ICON_PREVIEW_SIZES } from "../utils/objectIcons";
+import { getDsoTypeAbbreviation, getDsoTypeOptions, resolveDsoTypeCode, translateDsoType } from "../utils/objectTypes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
+import { DsoTypeIcon } from "./DsoTypeIcon";
 
 const SAC_OBJECT_TYPE_OPTIONS = getDsoTypeOptions().map(option => option.code);
 const UNSPECIFIED_CONSTELLATION_OPTION: IConstellationOption = { name: "Unspecified", abbreviation: "" };
@@ -107,6 +111,24 @@ const styles = (theme: Theme) => createStyles({
         paddingBottom: theme.spacing(0.75),
         paddingTop: theme.spacing(0.75),
     },
+    formHeading: {
+        alignItems: "baseline",
+        display: "flex",
+        gap: theme.spacing(1),
+        justifyContent: "space-between",
+        width: "100%",
+    },
+    typePreviewToggle: {
+        marginLeft: "auto",
+    },
+    typePreviewToggleIcon: {
+        transition: theme.transitions.create("transform", {
+            duration: theme.transitions.duration.shortest,
+        }),
+    },
+    typePreviewToggleIconOpen: {
+        transform: "rotate(180deg)",
+    },
     tableCell: {
         paddingBottom: theme.spacing(0.75),
         paddingTop: theme.spacing(0.75),
@@ -115,6 +137,52 @@ const styles = (theme: Theme) => createStyles({
         display: "flex",
         flexWrap: "wrap",
         gap: theme.spacing(0.75),
+    },
+    typeInputAdornment: {
+        marginRight: theme.spacing(0.25),
+    },
+    typeOptionContent: {
+        alignItems: "center",
+        display: "flex",
+        gap: theme.spacing(1),
+        minHeight: 28,
+        width: "100%",
+    },
+    typeOptionIcon: {
+        flex: "0 0 auto",
+    },
+    typePreviewIcons: {
+        alignItems: "center",
+        display: "flex",
+        gap: theme.spacing(1.25),
+        justifyContent: "flex-end",
+    },
+    typePreviewLabel: {
+        minWidth: 240,
+    },
+    typePreviewList: {
+        display: "grid",
+        gap: theme.spacing(0.75),
+        marginBottom: theme.spacing(1.5),
+        paddingTop: theme.spacing(0.5),
+    },
+    typePreviewSectionTitle: {
+        marginTop: theme.spacing(1),
+        "&:first-of-type": {
+            marginTop: 0,
+        },
+    },
+    typePreviewRow: {
+        alignItems: "center",
+        display: "flex",
+        gap: theme.spacing(2),
+        justifyContent: "space-between",
+        minHeight: 36,
+        [theme.breakpoints.down("sm")]: {
+            alignItems: "flex-start",
+            flexDirection: "column",
+            gap: theme.spacing(0.75),
+        },
     },
     actionCell: {
         paddingBottom: theme.spacing(0.5),
@@ -138,6 +206,7 @@ interface IObjectsViewState {
     constellations: IConstellationOption[];
     canCreateOtherObjects: boolean;
     saveAsUserObject: boolean;
+    isTypeIconPreviewExpanded: boolean;
     currentObject: IObservedObject;
     similarSacObjects: IDso[];
     isCheckingSimilar: boolean;
@@ -157,6 +226,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             constellations: [],
             canCreateOtherObjects: false,
             saveAsUserObject: true,
+            isTypeIconPreviewExpanded: false,
             currentObject: this.getEmptyObject(),
             similarSacObjects: [],
             isCheckingSimilar: false,
@@ -193,6 +263,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 constellations: response.data.constellations || [],
                 canCreateOtherObjects: !!response.data.canCreateOtherObjects,
                 saveAsUserObject: prevState.saveAsUserObject,
+                isTypeIconPreviewExpanded: false,
                 currentObject: this.getEmptyObject(),
                 similarSacObjects: [],
                 isCheckingSimilar: false,
@@ -438,6 +509,79 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         });
     }
 
+    // Renders a Type dropdown option with the custom object-type preview icon before the label.
+    private renderTypeOption = (props: React.HTMLAttributes<HTMLLIElement>, option: string) => {
+        const { key, ...restProps } = props as React.HTMLAttributes<HTMLLIElement> & { key?: React.Key };
+        return (
+            <li key={key} {...restProps}>
+                <span className={this.props.classes.typeOptionContent}>
+                    <DsoTypeIcon type={option} className={this.props.classes.typeOptionIcon} />
+                    <span>{translateDsoType(option) || option}</span>
+                </span>
+            </li>
+        );
+    }
+
+    // Adds the same custom object-type icon to the editable Type field once a type is selected or typed.
+    private renderTypeInput = (params: any) => {
+        const currentType = this.state.currentObject.type || "";
+        return (
+            <TextField
+                {...params}
+                label="Type"
+                margin="dense"
+                InputProps={{
+                    ...params.InputProps,
+                    startAdornment: currentType ? (
+                        <InputAdornment position="start" className={this.props.classes.typeInputAdornment}>
+                            <DsoTypeIcon type={currentType} />
+                        </InputAdornment>
+                    ) : params.InputProps.startAdornment,
+                }}
+            />
+        );
+    }
+
+    // Toggles the inline icon preview without changing any editable object fields.
+    private handleToggleTypeIconPreview = () => {
+        this.setState(prevState => ({ isTypeIconPreviewExpanded: !prevState.isTypeIconPreviewExpanded }));
+    }
+
+    // Renders every SAC object type directly below the object form heading.
+    private renderTypeIconPreview = () => (
+        <div className={this.props.classes.typePreviewList} role="group" aria-label="Object type icons">
+            <div className={this.props.classes.typePreviewRow} data-dso-type-preview-row="generic-current">
+                <Typography variant="body2" className={this.props.classes.typePreviewLabel}>
+                    Undefined object fallback
+                </Typography>
+                <div className={this.props.classes.typePreviewIcons}>
+                    {DSO_TYPE_ICON_PREVIEW_SIZES.map(size => (
+                        <DsoTypeIcon key={size} type="" size={size} />
+                    ))}
+                </div>
+            </div>
+            <Typography variant="subtitle2" className={this.props.classes.typePreviewSectionTitle}>
+                SAC object types
+            </Typography>
+            {getDsoTypeOptions().map(option => (
+                <div
+                    key={option.code}
+                    className={this.props.classes.typePreviewRow}
+                    data-dso-type-preview-row={option.code}
+                >
+                    <Typography variant="body2" className={this.props.classes.typePreviewLabel}>
+                        {option.longName}
+                    </Typography>
+                    <div className={this.props.classes.typePreviewIcons}>
+                        {DSO_TYPE_ICON_PREVIEW_SIZES.map(size => (
+                            <DsoTypeIcon key={size} type={option.code} size={size} />
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+
     // Extracts API error messages from both string BadRequest bodies and ObsToolException JSON bodies.
     private getApiErrorMessage = (error: any, fallbackMessage: string) => {
         const data = error?.response?.data;
@@ -619,7 +763,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                         <Typography variant="body2" className={this.props.classes.objectName}>{object.name}</Typography>
                         <Typography variant="caption" color="textSecondary">{object.commonName || object.otherNames || ""}</Typography>
                     </TableCell>
-                    <TableCell className={this.props.classes.tableCell}>{object.type || ""}</TableCell>
+                    <TableCell className={this.props.classes.tableCell}>{getDsoTypeAbbreviation(object.type || "") || object.type || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.const || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.ra || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.dec || ""}</TableCell>
@@ -700,6 +844,10 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             && exactSacObjectNames.length === 0
             && !this.state.isCheckingSimilar
             && !this.state.isSaving;
+        const canPreviewTypeIcons = this.props.store.loggedInUserId === 1;
+        const typePreviewToggleLabel = this.state.isTypeIconPreviewExpanded
+            ? "Hide object type icons"
+            : "Show object type icons";
         const duplicateNameWarning = duplicateObject && !isEditing ? (
             <Alert severity="error" style={{ marginTop: 12 }}>
                 {this.formatDuplicateObjectMessage(duplicateObject)}
@@ -733,15 +881,30 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 <Grid container spacing={3} justifyContent="center">
                     <Grid size={{ xs: 12, lg: 8 }}>
                         <Paper className={classes.panel} elevation={1}>
-                            <Typography variant="h6" gutterBottom={true}>
-                                {isEditing
-                                    ? this.state.currentObject.objectKind === "Other"
-                                        ? "Edit other object"
-                                        : "Edit user defined object"
-                                    : this.state.saveAsUserObject
-                                        ? "Add user defined object"
-                                        : "Add other object"}
-                            </Typography>
+                            <div className={classes.formHeading}>
+                                <Typography variant="h6" gutterBottom={true}>
+                                    {isEditing
+                                        ? this.state.currentObject.objectKind === "Other"
+                                            ? "Edit other object"
+                                            : "Edit user defined object"
+                                        : this.state.saveAsUserObject
+                                            ? "Add user defined object"
+                                            : "Add other object"}
+                                </Typography>
+                                {canPreviewTypeIcons && (
+                                    <IconButton
+                                        aria-label={typePreviewToggleLabel}
+                                        className={classes.typePreviewToggle}
+                                        onClick={this.handleToggleTypeIconPreview}
+                                        size="small"
+                                    >
+                                        <ExpandMoreIcon
+                                            className={`${classes.typePreviewToggleIcon} ${this.state.isTypeIconPreviewExpanded ? classes.typePreviewToggleIconOpen : ""}`}
+                                        />
+                                    </IconButton>
+                                )}
+                            </div>
+                            {canPreviewTypeIcons && this.state.isTypeIconPreviewExpanded && this.renderTypeIconPreview()}
                             <form onSubmit={this.handleSubmit} noValidate={true} autoComplete="off">
                                 <div className={classes.formGrid}>
                                     <Tooltip title={isEditing ? "Name is the stable report-text identifier and cannot be changed after creation." : ""}>
@@ -774,9 +937,8 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                                         getOptionLabel={(option) => translateDsoType(option) || option}
                                         onChange={this.handleTypeChange}
                                         onInputChange={this.handleTypeInputChange}
-                                        renderInput={(params) => (
-                                            <TextField {...params} label="Type" margin="dense" />
-                                        )}
+                                        renderOption={this.renderTypeOption}
+                                        renderInput={this.renderTypeInput}
                                         className={classes.thirdRowField}
                                     />
                                     <TextField label="All common names" value={this.state.currentObject.allCommonNames || ""} onChange={this.handleFormChange("allCommonNames")} margin="dense" className={classes.halfRowField} />

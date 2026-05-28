@@ -7,7 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import * as obsToolUtils from "../obsToolUtils";
+import * as objectTypes from "../utils/objectTypes";
 import GoogleImagesLink from "./GoogleImagesLink";
 import AladinLiteLink from "./AladinLiteLink";
 import ConstellationMap from "./ConstellationMap";
@@ -81,13 +81,14 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
     } else {
       if (this.props.dso) {
         // Prepare a search terms for Google image search
-        const translatedDsoType = obsToolUtils.translateDsoType(this.props.dso.type || "");
+        const translatedDsoType = objectTypes.translateDsoType(this.props.dso.type || "");
+        const dsoTypeAbbreviation = objectTypes.getDsoTypeAbbreviation(this.props.dso.type || "") || this.props.dso.type;
         const searchTerms = [this.props.dso.name || "", translatedDsoType || ""];
 
         const selectedObject = this.toMapObject();
         const canShowMap = selectedObject != null;
         const detailItems = [
-          { label: "Type", value: this.props.dso.type },
+          { label: "Type", value: dsoTypeAbbreviation },
           { label: "Const", value: this.props.dso.con },
           { label: "Mag", value: this.props.dso.mag },
           { label: "SB", value: this.props.dso.sb },

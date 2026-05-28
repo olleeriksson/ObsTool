@@ -14,10 +14,10 @@ import classNames from "classnames";
 import ObservationSecondary from "./ObservationSecondary";
 import Typography from "@mui/material/Typography";
 import DsoAnnotations from "./DsoAnnotations";
-import CosmosIcon from "../assets/images/cosmos.svg";
 import HerschelBadge from "./HerschelBadge";
 import Api from "../api/Api";
 import { IHerschelDetails } from "../types/Types";
+import { DsoTypeIcon } from "./DsoTypeIcon";
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -28,6 +28,10 @@ const styles = (theme: Theme) => createStyles({
   },
   expandDiv: {
     width: 50
+  },
+  dsoTypeIcon: {
+    marginRight: 10,
+    marginTop: 2,
   },
   titleRow: {
     alignItems: "center",
@@ -209,7 +213,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     const dsoLabel = (
       <Grid container>
         <Grid size={"auto"}>
-          <img src={CosmosIcon} width="20" height="20" style={{ marginRight: 10, marginTop: 2 }} />
+          <DsoTypeIcon type={dso.type} size={30} className={classes.dsoTypeIcon} />
         </Grid>
         <Grid size={"grow"}>
           <div className={classes.titleRow}>

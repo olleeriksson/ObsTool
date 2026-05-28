@@ -192,6 +192,7 @@ namespace ObsTool.Controllers
             return new AuthenticationStatusDto
             {
                 IsLoggedIn = isLoggedIn,
+                UserId = isLoggedIn ? GetDatabaseUserId() : null,
                 Username = isLoggedIn ? User.FindFirstValue(AuthClaimTypes.Username) : null,
                 Email = isLoggedIn ? User.FindFirstValue(ClaimTypes.Email) : null,
                 FullName = isLoggedIn ? User.FindFirstValue(AuthClaimTypes.FullName) : null,
@@ -204,6 +205,7 @@ namespace ObsTool.Controllers
             return new AuthenticationStatusDto
             {
                 IsLoggedIn = true,
+                UserId = loginResult.UserId,
                 Username = loginResult.Username,
                 Email = loginResult.Email,
                 FullName = loginResult.FullName,

@@ -8,6 +8,7 @@ import { thunk } from "redux-thunk";
 
 const initialDataState: IDataState = {
     isLoggedIn: false,
+    loggedInUserId: undefined,
     loggedInUsername: undefined,
     loggedInEmail: undefined,
     loggedInFullName: undefined,

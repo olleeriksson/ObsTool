@@ -51,6 +51,14 @@ it("shows user object names through the same card path", () => {
     expect(screen.getByText(/My Star/)).toBeInTheDocument();
 });
 
+it("uses the DSO type icon instead of the generic cosmos image", () => {
+    const galaxyDso: IDso = { ...baseDso, type: "Gx" };
+    const { container } = render(<DsoCard dso={galaxyDso} />, { wrapper });
+
+    expect(container.querySelector('[data-dso-type-icon="galaxy"]')).toBeInTheDocument();
+    expect(container.querySelector("img")).not.toBeInTheDocument();
+});
+
 it("shows no Herschel badge for non-Herschel DSOs", () => {
     render(<DsoCard dso={baseDso} />, { wrapper });
 

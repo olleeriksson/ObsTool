@@ -3,6 +3,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
+import { getDsoTypeAbbreviation } from "../utils/objectTypes";
 
 export interface IDsoShortProps {
   id?: number;
@@ -60,9 +61,10 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
         </Typography>
       );
     } else {
-      if (this.state.dso) {
-        const name = this.state.dso.name;
-        const nameStyle = this.props.nonDetection ? { textDecoration: "line-through" } : undefined;
+        if (this.state.dso) {
+          const name = this.state.dso.name;
+          const typeAbbreviation = getDsoTypeAbbreviation(this.state.dso.type || "") || this.state.dso.type;
+          const nameStyle = this.props.nonDetection ? { textDecoration: "line-through" } : undefined;
         const nameTypography = (
           <Typography variant="body2" style={nameStyle}>
             {name}
@@ -85,7 +87,7 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
           <div className="dsoShort">
             {nameContent}
             <Typography color="textSecondary" variant="caption" component={"div" as any} gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
-              {[this.state.dso.type, this.state.dso.con].filter(Boolean).join(", ")}
+              {[typeAbbreviation, this.state.dso.con].filter(Boolean).join(", ")}
             </Typography>
           </div>
         );

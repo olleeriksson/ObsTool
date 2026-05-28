@@ -15,7 +15,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
     </MemoryRouter>
 );
 
-const loggedInStore = { isLoggedIn: true, isSuperAdmin: false } as IDataState;
+const loggedInStore = { isLoggedIn: true, loggedInUserId: 1, isSuperAdmin: false } as IDataState;
 
 const emptyObjectList: IObjectList = {
     userObjects: [],
@@ -48,12 +48,16 @@ afterEach(() => {
 });
 
 // Renders the connected-page body without Redux so these tests stay focused on ObjectsView form behavior.
-const renderObjectsView = (objectList: IObjectList = emptyObjectList, searchResults: IDso[] = []) => {
+const renderObjectsView = (
+    objectList: IObjectList = emptyObjectList,
+    searchResults: IDso[] = [],
+    store: IDataState = loggedInStore,
+) => {
     vi.spyOn(Api, "getObjects").mockResolvedValue({ data: objectList } as any);
     const searchDso = vi.spyOn(Api, "searchDso").mockResolvedValue({
         data: { data: searchResults, total: searchResults.length, count: searchResults.length, more: 0 },
     } as any);
-    return { searchDso, ...render(<StyledObjectsView store={loggedInStore} />, { wrapper }) };
+    return { searchDso, ...render(<StyledObjectsView store={store} />, { wrapper }) };
 };
 
 it("flags duplicate user object names immediately and disables save", async () => {
@@ -175,6 +179,57 @@ it("offers previously saved custom object types in the Type dropdown", async () 
     const listbox = await screen.findByRole("listbox");
     expect(within(listbox).getByText("Dwarf planet")).toBeInTheDocument();
     expect(within(listbox).getByText("Satellite")).toBeInTheDocument();
+});
+
+it("shows custom object type icons in the Type dropdown and selected field", async () => {
+    renderObjectsView({
+        userObjects: [{ id: 4, name: "Ceres", type: "Dwarf planet", objectKind: "User" }],
+        otherObjects: [],
+    });
+
+    const typeField = await screen.findByRole("combobox", { name: "Type" });
+    fireEvent.mouseDown(typeField);
+
+    const listbox = await screen.findByRole("listbox");
+    expect(listbox.querySelector('[data-dso-type-icon="galaxy"]')).toBeInTheDocument();
+    expect(listbox.querySelector('[data-dso-type-icon="generic"]')).toBeInTheDocument();
+    fireEvent.click(within(listbox).getByText("Galaxy"));
+
+    await waitFor(() => expect(screen.queryByRole("listbox")).not.toBeInTheDocument());
+    expect(document.querySelector('[data-dso-type-icon="galaxy"]')).toBeInTheDocument();
+});
+
+it("renders the type icon preview inline after the add label with each icon in three sizes", async () => {
+    renderObjectsView();
+
+    const addLabel = await screen.findByText("Add user defined object");
+    const previewToggle = screen.getByRole("button", { name: "Show object type icons" });
+    fireEvent.click(previewToggle);
+
+    const previewGroup = screen.getByRole("group", { name: "Object type icons" });
+    const previewRows = document.querySelectorAll("[data-dso-type-preview-row]");
+    const galaxyIcons = document.querySelectorAll('[data-dso-type-preview-row="GALXY"] [data-dso-type-icon="galaxy"]');
+    const asterismIcons = document.querySelectorAll('[data-dso-type-preview-row="ASTER"] [data-dso-type-icon="asterism"]');
+    const planetIcons = document.querySelectorAll('[data-dso-type-preview-row="PLANET"] [data-dso-type-icon="planet"]');
+    expect(addLabel.compareDocumentPosition(previewGroup) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Preview type icons" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Object type icons" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Hide object type icons" })).toBeInTheDocument();
+    expect(previewRows).toHaveLength(38);
+    expect(document.querySelector('[data-dso-type-preview-row="generic-current"] [data-dso-type-icon="generic"]')).toBeInTheDocument();
+    expect(document.querySelector('[data-dso-type-preview-row^="undefined-"]')).not.toBeInTheDocument();
+    expect(Array.from(galaxyIcons).map(icon => icon.getAttribute("width"))).toEqual(["16", "22", "32"]);
+    expect(asterismIcons).toHaveLength(3);
+    expect(planetIcons).toHaveLength(3);
+});
+
+it("hides the type icon preview toggle for users other than user id 1", async () => {
+    renderObjectsView(emptyObjectList, [], { ...loggedInStore, loggedInUserId: 2 });
+
+    await screen.findByText("Add user defined object");
+
+    expect(screen.queryByRole("button", { name: "Show object type icons" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Object type icons" })).not.toBeInTheDocument();
 });
 
 it("lets privileged users save new objects into the readonly other object list", async () => {

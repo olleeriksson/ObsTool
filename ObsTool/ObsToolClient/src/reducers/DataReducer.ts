@@ -40,6 +40,7 @@ import * as authenticationAction from "src/actions/AuthenticationActions";
 
 const initialDataState: IDataState = {
     isLoggedIn: false,
+    loggedInUserId: undefined,
     loggedInUsername: undefined,
     loggedInEmail: undefined,
     loggedInFullName: undefined,
@@ -72,6 +73,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             return {
                 ...state,
                 isLoggedIn: true,
+                loggedInUserId: loggedInAction.payload.userId,
                 loggedInUsername: loggedInAction.payload.username,
                 loggedInEmail: loggedInAction.payload.email,
                 loggedInFullName: loggedInAction.payload.fullName,
@@ -83,6 +85,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             return {
                 ...state,
                 isLoggedIn: false,
+                loggedInUserId: undefined,
                 loggedInUsername: undefined,
                 loggedInEmail: undefined,
                 loggedInFullName: undefined,
