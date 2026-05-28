@@ -50,7 +50,15 @@ const styles = (theme: Theme) => createStyles({
         width: "95%",
     },
     textField: {
-    }
+    },
+    rowField: {
+        width: "100%"
+    },
+    actionRow: {
+        marginLeft: theme.spacing(1),
+        marginRight: theme.spacing(1),
+        marginTop: theme.spacing(1),
+    },
 });
 
 interface IInstrumentsViewProps extends WithStyles<typeof styles> {
@@ -229,50 +237,56 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             <div>
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
                     <Grid container direction="column" size="grow">
-                        <Grid style={{ display: "flex", alignItems: "center" }}>
-                            <TextField
-                                id="key"
-                                label="Key"
-                                value={this.state.currentInstrument.key || ""}
-                                onChange={this.handleFormChange("key")}
-                                className={classNames(classes.formControl, classes.textfieldNarrow)}
-                                margin="dense"
-                            />
-                            {keyWarning}
+                        <Grid container spacing={2} sx={{ px: 1 }}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    id="key"
+                                    label="Key"
+                                    value={this.state.currentInstrument.key || ""}
+                                    onChange={this.handleFormChange("key")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    id="name"
+                                    label="Name"
+                                    value={this.state.currentInstrument.name || ""}
+                                    onChange={this.handleFormChange("name")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid>
-                            <TextField
-                                id="name"
-                                label="Name"
-                                value={this.state.currentInstrument.name || ""}
-                                onChange={this.handleFormChange("name")}
-                                className={classNames(classes.formControl, classes.textField)}
-                                margin="dense"
-                            />
+                        {keyWarning}
+                        <Grid container spacing={2} sx={{ px: 1 }}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    id="diameterMm"
+                                    label="Diameter (mm)"
+                                    type="text"
+                                    value={this.state.currentInstrument.diameterMm ?? ""}
+                                    onChange={this.handleFormChange("diameterMm")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    id="focalLengthMm"
+                                    label="Focal length (mm)"
+                                    value={this.state.currentInstrument.focalLengthMm ?? ""}
+                                    onChange={this.handleFormChange("focalLengthMm")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                    type="text"
+                                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid>
-                            <TextField
-                                id="diameterMm"
-                                label="Diameter (mm)"
-                                type="text"
-                                value={this.state.currentInstrument.diameterMm ?? ""}
-                                onChange={this.handleFormChange("diameterMm")}
-                                className={classNames(classes.formControl, classes.textfieldNarrow)}
-                                margin="dense"
-                                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                            />
-                            <TextField
-                                id="focalLengthMm"
-                                label="Focal length (mm)"
-                                value={this.state.currentInstrument.focalLengthMm ?? ""}
-                                onChange={this.handleFormChange("focalLengthMm")}
-                                className={classNames(classes.formControl, classes.textfieldNarrow)}
-                                margin="dense"
-                                type="text"
-                                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                            />
-                        </Grid>
-                        <Grid>
+                        <Grid className={classes.actionRow}>
                             <Grid container direction="row">
                                 <Grid>
                                     <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn || !this.isCurrentInstrumentValid()}>

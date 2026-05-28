@@ -42,7 +42,15 @@ const styles = (theme: Theme) => createStyles({
         width: "95%",
     },
     textField: {
-    }
+    },
+    rowField: {
+        width: "100%"
+    },
+    actionRow: {
+        marginLeft: theme.spacing(1),
+        marginRight: theme.spacing(1),
+        marginTop: theme.spacing(1),
+    },
 });
 
 interface ILocationsViewProps extends WithStyles<typeof styles> {
@@ -189,49 +197,51 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
             <div className="">
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
                     <Grid container direction="column" size="grow">
-                        <Grid>
+                        <Grid sx={{ px: 1 }}>
                             <TextField
                                 id="name"
                                 label="Name"
                                 value={this.state.currentLocation.name || ""}
                                 onChange={this.handleFormChange("name")}
-                                className={classNames(classes.formControl, classes.textField)}
+                                className={classes.rowField}
                                 margin="dense"
                             />
                         </Grid>
-                        <Grid>
-                            <TextField
-                                id="longitude"
-                                label="Longitude"
-                                type="string"
-                                value={this.state.currentLocation.longitude}
-                                onChange={this.handleFormChange("longitude")}
-                                className={classNames(classes.formControl, classes.textfieldNarrow)}
-                                margin="dense"
-                            />
-                            <TextField
-                                id="latitude"
-                                label="Latitude"
-                                type="string"
-                                value={this.state.currentLocation.latitude}
-                                onChange={this.handleFormChange("latitude")}
-                                className={classNames(classes.formControl, classes.textfieldNarrow)}
-                                margin="dense"
-                            />
+                        <Grid container spacing={2} sx={{ px: 1 }}>
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    id="longitude"
+                                    label="Longitude"
+                                    type="string"
+                                    value={this.state.currentLocation.longitude}
+                                    onChange={this.handleFormChange("longitude")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    id="latitude"
+                                    label="Latitude"
+                                    type="string"
+                                    value={this.state.currentLocation.latitude}
+                                    onChange={this.handleFormChange("latitude")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                                <TextField
+                                    id="googelMapsAddress"
+                                    label="Google Maps address"
+                                    value={this.state.currentLocation.googleMapsAddress || ""}
+                                    onChange={this.handleFormChange("googleMapsAddress")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid>
-                            <TextField
-                                id="googelMapsAddress"
-                                label="Google Maps address"
-                                multiline={true}
-                                maxRows={10}
-                                value={this.state.currentLocation.googleMapsAddress || ""}
-                                onChange={this.handleFormChange("googleMapsAddress")}
-                                className={classNames(classes.formControl, classes.textField)}
-                                margin="dense"
-                            />
-                        </Grid>
-                        <Grid>
+                        <Grid className={classes.actionRow}>
                             <Grid container direction="row">
                                 <Grid>
                                     <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn}>

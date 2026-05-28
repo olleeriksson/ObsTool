@@ -47,7 +47,15 @@ const styles = (theme: Theme) => createStyles({
         width: "95%",
     },
     textField: {
-    }
+    },
+    rowField: {
+        width: "100%"
+    },
+    actionRow: {
+        marginLeft: theme.spacing(1),
+        marginRight: theme.spacing(1),
+        marginTop: theme.spacing(1),
+    },
 });
 
 interface IEyepiecesViewProps extends WithStyles<typeof styles> {
@@ -249,40 +257,42 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
             <div>
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
                     <Grid container direction="column" size="grow">
-                        <Grid style={{ display: "flex", alignItems: "center" }}>
-                            <TextField
-                                id="key"
-                                label="Key"
-                                value={this.state.currentEyepiece.key || ""}
-                                onChange={this.handleFormChange("key")}
-                                className={classNames(classes.formControl, classes.textfieldNarrow)}
-                                margin="dense"
-                            />
-                            {keyWarning}
+                        <Grid container spacing={2} sx={{ px: 1 }}>
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <TextField
+                                    id="key"
+                                    label="Key"
+                                    value={this.state.currentEyepiece.key || ""}
+                                    onChange={this.handleFormChange("key")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <TextField
+                                    id="name"
+                                    label="Name"
+                                    value={this.state.currentEyepiece.name || ""}
+                                    onChange={this.handleFormChange("name")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <TextField
+                                    id="focalLengthMm"
+                                    label="Focal length (mm)"
+                                    value={this.state.currentEyepiece.focalLengthMm ?? ""}
+                                    onChange={this.handleFormChange("focalLengthMm")}
+                                    className={classes.rowField}
+                                    margin="dense"
+                                    type="text"
+                                    inputProps={{ inputMode: "decimal", pattern: "[0-9]*[.]?[0-9]*" }}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid>
-                            <TextField
-                                id="name"
-                                label="Name"
-                                value={this.state.currentEyepiece.name || ""}
-                                onChange={this.handleFormChange("name")}
-                                className={classNames(classes.formControl, classes.textField)}
-                                margin="dense"
-                            />
-                        </Grid>
-                        <Grid>
-                            <TextField
-                                id="focalLengthMm"
-                                label="Focal length (mm)"
-                                value={this.state.currentEyepiece.focalLengthMm ?? ""}
-                                onChange={this.handleFormChange("focalLengthMm")}
-                                className={classNames(classes.formControl, classes.textfieldNarrow)}
-                                margin="dense"
-                                type="text"
-                                inputProps={{ inputMode: "decimal", pattern: "[0-9]*[.]?[0-9]*" }}
-                            />
-                        </Grid>
-                        <Grid>
+                        {keyWarning}
+                        <Grid className={classes.actionRow}>
                             <Grid container direction="row">
                                 <Grid>
                                     <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn || !this.isCurrentEyepieceValid()}>
