@@ -5,12 +5,18 @@ import observation1Svg from "src/assets/svg/observation1.svg";
 import observation2Svg from "src/assets/svg/observation2.svg";
 import observation3Svg from "src/assets/svg/observation3.svg";
 import observation4Svg from "src/assets/svg/observation4.svg";
+import observationChart1Svg from "src/assets/svg/observation-chart1.svg";
+import observationChart2Svg from "src/assets/svg/observation-chart2.svg";
+import observationChart3Svg from "src/assets/svg/observation-chart3.svg";
 
 export type SvgIconVariant =
     | "observation1"
     | "observation2"
     | "observation3"
     | "observation4"
+    | "observationChart1"
+    | "observationChart2"
+    | "observationChart3"
     | "observedStarChart"
     | "observedEyeCelestial";
 
@@ -18,14 +24,22 @@ type FileSvgIconVariant =
     | "observation1"
     | "observation2"
     | "observation3"
-    | "observation4";
+    | "observation4"
+    | "observationChart1"
+    | "observationChart2"
+    | "observationChart3";
 type InlineSvgIconVariant = Exclude<SvgIconVariant, FileSvgIconVariant>;
+
+export const DEFAULT_SVG_ICON_VARIANT: SvgIconVariant = "observation1";
 
 export const SVG_ICON_OPTIONS: Array<{ variant: SvgIconVariant; label: string }> = [
     { variant: "observation1", label: "Observation 1" },
     { variant: "observation2", label: "Observation 2" },
     { variant: "observation3", label: "Observation 3" },
     { variant: "observation4", label: "Observation 4" },
+    { variant: "observationChart1", label: "Observation chart 1" },
+    { variant: "observationChart2", label: "Observation chart 2" },
+    { variant: "observationChart3", label: "Observation chart 3" },
     { variant: "observedStarChart", label: "Observed star chart" },
     { variant: "observedEyeCelestial", label: "Observed celestial eye" },
 ];
@@ -40,6 +54,9 @@ const svgFileByVariant: Record<FileSvgIconVariant, string> = {
     observation2: observation2Svg,
     observation3: observation3Svg,
     observation4: observation4Svg,
+    observationChart1: observationChart1Svg,
+    observationChart2: observationChart2Svg,
+    observationChart3: observationChart3Svg,
 };
 
 /**
@@ -47,6 +64,22 @@ const svgFileByVariant: Record<FileSvgIconVariant, string> = {
  */
 function isFileSvgIconVariant(variant: SvgIconVariant): variant is FileSvgIconVariant {
     return Object.prototype.hasOwnProperty.call(svgFileByVariant, variant);
+}
+
+/**
+ * Confirms that a persisted icon reference matches one of the available generic SVG variants.
+ */
+export function isKnownSvgIconVariant(variant?: string | null): variant is SvgIconVariant {
+    return !!variant && SVG_ICON_OPTIONS.some(iconOption => iconOption.variant === variant);
+}
+
+/**
+ * Returns a safe generic SVG icon variant for optional or stale persisted values.
+ */
+export function resolveSvgIconVariant(variant?: string | null): SvgIconVariant {
+    return isKnownSvgIconVariant(variant)
+        ? variant
+        : DEFAULT_SVG_ICON_VARIANT;
 }
 
 /**
@@ -61,7 +94,7 @@ export function SvgIcon({ variant, size = 24, sx, ...props }: ISvgIconProps) {
                 className={props.className}
                 component="img"
                 src={svgFileByVariant[variant]}
-                sx={{ display: "inline-block", fontSize: size, height: size, verticalAlign: "text-bottom", width: size, ...sx }}
+                sx={{ display: "inline-block", fontSize: size, height: size, objectFit: "contain", verticalAlign: "text-bottom", width: size, ...sx }}
             />
         );
     }

@@ -3,7 +3,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { IInstrument } from "../types/Types";
-import SvgIcon from "./icons/SvgIcon";
+import SvgIcon, { isKnownSvgIconVariant, resolveSvgIconVariant } from "./icons/SvgIcon";
 import TelescopeIcon, { isKnownTelescopeIconVariant, resolveTelescopeIconVariant } from "./icons/TelescopeIcon";
 
 interface IInstrumentBadgeProps {
@@ -24,7 +24,9 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
     const instrument = this.props.instrument;
     const iconSize = this.props.iconSize || 28;
     const labelWidth = this.props.labelWidth || iconSize;
-    const hasSelectedIcon = isKnownTelescopeIconVariant(instrument?.iconReference);
+    const hasTelescopeIcon = isKnownTelescopeIconVariant(instrument?.iconReference);
+    const hasSvgIcon = isKnownSvgIconVariant(instrument?.iconReference);
+    const hasSelectedIcon = hasTelescopeIcon || hasSvgIcon;
 
     const diameterText = instrument && instrument.diameterMm !== undefined && instrument.diameterMm !== null
       ? `${instrument.diameterMm} mm`
@@ -38,9 +40,11 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
     const variant = this.props.compact ? "caption" : "body2";
     const icon = this.props.nonDetection
       ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: this.props.nonDetectionIconSize || iconSize }} />
-      : hasSelectedIcon
+      : hasTelescopeIcon
         ? <TelescopeIcon variant={resolveTelescopeIconVariant(instrument?.iconReference)} size={iconSize} />
-        : <SvgIcon variant="observation1" size={iconSize * 0.75} />;
+        : hasSvgIcon
+          ? <SvgIcon variant={resolveSvgIconVariant(instrument?.iconReference)} size={iconSize} />
+          : <SvgIcon variant="observationChart3" size={iconSize * 1} />;
 
     const content = (
       <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>

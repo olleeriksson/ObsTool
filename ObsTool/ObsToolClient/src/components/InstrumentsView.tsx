@@ -26,7 +26,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import * as instrumentActions from "../actions/InstrumentActions";
+import SvgIcon, { SVG_ICON_OPTIONS, isKnownSvgIconVariant, resolveSvgIconVariant, type SvgIconVariant } from "./icons/SvgIcon";
 import TelescopeIcon, { TELESCOPE_ICON_OPTIONS, isKnownTelescopeIconVariant, resolveTelescopeIconVariant } from "./icons/TelescopeIcon";
+
+// Limits the generic SVG choices in the instrument picker to the chart assets intended for InstrumentBadge.
+const INSTRUMENT_SVG_ICON_VARIANTS: SvgIconVariant[] = ["observationChart1", "observationChart2", "observationChart3"];
+const INSTRUMENT_SVG_ICON_OPTIONS = SVG_ICON_OPTIONS.filter(iconOption => INSTRUMENT_SVG_ICON_VARIANTS.includes(iconOption.variant));
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -210,7 +215,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
         this.setState((prevState) => ({
             currentInstrument: {
                 ...prevState.currentInstrument,
-                iconReference: isKnownTelescopeIconVariant(iconReference) ? iconReference : null
+                iconReference: isKnownTelescopeIconVariant(iconReference) || isKnownSvgIconVariant(iconReference) ? iconReference : null
             },
             iconPickerAnchorEl: null
         }));
@@ -322,7 +327,9 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
 
         const selectedIconPreview = isKnownTelescopeIconVariant(this.state.currentInstrument.iconReference)
             ? <TelescopeIcon variant={resolveTelescopeIconVariant(this.state.currentInstrument.iconReference)} size={196} />
-            : <span>None</span>;
+            : isKnownSvgIconVariant(this.state.currentInstrument.iconReference)
+                ? <SvgIcon variant={resolveSvgIconVariant(this.state.currentInstrument.iconReference)} size={196} />
+                : <span>None</span>;
 
         const iconSelector = (
             <ToggleButtonGroup
@@ -338,6 +345,11 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                 {TELESCOPE_ICON_OPTIONS.map(iconOption => (
                     <ToggleButton key={iconOption.variant} value={iconOption.variant} aria-label={iconOption.label} className={classes.iconToggle}>
                         <TelescopeIcon variant={iconOption.variant} size={48} />
+                    </ToggleButton>
+                ))}
+                {INSTRUMENT_SVG_ICON_OPTIONS.map(iconOption => (
+                    <ToggleButton key={iconOption.variant} value={iconOption.variant} aria-label={iconOption.label} className={classes.iconToggle}>
+                        <SvgIcon variant={iconOption.variant} size={48} />
                     </ToggleButton>
                 ))}
             </ToggleButtonGroup>
@@ -459,7 +471,13 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                         , Icon: <TelescopeIcon variant={resolveTelescopeIconVariant(instrument.iconReference)} size={18} />
                     </>
                 )
-                : null;
+                : isKnownSvgIconVariant(instrument.iconReference)
+                    ? (
+                        <>
+                            , Icon: <SvgIcon variant={resolveSvgIconVariant(instrument.iconReference)} size={18} />
+                        </>
+                    )
+                    : null;
 
             return (
                 <Grid key={instrument.id} size={12}>
