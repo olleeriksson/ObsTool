@@ -17,6 +17,8 @@ interface IResourceImageProps extends WithStyles<typeof styles> {
     driveMaxWidth?: string;
     driveMaxHeight?: string;
     preview?: boolean;
+    fitContainer?: boolean;
+    preventUpscale?: boolean;
 }
 
 const styles = (theme: Theme) => createStyles({
@@ -111,17 +113,21 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
             const aladinTargetName = this.props.url;  // the Aladin target name is stored in the url field
             const driveMaxWidth = this.props.driveMaxWidth || "100";
             const driveMaxHeight = this.props.driveMaxHeight || "100";
+            const aladinWidth = this.props.fitContainer ? driveMaxWidth : "550";
+            const aladinHeight = this.props.fitContainer ? driveMaxHeight : "550";
             if (this.props.preview) {
                 return <img src={`${import.meta.env.BASE_URL}aladin.png`} />;
             }
             return (
-                <AladinLiteFrame target={aladinTargetName} width={"550"} height={"550"} />
+                <AladinLiteFrame target={aladinTargetName} width={aladinWidth} height={aladinHeight} />
             );
         } else {
             const invert = this.props.inverted ? "100" : "0";
             const rotation = this.props.rotation;
             const scale = this.props.zoomLevel / 100;
+            const scaleToUse = this.props.preventUpscale ? Math.min(scale, 1) : scale;
             const backgroundColor = this.props.backgroundColor && this.props.backgroundColor >= 255 ? "white" : "black";
+            const shouldUseNaturalSize = this.props.fitContainer || this.props.preventUpscale;
             let imgSrc;
 
             if (this.props.type === "sketch" || this.props.type === "jot") {
@@ -137,7 +143,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
                 <div
                     ref={this.imgContainerRef}
                     className={classes.imageContainer}
-                    style={{ backgroundColor: `${backgroundColor}` }}
+                    style={{ backgroundColor: `${backgroundColor}`, width: this.props.fitContainer ? "100%" : undefined, height: this.props.fitContainer ? "100%" : undefined }}
                 >
                     <img
                         //crossOrigin="anonymous"
@@ -145,7 +151,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
                         src={imgSrc}
                         title={this.props.name}
                         className={classes.image}
-                        style={{ transform: `rotate(${rotation}deg) scale(${scale})`, filter: `invert(${invert}%)` }}
+                        style={{ transform: `rotate(${rotation}deg) scale(${scaleToUse})`, filter: `invert(${invert}%)`, width: shouldUseNaturalSize ? "auto" : undefined, maxWidth: shouldUseNaturalSize ? "100%" : undefined, maxHeight: shouldUseNaturalSize ? "100%" : undefined }}
                     />
                 </div>
             );

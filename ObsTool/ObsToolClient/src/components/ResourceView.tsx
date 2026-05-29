@@ -22,9 +22,46 @@ import ResourceImage from "./ResourceImage";
 import Slider from "@mui/material/Slider";
 import Checkbox from "@mui/material/Checkbox";
 import { connect } from "react-redux";
+import Tooltip from "@mui/material/Tooltip";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 
 const styles = (theme: Theme) => createStyles({
     root: {
+    },
+    rootExpanded: {
+        height: "100%",
+        width: "100%",
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+    },
+    resourceFormExpanded: {
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+    },
+    imageControlsSectionExpanded: {
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+    },
+    imageControlsRowExpanded: {
+        height: "100%",
+        width: "100%",
+        flexWrap: "nowrap",
+    },
+    controlsPanelExpanded: {
+        flex: "0 0 190px",
+        maxHeight: "100%",
+        overflowY: "auto",
+    },
+    imageCellExpanded: {
+        flex: "1 1 auto",
+        minWidth: 0,
+        minHeight: 0,
+        display: "flex",
     },
     imageContainer: {
         //border: "2px dashed lightgray",
@@ -36,6 +73,34 @@ const styles = (theme: Theme) => createStyles({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+    },
+    imageViewport: {
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    imageContainerExpanded: {
+        width: "100%",
+        height: "100%",
+        minWidth: 0,
+        minHeight: 0,
+        maxWidth: "none",
+        maxHeight: "none",
+        padding: 0,
+    },
+    expandedImageWrapper: {
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+    },
+    imageExpandButton: {
+        position: "absolute",
+        top: 8,
+        right: 8,
+        zIndex: 1,
     },
     formControl: {
         margin: theme.spacing(1),
@@ -81,6 +146,9 @@ interface IResourceViewProps extends WithStyles<typeof styles> {
     displayMode?: string;
     onHandleClose: (confirm: boolean) => void;
     inverted: boolean;
+    isExpanded?: boolean;
+    dialogExpanded?: boolean;
+    onExpandedChange?: (displayMode: string, expanded: boolean) => void;
     store: IDataState;
 }
 
@@ -293,6 +361,13 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         this.saveResource();
     }
 
+    // Notifies ResourceDialog which image is expanded so compare mode can show one large resource at a time.
+    private onToggleExpanded = () => {
+        if (this.props.onExpandedChange) {
+            this.props.onExpandedChange(this.state.displayMode, !this.props.isExpanded);
+        }
+    }
+
     // private onBrowseFileSelected = (e: any) => {
     //     console.log(e.target.files[0]);
     //     if (e.target.files && e.target.files[0] && e.target.files[0].name) {
@@ -308,6 +383,13 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
     public render() {
         const { classes } = this.props;
+        const isExpanded = !!this.props.isExpanded;
+        const shouldFillDialogSpace = isExpanded || !!this.props.dialogExpanded;
+        const rootClassName = shouldFillDialogSpace ? `${classes.root} ${classes.rootExpanded}` : classes.root;
+        const formClassName = shouldFillDialogSpace ? classes.resourceFormExpanded : undefined;
+        const imageContainerClassName = shouldFillDialogSpace ? `${classes.imageContainer} ${classes.imageContainerExpanded}` : classes.imageContainer;
+        const expandedDriveMaxDimension = this.props.dialogExpanded ? "1800" : "1200";
+        const driveMaxDimension = shouldFillDialogSpace ? expandedDriveMaxDimension : "500";
 
         let error;
         if (this.state.isError) {
@@ -364,34 +446,61 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         const invertedInverted = (this.state.inverted && !this.props.inverted) || (!this.state.inverted && this.props.inverted);
         const invertedBackGroundColor = this.state.backgroundColor >= 255 ? 0 : 255;
         const backGroundColorToUse = this.props.inverted ? invertedBackGroundColor : this.state.backgroundColor;
+        const expandIconColor = backGroundColorToUse >= 255 ? "#111111" : "#ffffff";
+        const expandButtonBackground = backGroundColorToUse >= 255 ? "rgba(255, 255, 255, 0.65)" : "rgba(0, 0, 0, 0.35)";
+        const expandButtonTitle = isExpanded ? "Collapse resource" : "Expand resource";
 
         const gridViewContainer = (
-            <Grid>
-                <div className={classes.imageContainer}>
-                    <ResourceImage
-                        type={this.state.type}
-                        url={this.state.url}
-                        name={this.state.name}
-                        inverted={invertedInverted}
-                        rotation={this.state.rotation}
-                        zoomLevel={this.state.zoomLevel}
-                        backgroundColor={backGroundColorToUse}
-                        driveMaxHeight="500"
-                        driveMaxWidth="500"
-                    />
+            <Grid className={shouldFillDialogSpace ? `${classes.expandedImageWrapper} ${classes.imageCellExpanded}` : undefined}>
+                <div className={imageContainerClassName}>
+                    <div className={classes.imageViewport}>
+                        <Tooltip title={expandButtonTitle}>
+                            <IconButton
+                                onClick={this.onToggleExpanded}
+                                aria-label={expandButtonTitle}
+                                size="small"
+                                className={classes.imageExpandButton}
+                                style={{ color: expandIconColor, backgroundColor: expandButtonBackground }}
+                            >
+                                {isExpanded ? <FullscreenExitIcon /> : <FullscreenIcon />}
+                            </IconButton>
+                        </Tooltip>
+                        <ResourceImage
+                            type={this.state.type}
+                            url={this.state.url}
+                            name={this.state.name}
+                            inverted={invertedInverted}
+                            rotation={this.state.rotation}
+                            zoomLevel={this.state.zoomLevel}
+                            backgroundColor={backGroundColorToUse}
+                            driveMaxHeight={driveMaxDimension}
+                            driveMaxWidth={driveMaxDimension}
+                            fitContainer={shouldFillDialogSpace}
+                            preventUpscale={true}
+                        />
+                    </div>
                 </div>
             </Grid>
         );
 
-        return <div>
+        if (isExpanded) {
+            return <div className={rootClassName}>
+                <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
+                <Grid container spacing={1} direction="column" className={classes.resourceFormExpanded}>
+                    {gridViewContainer}
+                </Grid>
+            </div>;
+        }
+
+        return <div className={rootClassName}>
             <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
-            <Grid container spacing={1} direction="column">
-                <Grid size="grow">
-                    <Grid container spacing={1} direction="row">
+            <Grid container spacing={1} direction="column" className={formClassName}>
+                <Grid size="grow" className={shouldFillDialogSpace ? classes.imageControlsSectionExpanded : undefined}>
+                    <Grid container spacing={1} direction="row" className={shouldFillDialogSpace ? classes.imageControlsRowExpanded : undefined}>
 
                         {this.state.displayMode === "right" && gridViewContainer}
 
-                        <Grid>
+                        <Grid className={shouldFillDialogSpace ? classes.controlsPanelExpanded : undefined}>
                             <Grid container spacing={1} direction="column">
                                 <Grid>
                                     <FormControl className={classes.formControl}>
@@ -480,7 +589,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
                     </Grid>
                 </Grid>
-                <Grid size="grow">
+                <Grid size={shouldFillDialogSpace ? undefined : "grow"}>
                     <TextField
                         autoFocus={true}
                         margin="dense"
@@ -491,7 +600,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         value={this.state.name}
                     />
                 </Grid>
-                <Grid size="grow">
+                <Grid size={shouldFillDialogSpace ? undefined : "grow"}>
                     <TextField
                         style={{ flex: 1 }}
                         autoFocus={true}
