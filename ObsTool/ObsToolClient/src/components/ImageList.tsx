@@ -304,6 +304,8 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       const titleBarClass = r.backgroundColor === 255 ? classes.titleBarWhite : classes.titleBarBlack;
 
       const tileBackgroundClass = r.backgroundColor === 255 ? classes.tileWhiteBackground : classes.tileBlackBackground;
+      // Google Drive resources use the same stable thumbnail URL in lists and dialogs so browser caching can work across views.
+      const driveThumbnailDimension = (r.type === "sketch" || r.type === "jot") ? "1000" : "180";
 
       return <ImageListItem key={r.id} className={`${classes.tile} ${tileBackgroundClass}`}>
         <div onClick={this.handleClickResource(r.id)} className={classes.imageContainer} >
@@ -315,8 +317,8 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
             rotation={r.rotation}
             zoomLevel={r.zoomLevel}
             backgroundColor={r.backgroundColor}
-            driveMaxHeight="180"
-            driveMaxWidth="180"
+            driveMaxHeight={driveThumbnailDimension}
+            driveMaxWidth={driveThumbnailDimension}
             preview={true}
           />
         </div>

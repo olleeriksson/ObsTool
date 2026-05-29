@@ -389,7 +389,9 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         const formClassName = shouldFillDialogSpace ? classes.resourceFormExpanded : undefined;
         const imageContainerClassName = shouldFillDialogSpace ? `${classes.imageContainer} ${classes.imageContainerExpanded}` : classes.imageContainer;
         const expandedDriveMaxDimension = this.props.dialogExpanded ? "1800" : "1200";
-        const driveMaxDimension = shouldFillDialogSpace ? expandedDriveMaxDimension : "500";
+        const responsiveDriveMaxDimension = shouldFillDialogSpace ? expandedDriveMaxDimension : "500";
+        // Sketches and jots use a stable Google Drive thumbnail URL so expanding the dialog can reuse the browser image cache.
+        const driveMaxDimension = (this.state.type === "sketch" || this.state.type === "jot") ? "1000" : responsiveDriveMaxDimension;
 
         let error;
         if (this.state.isError) {

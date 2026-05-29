@@ -6,3 +6,19 @@ Modify the three numbers in objectListColumn to change the width of the object l
     minWidth: 100,
     paddingTop: theme.spacing(5),
   },
+
+
+Both previews in the ImageList and the standard size of images when opened in in their dialog ResourceDialog/ResourceView
+now get the images in 1000x1000 to prevent subsequent requests. To change this behavior modify these two places:
+
+  ResourceView.tsx:
+        // Sketches and jots use a stable Google Drive thumbnail URL so expanding the dialog can reuse the browser image cache.
+        const driveMaxDimension = (this.state.type === "sketch" || this.state.type === "jot") ? "1000" : responsiveDriveMaxDimension;
+
+      The default was 500x500 for maxDimension before.
+
+  ImageList.tsx:
+      // Google Drive resources use the same stable thumbnail URL in lists and dialogs so browser caching can work across views.
+      const driveThumbnailDimension = (r.type === "sketch" || r.type === "jot") ? "1000" : "180";
+
+      The default was 180x180 for thumbnailDimensions before.
