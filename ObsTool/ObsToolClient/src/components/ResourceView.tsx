@@ -18,7 +18,7 @@ import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
 import DeleteDialog from "./DeleteDialog";
 import Grid from "@mui/material/Grid2";
-import ResourceImage from "./ResourceImage";
+import ResourceImage, { IResourceImageBounds } from "./ResourceImage";
 import Slider from "@mui/material/Slider";
 import Checkbox from "@mui/material/Checkbox";
 import { connect } from "react-redux";
@@ -66,10 +66,13 @@ const styles = (theme: Theme) => createStyles({
     imageContainer: {
         //border: "2px dashed lightgray",
         padding: 5,
-        minWidth: 550,
-        minHeight: 550,
-        maxWidth: 550,
-        maxHeight: 550,
+        width: 620,
+        height: 620,
+        minWidth: 620,
+        minHeight: 620,
+        maxWidth: 620,
+        maxHeight: 620,
+        overflow: "hidden",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -78,6 +81,7 @@ const styles = (theme: Theme) => createStyles({
         position: "relative",
         width: "100%",
         height: "100%",
+        overflow: "hidden",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -98,8 +102,8 @@ const styles = (theme: Theme) => createStyles({
     },
     imageExpandButton: {
         position: "absolute",
-        top: 8,
-        right: 8,
+        width: 34,
+        height: 34,
         zIndex: 1,
     },
     formControl: {
@@ -165,6 +169,9 @@ interface IResourceViewState {
     zoomLevel: number;
     inverted: boolean;
     backgroundColor: number;
+    imageBounds?: IResourceImageBounds;
+    viewportWidth: number;
+    viewportHeight: number;
 }
 
 class ResourceView extends React.Component<IResourceViewProps, IResourceViewState> {
@@ -183,11 +190,14 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
             inverted: false,
             rotation: 0,
             zoomLevel: 100,
-            backgroundColor: 0
+            backgroundColor: 0,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight
         };
     }
 
     public componentDidMount() {
+        window.addEventListener("resize", this.handleWindowResize);
         if (this.props.resource) {
             this.setState({
                 type: this.props.resource.type,
@@ -199,6 +209,10 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                 backgroundColor: this.props.resource.backgroundColor
             });
         }
+    }
+
+    public componentWillUnmount() {
+        window.removeEventListener("resize", this.handleWindowResize);
     }
 
     // OLD, keeping it around.
@@ -286,6 +300,86 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
     private handleZoomLevelSliderChange = (_event: Event, value: number | number[]) => {
         this.setState({ zoomLevel: value as number });
+    }
+
+    // Tracks viewport changes so the fullscreen affordance reflects the space an expanded resource would actually get.
+    private handleWindowResize = () => {
+        this.setState({
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight
+        });
+    }
+
+    // Keeps the fullscreen button tied to the real rendered image instead of the larger resource viewport.
+    private handleImageBoundsChange = (imageBounds: IResourceImageBounds) => {
+        const previousBounds = this.state.imageBounds;
+        if (previousBounds && this.areImageBoundsEqual(previousBounds, imageBounds)) {
+            return;
+        }
+
+        this.setState({ imageBounds });
+    }
+
+    // Avoids repeated state updates from ResizeObserver when the measured image rectangle has not meaningfully changed.
+    private areImageBoundsEqual = (left: IResourceImageBounds, right: IResourceImageBounds) => {
+        const tolerance = 0.5;
+        return Math.abs(left.naturalWidth - right.naturalWidth) < tolerance
+            && Math.abs(left.naturalHeight - right.naturalHeight) < tolerance
+            && Math.abs(left.imageLeft - right.imageLeft) < tolerance
+            && Math.abs(left.imageTop - right.imageTop) < tolerance
+            && Math.abs(left.imageWidth - right.imageWidth) < tolerance
+            && Math.abs(left.imageHeight - right.imageHeight) < tolerance
+            && Math.abs(left.containerWidth - right.containerWidth) < tolerance
+            && Math.abs(left.containerHeight - right.containerHeight) < tolerance;
+    }
+
+    // Shows the fullscreen affordance only when expanded layout would render this image larger than it is now.
+    private canImageExpand = () => {
+        const bounds = this.state.imageBounds;
+        if (!bounds || bounds.naturalWidth <= 0 || bounds.naturalHeight <= 0) {
+            return false;
+        }
+
+        const expandedBounds = this.getExpandedImageBounds(bounds);
+        return expandedBounds.width > bounds.imageWidth + 1 || expandedBounds.height > bounds.imageHeight + 1;
+    }
+
+    // Estimates the rendered image size after resource-level fullscreen, using contain-fit and no upscaling.
+    private getExpandedImageBounds = (bounds: IResourceImageBounds) => {
+        const expandedImageAreaWidth = Math.max(this.state.viewportWidth - 80, 0);
+        const expandedImageAreaHeight = Math.max(this.state.viewportHeight - 160, 0);
+        const scale = Math.min(
+            1,
+            expandedImageAreaWidth / bounds.naturalWidth,
+            expandedImageAreaHeight / bounds.naturalHeight
+        );
+
+        return {
+            width: bounds.naturalWidth * scale,
+            height: bounds.naturalHeight * scale
+        };
+    }
+
+    // Positions the fullscreen button inside the rendered image rectangle with a small inset from the top-right edge.
+    private getImageExpandButtonPosition = (): React.CSSProperties => {
+        const bounds = this.state.imageBounds;
+        const buttonSize = 34;
+        const inset = 8;
+        if (!bounds) {
+            return { top: inset, right: inset };
+        }
+
+        const minLeft = bounds.imageLeft;
+        const maxLeft = bounds.imageLeft + Math.max(bounds.imageWidth - buttonSize, 0);
+        const preferredLeft = bounds.imageLeft + bounds.imageWidth - buttonSize - inset;
+        const minTop = bounds.imageTop;
+        const maxTop = bounds.imageTop + Math.max(bounds.imageHeight - buttonSize, 0);
+        const preferredTop = bounds.imageTop + inset;
+
+        return {
+            left: Math.min(Math.max(preferredLeft, minLeft), maxLeft),
+            top: Math.min(Math.max(preferredTop, minTop), maxTop)
+        };
     }
 
     private saveResource = () => {
@@ -451,22 +545,26 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         const expandIconColor = backGroundColorToUse >= 255 ? "#111111" : "#ffffff";
         const expandButtonBackground = backGroundColorToUse >= 255 ? "rgba(255, 255, 255, 0.65)" : "rgba(0, 0, 0, 0.35)";
         const expandButtonTitle = isExpanded ? "Collapse resource" : "Expand resource";
+        const shouldShowExpandButton = isExpanded || this.canImageExpand();
+        const expandButtonPosition = this.getImageExpandButtonPosition();
 
         const gridViewContainer = (
             <Grid className={shouldFillDialogSpace ? `${classes.expandedImageWrapper} ${classes.imageCellExpanded}` : undefined}>
                 <div className={imageContainerClassName}>
                     <div className={classes.imageViewport}>
-                        <Tooltip title={expandButtonTitle}>
-                            <IconButton
-                                onClick={this.onToggleExpanded}
-                                aria-label={expandButtonTitle}
-                                size="small"
-                                className={classes.imageExpandButton}
-                                style={{ color: expandIconColor, backgroundColor: expandButtonBackground }}
-                            >
-                                {isExpanded ? <FullscreenExitIcon /> : <FullscreenIcon />}
-                            </IconButton>
-                        </Tooltip>
+                        {shouldShowExpandButton && (
+                            <Tooltip title={expandButtonTitle}>
+                                <IconButton
+                                    onClick={this.onToggleExpanded}
+                                    aria-label={expandButtonTitle}
+                                    size="small"
+                                    className={classes.imageExpandButton}
+                                    style={{ ...expandButtonPosition, color: expandIconColor, backgroundColor: expandButtonBackground }}
+                                >
+                                    {isExpanded ? <FullscreenExitIcon /> : <FullscreenIcon />}
+                                </IconButton>
+                            </Tooltip>
+                        )}
                         <ResourceImage
                             type={this.state.type}
                             url={this.state.url}
@@ -479,6 +577,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                             driveMaxWidth={driveMaxDimension}
                             fitContainer={shouldFillDialogSpace}
                             preventUpscale={true}
+                            onImageBoundsChange={this.handleImageBoundsChange}
                         />
                     </div>
                 </div>

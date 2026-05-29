@@ -36,7 +36,7 @@ const styles = (theme: Theme) => createStyles({
         paddingBottom: 0,
     },
     dialogContent: {
-        overflow: "hidden",
+        overflow: "auto",
     },
     dialogContentExpanded: {
         flex: 1,
@@ -44,7 +44,7 @@ const styles = (theme: Theme) => createStyles({
     },
     resourceGrid: {
         height: "100%",
-        overflow: "hidden",
+        overflow: "visible",
         flexWrap: "nowrap",
         columnGap: theme.spacing(2),
     },
@@ -74,13 +74,11 @@ interface IResourceDialogState {
 }
 
 class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDialogState> {
-    private static readonly dialogExpandedStorageKey = "resourceDialogExpanded";
-
     constructor(props: IResourceDialogProps) {
         super(props);
 
         this.state = {
-            dialogExpanded: ResourceDialog.getStoredDialogExpanded(),
+            dialogExpanded: false,
             expandedResourceView: undefined,
             invertBoth: false
         };
@@ -88,28 +86,13 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
 
     public componentDidUpdate(prevProps: IResourceDialogProps) {
         if (prevProps.isOpen !== this.props.isOpen) {
-            this.setState({ expandedResourceView: undefined });
+            this.setState({ dialogExpanded: false, expandedResourceView: undefined });
         }
     }
 
-    // Reads the persisted dialog size preference without breaking if localStorage is unavailable.
-    private static getStoredDialogExpanded = () => {
-        try {
-            return window.localStorage.getItem(ResourceDialog.dialogExpandedStorageKey) === "true";
-        } catch {
-            return false;
-        }
-    }
-
-    // Persists only the dialog-level expansion preference, not any individual resource expansion.
+    // Toggles dialog-level expansion for the current open dialog only.
     private setDialogExpanded = (dialogExpanded: boolean) => {
         this.setState({ dialogExpanded });
-
-        try {
-            window.localStorage.setItem(ResourceDialog.dialogExpandedStorageKey, String(dialogExpanded));
-        } catch {
-            // Ignore storage errors so the dialog still works in private or restricted browser contexts.
-        }
     }
 
     private onToggleDialogExpanded = () => {
@@ -144,10 +127,11 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
     public render() {
         const { classes } = this.props;
         const { dialogExpanded, expandedResourceView } = this.state;
-        const dialogPaperClassName = dialogExpanded ? `${classes.dialogPaper} ${classes.dialogPaperExpanded}` : classes.dialogPaper;
-        const dialogContentClassName = dialogExpanded ? `${classes.dialogContent} ${classes.dialogContentExpanded}` : classes.dialogContent;
-        const resourceGridClassName = dialogExpanded ? `${classes.resourceGrid} ${classes.resourceColumnExpanded}` : classes.resourceGrid;
-        const resourceColumnClassName = (dialogExpanded || expandedResourceView) ? `${classes.resourceColumn} ${classes.resourceColumnExpanded}` : classes.resourceColumn;
+        const shouldUseExpandedLayout = dialogExpanded || !!expandedResourceView;
+        const dialogPaperClassName = shouldUseExpandedLayout ? `${classes.dialogPaper} ${classes.dialogPaperExpanded}` : classes.dialogPaper;
+        const dialogContentClassName = shouldUseExpandedLayout ? `${classes.dialogContent} ${classes.dialogContentExpanded}` : classes.dialogContent;
+        const resourceGridClassName = shouldUseExpandedLayout ? `${classes.resourceGrid} ${classes.resourceColumnExpanded}` : classes.resourceGrid;
+        const resourceColumnClassName = shouldUseExpandedLayout ? `${classes.resourceColumn} ${classes.resourceColumnExpanded}` : classes.resourceColumn;
         const showResource1 = !expandedResourceView || expandedResourceView === "left";
         const showResource2 = this.props.resource2 && (!expandedResourceView || expandedResourceView === "right");
 
