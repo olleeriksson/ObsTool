@@ -14,9 +14,9 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import Popover from "@mui/material/Popover";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Tooltip from "@mui/material/Tooltip";
 import Api from "../api/Api";
 import { IInstrument, IAppState, IDataState } from "src/types/Types";
 import classNames from "classnames";
@@ -57,17 +57,49 @@ const styles = (theme: Theme) => createStyles({
     rowField: {
         width: "100%"
     },
+    fieldColumn: {
+        minWidth: 0,
+    },
+    iconColumn: {
+        alignItems: "flex-start",
+        alignSelf: "flex-start",
+        display: "inline-flex",
+        flexDirection: "column",
+        paddingLeft: theme.spacing(1),
+        width: "auto",
+    },
+    iconColumnLabel: {
+        marginBottom: theme.spacing(0.75),
+    },
+    iconPickerButton: {
+        alignItems: "center",
+        alignSelf: "flex-start",
+        display: "inline-flex",
+        height: 96,
+        justifyContent: "center",
+        minWidth: 96,
+        overflow: "hidden",
+        padding: 0,
+        width: 96,
+        "& img": {
+            height: "90%",
+            objectFit: "contain",
+            width: "90%",
+        },
+    },
+    iconPopoverPaper: {
+        padding: theme.spacing(1),
+    },
     iconSelector: {
         alignItems: "center",
         display: "flex",
         flexWrap: "wrap",
-        gap: theme.spacing(0.5),
-        marginTop: theme.spacing(1),
+        gap: theme.spacing(1),
     },
     iconToggle: {
-        height: 36,
-        minWidth: 36,
-        padding: theme.spacing(0.5),
+        height: 60,
+        minWidth: 60,
+        padding: theme.spacing(0.75),
     },
     actionRow: {
         marginLeft: theme.spacing(1),
@@ -87,6 +119,7 @@ interface IInstrumentsViewState {
     instruments: IInstrument[];
     currentInstrument: IInstrument;
     isConfirmDeleteOpen: boolean;
+    iconPickerAnchorEl: HTMLElement | null;
 }
 
 class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrumentsViewState> {
@@ -98,7 +131,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             isError: false,
             instruments: [],
             currentInstrument: this.getEmptyInstrument(),
-            isConfirmDeleteOpen: false
+            isConfirmDeleteOpen: false,
+            iconPickerAnchorEl: null
         };
     }
 
@@ -156,14 +190,29 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
     }
 
     /**
-     * Stores a blank selector value as null so the backend can distinguish no explicit icon from a chosen icon.
+     * Opens the icon chooser from the compact selected-icon button.
+     */
+    private handleOpenIconPicker = (event: React.MouseEvent<HTMLElement>) => {
+        this.setState({ iconPickerAnchorEl: event.currentTarget });
+    }
+
+    /**
+     * Closes the icon chooser without changing the selected icon.
+     */
+    private handleCloseIconPicker = () => {
+        this.setState({ iconPickerAnchorEl: null });
+    }
+
+    /**
+     * Stores a blank selector value as null and closes the popover after a choice.
      */
     private handleIconReferenceChange = (_event: React.MouseEvent<HTMLElement>, iconReference: string | null) => {
         this.setState((prevState) => ({
             currentInstrument: {
                 ...prevState.currentInstrument,
                 iconReference: isKnownTelescopeIconVariant(iconReference) ? iconReference : null
-            }
+            },
+            iconPickerAnchorEl: null
         }));
     }
 
@@ -259,6 +308,10 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             </Dialog>
         );
 
+        const selectedIconPreview = isKnownTelescopeIconVariant(this.state.currentInstrument.iconReference)
+            ? <TelescopeIcon variant={resolveTelescopeIconVariant(this.state.currentInstrument.iconReference)} size={196} />
+            : <span>None</span>;
+
         const iconSelector = (
             <ToggleButtonGroup
                 exclusive={true}
@@ -272,76 +325,98 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                 </ToggleButton>
                 {TELESCOPE_ICON_OPTIONS.map(iconOption => (
                     <ToggleButton key={iconOption.variant} value={iconOption.variant} aria-label={iconOption.label} className={classes.iconToggle}>
-                        <Tooltip title={iconOption.label}>
-                            <span>
-                                <TelescopeIcon variant={iconOption.variant} size={24} />
-                            </span>
-                        </Tooltip>
+                        <TelescopeIcon variant={iconOption.variant} size={48} />
                     </ToggleButton>
                 ))}
             </ToggleButtonGroup>
         );
 
+        const iconPickerPopover = (
+            <Popover
+                open={!!this.state.iconPickerAnchorEl}
+                anchorEl={this.state.iconPickerAnchorEl}
+                onClose={this.handleCloseIconPicker}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
+                slotProps={{ paper: { className: classes.iconPopoverPaper } }}
+            >
+                {iconSelector}
+            </Popover>
+        );
+
         const instrumentForm = (
             <div>
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
-                    <Grid container direction="column" size="grow">
-                        <Grid container spacing={2} sx={{ px: 1 }}>
-                            <Grid size={{ xs: 12, sm: 6 }}>
-                                <TextField
-                                    id="key"
-                                    label="Key"
-                                    value={this.state.currentInstrument.key || ""}
-                                    onChange={this.handleFormChange("key")}
-                                    className={classes.rowField}
-                                    margin="dense"
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12, sm: 6 }}>
-                                <TextField
-                                    id="name"
-                                    label="Name"
-                                    value={this.state.currentInstrument.name || ""}
-                                    onChange={this.handleFormChange("name")}
-                                    className={classes.rowField}
-                                    margin="dense"
-                                />
-                            </Grid>
-                        </Grid>
-                        {keyWarning}
-                        <Grid container spacing={2} sx={{ px: 1 }}>
-                            <Grid size={{ xs: 12, sm: 4 }}>
-                                <TextField
-                                    id="diameterMm"
-                                    label="Diameter (mm)"
-                                    type="text"
-                                    value={this.state.currentInstrument.diameterMm ?? ""}
-                                    onChange={this.handleFormChange("diameterMm")}
-                                    className={classes.rowField}
-                                    margin="dense"
-                                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12, sm: 4 }}>
-                                <TextField
-                                    id="focalLengthMm"
-                                    label="Focal length (mm)"
-                                    value={this.state.currentInstrument.focalLengthMm ?? ""}
-                                    onChange={this.handleFormChange("focalLengthMm")}
-                                    className={classes.rowField}
-                                    margin="dense"
-                                    type="text"
-                                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12, sm: 4 }}>
-                                <Typography variant="caption" color="textSecondary">
-                                    Icon
-                                </Typography>
-                                {iconSelector}
+                    <Grid container spacing={2} size="grow" sx={{ px: 1 }}>
+                        <Grid className={classes.fieldColumn} size={{ xs: 12, md: "grow" }}>
+                            <Grid container direction="column">
+                                <Grid container spacing={2}>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <TextField
+                                            id="key"
+                                            label="Key"
+                                            value={this.state.currentInstrument.key || ""}
+                                            onChange={this.handleFormChange("key")}
+                                            className={classes.rowField}
+                                            margin="dense"
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <TextField
+                                            id="name"
+                                            label="Name"
+                                            value={this.state.currentInstrument.name || ""}
+                                            onChange={this.handleFormChange("name")}
+                                            className={classes.rowField}
+                                            margin="dense"
+                                        />
+                                    </Grid>
+                                </Grid>
+                                {keyWarning}
+                                <Grid container spacing={2}>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <TextField
+                                            id="diameterMm"
+                                            label="Diameter (mm)"
+                                            type="text"
+                                            value={this.state.currentInstrument.diameterMm ?? ""}
+                                            onChange={this.handleFormChange("diameterMm")}
+                                            className={classes.rowField}
+                                            margin="dense"
+                                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <TextField
+                                            id="focalLengthMm"
+                                            label="Focal length (mm)"
+                                            value={this.state.currentInstrument.focalLengthMm ?? ""}
+                                            onChange={this.handleFormChange("focalLengthMm")}
+                                            className={classes.rowField}
+                                            margin="dense"
+                                            type="text"
+                                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                                        />
+                                    </Grid>
+                                </Grid>
                             </Grid>
                         </Grid>
-                        <Grid className={classes.actionRow}>
+                        <Grid className={classes.iconColumn} size={{ xs: "auto", md: "auto" }}>
+                            <Typography variant="caption" color="textSecondary" className={classes.iconColumnLabel}>
+                                Icon
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                className={classes.iconPickerButton}
+                                onClick={this.handleOpenIconPicker}
+                                aria-haspopup="dialog"
+                                aria-label="Choose instrument icon"
+                            >
+                                {selectedIconPreview}
+                            </Button>
+                            {iconPickerPopover}
+                        </Grid>
+                        <Grid className={classes.actionRow} size={12}>
                             <Grid container direction="row">
                                 <Grid>
                                     <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn || !this.isCurrentInstrumentValid()}>
@@ -365,21 +440,31 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             </div>
         );
 
-        const instrumentList = this.state.instruments.map(instrument => (
-            <Grid key={instrument.id} size={12}>
-                <Typography variant="subtitle1" gutterBottom={true}>
-                    {instrument.name} <span style={{ color: "gray", fontSize: "0.85em" }}>({instrument.key})</span>
-                    <a href="" onClick={this.handleClickResource(instrument.id)}>
-                        <EditIcon style={{ fontSize: 16, marginLeft: "1em" }} />
-                    </a>
-                </Typography>
-                <Typography variant="caption" gutterBottom={true}>
-                    Diameter: <strong>{instrument.diameterMm !== undefined && instrument.diameterMm !== null ? `${instrument.diameterMm} mm` : "N/A"}</strong>,{" "}
-                    Focal length: <strong>{instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `${instrument.focalLengthMm} mm` : "N/A"}</strong>,{" "}
-                    Icon: <TelescopeIcon variant={resolveTelescopeIconVariant(instrument.iconReference)} size={18} /> <strong>{instrument.iconReference || "Default"}</strong>
-                </Typography>
-            </Grid>
-        ));
+        const instrumentList = this.state.instruments.map(instrument => {
+            const selectedIcon = isKnownTelescopeIconVariant(instrument.iconReference)
+                ? (
+                    <>
+                        , Icon: <TelescopeIcon variant={resolveTelescopeIconVariant(instrument.iconReference)} size={18} />
+                    </>
+                )
+                : null;
+
+            return (
+                <Grid key={instrument.id} size={12}>
+                    <Typography variant="subtitle1" gutterBottom={true}>
+                        {instrument.name} <span style={{ color: "gray", fontSize: "0.85em" }}>({instrument.key})</span>
+                        <a href="" onClick={this.handleClickResource(instrument.id)}>
+                            <EditIcon style={{ fontSize: 16, marginLeft: "1em" }} />
+                        </a>
+                    </Typography>
+                    <Typography variant="caption" gutterBottom={true}>
+                        Diameter: <strong>{instrument.diameterMm !== undefined && instrument.diameterMm !== null ? `${instrument.diameterMm} mm` : "N/A"}</strong>,{" "}
+                        Focal length: <strong>{instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `${instrument.focalLengthMm} mm` : "N/A"}</strong>
+                        {selectedIcon}
+                    </Typography>
+                </Grid>
+            );
+        });
 
         return <div className={classes.root}>
             {confirmDeleteDialog}
