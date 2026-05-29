@@ -314,7 +314,7 @@ export interface ILocation {
 
 export interface IInstrument {
     id?: number;
-    key: string;
+    key?: string | null;
     name: string;
     diameterMm?: number | null;
     focalLengthMm?: number | null;

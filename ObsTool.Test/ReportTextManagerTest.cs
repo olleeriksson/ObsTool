@@ -666,5 +666,35 @@ namespace TestProject
             Assert.That(observationsMap.Values.All(o => o.InstrumentId == 77), Is.True);
         }
 
+        [Test]
+        public void testInstrumentWithoutKeyIsIgnoredByParser()
+        {
+            // Keyless instruments are session labels only and must not participate in report-text directive checks.
+            var instrumentsRepoMock = new Mock<IInstrumentsRepo>();
+            instrumentsRepoMock.Setup(x => x.GetInstruments(1)).Returns(new List<Instrument>
+            {
+                new Instrument { Id = 10, Key = null, Name = "Dual instrument setup" },
+                new Instrument { Id = 20, Key = "", Name = "Blank key setup" },
+                new Instrument { Id = 30, Key = "ED80", Name = "ED80" }
+            });
+
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null, instrumentsRepoMock.Object);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                UserId = 1,
+                InstrumentId = 77,
+                ReportText =
+                    @"M 31 first object with the Dual instrument setup.
+
+                    NGC 206 second object."
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
+            Assert.That(observationsMap.Values.All(o => o.InstrumentId == 77), Is.True);
+        }
+
     }
 }

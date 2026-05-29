@@ -139,7 +139,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
     private getEmptyInstrument = (): IInstrument => {
         return {
             id: undefined,
-            key: "",
+            key: null,
             name: "",
             diameterMm: undefined,
             focalLengthMm: undefined,
@@ -217,9 +217,20 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
     }
 
     private isCurrentInstrumentValid = (): boolean => {
-        const { key, name } = this.state.currentInstrument;
-        return !!key.trim()
-            && !!name.trim();
+        const { name } = this.state.currentInstrument;
+        return !!name.trim();
+    }
+
+    /**
+     * Converts an empty key field into null before saving so keyless instruments are not parser directives.
+     */
+    private getInstrumentForSave = (): IInstrument => {
+        const trimmedKey = this.state.currentInstrument.key?.trim();
+        return {
+            ...this.state.currentInstrument,
+            key: trimmedKey || null,
+            name: this.state.currentInstrument.name.trim()
+        };
     }
 
     private handleClickResource = (instrumentId?: number) => (event: any) => {
@@ -262,14 +273,15 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
         }
 
         this.setState({ isLoading: true, isError: false });
-        if (this.state.currentInstrument.id) {
-            Api.updateInstrument(this.state.currentInstrument).then(
+        const instrumentForSave = this.getInstrumentForSave();
+        if (instrumentForSave.id) {
+            Api.updateInstrument(instrumentForSave).then(
                 () => { this.loadFromApi(); }
             ).catch(
                 () => { this.setState({ isLoading: false, isError: true }); }
             );
         } else {
-            Api.addInstrument(this.state.currentInstrument).then(
+            Api.addInstrument(instrumentForSave).then(
                 () => { this.loadFromApi(); }
             ).catch(
                 () => { this.setState({ isLoading: false, isError: true }); }

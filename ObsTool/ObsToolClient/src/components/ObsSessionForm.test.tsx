@@ -1,5 +1,5 @@
 import * as React from "react";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { vi } from "vitest";
 import ObsSessionForm from "./ObsSessionForm";
@@ -146,6 +146,7 @@ it("uses section-specific key-label widths and hides copy feedback after 1.2 sec
   ];
   const instruments: IInstrument[] = [
     { id: 1, key: "BIGSCOPE123456", name: "Big scope", diameterMm: 250, focalLengthMm: 1200 },
+    { id: 2, key: null, name: "Dual instrument setup", diameterMm: 250, focalLengthMm: 1200 },
   ];
 
   render(
@@ -164,9 +165,11 @@ it("uses section-specific key-label widths and hides copy feedback after 1.2 sec
 
   const eyepieceButton = screen.getByRole("button", { name: "WIDE-EYEPIECE" });
   const instrumentButton = screen.getByRole("button", { name: "BIGSCOPE123456" });
+  const instrumentReferenceSection = screen.getByText("Instruments").parentElement as HTMLElement;
 
   expect(eyepieceButton.parentElement).toHaveStyle("--key-chip-width: calc(13ch + 2.25rem)");
   expect(instrumentButton.parentElement).toHaveStyle("--key-chip-width: calc(14ch + 2.25rem)");
+  expect(within(instrumentReferenceSection).queryByRole("button", { name: "Dual instrument setup" })).not.toBeInTheDocument();
 
   fireEvent.click(eyepieceButton);
 

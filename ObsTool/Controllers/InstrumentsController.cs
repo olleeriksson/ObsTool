@@ -54,6 +54,7 @@ namespace ObsTool.Controllers
         {
             var userId = _currentUserService.GetRequiredUserId();
             var entity = _mapper.Map<Instrument>(instrumentDto);
+            NormalizeNullableKey(entity);
             var added = _instrumentsRepo.AddInstrument(entity, userId);
             if (added == null)
             {
@@ -108,6 +109,7 @@ namespace ObsTool.Controllers
             }
 
             _mapper.Map(instrumentDto, entity);
+            NormalizeNullableKey(entity);
 
             if (!_instrumentsRepo.SaveChanges())
             {
@@ -115,6 +117,14 @@ namespace ObsTool.Controllers
             }
 
             return Ok(_mapper.Map<InstrumentDto>(entity));
+        }
+
+        /// <summary>
+        /// Stores an omitted instrument parser key as null so the parser and UI can treat the instrument as session-only metadata.
+        /// </summary>
+        private static void NormalizeNullableKey(Instrument instrument)
+        {
+            instrument.Key = string.IsNullOrWhiteSpace(instrument.Key) ? null : instrument.Key.Trim();
         }
     }
 }

@@ -346,8 +346,35 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     return (dsoObsA.displayOrder || 0) - (dsoObsB.displayOrder || 0);
   }
 
-  private sortByKey = <T extends { key: string }>(itemA: T, itemB: T) => {
-    return itemA.key.localeCompare(itemB.key);
+  private sortByKey = <T extends { key?: string | null }>(itemA: T, itemB: T) => {
+    return (itemA.key || "").localeCompare(itemB.key || "");
+  }
+
+  // Treats null or whitespace keys as absent so session-only instruments are not parser copy targets.
+  private hasReferenceKey = <T extends { key?: string | null }>(item: T): item is T & { key: string } => {
+    return !!item.key?.trim();
+  }
+
+  // Keeps keyed instruments first in the selector, while keyless session labels sort by name.
+  private sortInstrumentOptions = (instrumentA: IInstrument, instrumentB: IInstrument) => {
+    const keyA = instrumentA.key?.trim();
+    const keyB = instrumentB.key?.trim();
+    if (keyA && keyB) {
+      return keyA.localeCompare(keyB);
+    }
+    if (keyA) {
+      return -1;
+    }
+    if (keyB) {
+      return 1;
+    }
+    return instrumentA.name.localeCompare(instrumentB.name);
+  }
+
+  // Shows keyless instruments by name only, because they do not have a report-parser key.
+  private getInstrumentOptionLabel = (instrument: IInstrument) => {
+    const key = instrument.key?.trim();
+    return key ? `${key} - ${instrument.name}` : instrument.name;
   }
 
   // Builds a stable identity for the temporary copy feedback so duplicate keys in separate sections do not collide.
@@ -356,8 +383,9 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
   }
 
   // Sizes all key chips from the longest visible key, with reserved room for the temporary checkmark.
-  private getReferenceKeyChipWidth = (items: Array<{ key: string }>) => {
-    const maxKeyLength = items.reduce((currentMax, item) => Math.max(currentMax, item.key.length), 1);
+  private getReferenceKeyChipWidth = (items: Array<{ key?: string | null }>) => {
+    const keyedItems = items.filter(this.hasReferenceKey);
+    const maxKeyLength = keyedItems.reduce((currentMax, item) => Math.max(currentMax, item.key.trim().length), 1);
     return `calc(${maxKeyLength}ch + 2.25rem)`;
   }
 
@@ -438,14 +466,14 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     );
   }
 
-  private renderKeyReferenceSection = <T extends { id?: number; key: string }>(
+  private renderKeyReferenceSection = <T extends { id?: number; key?: string | null }>(
     title: string,
     items: T[],
     gridClassName: string,
     keyChipWidth: string
   ) => {
     // Keys are compact editing aids that can be copied without changing the saved session data.
-    const sortedItems = [...items].sort(this.sortByKey);
+    const sortedItems = [...items].filter(this.hasReferenceKey).sort(this.sortByKey);
     const content = sortedItems.length === 0 ? (
       <Typography variant="caption" color="textSecondary">None</Typography>
     ) : (
@@ -454,16 +482,17 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
         style={{ "--key-chip-width": keyChipWidth } as React.CSSProperties}
       >
         {sortedItems.map(item => {
-          const feedbackKey = this.getReferenceFeedbackKey(title, item.key);
+          const key = item.key.trim();
+          const feedbackKey = this.getReferenceFeedbackKey(title, key);
           const showFeedback = this.state.recentlyCopiedKey === feedbackKey;
           return (
-            <Tooltip key={item.id || item.key} describeChild={true} enterDelay={500} title="Click to copy to clipboard">
+            <Tooltip key={item.id || key} describeChild={true} enterDelay={500} title="Click to copy to clipboard">
               <button
                 type="button"
                 className={this.props.classes.keyChip}
-                onClick={() => this.copyKeyToClipboard(feedbackKey, item.key)}
+                onClick={() => this.copyKeyToClipboard(feedbackKey, key)}
               >
-                <span>{item.key}</span>
+                <span>{key}</span>
                 <span className={this.props.classes.keyChipFeedbackSlot}>
                   {showFeedback && (
                     <CheckIcon
@@ -549,8 +578,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
 
     const instrumentOptions: IKeyValuePair[] = [{ key: "", value: "n/a" }];
     if (this.props.instruments) {
-      const sortedInstruments = [...this.props.instruments].sort((a, b) => a.key.localeCompare(b.key));
-      const instrumentOptionValues: IKeyValuePair[] = sortedInstruments.map(i => ({ key: "" + i.id, value: `${i.key} - ${i.name}` }));
+      const sortedInstruments = [...this.props.instruments].sort(this.sortInstrumentOptions);
+      const instrumentOptionValues: IKeyValuePair[] = sortedInstruments.map(i => ({ key: "" + i.id, value: this.getInstrumentOptionLabel(i) }));
       instrumentOptions.push(...instrumentOptionValues);
     }
     const eyepieceKeyChipWidth = this.getReferenceKeyChipWidth(this.props.eyepieces || []);

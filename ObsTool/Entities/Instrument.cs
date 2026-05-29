@@ -11,7 +11,6 @@ namespace ObsTool.Entities
 
         public AppUser User { get; set; }
 
-        [Required]
         [MaxLength(50)]
         public string Key { get; set; }
 
