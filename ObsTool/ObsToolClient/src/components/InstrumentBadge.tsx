@@ -3,6 +3,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { IInstrument } from "../types/Types";
+import SvgIcon from "./icons/SvgIcon";
 import TelescopeIcon, { isKnownTelescopeIconVariant, resolveTelescopeIconVariant } from "./icons/TelescopeIcon";
 
 interface IInstrumentBadgeProps {
@@ -37,7 +38,9 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
     const variant = this.props.compact ? "caption" : "body2";
     const icon = this.props.nonDetection
       ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: this.props.nonDetectionIconSize || iconSize }} />
-      : <TelescopeIcon variant={resolveTelescopeIconVariant(instrument?.iconReference)} size={iconSize} />;
+      : hasSelectedIcon
+        ? <TelescopeIcon variant={resolveTelescopeIconVariant(instrument?.iconReference)} size={iconSize} />
+        : <SvgIcon variant="observation1" size={iconSize * 0.75} />;
 
     const content = (
       <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
