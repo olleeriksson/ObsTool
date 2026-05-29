@@ -1,5 +1,4 @@
 using System;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using ObsTool.Models;
 using ObsTool.Services;
@@ -20,7 +19,7 @@ namespace ObsTool.Controllers
         [HttpGet("admin")]
         public IActionResult GetAdminList()
         {
-            if (!IsSuperAdmin())
+            if (!UserManagementAuthorization.CanManageUsers(User))
             {
                 return Forbid();
             }
@@ -31,7 +30,7 @@ namespace ObsTool.Controllers
         [HttpPut("{userId}/password")]
         public IActionResult ChangeUserPassword(int userId, [FromBody] AdminChangeUserPasswordDto requestDto)
         {
-            if (!IsSuperAdmin())
+            if (!UserManagementAuthorization.CanManageUsers(User))
             {
                 return Forbid();
             }
@@ -50,7 +49,7 @@ namespace ObsTool.Controllers
         [HttpDelete("{userId}")]
         public IActionResult DeleteUser(int userId)
         {
-            if (!IsSuperAdmin())
+            if (!UserManagementAuthorization.CanManageUsers(User))
             {
                 return Forbid();
             }
@@ -64,11 +63,6 @@ namespace ObsTool.Controllers
             {
                 return BadRequest(ToErrorDetails(ex.Message));
             }
-        }
-
-        private bool IsSuperAdmin()
-        {
-            return string.Equals(User.FindFirstValue(AuthClaimTypes.IsSuperAdmin), bool.TrueString, StringComparison.OrdinalIgnoreCase);
         }
 
         private static ErrorDetails ToErrorDetails(string message)

@@ -45,6 +45,7 @@ const initialDataState: IDataState = {
     loggedInEmail: undefined,
     loggedInFullName: undefined,
     isSuperAdmin: false,
+    canManageUsers: false,
     hasCheckedAuthentication: false,
     obsSessions: [],
     isLoadingObsSessions: false,
@@ -78,6 +79,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 loggedInEmail: loggedInAction.payload.email,
                 loggedInFullName: loggedInAction.payload.fullName,
                 isSuperAdmin: loggedInAction.payload.isSuperAdmin,
+                canManageUsers: loggedInAction.payload.canManageUsers,
                 hasCheckedAuthentication: true
             };
         }
@@ -90,6 +92,7 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 loggedInEmail: undefined,
                 loggedInFullName: undefined,
                 isSuperAdmin: false,
+                canManageUsers: false,
                 hasCheckedAuthentication: true
             };
         }

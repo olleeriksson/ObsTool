@@ -8,5 +8,6 @@ namespace ObsTool.Models
         public string Email { get; set; }
         public string FullName { get; set; }
         public bool IsSuperAdmin { get; set; }
+        public bool CanManageUsers { get; set; }
     }
 }

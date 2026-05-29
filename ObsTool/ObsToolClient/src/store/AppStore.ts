@@ -13,6 +13,7 @@ const initialDataState: IDataState = {
     loggedInEmail: undefined,
     loggedInFullName: undefined,
     isSuperAdmin: false,
+    canManageUsers: false,
     hasCheckedAuthentication: false,
     obsSessions: [],
     isLoadingObsSessions: false,

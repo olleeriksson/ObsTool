@@ -196,7 +196,8 @@ namespace ObsTool.Controllers
                 Username = isLoggedIn ? User.FindFirstValue(AuthClaimTypes.Username) : null,
                 Email = isLoggedIn ? User.FindFirstValue(ClaimTypes.Email) : null,
                 FullName = isLoggedIn ? User.FindFirstValue(AuthClaimTypes.FullName) : null,
-                IsSuperAdmin = isLoggedIn && string.Equals(User.FindFirstValue(AuthClaimTypes.IsSuperAdmin), bool.TrueString, StringComparison.OrdinalIgnoreCase)
+                IsSuperAdmin = isLoggedIn && string.Equals(User.FindFirstValue(AuthClaimTypes.IsSuperAdmin), bool.TrueString, StringComparison.OrdinalIgnoreCase),
+                CanManageUsers = isLoggedIn && UserManagementAuthorization.CanManageUsers(User)
             };
         }
 
@@ -209,7 +210,8 @@ namespace ObsTool.Controllers
                 Username = loginResult.Username,
                 Email = loginResult.Email,
                 FullName = loginResult.FullName,
-                IsSuperAdmin = loginResult.IsSuperAdmin
+                IsSuperAdmin = loginResult.IsSuperAdmin,
+                CanManageUsers = loginResult.IsSuperAdmin || loginResult.UserId == 1
             };
         }
 

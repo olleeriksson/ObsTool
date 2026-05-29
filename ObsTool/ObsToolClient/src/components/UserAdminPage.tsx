@@ -79,7 +79,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
     const [message, setMessage] = React.useState<string | undefined>();
 
     const loadUsers = React.useCallback(() => {
-        if (!props.store.isSuperAdmin) {
+        if (!props.store.canManageUsers) {
             return;
         }
 
@@ -96,7 +96,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
                 setIsLoading(false);
             }
         );
-    }, [props.store.isSuperAdmin]);
+    }, [props.store.canManageUsers]);
 
     React.useEffect(() => {
         loadUsers();
@@ -157,12 +157,12 @@ function UserAdminPage(props: IUserAdminPageProps) {
         );
     };
 
-    if (!props.store.isSuperAdmin) {
+    if (!props.store.canManageUsers) {
         return (
             <div className={classes.root}>
                 <Paper className={classes.panel}>
                     <Typography variant="h5">User Management</Typography>
-                    <Typography className={classes.muted}>Only configured superadmin users can use this page.</Typography>
+                    <Typography className={classes.muted}>Only users with user-management access can use this page.</Typography>
                 </Paper>
             </div>
         );

@@ -69,6 +69,8 @@ namespace TestProject
 
             Assert.That(status.IsLoggedIn, Is.True);
             Assert.That(status.Email, Is.EqualTo("owner@example.com"));
+            Assert.That(status.IsSuperAdmin, Is.False);
+            Assert.That(status.CanManageUsers, Is.True);
             Assert.That(authenticationService.SignedInPrincipal.FindFirstValue(AuthClaimTypes.UserId), Is.EqualTo("1"));
         }
 
@@ -83,6 +85,7 @@ namespace TestProject
             var status = (AuthenticationStatusDto)result.Value;
 
             Assert.That(status.IsLoggedIn, Is.False);
+            Assert.That(status.CanManageUsers, Is.False);
             Assert.That(authenticationService.SignedInPrincipal, Is.Null);
         }
 
@@ -97,6 +100,7 @@ namespace TestProject
             var status = (AuthenticationStatusDto)result.Value;
 
             Assert.That(status.IsLoggedIn, Is.False);
+            Assert.That(status.CanManageUsers, Is.False);
             Assert.That(authenticationService.SignedInPrincipal, Is.Null);
         }
 

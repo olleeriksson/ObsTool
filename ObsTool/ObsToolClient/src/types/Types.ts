@@ -10,6 +10,7 @@ export interface IAuthenticationStatus {
     email?: string;
     fullName?: string;
     isSuperAdmin: boolean;
+    canManageUsers: boolean;
 }
 
 export interface ISignupRequest {
@@ -337,6 +338,7 @@ export interface IDataState {
     loggedInEmail?: string;
     loggedInFullName?: string;
     isSuperAdmin: boolean;
+    canManageUsers: boolean;
     hasCheckedAuthentication: boolean;
     obsSessions: IObsSession[];
     isLoadingObsSessions: boolean;
@@ -362,6 +364,7 @@ export interface IReadonlyDataState {
     loggedInEmail?: string;
     loggedInFullName?: string;
     isSuperAdmin: boolean;
+    canManageUsers: boolean;
     hasCheckedAuthentication: boolean;
     obsSessions: ReadonlyArray<Readonly<IObsSession>>;
     isLoadingObsSessions: boolean;

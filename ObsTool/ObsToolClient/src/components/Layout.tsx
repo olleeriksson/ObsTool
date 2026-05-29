@@ -254,7 +254,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             </ListItemIcon>
                             <ListItemText>Export data</ListItemText>
                         </MenuItem>
-                        {this.props.store.isSuperAdmin && (
+                        {this.props.store.canManageUsers && (
                             <MenuItem onClick={this.handleClickUserAdmin}>
                                 <ListItemIcon>
                                     <AdminPanelSettingsIcon fontSize="small" />
