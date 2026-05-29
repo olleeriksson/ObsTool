@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
@@ -14,6 +14,9 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Tooltip from "@mui/material/Tooltip";
 import Api from "../api/Api";
 import { IInstrument, IAppState, IDataState } from "src/types/Types";
 import classNames from "classnames";
@@ -23,7 +26,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import * as instrumentActions from "../actions/InstrumentActions";
-import TelescopeIcon from "./icons/TelescopeIcon";
+import TelescopeIcon, { TELESCOPE_ICON_OPTIONS, isKnownTelescopeIconVariant, resolveTelescopeIconVariant } from "./icons/TelescopeIcon";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -53,6 +56,18 @@ const styles = (theme: Theme) => createStyles({
     },
     rowField: {
         width: "100%"
+    },
+    iconSelector: {
+        alignItems: "center",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: theme.spacing(0.5),
+        marginTop: theme.spacing(1),
+    },
+    iconToggle: {
+        height: 36,
+        minWidth: 36,
+        padding: theme.spacing(0.5),
     },
     actionRow: {
         marginLeft: theme.spacing(1),
@@ -93,7 +108,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             key: "",
             name: "",
             diameterMm: undefined,
-            focalLengthMm: undefined
+            focalLengthMm: undefined,
+            iconReference: null
         };
     }
 
@@ -135,6 +151,18 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             currentInstrument: {
                 ...prevState.currentInstrument,
                 [name]: newValue
+            }
+        }));
+    }
+
+    /**
+     * Stores a blank selector value as null so the backend can distinguish no explicit icon from a chosen icon.
+     */
+    private handleIconReferenceChange = (_event: React.MouseEvent<HTMLElement>, iconReference: string | null) => {
+        this.setState((prevState) => ({
+            currentInstrument: {
+                ...prevState.currentInstrument,
+                iconReference: isKnownTelescopeIconVariant(iconReference) ? iconReference : null
             }
         }));
     }
@@ -231,6 +259,29 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             </Dialog>
         );
 
+        const iconSelector = (
+            <ToggleButtonGroup
+                exclusive={true}
+                value={this.state.currentInstrument.iconReference || ""}
+                onChange={this.handleIconReferenceChange}
+                aria-label="Instrument icon"
+                className={classes.iconSelector}
+            >
+                <ToggleButton value="" aria-label="No instrument icon" className={classes.iconToggle}>
+                    None
+                </ToggleButton>
+                {TELESCOPE_ICON_OPTIONS.map(iconOption => (
+                    <ToggleButton key={iconOption.variant} value={iconOption.variant} aria-label={iconOption.label} className={classes.iconToggle}>
+                        <Tooltip title={iconOption.label}>
+                            <span>
+                                <TelescopeIcon variant={iconOption.variant} size={24} />
+                            </span>
+                        </Tooltip>
+                    </ToggleButton>
+                ))}
+            </ToggleButtonGroup>
+        );
+
         const instrumentForm = (
             <div>
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
@@ -259,7 +310,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                         </Grid>
                         {keyWarning}
                         <Grid container spacing={2} sx={{ px: 1 }}>
-                            <Grid size={{ xs: 12, sm: 6 }}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
                                     id="diameterMm"
                                     label="Diameter (mm)"
@@ -271,7 +322,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                     inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                                 />
                             </Grid>
-                            <Grid size={{ xs: 12, sm: 6 }}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
                                     id="focalLengthMm"
                                     label="Focal length (mm)"
@@ -282,6 +333,12 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                     type="text"
                                     inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                                 />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 4 }}>
+                                <Typography variant="caption" color="textSecondary">
+                                    Icon
+                                </Typography>
+                                {iconSelector}
                             </Grid>
                         </Grid>
                         <Grid className={classes.actionRow}>
@@ -318,7 +375,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                 </Typography>
                 <Typography variant="caption" gutterBottom={true}>
                     Diameter: <strong>{instrument.diameterMm !== undefined && instrument.diameterMm !== null ? `${instrument.diameterMm} mm` : "N/A"}</strong>,{" "}
-                    Focal length: <strong>{instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `${instrument.focalLengthMm} mm` : "N/A"}</strong>
+                    Focal length: <strong>{instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `${instrument.focalLengthMm} mm` : "N/A"}</strong>,{" "}
+                    Icon: <TelescopeIcon variant={resolveTelescopeIconVariant(instrument.iconReference)} size={18} /> <strong>{instrument.iconReference || "Default"}</strong>
                 </Typography>
             </Grid>
         ));

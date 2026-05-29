@@ -22,5 +22,8 @@ namespace ObsTool.Entities
         public int? DiameterMm { get; set; }
 
         public int? FocalLengthMm { get; set; }
+
+        [MaxLength(50)]
+        public string IconReference { get; set; }
     }
 }

@@ -6,5 +6,6 @@ namespace ObsTool.Models
         public string Name { get; set; }
         public int? DiameterMm { get; set; }
         public int? FocalLengthMm { get; set; }
+        public string IconReference { get; set; }
     }
 }

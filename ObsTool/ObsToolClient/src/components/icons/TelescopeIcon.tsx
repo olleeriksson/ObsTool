@@ -9,7 +9,7 @@ import telescopeSchmidtCassSvg from "src/assets/svg/scope-schmidt-cass.svg";
 import telescopeSmallRefractorSvg from "src/assets/svg/scope-small-refractor.svg";
 import telescopeVisualSvg from "src/assets/svg/scope-visual.svg";
 
-type TelescopeIconVariant =
+export type TelescopeIconVariant =
     | "bigDob"
     | "bino"
     | "dob"
@@ -19,6 +19,20 @@ type TelescopeIconVariant =
     | "smallRefractor"
     | "tableTop"
     | "visual";
+
+export const DEFAULT_TELESCOPE_ICON_VARIANT: TelescopeIconVariant = "tableTop";
+
+export const TELESCOPE_ICON_OPTIONS: Array<{ variant: TelescopeIconVariant; label: string }> = [
+    { variant: "bigDob", label: "Big Dobsonian" },
+    { variant: "bino", label: "Binoculars" },
+    { variant: "dob", label: "Dobsonian" },
+    { variant: "mak", label: "Maksutov" },
+    { variant: "refractor", label: "Refractor" },
+    { variant: "schmidtCass", label: "Schmidt-Cassegrain" },
+    { variant: "smallRefractor", label: "Small refractor" },
+    { variant: "tableTop", label: "Tabletop" },
+    { variant: "visual", label: "Visual observing" }
+];
 
 interface ITelescopeIconProps {
     variant?: TelescopeIconVariant;
@@ -39,9 +53,25 @@ const iconByVariant: Record<TelescopeIconVariant, string> = {
 };
 
 /**
+ * Confirms that a persisted icon reference matches one of the available telescope SVG variants.
+ */
+export function isKnownTelescopeIconVariant(variant?: string | null): variant is TelescopeIconVariant {
+    return !!variant && Object.prototype.hasOwnProperty.call(iconByVariant, variant);
+}
+
+/**
+ * Returns a safe telescope icon variant for optional or stale persisted values.
+ */
+export function resolveTelescopeIconVariant(variant?: string | null): TelescopeIconVariant {
+    return isKnownTelescopeIconVariant(variant)
+        ? variant
+        : DEFAULT_TELESCOPE_ICON_VARIANT;
+}
+
+/**
  * Renders one of the custom telescope SVG icons.
  */
-const TelescopeIcon: React.FC<ITelescopeIconProps> = ({ variant = "tableTop", className, size = 26 }) => {
+const TelescopeIcon: React.FC<ITelescopeIconProps> = ({ variant = DEFAULT_TELESCOPE_ICON_VARIANT, className, size = 26 }) => {
     const iconSource = iconByVariant[variant];
     return (
         <img

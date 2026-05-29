@@ -11,12 +11,10 @@ import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
-import TelescopeIcon from "./icons/TelescopeIcon";
 import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 
 const styles = (theme: Theme) => createStyles({
@@ -190,14 +188,15 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
         <Grid size={12}>
           <Grid container spacing={0} direction="row">
             <Grid>
-              <div className={classes.image}>
-                {this.props.observation.nonDetection
-                  ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: 26 }} />
-                  : <TelescopeIcon variant="tableTop" size={28} />}
-              </div>
-              <div style={{ width: 40, textAlign: "center", marginTop: -4 }}>
-                <InstrumentBadge instrument={this.props.observation.instrument} compact={true} />
-              </div>
+              <InstrumentBadge
+                instrument={this.props.observation.instrument}
+                compact={true}
+                iconSize={28}
+                labelWidth={40}
+                nonDetection={this.props.observation.nonDetection}
+                nonDetectionIconSize={26}
+                imageClassName={classes.image}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: "grow" }}>
               <Grid container direction="column" spacing={2}>

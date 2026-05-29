@@ -13,13 +13,11 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import classNames from "classnames";
 import DsoCard from "./DsoCard";
 import ObservationSecondary from "./ObservationSecondary";
 import ImageList from "./ImageList";
 import InstrumentBadge from "./InstrumentBadge";
-import TelescopeIcon from "./icons/TelescopeIcon";
 import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 import { getObservedObjectTargetId, getObservedObjectTargetKey } from "./ObservationTarget";
 
@@ -166,14 +164,15 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
           <Grid size={12}>
             <Grid container spacing={2} wrap="nowrap">
               <Grid>
-                <div className={classes.image}>
-                  {this.props.observation.nonDetection
-                    ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: 32 }} />
-                    : <TelescopeIcon variant="visual" size={50} />}
-                </div>
-                <div style={{ width: 48, textAlign: "center", marginTop: -4 }}>
-                  <InstrumentBadge instrument={this.props.observation.instrument} compact={true} />
-                </div>
+                <InstrumentBadge
+                  instrument={this.props.observation.instrument}
+                  compact={true}
+                  iconSize={50}
+                  labelWidth={48}
+                  nonDetection={this.props.observation.nonDetection}
+                  nonDetectionIconSize={32}
+                  imageClassName={classes.image}
+                />
               </Grid>
               <Grid size={{ xs: 11, sm: "grow" }}>
                 <Grid container direction="column" spacing={2}>
