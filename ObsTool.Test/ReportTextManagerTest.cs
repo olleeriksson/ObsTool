@@ -1,4 +1,4 @@
-﻿using ObsTool.Controllers;
+using ObsTool.Controllers;
 using NUnit.Framework;
 using System;
 using ObsTool.Entities;
@@ -368,6 +368,47 @@ namespace TestProject
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Any(dsoObs => dsoObs.OtherObjectId == 10), Is.True);
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Any(dsoObs => dsoObs.UserObjectId == 20), Is.True);
             Assert.That(obsSession.ReportText, Does.Contain("#5-0-[Jupiter]-{Barnard's Star}"));
+        }
+
+        /// <summary>
+        /// Verifies that contextual non-SAC object mentions can be ignored the same way SAC mentions can.
+        /// </summary>
+        [Test]
+        public void testParenthesizedOtherAndUserObjectMentionsAreIgnored()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.OtherObjects.Add(new OtherObject { Id = 10, Name = "Jupiter", Type = "PLANET" });
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "Barnard's Star", Type = "STAR" });
+            dbContext.SaveChanges();
+
+            var reportTextManager = new ReportTextManager(
+                dbContext,
+                null,
+                obsRepoMock.Object,
+                null,
+                null,
+                null,
+                new ObjectsRepo(dbContext));
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                UserId = 1,
+                Date = DateTime.Now,
+                ReportText = "Two steps before (Jupiter) and (Barnard's Star) I looked at M 31.\r\n\r\nThen I looked at Jupiter and Barnard's Star.",
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(2));
+            Assert.That(observationsMap.GetAt(0).Key, Is.EqualTo("5-0"));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].Dso.Name, Is.EqualTo("M 31"));
+            Assert.That(observationsMap.GetAt(1).Key, Is.EqualTo("5-[Jupiter]-{Barnard's Star}"));
+            Assert.That(observationsMap.GetAt(1).Value.DsoObservations.Count, Is.EqualTo(2));
+            Assert.That(observationsMap.GetAt(1).Value.DsoObservations.Any(dsoObs => dsoObs.OtherObjectId == 10), Is.True);
+            Assert.That(observationsMap.GetAt(1).Value.DsoObservations.Any(dsoObs => dsoObs.UserObjectId == 20), Is.True);
         }
 
         [Test]

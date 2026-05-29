@@ -1,4 +1,4 @@
-﻿using ObsTool.Entities;
+using ObsTool.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -958,6 +958,11 @@ namespace ObsTool.Services
                 {
                     foreach (Match objectNameMatch in objectNameRegex.Matches(sectionObsText))
                     {
+                        if (IsParenthesizedObjectMention(sectionObsText, objectNameMatch.Index, objectNameMatch.Length))
+                        {
+                            continue;
+                        }
+
                         matches.Add(new NamedObjectMatch<TObject>
                         {
                             Index = objectNameMatch.Index,
@@ -974,6 +979,49 @@ namespace ObsTool.Services
                 .OrderBy(match => match.Index)
                 .ThenByDescending(match => match.Length)
                 .ToList();
+        }
+
+        /// <summary>
+        /// Checks whether an object name is marked as contextual text by nearby parenthesis.
+        /// </summary>
+        private bool IsParenthesizedObjectMention(string text, int index, int length)
+        {
+            int previousIndex = FindPreviousNonWhitespaceIndex(text, index - 1);
+            int nextIndex = FindNextNonWhitespaceIndex(text, index + length);
+            return (previousIndex >= 0 && text[previousIndex] == '(')
+                || (nextIndex < text.Length && text[nextIndex] == ')');
+        }
+
+        /// <summary>
+        /// Finds the previous non-whitespace character index before a match.
+        /// </summary>
+        private int FindPreviousNonWhitespaceIndex(string text, int startIndex)
+        {
+            for (int index = startIndex; index >= 0; index--)
+            {
+                if (!char.IsWhiteSpace(text[index]))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Finds the next non-whitespace character index after a match.
+        /// </summary>
+        private int FindNextNonWhitespaceIndex(string text, int startIndex)
+        {
+            for (int index = startIndex; index < text.Length; index++)
+            {
+                if (!char.IsWhiteSpace(text[index]))
+                {
+                    return index;
+                }
+            }
+
+            return text.Length;
         }
 
         /// <summary>
