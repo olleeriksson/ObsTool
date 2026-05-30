@@ -33,6 +33,10 @@ import * as utils from "../utils";
 import { getObservedObjectTargetId } from "./ObservationTarget";
 import { updateObservationResources } from "./ObsSessionResources";
 
+const obsSessionActiveTabStorageKey = "obstool.obsSessionPage.activeTab";
+const observationFormTab = 0;
+const observedObjectsTab = 1;
+
 const styles = (theme: Theme) => createStyles({
     root: {
         backgroundColor: theme.palette.background.paper,
@@ -73,6 +77,17 @@ interface IObsSessionPageState {
 }
 
 class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPageState> {
+    private static readStoredActiveTab = () => {
+        // Keep an invalid or unavailable browser storage value from breaking the observation page.
+        try {
+            const storedValue = window.localStorage.getItem(obsSessionActiveTabStorageKey);
+            const activeTab = storedValue === null ? observationFormTab : Number(storedValue);
+            return activeTab === observedObjectsTab ? observedObjectsTab : observationFormTab;
+        } catch {
+            return observationFormTab;
+        }
+    }
+
     constructor(props: IObsSessionPageProps) {
         super(props);
 
@@ -84,7 +99,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             redirectToSingleSessionPage: false,
             menuAnchorEl: null,
             isDeleteDialogOpen: false,
-            activeTab: 0,
+            activeTab: ObsSessionPage.readStoredActiveTab(),
             obsSession: {
                 date: new Date().toISOString().slice(0, 10),
             },
@@ -262,8 +277,19 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         console.log("Clicked on observation with id " + observationId);
     }
 
+    private setActiveTab = (activeTab: number, callback?: () => void) => {
+        // Persist the last selected observation-page tab across browser visits.
+        try {
+            window.localStorage.setItem(obsSessionActiveTabStorageKey, activeTab.toString());
+        } catch {
+            // Browser storage can be unavailable in private or restricted contexts; state still works for this visit.
+        }
+
+        this.setState({ activeTab }, callback);
+    }
+
     private handleChange = (event: any, value: number) => {
-        this.setState({ activeTab: value });
+        this.setActiveTab(value);
     }
 
     private renderTabControls = (listTabLabel: string) => {
@@ -284,7 +310,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     private handleSelectObservedObject = (targetKey: string) => {
         // The observed-object panel slides in with CSS, so wait for the tab switch before scrolling to the target.
-        this.setState({ activeTab: 1 }, () => {
+        this.setActiveTab(observedObjectsTab, () => {
             window.setTimeout(() => {
                 const target = document.getElementById(getObservedObjectTargetId(targetKey));
                 if (target) {
@@ -296,7 +322,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     private handleBackToForm = () => {
         // The observed-object cards use this to return to the edit form without changing the current session route.
-        this.setState({ activeTab: 0 });
+        this.setActiveTab(observationFormTab);
     }
 
     private handleObservationResourcesChanged = (observationId: number, resources: IObservation["obsResources"]) => {
@@ -316,9 +342,9 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         const deltaX = e.changedTouches[0].clientX - this.touchStartX;
         if (Math.abs(deltaX) > 50) {
             const next = deltaX < 0
-                ? Math.min(this.state.activeTab + 1, 1)
-                : Math.max(this.state.activeTab - 1, 0);
-            this.setState({ activeTab: next });
+                ? Math.min(this.state.activeTab + 1, observedObjectsTab)
+                : Math.max(this.state.activeTab - 1, observationFormTab);
+            this.setActiveTab(next);
         }
     }
 
