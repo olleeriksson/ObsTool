@@ -14,6 +14,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import EventNoteIcon from "@mui/icons-material/EventNote";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -188,6 +189,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.props.navigate("/user-admin");
     }
 
+    private handleClickSystemEvents = () => {
+        this.handleCloseUserMenu();
+        this.props.navigate("/system-events");
+    }
+
     // Opens the neutral sessions list from the top nav without keeping a previous split-view selection active.
     private handleClickSessions = () => {
         this.props.actions.clearSelectedObsSession();
@@ -261,12 +267,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <ListItemText>Export data</ListItemText>
                         </MenuItem>
                         {this.props.store.canManageUsers && (
-                            <MenuItem onClick={this.handleClickUserAdmin}>
-                                <ListItemIcon>
-                                    <AdminPanelSettingsIcon fontSize="small" />
-                                </ListItemIcon>
-                                <ListItemText>User Management</ListItemText>
-                            </MenuItem>
+                            <>
+                                <MenuItem onClick={this.handleClickUserAdmin}>
+                                    <ListItemIcon>
+                                        <AdminPanelSettingsIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>User Management</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={this.handleClickSystemEvents}>
+                                    <ListItemIcon>
+                                        <EventNoteIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>System Event Log</ListItemText>
+                                </MenuItem>
+                            </>
                         )}
                         <MenuItem onClick={this.handleClickLogout}>
                             <ListItemIcon>

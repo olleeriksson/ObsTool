@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings, IAuthenticationStatus, ISignupRequest, IConfirmEmailRequest, IConfirmEmailResult, IForgotPasswordRequest, IResetPasswordRequest, IChangePasswordRequest, IUserAdminList, IAdminChangePasswordRequest, IAdminCreateUserRequest, IAdminUpdateUserRequest, IUserAdmin, IObjectList, IObservedObject, IUserObjectForSave } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings, IAuthenticationStatus, ISignupRequest, IConfirmEmailRequest, IConfirmEmailResult, IForgotPasswordRequest, IResetPasswordRequest, IChangePasswordRequest, IUserAdminList, IAdminChangePasswordRequest, IAdminCreateUserRequest, IAdminUpdateUserRequest, IUserAdmin, IObjectList, IObservedObject, IUserObjectForSave, IPagedSystemEventList, ISystemEventFilters } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
@@ -72,6 +72,12 @@ class Api {
 
     public static adminDeleteUser(userId: number) {
         return axios.delete(import.meta.env.VITE_API_URL + "/users/" + userId);
+    }
+
+    public static getSystemEvents(page: number, pageSize: number, filters?: ISystemEventFilters) {
+        return axios.get<IPagedSystemEventList>(import.meta.env.VITE_API_URL + "/system-events/", {
+            params: { page, pageSize, ...filters },
+        });
     }
 
     public static getObsSessionsSimple() {

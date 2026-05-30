@@ -88,6 +88,33 @@ export interface IUserAdminList {
     superAdmins: ISuperAdminUser[];
 }
 
+export interface ISystemEvent {
+    id: number;
+    userId?: number;
+    fullName?: string;
+    eventKey: string;
+    eventName: string;
+    details?: string;
+    occurredUtc: string;
+    adminNotificationSentUtc?: string;
+    adminNotificationError?: string;
+}
+
+export interface IPagedSystemEventList {
+    data: ISystemEvent[];
+    total: number;
+    count: number;
+    more: number;
+}
+
+export interface ISystemEventFilters {
+    search?: string;
+    date?: string;
+    userId?: number;
+    eventName?: string;
+    eventKey?: string;
+}
+
 export interface IEmailTestRequest {
     to?: string;
     subject?: string;

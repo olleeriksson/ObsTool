@@ -18,6 +18,7 @@ import LocationsView from "./LocationsView";
 import InstrumentsView from "./InstrumentsView";
 import EyepiecesView from "./EyepiecesView";
 import EmailDiagnosticsView from "./EmailDiagnosticsView";
+import SystemEventLogPage from "./SystemEventLogPage";
 import UserAdminPage from "./UserAdminPage";
 import ObjectsView from "./ObjectsView";
 
@@ -67,6 +68,7 @@ export const routes = (
         <Route path="/eyepieces" element={<ProtectedLayout><EyepiecesView /></ProtectedLayout>} />
         <Route path="/change-password" element={<ProtectedLayout><ChangePasswordPage /></ProtectedLayout>} />
         <Route path="/user-admin" element={<ProtectedLayout><UserAdminPage /></ProtectedLayout>} />
+        <Route path="/system-events" element={<ProtectedLayout><SystemEventLogPage /></ProtectedLayout>} />
         <Route path="/diagnostics/email" element={<ProtectedLayout><EmailDiagnosticsView /></ProtectedLayout>} />
     </Routes>
 );
