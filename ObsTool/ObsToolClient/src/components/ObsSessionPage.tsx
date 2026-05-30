@@ -77,6 +77,11 @@ interface IObsSessionPageState {
 }
 
 class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPageState> {
+    private static getInitialActiveTab = (obsSessionId?: number) => {
+        // New sessions are an entry-flow exception: always open the edit form instead of restoring the last viewed tab.
+        return obsSessionId ? ObsSessionPage.readStoredActiveTab() : observationFormTab;
+    }
+
     private static readStoredActiveTab = () => {
         // Keep an invalid or unavailable browser storage value from breaking the observation page.
         try {
@@ -99,7 +104,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             redirectToSingleSessionPage: false,
             menuAnchorEl: null,
             isDeleteDialogOpen: false,
-            activeTab: ObsSessionPage.readStoredActiveTab(),
+            activeTab: ObsSessionPage.getInitialActiveTab(props.obsSessionId),
             obsSession: {
                 date: new Date().toISOString().slice(0, 10),
             },
