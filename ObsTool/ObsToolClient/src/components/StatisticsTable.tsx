@@ -12,6 +12,7 @@ import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Collapse from "@mui/material/Collapse";
+import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -261,7 +262,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         );
     }
 
-    private addRow(id: number, text?: string, value?: React.ReactNode, nowValue?: React.ReactNode, text2?: string, value2?: React.ReactNode, nowValue2?: React.ReactNode) {
+    private addRow(id: number, text?: string, value?: React.ReactNode, nowValue?: React.ReactNode, text2?: string, value2?: React.ReactNode, nowValue2?: React.ReactNode, tooltip?: string, tooltip2?: string) {
         return {
             key: id,
             nowValue: nowValue,
@@ -269,8 +270,22 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             text: text,
             value: value,
             text2: text2,
-            value2: value2
+            value2: value2,
+            tooltip: tooltip,
+            tooltip2: tooltip2,
         };
+    }
+
+    private renderMetricLabel(text?: string, tooltip?: string) {
+        if (!text || !tooltip) {
+            return text;
+        }
+
+        return (
+            <Tooltip title={tooltip} arrow describeChild>
+                <span>{text}</span>
+            </Tooltip>
+        );
     }
 
     private createRowsData(statistics?: IStatistics) {
@@ -279,28 +294,31 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         if (statistics) {
             rowsData.push(this.addRow(
                 id++,
-                "Observation sessions", statistics.numObsSessions.toString(),
+                "Observing sessions", statistics.numObsSessions.toString(),
                 this.renderNumberDelta(statistics.numObsSessions, this.state.allSessionsStatistics?.numObsSessions),
                 "Observed Galaxies", statistics.numObservedGalaxies.toString(),
                 this.renderNumberDelta(statistics.numObservedGalaxies, this.state.allSessionsStatistics?.numObservedGalaxies)));
             rowsData.push(this.addRow(
                 id++,
-                "Recorded observations", statistics.numObservations.toString(),
-                this.renderNumberDelta(statistics.numObservations, this.state.allSessionsStatistics?.numObservations),
-                "Observed Bright Nebulae", statistics.numObservedBrightNebulae.toString(),
-                this.renderNumberDelta(statistics.numObservedBrightNebulae, this.state.allSessionsStatistics?.numObservedBrightNebulae)));
-            rowsData.push(this.addRow(
-                id++,
-                "Observed objects", statistics.numObservedObjects.toString(),
+                "All objects attempted", statistics.numObservedObjects.toString(),
                 this.renderNumberDelta(statistics.numObservedObjects, this.state.allSessionsStatistics?.numObservedObjects),
-                "Observed Open Clusters", statistics.numObservedOpenClusters.toString(),
-                this.renderNumberDelta(statistics.numObservedOpenClusters, this.state.allSessionsStatistics?.numObservedOpenClusters)));
+                "Observed Bright Nebulae", statistics.numObservedBrightNebulae.toString(),
+                this.renderNumberDelta(statistics.numObservedBrightNebulae, this.state.allSessionsStatistics?.numObservedBrightNebulae),
+                "All objects ever observed or attempted."));
             rowsData.push(this.addRow(
                 id++,
-                "Detections (non-detections)", this.renderObservationNonDetectionCount(statistics.numDetections, statistics.numNonDetections),
-                this.renderObservationNonDetectionDelta(statistics.numDetections, statistics.numNonDetections, this.state.allSessionsStatistics?.numDetections, this.state.allSessionsStatistics?.numNonDetections),
+                "Observed objects", statistics.numDetections.toString(),
+                this.renderNumberDelta(statistics.numDetections, this.state.allSessionsStatistics?.numDetections),
+                "Observed Open Clusters", statistics.numObservedOpenClusters.toString(),
+                this.renderNumberDelta(statistics.numObservedOpenClusters, this.state.allSessionsStatistics?.numObservedOpenClusters),
+                "All objects attempted and successfully observed at least once."));
+            rowsData.push(this.addRow(
+                id++,
+                "Unsuccessfully observed", statistics.numNonDetections.toString(),
+                this.renderNumberDelta(statistics.numNonDetections, this.state.allSessionsStatistics?.numNonDetections),
                 "Observed Planetary Nebulae", statistics.numObservedPlanetaryNebulae.toString(),
-                this.renderNumberDelta(statistics.numObservedPlanetaryNebulae, this.state.allSessionsStatistics?.numObservedPlanetaryNebulae)));
+                this.renderNumberDelta(statistics.numObservedPlanetaryNebulae, this.state.allSessionsStatistics?.numObservedPlanetaryNebulae),
+                "All objects attempted but never successfully observed."));
             rowsData.push(this.addRow(
                 id++,
                 "Recorded sketches", statistics.numSketches.toString(),
@@ -328,35 +346,13 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                     this.renderCatalogProgressDelta(statistics.h400, this.state.allSessionsStatistics?.h400, false)));
                 rowsData.push(this.addRow(
                     id++,
-                    "Tried & failed H2500 objects", statistics.h2500.nonDetections.toString(),
+                    "Unsuccessfull H2500 objects", statistics.h2500.nonDetections.toString(),
                     this.renderNumberDelta(statistics.h2500.nonDetections, this.state.allSessionsStatistics?.h2500?.nonDetections),
-                    "Tried & failed H400 objects", statistics.h400.nonDetections.toString(),
+                    "Unsuccessfull H400 objects", statistics.h400.nonDetections.toString(),
                     this.renderNumberDelta(statistics.h400.nonDetections, this.state.allSessionsStatistics?.h400?.nonDetections)));
             }
         }
         return rowsData;
-    }
-
-    private renderObservationNonDetectionCount(observed: number, nonDetections: number) {
-        return (
-            <span className={this.props.classes.progressPrimary}>
-                {observed}{this.renderNonDetections(nonDetections)}
-            </span>
-        );
-    }
-
-    // Renders the all-sessions delta for the detection/non-detection paired statistic.
-    private renderObservationNonDetectionDelta(observed: number, nonDetections: number, allObserved?: number, allNonDetections?: number) {
-        if (allObserved === undefined || allNonDetections === undefined) {
-            return null;
-        }
-
-        return (
-            <span className={this.props.classes.nowComparison}>
-                {this.formatSignedDelta(allObserved - observed)}
-                <span> ({this.formatSignedDelta(allNonDetections - nonDetections)})</span>
-            </span>
-        );
     }
 
     private renderCountWithTotal(count: number, total: number) {
@@ -829,10 +825,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         const tableRows = rowsData.map(row => {
             return (
                 <TableRow key={row.key}>
-                    <TableCell size="small" component="th" scope="row">{row.text}</TableCell>
+                    <TableCell size="small" component="th" scope="row">{this.renderMetricLabel(row.text, row.tooltip)}</TableCell>
                     <TableCell size="small" align="right">{row.value}</TableCell>
                     {showNowComparison && <TableCell className={classes.mainNowComparisonCell} size="small" align="right">{row.nowValue}</TableCell>}
-                    <TableCell size="small" component="th" scope="row">{row.text2}</TableCell>
+                    <TableCell size="small" component="th" scope="row">{this.renderMetricLabel(row.text2, row.tooltip2)}</TableCell>
                     <TableCell size="small" align="right">{row.value2}</TableCell>
                     {showNowComparison && <TableCell className={classes.mainNowComparisonCell} size="small" align="right">{row.nowValue2}</TableCell>}
                 </TableRow>

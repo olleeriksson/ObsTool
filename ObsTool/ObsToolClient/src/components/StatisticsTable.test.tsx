@@ -1,5 +1,6 @@
 import * as React from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { vi } from "vitest";
 import Api from "../api/Api";
@@ -122,7 +123,7 @@ it("shows blue now deltas when viewing historical statistics", async () => {
     expect(await screen.findByText("All but last 1 session")).toBeInTheDocument();
     expect(screen.queryAllByText("(now)")).toHaveLength(0);
 
-    const sessionRow = screen.getByRole("row", { name: "Observation sessions 1 +2 Observed Galaxies 1 +2" });
+    const sessionRow = screen.getByRole("row", { name: "Observing sessions 1 +2 Observed Galaxies 1 +2" });
     expect(within(sessionRow).getAllByText("+2")).toHaveLength(2);
     expect(within(sessionRow).getAllByText("+2")[0]).toHaveStyle({ color: theme.palette.primary.main });
 
@@ -130,7 +131,7 @@ it("shows blue now deltas when viewing historical statistics", async () => {
     expect(within(h2500Row).getByText("+2")).toHaveStyle({ color: theme.palette.primary.main });
     expect(within(h2500Row).getAllByText("(+20%)")).toHaveLength(2);
 
-    const failedRow = screen.getByRole("row", { name: "Tried & failed H2500 objects 2 +1 Tried & failed H400 objects 1 +1" });
+    const failedRow = screen.getByRole("row", { name: "Unsuccessfull H2500 objects 2 +1 Unsuccessfull H400 objects 1 +1" });
     expect(within(failedRow).getAllByText("+1")).toHaveLength(2);
 
     fireEvent.click(screen.getByText("Statistics by constellation"));
@@ -138,6 +139,29 @@ it("shows blue now deltas when viewing historical statistics", async () => {
     await waitFor(() => expect(screen.getAllByText("(now)")).toHaveLength(3));
     const constellationRow = screen.getByRole("row", { name: "Orion 1 +2 3(+1) / 5(60%) +1 (+1)(+20%) 4(+2) / 10(40%) +2 (+1)(+20%)" });
     expect(within(constellationRow).getAllByText("+2").length).toBeGreaterThan(0);
+});
+
+it("shows updated object statistics labels and tooltips", async () => {
+    vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: statistics } as any);
+    const user = userEvent.setup();
+
+    render(<StatisticsTable />, { wrapper });
+
+    expect(await screen.findByText("Observing sessions")).toBeInTheDocument();
+    expect(screen.queryByText("Recorded observations")).not.toBeInTheDocument();
+    expect(screen.queryByText("Detections (non-detections)")).not.toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "All objects attempted 1 Observed Bright Nebulae 0" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Observed objects 1 Observed Open Clusters 0" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Unsuccessfully observed 0 Observed Planetary Nebulae 0" })).toBeInTheDocument();
+
+    await user.hover(screen.getByText("All objects attempted"));
+    expect(await screen.findByText("All objects ever observed or attempted.")).toBeInTheDocument();
+
+    await user.hover(screen.getByText("Observed objects"));
+    expect(await screen.findByText("All objects attempted and successfully observed at least once.")).toBeInTheDocument();
+
+    await user.hover(screen.getByText("Unsuccessfully observed"));
+    expect(await screen.findByText("All objects attempted but never successfully observed.")).toBeInTheDocument();
 });
 
 it("shows failed H2500 and H400 attempts on their own row", async () => {
@@ -151,7 +175,7 @@ it("shows failed H2500 and H400 attempts on their own row", async () => {
     expect(screen.getByText("Observed H400 objects")).toBeInTheDocument();
     expect(screen.getByText(/3 \/ 5/)).toBeInTheDocument();
     expect(screen.getByText("(60%)")).toBeInTheDocument();
-    expect(screen.getByRole("row", { name: "Tried & failed H2500 objects 2 Tried & failed H400 objects 1" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Unsuccessfull H2500 objects 2 Unsuccessfull H400 objects 1" })).toBeInTheDocument();
     expect(screen.queryByText("(+2)")).not.toBeInTheDocument();
     expect(screen.queryByText("(+1)")).not.toBeInTheDocument();
 });
