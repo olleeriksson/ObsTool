@@ -112,6 +112,32 @@ it("reloads statistics when the session exclusion control changes", async () => 
     expect(screen.getByRole("button", { name: "Include one more recent session" })).toBeDisabled();
 });
 
+it("keeps the existing statistics table visible while reloading the session exclusion scope", async () => {
+    let resolveScopedStatistics: (value: { data: IStatistics }) => void = () => undefined;
+    const scopedStatisticsRequest = new Promise<{ data: IStatistics }>(resolve => {
+        resolveScopedStatistics = resolve;
+    });
+    vi.spyOn(Api, "getStatistics").mockImplementation((statsExcludeLastSessions = 0) =>
+        statsExcludeLastSessions > 0
+            ? scopedStatisticsRequest as any
+            : Promise.resolve({ data: allSessionsStatistics } as any));
+
+    render(<StatisticsTable />, { wrapper });
+
+    expect(await screen.findByText("All sessions")).toBeInTheDocument();
+    expect(screen.getByText("Observing sessions")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Exclude one more recent session" }));
+
+    await screen.findByText("All but last 1 session");
+    expect(screen.getByText("Observing sessions")).toBeInTheDocument();
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Exclude one more recent session" })).toBeDisabled();
+
+    resolveScopedStatistics({ data: statistics });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Exclude one more recent session" })).toBeEnabled());
+});
+
 it("shows blue now deltas when viewing historical statistics", async () => {
     vi.spyOn(Api, "getStatistics").mockImplementation((statsExcludeLastSessions = 0) =>
         Promise.resolve({ data: statsExcludeLastSessions > 0 ? statistics : allSessionsStatistics } as any));

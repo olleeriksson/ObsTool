@@ -82,6 +82,9 @@ const styles = (theme: Theme) => createStyles({
     sessionScopeButton: {
         padding: theme.spacing(0.25),
     },
+    sessionScopeLoading: {
+        marginLeft: theme.spacing(0.5),
+    },
     nowComparison: {
         color: theme.palette.primary.main,
         fontWeight: 500,
@@ -701,7 +704,6 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         }
 
         this.setState({
-            allSessionsStatistics: undefined,
             isError: false,
             isLoading: true,
             statsExcludeLastSessions: nextStatsExcludeLastSessions,
@@ -724,6 +726,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     private renderStatsSessionScopeControl() {
         const { classes } = this.props;
         const isAtAllSessions = this.state.statsExcludeLastSessions === 0;
+        const isRefreshing = this.state.isLoading && !!this.state.statistics;
 
         return (
             <span className={classes.sessionScopeControl}>
@@ -731,6 +734,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 <IconButton
                     className={classes.sessionScopeButton}
                     aria-label="Exclude one more recent session"
+                    disabled={isRefreshing}
                     onClick={() => this.updateStatsExcludeLastSessions(1)}
                     size="small"
                 >
@@ -739,12 +743,13 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 <IconButton
                     className={classes.sessionScopeButton}
                     aria-label="Include one more recent session"
-                    disabled={isAtAllSessions}
+                    disabled={isAtAllSessions || isRefreshing}
                     onClick={() => this.updateStatsExcludeLastSessions(-1)}
                     size="small"
                 >
                     <ChevronRightIcon fontSize="small" />
                 </IconButton>
+                {isRefreshing && <CircularProgress className={classes.sessionScopeLoading} size={14} />}
             </span>
         );
     }
@@ -819,9 +824,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
 
     public render() {
         const { classes } = this.props;
+        const hasStatistics = !!this.state.statistics;
         const showNowComparison = this.shouldShowNowComparison();
 
-        const rowsData = this.state.isLoading ? [] : this.createRowsData(this.state.statistics);
+        const rowsData = hasStatistics ? this.createRowsData(this.state.statistics) : [];
         const tableRows = rowsData.map(row => {
             return (
                 <TableRow key={row.key}>
@@ -835,7 +841,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             );
         });
 
-        if (this.state.isLoading) {
+        if (this.state.isLoading && !hasStatistics) {
             return (
                 <Paper className={classes.root}>
                     <CircularProgress className="faSpaceAfter" /> Loading...
