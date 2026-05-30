@@ -3,6 +3,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
+import { DsoTypeIcon } from "./DsoTypeIcon";
 import { getDsoTypeAbbreviation } from "../utils/objectTypes";
 
 export interface IDsoShortProps {
@@ -87,7 +88,10 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
           <div className="dsoShort">
             {nameContent}
             <Typography color="textSecondary" variant="caption" component={"div" as any} gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
-              {[typeAbbreviation, this.state.dso.con].filter(Boolean).join(", ")}
+              <span style={{ alignItems: "center", display: "inline-flex", gap: 4 }}>
+                {typeAbbreviation && <DsoTypeIcon type={this.state.dso.type} size={22} />}
+                <span>{[typeAbbreviation, this.state.dso.con].filter(Boolean).join(", ")}</span>
+              </span>
             </Typography>
           </div>
         );

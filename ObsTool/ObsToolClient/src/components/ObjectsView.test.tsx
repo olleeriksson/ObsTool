@@ -199,7 +199,7 @@ it("shows custom object type icons in the Type dropdown and selected field", asy
     expect(document.querySelector('[data-dso-type-icon="galaxy"]')).toBeInTheDocument();
 });
 
-it("renders the type icon preview inline after the add label with each icon in three sizes", async () => {
+it("renders the type icon preview inline after the add label with one large icon before each type name", async () => {
     renderObjectsView();
 
     const addLabel = await screen.findByText("Add user defined object");
@@ -218,9 +218,10 @@ it("renders the type icon preview inline after the add label with each icon in t
     expect(previewRows).toHaveLength(38);
     expect(document.querySelector('[data-dso-type-preview-row="generic-current"] [data-dso-type-icon="generic"]')).toBeInTheDocument();
     expect(document.querySelector('[data-dso-type-preview-row^="undefined-"]')).not.toBeInTheDocument();
-    expect(Array.from(galaxyIcons).map(icon => icon.getAttribute("width"))).toEqual(["16", "22", "32"]);
-    expect(asterismIcons).toHaveLength(3);
-    expect(planetIcons).toHaveLength(3);
+    expect(galaxyIcons).toHaveLength(1);
+    expect(galaxyIcons[0]).toHaveAttribute("width", "32");
+    expect(asterismIcons).toHaveLength(1);
+    expect(planetIcons).toHaveLength(1);
 });
 
 it("hides the type icon preview toggle for users other than user id 1", async () => {

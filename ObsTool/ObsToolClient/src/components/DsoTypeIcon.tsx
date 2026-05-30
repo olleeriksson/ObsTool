@@ -22,6 +22,11 @@ const STAR_PATH = "M0 -5 L1.4 -1.6 L5 -1.5 L2.1 .7 L3.1 4.2 L0 2.2 L-3.1 4.2 L-2
 const SPARKLE_PATH = "M0 -6 C0.8 -2.2 2.2 -0.8 6 0 C2.2 0.8 0.8 2.2 0 6 C-0.8 2.2 -2.2 0.8 -6 0 C-2.2 -0.8 -0.8 -2.2 0 -6 Z";
 const STAR_FILL = "#ffffff";
 const STAR_STROKE = "#1f2933";
+const ICON_VIEWBOX_Y_OFFSET = 0.75;
+const ICON_INLINE_STYLE: React.CSSProperties = {
+    display: "inline-block",
+    verticalAlign: "middle",
+};
 
 // Renders original inline SVG glyphs kept close to common clean deep-sky chart symbols.
 export function DsoTypeIcon({ className, size = 22, type }: IDsoTypeIconProps) {
@@ -32,7 +37,8 @@ export function DsoTypeIcon({ className, size = 22, type }: IDsoTypeIconProps) {
         "data-dso-type-icon": variant,
         focusable: "false",
         height: size,
-        viewBox: "0 0 24 24",
+        style: ICON_INLINE_STYLE,
+        viewBox: `0 ${ICON_VIEWBOX_Y_OFFSET} 24 24`,
         width: size,
     } as const;
 
@@ -248,9 +254,11 @@ export function DsoTypeIcon({ className, size = 22, type }: IDsoTypeIconProps) {
         case "supernova":
             return (
                 <svg {...commonProps}>
-                    <path d="M12 2.2l1.45 7.05L21.8 12l-8.35 2.75L12 21.8l-1.45-7.05L2.2 12l8.35-2.75z" fill="#1f4f8f" stroke="#0d274c" strokeWidth="0.5" strokeLinejoin="round" />
-                    <circle cx="12" cy="12" r="3.2" fill="#1f4f8f" stroke="#0d274c" strokeWidth="1" />
-                    <circle cx="12" cy="12" r="1.6" fill="#ffffff" />
+                    <g transform="translate(12 12) scale(0.86) translate(-12 -12)">
+                        <path d="M12 2.2l1.45 7.05L21.8 12l-8.35 2.75L12 21.8l-1.45-7.05L2.2 12l8.35-2.75z" fill="#1f4f8f" stroke="#0d274c" strokeWidth="0.5" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="3.2" fill="#1f4f8f" stroke="#0d274c" strokeWidth="1" />
+                        <circle cx="12" cy="12" r="1.6" fill="#ffffff" />
+                    </g>
                 </svg>
             );
         default:
@@ -271,7 +279,8 @@ export function UndefinedObjectIcon({ candidate, className, size = 22 }: { candi
         "data-dso-type-icon": `undefined-${candidate}`,
         focusable: "false",
         height: size,
-        viewBox: "0 0 24 24",
+        style: ICON_INLINE_STYLE,
+        viewBox: `0 ${ICON_VIEWBOX_Y_OFFSET} 24 24`,
         width: size,
     } as const;
 

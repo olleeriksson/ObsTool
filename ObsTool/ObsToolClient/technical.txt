@@ -22,3 +22,25 @@ now get the images in 1000x1000 to prevent subsequent requests. To change this b
       const driveThumbnailDimension = (r.type === "sketch" || r.type === "jot") ? "1000" : "180";
 
       The default was 180x180 for thumbnailDimensions before.
+
+
+The size is ultimately controlled by DsoTypeIcon’s size prop.
+
+  For the object type icon surfaces you asked about:
+
+  - Right-side Objects list beside Report Text in the obs session form
+    Route: ObsTool/ObsToolClient/src/components/ObsSessionPage.tsx:459 -> ObsTool/ObsToolClient/src/components/ObsSessionForm.tsx
+    Renderer: ObsTool/ObsToolClient/src/components/ObsSessionForm.tsx renders DsoShort for the compact object list.
+    Actual size: size={22} in ObsTool/ObsToolClient/src/components/DsoShort.tsx.
+
+  - Observed Objects tab on obs session form
+    Route: ObsTool/ObsToolClient/src/components/ObsSessionPage.tsx:475 → ObsTool/ObsToolClient/src/components/
+    ObservationList.tsx:36 → ObsTool/ObsToolClient/src/components/Observation.tsx:146 → ObsTool/ObsToolClient/src/components/
+    DsoCard.tsx:216
+    Actual size there: size={30} in DsoCard.
+  - Search dropdown view
+    Route: ObsTool/ObsToolClient/src/components/SearchInput.tsx:178 renders DsoCard for each autocomplete option.
+    Actual size: same size={30} in ObsTool/ObsToolClient/src/components/DsoCard.tsx:216.
+  - Search results page
+    Route: ObsTool/ObsToolClient/src/components/SearchView.tsx:196 renders DsoCard.
+    Actual size: same size={30} in ObsTool/ObsToolClient/src/components/DsoCard.tsx:216.

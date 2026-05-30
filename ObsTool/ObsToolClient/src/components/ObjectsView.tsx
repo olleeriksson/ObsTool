@@ -35,7 +35,6 @@ import SaveIcon from "@mui/icons-material/Save";
 import Api from "../api/Api";
 import { IAppState, IConstellationOption, IDataState, IDso, IObservedObject, IUserObjectForSave } from "../types/Types";
 import { connect } from "react-redux";
-import { DSO_TYPE_ICON_PREVIEW_SIZES } from "../utils/objectIcons";
 import { getDsoTypeAbbreviation, getDsoTypeOptions, resolveDsoTypeCode, translateDsoType } from "../utils/objectTypes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
@@ -151,13 +150,10 @@ const styles = (theme: Theme) => createStyles({
     typeOptionIcon: {
         flex: "0 0 auto",
     },
-    typePreviewIcons: {
+    typePreviewLabel: {
         alignItems: "center",
         display: "flex",
-        gap: theme.spacing(1.25),
-        justifyContent: "flex-end",
-    },
-    typePreviewLabel: {
+        gap: theme.spacing(1),
         minWidth: 240,
     },
     typePreviewList: {
@@ -174,10 +170,13 @@ const styles = (theme: Theme) => createStyles({
     },
     typePreviewRow: {
         alignItems: "center",
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 4,
         display: "flex",
         gap: theme.spacing(2),
-        justifyContent: "space-between",
+        justifyContent: "flex-start",
         minHeight: 36,
+        padding: theme.spacing(0),
         [theme.breakpoints.down("sm")]: {
             alignItems: "flex-start",
             flexDirection: "column",
@@ -553,13 +552,9 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         <div className={this.props.classes.typePreviewList} role="group" aria-label="Object type icons">
             <div className={this.props.classes.typePreviewRow} data-dso-type-preview-row="generic-current">
                 <Typography variant="body2" className={this.props.classes.typePreviewLabel}>
-                    Undefined object fallback
+                    <DsoTypeIcon type="" size={28} />
+                    <span>Undefined object fallback</span>
                 </Typography>
-                <div className={this.props.classes.typePreviewIcons}>
-                    {DSO_TYPE_ICON_PREVIEW_SIZES.map(size => (
-                        <DsoTypeIcon key={size} type="" size={size} />
-                    ))}
-                </div>
             </div>
             <Typography variant="subtitle2" className={this.props.classes.typePreviewSectionTitle}>
                 SAC object types
@@ -571,13 +566,9 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                     data-dso-type-preview-row={option.code}
                 >
                     <Typography variant="body2" className={this.props.classes.typePreviewLabel}>
-                        {option.longName}
+                        <DsoTypeIcon type={option.code} size={32} />
+                        <span>{option.longName}</span>
                     </Typography>
-                    <div className={this.props.classes.typePreviewIcons}>
-                        {DSO_TYPE_ICON_PREVIEW_SIZES.map(size => (
-                            <DsoTypeIcon key={size} type={option.code} size={size} />
-                        ))}
-                    </div>
                 </div>
             ))}
         </div>

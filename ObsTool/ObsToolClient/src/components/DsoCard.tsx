@@ -31,7 +31,6 @@ const styles = (theme: Theme) => createStyles({
   },
   dsoTypeIcon: {
     marginRight: 10,
-    marginTop: 2,
   },
   titleRow: {
     alignItems: "center",
@@ -77,6 +76,7 @@ interface IDsoCardProps extends WithStyles<typeof styles> {
   showPrevAndNextObservation?: boolean;
   startWithObservationsExpanded?: boolean;
   allowHerschelDetails?: boolean;
+  dsoTypeIconSize?: number;
 }
 
 interface IDynamicDsoLabelState {
@@ -136,6 +136,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
   public render() {
     const { classes } = this.props;
     const dso = this.props.dso;
+    const dsoTypeIconSize = this.props.dsoTypeIconSize || 32;
 
     if (this.props.error) {
       return (
@@ -213,7 +214,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     const dsoLabel = (
       <Grid container>
         <Grid size={"auto"}>
-          <DsoTypeIcon type={dso.type} size={30} className={classes.dsoTypeIcon} />
+          <DsoTypeIcon type={dso.type} size={dsoTypeIconSize} className={classes.dsoTypeIcon} />
         </Grid>
         <Grid size={"grow"}>
           <div className={classes.titleRow}>

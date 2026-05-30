@@ -175,7 +175,7 @@ export class SearchInput extends React.Component<ISearchInputProps, ISearchInput
                             if (option.dso) {
                                 return (
                                     <li key={key} {...restProps}>
-                                        <DsoCard dso={option.dso} showBadge={true} showDsoExtra={false} showObservations={false} startWithObservationsExpanded={false} showPrevAndNextObservation={true} />
+                                        <DsoCard dso={option.dso} showBadge={true} showDsoExtra={false} showObservations={false} startWithObservationsExpanded={false} showPrevAndNextObservation={true} dsoTypeIconSize={28} />
                                     </li>
                                 );
                             }
