@@ -5,7 +5,7 @@ import Api from "../api/Api";
 import { IDso } from "../types/Types";
 import { SearchInput } from "./SearchInput";
 
-const classes = { root: "" } as any;
+const classes = { root: "", paper: "", listbox: "", option: "", moreOption: "" } as any;
 
 const makeDso = (id: number, name: string): IDso => ({
     id,
@@ -84,6 +84,50 @@ it("keeps stale autocomplete search responses from replacing the latest results"
         });
 
         expect((ref.current as any).state.options.map((option: any) => option.dso?.name)).toEqual(["M 31"]);
+    } finally {
+        searchDso.mockRestore();
+        vi.useRealTimers();
+    }
+});
+
+it("keeps the autocomplete more marker visible by folding hidden current-page hits into it", async () => {
+    vi.useFakeTimers();
+    const searchDso = vi.spyOn(Api, "searchDso").mockResolvedValue({
+        data: {
+            data: Array.from({ length: 9 }, (_, index) => makeDso(index + 1, `NGC ${index + 1}`)),
+            more: 12,
+        },
+    } as any);
+    const ref = React.createRef<SearchInput>();
+
+    try {
+        render(
+            <SearchInput
+                ref={ref}
+                classes={classes}
+                onSearchView={false}
+                store={{ searchQuery: "" } as any}
+                actions={{ search: vi.fn(), clearSearch: vi.fn() }}
+            />
+        );
+
+        fireEvent.change(screen.getByPlaceholderText("Search for an object.."), { target: { value: "NGC" } });
+
+        await act(async () => {
+            vi.advanceTimersByTime(300);
+            await Promise.resolve();
+        });
+
+        const options = (ref.current as any).state.options;
+        expect(options.filter((option: any) => option.dso).map((option: any) => option.dso.name)).toEqual([
+            "NGC 1",
+            "NGC 2",
+            "NGC 3",
+            "NGC 4",
+            "NGC 5",
+            "NGC 6",
+        ]);
+        expect(options[6].altText).toBe("... and 15 more ...");
     } finally {
         searchDso.mockRestore();
         vi.useRealTimers();

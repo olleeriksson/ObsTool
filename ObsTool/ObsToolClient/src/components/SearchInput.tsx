@@ -23,7 +23,33 @@ const styles = (_theme: Theme) => createStyles({
     root: {
         flexGrow: 1,
     },
+    paper: {
+        overflow: "visible",
+    },
+    listbox: {
+        maxHeight: "none",
+        overflowY: "visible",
+        paddingBottom: 0,
+        paddingTop: 0,
+    },
+    option: {
+        alignItems: "center !important",
+        minHeight: 58,
+        overflow: "visible !important",
+        paddingBottom: "8px !important",
+        paddingTop: "8px !important",
+        "& .MuiBadge-root": {
+            overflow: "visible",
+        },
+    },
+    moreOption: {
+        color: "rgba(0, 0, 0, 0.72)",
+        fontStyle: "italic",
+        minHeight: 42,
+    },
 });
+
+const maxVisibleDsoSuggestions = 6;
 
 interface ISearchInputProps extends WithStyles<typeof styles> {
     onSearchView?: boolean;
@@ -70,9 +96,11 @@ export class SearchInput extends React.Component<ISearchInputProps, ISearchInput
                     return;
                 }
                 const pagedResult: IPagedDsoList = response.data;
-                const options: ISuggestion[] = pagedResult.data.map(dso => ({ dso }));
-                if (pagedResult.more > 0) {
-                    options.push({ altText: "... and " + pagedResult.more + " more ..." });
+                const visibleDsos = pagedResult.data.slice(0, maxVisibleDsoSuggestions);
+                const hiddenCurrentPageDsos = Math.max(0, pagedResult.data.length - visibleDsos.length);
+                const options: ISuggestion[] = visibleDsos.map(dso => ({ dso }));
+                if (pagedResult.more + hiddenCurrentPageDsos > 0) {
+                    options.push({ altText: "... and " + (pagedResult.more + hiddenCurrentPageDsos) + " more ..." });
                 }
                 this.setState({ options });
             }).catch((error) => {
@@ -180,7 +208,7 @@ export class SearchInput extends React.Component<ISearchInputProps, ISearchInput
                                 );
                             }
                             return (
-                                <li key={key} {...restProps}>
+                                <li key={key} {...restProps} className={`${restProps.className || ""} ${classes.moreOption}`}>
                                     <strong style={{ fontWeight: 300 }}>{option.altText}</strong>
                                 </li>
                             );
@@ -192,10 +220,19 @@ export class SearchInput extends React.Component<ISearchInputProps, ISearchInput
                             />
                         )}
                         slotProps={{
+                            listbox: {
+                                className: classes.listbox,
+                            },
+                            paper: {
+                                className: classes.paper,
+                            },
                             popper: {
                                 placement: "bottom-start",
                                 style: { width: 500 },
                             },
+                        }}
+                        classes={{
+                            option: classes.option,
                         }}
                     />
                 </form>

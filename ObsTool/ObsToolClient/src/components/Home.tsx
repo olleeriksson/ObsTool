@@ -21,7 +21,11 @@ const styles = (theme: Theme) => createStyles({
         maxWidth: 800,
         margin: "0 auto",
         verticalAlign: "center",
-        padding: `${theme.spacing(7)} 0 ${theme.spacing(6)}`,
+        padding: `${theme.spacing(7)} 0 ${theme.spacing(4)}`,
+    },
+    homeSearchArea: {
+        height: 86,
+        marginBottom: theme.spacing(1),
     },
     cardGridItem: {
         maxWidth: 400,
@@ -76,7 +80,7 @@ class Home extends React.Component<IHomeProps> {
             </Grid>
             <Grid container alignItems="flex-start" justifyContent="center">
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <div style={{ height: 70 }}>
+                    <div className={classes.homeSearchArea}>
                         <SearchInput />
                     </div>
                 </Grid>
