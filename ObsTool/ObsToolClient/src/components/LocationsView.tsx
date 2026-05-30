@@ -205,6 +205,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                 onChange={this.handleFormChange("name")}
                                 className={classes.rowField}
                                 margin="dense"
+                                size="small"
                             />
                         </Grid>
                         <Grid container spacing={2} sx={{ px: 1 }}>
@@ -217,6 +218,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                     onChange={this.handleFormChange("longitude")}
                                     className={classes.rowField}
                                     margin="dense"
+                                    size="small"
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 3 }}>
@@ -228,6 +230,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                     onChange={this.handleFormChange("latitude")}
                                     className={classes.rowField}
                                     margin="dense"
+                                    size="small"
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 6 }}>
@@ -238,6 +241,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                     onChange={this.handleFormChange("googleMapsAddress")}
                                     className={classes.rowField}
                                     margin="dense"
+                                    size="small"
                                 />
                             </Grid>
                         </Grid>

@@ -530,6 +530,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 {...params}
                 label="Type"
                 margin="dense"
+                size="small"
                 InputProps={{
                     ...params.InputProps,
                     startAdornment: currentType ? (
@@ -914,6 +915,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                                                 value={this.state.currentObject.name || ""}
                                                 onChange={this.handleFormChange("name")}
                                                 margin="dense"
+                                                size="small"
                                                 required={true}
                                                 disabled={isEditing}
                                                 inputProps={{
@@ -928,9 +930,11 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                                         value={this.state.currentObject.commonName || ""}
                                         onChange={this.handleFormChange("commonName")}
                                         margin="dense"
+                                        size="small"
                                         className={classes.thirdRowField}
                                     />
                                     <Autocomplete
+                                        size="small"
                                         freeSolo={true}
                                         options={this.getTypeOptions()}
                                         value={this.state.currentObject.type || null}
@@ -941,23 +945,24 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                                         renderInput={this.renderTypeInput}
                                         className={classes.thirdRowField}
                                     />
-                                    <TextField label="All common names" value={this.state.currentObject.allCommonNames || ""} onChange={this.handleFormChange("allCommonNames")} margin="dense" className={classes.halfRowField} />
-                                    <TextField label="Other names" value={this.state.currentObject.otherNames || ""} onChange={this.handleFormChange("otherNames")} margin="dense" className={classes.halfRowField} />
+                                    <TextField label="All common names" value={this.state.currentObject.allCommonNames || ""} onChange={this.handleFormChange("allCommonNames")} margin="dense" size="small" className={classes.halfRowField} />
+                                    <TextField label="Other names" value={this.state.currentObject.otherNames || ""} onChange={this.handleFormChange("otherNames")} margin="dense" size="small" className={classes.halfRowField} />
                                     <Autocomplete
+                                        size="small"
                                         options={[UNSPECIFIED_CONSTELLATION_OPTION, ...this.state.constellations]}
                                         value={currentConstellationValue}
                                         getOptionLabel={(option) => option.abbreviation ? option.name : "Unspecified"}
                                         isOptionEqualToValue={(option, value) => option.abbreviation === value.abbreviation}
                                         onChange={this.handleConstellationChange}
                                         renderInput={(params) => (
-                                            <TextField {...params} label="Constellation" margin="dense" />
+                                            <TextField {...params} label="Constellation" margin="dense" size="small" />
                                         )}
                                         className={classes.quarterRowField}
                                     />
-                                    <TextField label="RA" value={this.state.currentObject.ra || ""} onChange={this.handleFormChange("ra")} margin="dense" className={classes.quarterRowField} />
-                                    <TextField label="DEC" value={this.state.currentObject.dec || ""} onChange={this.handleFormChange("dec")} margin="dense" className={classes.quarterRowField} />
-                                    <TextField label="Mag" value={this.state.currentObject.mag || ""} onChange={this.handleFormChange("mag")} margin="dense" className={classes.quarterRowField} />
-                                    <TextField label="Notes" value={this.state.currentObject.notes || ""} onChange={this.handleFormChange("notes")} margin="dense" multiline={true} minRows={2} className={classes.fullWidthField} />
+                                    <TextField label="RA" value={this.state.currentObject.ra || ""} onChange={this.handleFormChange("ra")} margin="dense" size="small" className={classes.quarterRowField} />
+                                    <TextField label="DEC" value={this.state.currentObject.dec || ""} onChange={this.handleFormChange("dec")} margin="dense" size="small" className={classes.quarterRowField} />
+                                    <TextField label="Mag" value={this.state.currentObject.mag || ""} onChange={this.handleFormChange("mag")} margin="dense" size="small" className={classes.quarterRowField} />
+                                    <TextField label="Notes" value={this.state.currentObject.notes || ""} onChange={this.handleFormChange("notes")} margin="dense" size="small" multiline={true} minRows={2} className={classes.fullWidthField} />
                                 </div>
                                 {duplicateNameWarning}
                                 {similarSacWarning}

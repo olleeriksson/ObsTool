@@ -622,6 +622,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 onChange={this.handleChange("date")}
                 className={classNames(classes.formControl, classes.dateField)}
                 margin="normal"
+                size="small"
                 variant="outlined"
               />
               <SelectComponent
@@ -631,9 +632,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={"" + (this.state.obsSession.instrumentId || "")}
                 onChange={this.handleChange("instrumentId")}
                 options={instrumentOptions}
+                size="small"
               />
-            </Grid>
-            <Grid>
               <SelectComponent
                 classes={classNames(classes.formControl, classes.selectLocation)}
                 label="Location"
@@ -641,7 +641,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 value={"" + (this.state.obsSession.locationId || "")}
                 onChange={this.handleChange("locationId")}
                 options={locationOptions}
-                margin="dense"
+                size="small"
               />
             </Grid>
             <Grid>
@@ -667,6 +667,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 onChange={this.handleChange("conditions")}
                 className={classNames(classes.formControl, classes.textField)}
                 margin="dense"
+                size="small"
                 variant="outlined"
               />
             </Grid>
@@ -684,6 +685,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                           onChange={this.handleChange("seeing")}
                           options={seeingOptions}
                           margin="normal"
+                          size="small"
                         />
                         <SelectComponent
                           classes={classes.ratingSelect}
@@ -693,6 +695,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                           onChange={this.handleChange("transparency")}
                           options={transparencyOptions}
                           margin="normal"
+                          size="small"
                         />
                         <TextField
                           id="lm"
@@ -703,6 +706,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                           error={this.state.errorOnControl.limitingMagnitude !== undefined}
                           className={classes.ratingLimitingMagnitude}
                           margin="normal"
+                          size="small"
                           variant="outlined"
                         />
                       </Grid>

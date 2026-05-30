@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
@@ -266,6 +266,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                                     onChange={this.handleFormChange("key")}
                                     className={classes.rowField}
                                     margin="dense"
+                                    size="small"
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 4 }}>
@@ -276,6 +277,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                                     onChange={this.handleFormChange("name")}
                                     className={classes.rowField}
                                     margin="dense"
+                                    size="small"
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 4 }}>
@@ -286,6 +288,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                                     onChange={this.handleFormChange("focalLengthMm")}
                                     className={classes.rowField}
                                     margin="dense"
+                                    size="small"
                                     type="text"
                                     inputProps={{ inputMode: "decimal", pattern: "[0-9]*[.]?[0-9]*" }}
                                 />

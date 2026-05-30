@@ -12,7 +12,10 @@ import type { WithStyles } from "src/muiCompat";
 const styles = (theme: Theme) => createStyles({
     root: {
         marginTop: theme.spacing(4),
-        maxWidth: 560
+        marginLeft: "auto",
+        marginRight: "auto",
+        maxWidth: 560,
+        width: `calc(100% - ${theme.spacing(4)})`
     },
     panel: {
         padding: theme.spacing(3)

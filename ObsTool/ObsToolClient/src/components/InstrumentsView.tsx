@@ -383,6 +383,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                             onChange={this.handleFormChange("key")}
                                             className={classes.rowField}
                                             margin="dense"
+                                            size="small"
                                         />
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -393,6 +394,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                             onChange={this.handleFormChange("name")}
                                             className={classes.rowField}
                                             margin="dense"
+                                            size="small"
                                         />
                                     </Grid>
                                 </Grid>
@@ -407,6 +409,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                             onChange={this.handleFormChange("diameterMm")}
                                             className={classes.rowField}
                                             margin="dense"
+                                            size="small"
                                             inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                                         />
                                     </Grid>
@@ -418,6 +421,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                             onChange={this.handleFormChange("focalLengthMm")}
                                             className={classes.rowField}
                                             margin="dense"
+                                            size="small"
                                             type="text"
                                             inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                                         />
