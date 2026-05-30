@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -125,7 +125,7 @@ namespace ObsTool.Services
             //return _dbContext.ObsSessions.FirstOrDefault(s => s.Id == id);
         }
 
-        public IEnumerable<ObsSession> GetObsSessions(bool includeLocation = false, bool includeReportText = false)
+        public IEnumerable<ObsSession> GetObsSessions(bool includeLocation = false, bool includeReportText = false, bool includeObjectStats = false)
         {
             var query = _dbContext.ObsSessions.AsQueryable();
 
@@ -134,13 +134,20 @@ namespace ObsTool.Services
                 query = query.Include(s => s.Location);
             }
             query = query.Include(s => s.Instrument);
+            if (includeObjectStats)
+            {
+                query = query
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(dsoObservation => dsoObservation.Dso)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(dsoObservation => dsoObservation.OtherObject)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(dsoObservation => dsoObservation.UserObject);
+            }
             // TODO: Would be great if we could exclude the ReportText column from the query.
             //       DOesn't seem to exist any way to do that.
 
             return query.OrderBy(s => s.Date);
         }
 
-        public IEnumerable<ObsSession> GetObsSessions(int userId, bool includeLocation = false, bool includeReportText = false)
+        public IEnumerable<ObsSession> GetObsSessions(int userId, bool includeLocation = false, bool includeReportText = false, bool includeObjectStats = false)
         {
             var query = _dbContext.ObsSessions.Where(s => s.UserId == userId);
 
@@ -149,6 +156,13 @@ namespace ObsTool.Services
                 query = query.Include(s => s.Location);
             }
             query = query.Include(s => s.Instrument);
+            if (includeObjectStats)
+            {
+                query = query
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(dsoObservation => dsoObservation.Dso)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(dsoObservation => dsoObservation.OtherObject)
+                    .Include(s => s.Observations).ThenInclude(o => o.DsoObservations).ThenInclude(dsoObservation => dsoObservation.UserObject);
+            }
 
             return query.OrderBy(s => s.Date);
         }

@@ -52,19 +52,22 @@ class ListView extends React.Component<IListViewProps> {
 
     public componentDidMount() {
         this.loadAllObsSessions();
-        this.selectRouteObsSession();
+        this.syncRouteObsSessionSelection();
     }
 
     public componentDidUpdate(prevProps: IListViewProps) {
         if (this.props.obsSessionId !== prevProps.obsSessionId) {
-            this.selectRouteObsSession();
+            this.syncRouteObsSessionSelection();
         }
     }
 
-    private selectRouteObsSession = () => {
+    private syncRouteObsSessionSelection = () => {
         if (this.props.obsSessionId && this.props.store.selectedObsSessionId !== this.props.obsSessionId) {
             // Direct entry and post-create redirects carry the session id in the route; mirror it into the split-view selection state.
             this.props.actions.selectObsSession(this.props.obsSessionId);
+        } else if (!this.props.obsSessionId && this.props.store.selectedObsSessionId) {
+            // The plain Sessions route is intentionally a neutral list view with no right-side session selected.
+            this.props.actions.clearSelectedObsSession();
         }
     }
 
@@ -98,6 +101,7 @@ class ListView extends React.Component<IListViewProps> {
 
     public render() {
         const { classes } = this.props;
+        const selectedObsSessionId = this.props.store.selectedObsSessionId || this.props.obsSessionId;
 
         let leftSideView;
         if (this.props.store.isLoadingObsSessions) {
@@ -117,6 +121,7 @@ class ListView extends React.Component<IListViewProps> {
                 <div className={classes.sessionList}>
                     <ObsSessionList
                         obsSessions={this.props.store.obsSessions}
+                        selectedObsSessionId={selectedObsSessionId}
                         onSelectObsSession={this.onSelectObsSession}
                     />
                 </div>
@@ -124,7 +129,6 @@ class ListView extends React.Component<IListViewProps> {
         }
 
         let rightSideView;
-        const selectedObsSessionId = this.props.store.selectedObsSessionId || this.props.obsSessionId;
         if (selectedObsSessionId) { // default view
             rightSideView = (
                 <ObsSessionPage obsSessionId={selectedObsSessionId} />

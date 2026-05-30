@@ -27,6 +27,7 @@ import SearchInput from "./SearchInput";
 import Api from "src/api/Api";
 import { IAppState, IDataState } from "src/types/Types";
 import * as authenticationAction from "../actions/AuthenticationActions";
+import * as obsSessionAction from "../actions/ObsSessionActions";
 import { bindActionCreators, Dispatch } from "redux";
 import { connect } from "react-redux";
 import TelescopeIcon from "./icons/TelescopeIcon";
@@ -187,6 +188,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.props.navigate("/user-admin");
     }
 
+    // Opens the neutral sessions list from the top nav without keeping a previous split-view selection active.
+    private handleClickSessions = () => {
+        this.props.actions.clearSelectedObsSession();
+    }
+
     // Opens the data export dialog from the authenticated user's top-nav menu.
     private handleClickExportData = () => {
         this.handleCloseUserMenu();
@@ -300,7 +306,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         <Button component={LinkToObservedDsos} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="table" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Observations
                         </Button>
-                        <Button component={LinkToSessions} className={classes.appbarButton}>
+                        <Button component={LinkToSessions} className={classes.appbarButton} onClick={this.handleClickSessions}>
                             <FontAwesomeIcon icon="table" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Sessions
                         </Button>
                         <Button component={LinkToNewSession} className={classes.appbarButton}>
@@ -349,10 +355,10 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<authenticationAction.AuthenticationAction>) => {
+const mapDispatchToProps = (dispatch: Dispatch<authenticationAction.AuthenticationAction | obsSessionAction.ObsSessionAction>) => {
     return {
         actions: bindActionCreators(
-            { ...authenticationAction },
+            { ...authenticationAction, ...obsSessionAction },
             dispatch
         )
     };

@@ -133,6 +133,12 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
                 selectedObsSessionId: selectAction.payload.obsSessionId
             };
         }
+        case constants.CLEAR_SELECTED_OBSSESSION: {
+            return {
+                ...state,
+                selectedObsSessionId: undefined
+            };
+        }
         case constants.NEW_OBSSESSION: {
             return {
                 ...state,

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -54,11 +54,16 @@ namespace ObsTool.Controllers
         public IActionResult Get(bool includeLocation = false, bool simple = false)
         {
             var userId = _currentUserService.GetRequiredUserId();
-            var obsSessions = _obsSessionsRepository.GetObsSessions(userId, includeLocation, includeReportText: simple);
+            var obsSessions = _obsSessionsRepository.GetObsSessions(userId, includeLocation, includeReportText: simple, includeObjectStats: simple);
 
             if (simple)
             {
-                var results = _mapper.Map<IEnumerable<ObsSessionDtoSimple>>(obsSessions);
+                var results = obsSessions.Select(obsSession =>
+                {
+                    var obsSessionDto = _mapper.Map<ObsSessionDtoSimple>(obsSession);
+                    obsSessionDto.ObjectStats = ObsSessionObjectStatsDto.FromObsSession(obsSession);
+                    return obsSessionDto;
+                });
                 return Ok(results);
             }
             else

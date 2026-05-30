@@ -248,10 +248,19 @@ export interface IObsSession {
     observations?: IObservation[];
     reportText?: string;
     dsoObjects?: IDso[];
+    objectStats?: IObsSessionObjectStats;
 
     locationId?: number; // addition for post/put
     instrumentId?: number; // addition for post/put
     instrument?: IInstrument;
+}
+
+export interface IObsSessionObjectStats {
+    total: number;
+    galaxies: number;
+    nebulae: number;
+    clusters: number;
+    other: number;
 }
 
 export interface IStatistics {

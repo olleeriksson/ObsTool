@@ -31,6 +31,10 @@ export interface ISelectObsSessionAction extends Action {
     payload: { obsSessionId: number };
 }
 
+export interface IClearSelectedObsSessionAction extends Action {
+    type: constants.CLEAR_SELECTED_OBSSESSION;
+}
+
 export interface INewObsSessionAction extends Action {
     type: constants.NEW_OBSSESSION;
 }
@@ -59,6 +63,7 @@ export type ObsSessionAction =
     IGetObsSessionsSuccessAction |
     IGetObsSessionsFailureAction |
     ISelectObsSessionAction |
+    IClearSelectedObsSessionAction |
     INewObsSessionAction |
     IAddObsSessionSuccessAction |
     IUpdateObsSessionSuccessAction |
@@ -104,6 +109,10 @@ export const getObsSessionsFailure: ActionCreator<IGetObsSessionsFailureAction> 
 export const selectObsSession: ActionCreator<ISelectObsSessionAction> = (obsSessionId: number) => ({
     type: constants.SELECT_OBSSESSION,
     payload: { obsSessionId: obsSessionId },
+});
+
+export const clearSelectedObsSession: ActionCreator<IClearSelectedObsSessionAction> = () => ({
+    type: constants.CLEAR_SELECTED_OBSSESSION,
 });
 
 export const newObsSession: ActionCreator<INewObsSessionAction> = () => ({
