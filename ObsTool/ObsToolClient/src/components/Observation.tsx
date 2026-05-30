@@ -56,6 +56,12 @@ const styles = (theme: Theme) => createStyles({
   backToFormButton: {
     color: theme.palette.grey[500],
   },
+  instrumentBadgeColumn: {
+    display: "flex",
+    flexShrink: 0,
+    justifyContent: "center",
+    width: 70,
+  },
 });
 
 export interface IObservationProps extends WithStyles<typeof styles> {
@@ -163,7 +169,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
         <Grid container spacing={2} direction="column">
           <Grid size={12}>
             <Grid container spacing={2} wrap="nowrap">
-              <Grid>
+              <Grid className={classes.instrumentBadgeColumn}>
                 <ObsInstrumentBadge
                   instrument={this.props.observation.instrument}
                   compact={true}
