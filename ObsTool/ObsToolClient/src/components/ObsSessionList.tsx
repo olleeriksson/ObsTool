@@ -155,6 +155,7 @@ const styles = (theme: Theme) => createStyles({
     height: 48,
     justifyContent: "center",
     overflow: "hidden",
+    position: "relative",
     width: "100%",
   },
   timelineBar: {
@@ -162,6 +163,26 @@ const styles = (theme: Theme) => createStyles({
     borderRadius: "3px 3px 0 0",
     minHeight: 3,
     width: "100%",
+  },
+  timelineBarCount: {
+    alignItems: "center",
+    bottom: 0,
+    display: "flex",
+    fontSize: "0.65rem",
+    fontWeight: 400,
+    justifyContent: "center",
+    left: 0,
+    lineHeight: 1,
+    pointerEvents: "none",
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  timelineBarCountDark: {
+    color: theme.palette.text.primary,
+  },
+  timelineBarCountLight: {
+    color: theme.palette.primary.contrastText,
   },
   timelineLabel: {
     color: theme.palette.text.secondary,
@@ -518,6 +539,16 @@ class ObsSessionList extends React.Component<IObsSessionListProps, IObsSessionLi
                       className={classes.timelineBar}
                       style={{ height: bucket.count > 0 ? `${Math.max((bucket.count / maxCount) * 100, 8)}%` : 0 }}
                     />
+                    {bucket.count > 0 && (
+                      <span
+                        className={classNames(classes.timelineBarCount, {
+                          [classes.timelineBarCountDark]: bucket.count <= maxCount / 2,
+                          [classes.timelineBarCountLight]: bucket.count > maxCount / 2,
+                        })}
+                      >
+                        {bucket.count}
+                      </span>
+                    )}
                   </div>
                   <span className={classes.timelineLabel}>{bucket.label}</span>
                 </button>
