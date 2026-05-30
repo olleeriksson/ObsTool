@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -60,10 +61,12 @@ namespace ObsTool.Services
         private void RecordEvent(int userId, string eventKey, string eventName, string details)
         {
             EnsureEventsTableExists();
+            var user = GetEventUser(userId);
 
             var systemEvent = new SystemEvent
             {
                 UserId = userId,
+                FullName = user?.FullName,
                 EventKey = eventKey,
                 EventName = eventName,
                 Details = details,
@@ -118,7 +121,7 @@ namespace ObsTool.Services
             return
                 $"Event: {systemEvent.EventName}" + Environment.NewLine +
                 $"Key: {systemEvent.EventKey}" + Environment.NewLine +
-                FormatUserDetails(systemEvent.UserId, user) + Environment.NewLine +
+                FormatUserDetails(systemEvent.UserId, systemEvent.FullName, user) + Environment.NewLine +
                 $"UTC: {systemEvent.OccurredUtc:O}" + Environment.NewLine +
                 Environment.NewLine +
                 systemEvent.Details;
@@ -141,6 +144,7 @@ namespace ObsTool.Services
 CREATE TABLE IF NOT EXISTS ""Events"" (
     ""Id"" INTEGER NOT NULL CONSTRAINT ""PK_Events"" PRIMARY KEY AUTOINCREMENT,
     ""UserId"" INTEGER NULL,
+    ""FullName"" TEXT NULL,
     ""EventKey"" TEXT NOT NULL,
     ""EventName"" TEXT NOT NULL,
     ""Details"" TEXT NULL,
@@ -149,6 +153,7 @@ CREATE TABLE IF NOT EXISTS ""Events"" (
     ""AdminNotificationError"" TEXT NULL,
     CONSTRAINT ""FK_Events_Users_UserId"" FOREIGN KEY (""UserId"") REFERENCES ""Users"" (""Id"") ON DELETE RESTRICT
 );");
+                EnsureSqliteColumnExists("FullName", @"ALTER TABLE ""Events"" ADD COLUMN ""FullName"" TEXT NULL;");
                 return;
             }
 
@@ -158,6 +163,7 @@ CREATE TABLE IF NOT EXISTS ""Events"" (
 CREATE TABLE IF NOT EXISTS `Events` (
     `Id` int NOT NULL AUTO_INCREMENT,
     `UserId` int NULL,
+    `FullName` varchar(200) NULL,
     `EventKey` varchar(200) NOT NULL,
     `EventName` varchar(100) NOT NULL,
     `Details` varchar(1000) NULL,
@@ -167,6 +173,54 @@ CREATE TABLE IF NOT EXISTS `Events` (
     PRIMARY KEY (`Id`),
     CONSTRAINT `FK_Events_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE RESTRICT
 );");
+                EnsureMySqlColumnExists("FullName", "ALTER TABLE `Events` ADD COLUMN `FullName` varchar(200) NULL;");
+            }
+        }
+
+        private void EnsureSqliteColumnExists(string columnName, string alterTableSql)
+        {
+            // Direct schema setup is used for the Events table, so add new columns without EF migrations.
+            if (!ColumnExists("SELECT 1 FROM pragma_table_info('Events') WHERE name = @columnName LIMIT 1;", columnName))
+            {
+                _dbContext.Database.ExecuteSqlRaw(alterTableSql);
+            }
+        }
+
+        private void EnsureMySqlColumnExists(string columnName, string alterTableSql)
+        {
+            // MySQL production uses the same direct Events table setup as SQLite development.
+            if (!ColumnExists("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Events' AND COLUMN_NAME = @columnName LIMIT 1;", columnName))
+            {
+                _dbContext.Database.ExecuteSqlRaw(alterTableSql);
+            }
+        }
+
+        private bool ColumnExists(string sql, string columnName)
+        {
+            // Provider metadata queries are simpler and more portable here than EF scalar projections.
+            var connection = _dbContext.Database.GetDbConnection();
+            var wasClosed = connection.State == ConnectionState.Closed;
+            if (wasClosed)
+            {
+                connection.Open();
+            }
+
+            try
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = sql;
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@columnName";
+                parameter.Value = columnName;
+                command.Parameters.Add(parameter);
+                return command.ExecuteScalar() != null;
+            }
+            finally
+            {
+                if (wasClosed)
+                {
+                    connection.Close();
+                }
             }
         }
 
@@ -178,10 +232,12 @@ CREATE TABLE IF NOT EXISTS `Events` (
                 $"Full name: {user.FullName}";
         }
 
-        private static string FormatUserDetails(int? userId, AppUser user)
+        private static string FormatUserDetails(int? userId, string storedFullName, AppUser user)
         {
             var email = string.IsNullOrWhiteSpace(user?.Email) ? "unknown e-mail" : user.Email;
-            var fullName = string.IsNullOrWhiteSpace(user?.FullName) ? "unknown name" : user.FullName;
+            var fullName = string.IsNullOrWhiteSpace(storedFullName)
+                ? string.IsNullOrWhiteSpace(user?.FullName) ? "unknown name" : user.FullName
+                : storedFullName;
             return $"User: Id {userId}, {email}, {fullName}";
         }
 

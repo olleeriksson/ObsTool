@@ -14,6 +14,9 @@ namespace ObsTool.Entities
 
         public AppUser User { get; set; }
 
+        [MaxLength(200)]
+        public string FullName { get; set; }
+
         [Required]
         [MaxLength(200)]
         public string EventKey { get; set; }

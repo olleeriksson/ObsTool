@@ -62,6 +62,7 @@ namespace TestProject
 
             var systemEvent = _dbContext.Events.Single();
             Assert.That(systemEvent.UserId, Is.EqualTo(2));
+            Assert.That(systemEvent.FullName, Is.EqualTo("User 2"));
             Assert.That(systemEvent.EventKey, Is.EqualTo("ObsSessionCreated:10"));
             Assert.That(systemEvent.AdminNotificationSentUtc, Is.Not.Null);
             Assert.That(_mailService.AdminNotifications, Has.Count.EqualTo(1));
@@ -93,6 +94,7 @@ namespace TestProject
 
             var systemEvent = _dbContext.Events.Single();
             Assert.That(systemEvent.UserId, Is.EqualTo(3));
+            Assert.That(systemEvent.FullName, Is.EqualTo("User 3"));
             Assert.That(systemEvent.AdminNotificationSentUtc, Is.Null);
             Assert.That(_mailService.AdminNotifications, Is.Empty);
         }
