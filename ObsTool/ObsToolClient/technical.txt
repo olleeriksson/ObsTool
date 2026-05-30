@@ -44,3 +44,12 @@ The size is ultimately controlled by DsoTypeIcon’s size prop.
   - Search results page
     Route: ObsTool/ObsToolClient/src/components/SearchView.tsx:196 renders DsoCard.
     Actual size: same size={30} in ObsTool/ObsToolClient/src/components/DsoCard.tsx:216.
+
+Icons:
+
+- https://mui.com/material-ui/material-icons/?query=question
+- https://fontawesome.com/search?q=question&ic=free-collection
+
+Free SVG converter:
+
+  https://svgconverter.online/

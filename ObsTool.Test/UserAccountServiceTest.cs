@@ -99,6 +99,26 @@ namespace TestProject
         }
 
         [Test]
+        public void AdminCreateUser_AllowsPasswordOutsidePublicSignupRules()
+        {
+            var createdUser = _service.AdminCreateUser(new AdminCreateUserDto
+            {
+                Email = "weak-password@example.com",
+                Username = "weak-password",
+                FullName = "Weak Password",
+                EmailConfirmed = true,
+                Password = "test",
+                ConfirmPassword = "test"
+            });
+
+            var loginResult = _service.ValidateLogin("weak-password@example.com", "test");
+
+            Assert.That(createdUser.Email, Is.EqualTo("weak-password@example.com"));
+            Assert.That(loginResult.Success, Is.True);
+            Assert.That(loginResult.UserId, Is.EqualTo(createdUser.Id));
+        }
+
+        [Test]
         public void AdminUpdateUser_ChangesProfileAndConfirmationState()
         {
             AddUser(1, "owner@example.com", "owner", "Owner User");

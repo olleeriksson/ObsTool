@@ -320,7 +320,7 @@ namespace ObsTool.Services
             ValidateEmail(normalizedEmail);
             ValidateUniqueEmail(normalizedEmail);
             ValidateUniqueUsername(username);
-            ValidatePasswordPair(request.Password, request.ConfirmPassword, normalizedEmail, username);
+            ValidateAdminCreatedPasswordPair(request.Password, request.ConfirmPassword);
 
             var user = new AppUser
             {
@@ -537,6 +537,22 @@ namespace ObsTool.Services
             }
 
             ValidatePassword(password, email, username);
+        }
+
+        /// <summary>
+        /// Validates only the password constraints needed when an admin creates a database-backed user.
+        /// </summary>
+        private static void ValidateAdminCreatedPasswordPair(string password, string confirmPassword)
+        {
+            if (password != confirmPassword)
+            {
+                throw new InvalidOperationException("The two password fields must match.");
+            }
+
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new InvalidOperationException("Password is required.");
+            }
         }
 
         private static void ValidatePassword(string password, string email, string username)
