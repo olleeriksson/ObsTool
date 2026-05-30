@@ -15,6 +15,8 @@ import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { IStatistics, IObsGroupStatistics, IConstellationStatistics } from "../types/Types";
 import Api from "../api/Api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -44,6 +46,54 @@ const styles = (theme: Theme) => createStyles({
         minWidth: "500",
         padding: "Table"
     },
+    statisticsHeaderCell: {
+        width: "100%",
+    },
+    statisticsHeaderLayout: {
+        alignItems: "center",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+        width: "100%",
+    },
+    statisticsHeaderSide: {
+        minWidth: 0,
+    },
+    statisticsHeaderTitle: {
+        fontWeight: 700,
+        justifySelf: "center",
+        textAlign: "center",
+    },
+    statisticsHeaderControls: {
+        justifySelf: "end",
+        minWidth: 0,
+    },
+    sessionScopeControl: {
+        alignItems: "center",
+        display: "inline-flex",
+        gap: theme.spacing(0.5),
+        justifyContent: "flex-end",
+        whiteSpace: "nowrap",
+    },
+    sessionScopeLabel: {
+        color: theme.palette.text.secondary,
+        fontWeight: 400,
+    },
+    sessionScopeButton: {
+        padding: theme.spacing(0.25),
+    },
+    nowComparison: {
+        color: theme.palette.primary.main,
+        fontWeight: 500,
+        whiteSpace: "nowrap",
+    },
+    mainNowComparisonCell: {
+        paddingLeft: theme.spacing(0),
+        paddingRight: theme.spacing(1),
+    },
+    constellationNowComparisonCell: {
+        paddingLeft: theme.spacing(0),
+        paddingRight: theme.spacing(1),
+    },
     collapseToggleCell: {
         paddingTop: theme.spacing(1),
         paddingBottom: theme.spacing(1),
@@ -55,7 +105,7 @@ const styles = (theme: Theme) => createStyles({
         whiteSpace: "nowrap",
     },
     percentText: {
-        marginLeft: theme.spacing(1.5),
+        marginLeft: theme.spacing(1),
     },
     nonDetection: {
         color: theme.palette.text.disabled,
@@ -156,6 +206,8 @@ export interface IStatisticsTableState {
     constellationCatalogSortMetric: CatalogSortMetric;
     selectedConstellation?: IConstellationStatistics;
     isConstellationDialogOpen: boolean;
+    statsExcludeLastSessions: number;
+    allSessionsStatistics?: IStatistics;
 }
 
 type ConstellationSortColumn = "constellation" | "observed" | "h400" | "h2500";
@@ -175,6 +227,8 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             constellationCatalogSortMetric: "observed",
             selectedConstellation: undefined,
             isConstellationDialogOpen: false,
+            statsExcludeLastSessions: 0,
+            allSessionsStatistics: undefined,
         };
     }
 
@@ -183,22 +237,35 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     }
 
     private loadData() {
-        Api.getStatistics().then(
-            (response) => {
-                const { data } = response;
-                this.setState({ statistics: data });
-                this.setState({ isLoading: false });
+        const { statsExcludeLastSessions } = this.state;
+        const statisticsRequest = Api.getStatistics(statsExcludeLastSessions);
+        const allSessionsStatisticsRequest = statsExcludeLastSessions > 0
+            ? Api.getStatistics(0)
+            : Promise.resolve(undefined);
+
+        Promise.all([statisticsRequest, allSessionsStatisticsRequest]).then(
+            ([statisticsResponse, allSessionsStatisticsResponse]) => {
+                this.setState({
+                    allSessionsStatistics: allSessionsStatisticsResponse?.data,
+                    isLoading: false,
+                    statistics: statisticsResponse.data,
+                });
             },
             () => {
-                this.setState({ isLoading: false });
-                this.setState({ isError: true });
+                this.setState({
+                    allSessionsStatistics: undefined,
+                    isError: true,
+                    isLoading: false,
+                });
             }
         );
     }
 
-    private addRow(id: number, text?: string, value?: React.ReactNode, text2?: string, value2?: React.ReactNode) {
+    private addRow(id: number, text?: string, value?: React.ReactNode, nowValue?: React.ReactNode, text2?: string, value2?: React.ReactNode, nowValue2?: React.ReactNode) {
         return {
             key: id,
+            nowValue: nowValue,
+            nowValue2: nowValue2,
             text: text,
             value: value,
             text2: text2,
@@ -213,36 +280,58 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             rowsData.push(this.addRow(
                 id++,
                 "Observation sessions", statistics.numObsSessions.toString(),
-                "Observed Galaxies", statistics.numObservedGalaxies.toString()));
+                this.renderNumberDelta(statistics.numObsSessions, this.state.allSessionsStatistics?.numObsSessions),
+                "Observed Galaxies", statistics.numObservedGalaxies.toString(),
+                this.renderNumberDelta(statistics.numObservedGalaxies, this.state.allSessionsStatistics?.numObservedGalaxies)));
             rowsData.push(this.addRow(
                 id++,
                 "Recorded observations", statistics.numObservations.toString(),
-                "Observed Bright Nebulae", statistics.numObservedBrightNebulae.toString()));
+                this.renderNumberDelta(statistics.numObservations, this.state.allSessionsStatistics?.numObservations),
+                "Observed Bright Nebulae", statistics.numObservedBrightNebulae.toString(),
+                this.renderNumberDelta(statistics.numObservedBrightNebulae, this.state.allSessionsStatistics?.numObservedBrightNebulae)));
             rowsData.push(this.addRow(
                 id++,
                 "Observed objects", statistics.numObservedObjects.toString(),
-                "Observed Open Clusters", statistics.numObservedOpenClusters.toString()));
+                this.renderNumberDelta(statistics.numObservedObjects, this.state.allSessionsStatistics?.numObservedObjects),
+                "Observed Open Clusters", statistics.numObservedOpenClusters.toString(),
+                this.renderNumberDelta(statistics.numObservedOpenClusters, this.state.allSessionsStatistics?.numObservedOpenClusters)));
             rowsData.push(this.addRow(
                 id++,
                 "Detections (non-detections)", this.renderObservationNonDetectionCount(statistics.numDetections, statistics.numNonDetections),
-                "Observed Planetary Nebulae", statistics.numObservedPlanetaryNebulae.toString()));
+                this.renderObservationNonDetectionDelta(statistics.numDetections, statistics.numNonDetections, this.state.allSessionsStatistics?.numDetections, this.state.allSessionsStatistics?.numNonDetections),
+                "Observed Planetary Nebulae", statistics.numObservedPlanetaryNebulae.toString(),
+                this.renderNumberDelta(statistics.numObservedPlanetaryNebulae, this.state.allSessionsStatistics?.numObservedPlanetaryNebulae)));
             rowsData.push(this.addRow(
                 id++,
                 "Recorded sketches", statistics.numSketches.toString(),
-                "Observed Globular Clusters", statistics.numObservedGlobularClusters.toString()));
+                this.renderNumberDelta(statistics.numSketches, this.state.allSessionsStatistics?.numSketches),
+                "Observed Globular Clusters", statistics.numObservedGlobularClusters.toString(),
+                this.renderNumberDelta(statistics.numObservedGlobularClusters, this.state.allSessionsStatistics?.numObservedGlobularClusters)));
             rowsData.push(this.addRow(
                 id++,
                 "Used locations", statistics.numLocations.toString(),
-                "Observed Dark Nebulae", statistics.numObservedDarkNebulae.toString()));
+                this.renderNumberDelta(statistics.numLocations, this.state.allSessionsStatistics?.numLocations),
+                "Observed Dark Nebulae", statistics.numObservedDarkNebulae.toString(),
+                this.renderNumberDelta(statistics.numObservedDarkNebulae, this.state.allSessionsStatistics?.numObservedDarkNebulae)));
             rowsData.push(this.addRow(
                 id++,
                 "Observed Messier objects", this.renderCountWithTotal(statistics.numObservedMessierObjects, 110),
-                "Observed NGC objects", statistics.numObservedNGCObjects.toString()));
+                this.renderCountWithTotalDelta(statistics.numObservedMessierObjects, 110, this.state.allSessionsStatistics?.numObservedMessierObjects),
+                "Observed NGC objects", statistics.numObservedNGCObjects.toString(),
+                this.renderNumberDelta(statistics.numObservedNGCObjects, this.state.allSessionsStatistics?.numObservedNGCObjects)));
             if (statistics.h2500 && statistics.h400) {
                 rowsData.push(this.addRow(
                     id++,
-                    "Observed H2500 objects", this.renderCatalogProgress(statistics.h2500),
-                    "Observed H400 objects", this.renderCatalogProgress(statistics.h400)));
+                    "Observed H2500 objects", this.renderCatalogProgress(statistics.h2500, false),
+                    this.renderCatalogProgressDelta(statistics.h2500, this.state.allSessionsStatistics?.h2500, false),
+                    "Observed H400 objects", this.renderCatalogProgress(statistics.h400, false),
+                    this.renderCatalogProgressDelta(statistics.h400, this.state.allSessionsStatistics?.h400, false)));
+                rowsData.push(this.addRow(
+                    id++,
+                    "Tried & failed H2500 objects", statistics.h2500.nonDetections.toString(),
+                    this.renderNumberDelta(statistics.h2500.nonDetections, this.state.allSessionsStatistics?.h2500?.nonDetections),
+                    "Tried & failed H400 objects", statistics.h400.nonDetections.toString(),
+                    this.renderNumberDelta(statistics.h400.nonDetections, this.state.allSessionsStatistics?.h400?.nonDetections)));
             }
         }
         return rowsData;
@@ -256,6 +345,20 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         );
     }
 
+    // Renders the all-sessions delta for the detection/non-detection paired statistic.
+    private renderObservationNonDetectionDelta(observed: number, nonDetections: number, allObserved?: number, allNonDetections?: number) {
+        if (allObserved === undefined || allNonDetections === undefined) {
+            return null;
+        }
+
+        return (
+            <span className={this.props.classes.nowComparison}>
+                {this.formatSignedDelta(allObserved - observed)}
+                <span> ({this.formatSignedDelta(allNonDetections - nonDetections)})</span>
+            </span>
+        );
+    }
+
     private renderCountWithTotal(count: number, total: number) {
         return (
             <span className={this.props.classes.progressPrimary}>
@@ -265,11 +368,57 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         );
     }
 
-    private renderCatalogProgress(stats: IObsGroupStatistics) {
+    // Renders a delta for count/total cells without repeating the unchanged total.
+    private renderCountWithTotalDelta(count: number, total: number, allCount?: number) {
+        if (allCount === undefined) {
+            return null;
+        }
+
+        return this.renderNowComparison(
+            this.formatSignedDelta(allCount - count),
+            this.formatSignedPercentDelta(this.getRoundedPercent(allCount, total) - this.getRoundedPercent(count, total)));
+    }
+
+    // Renders catalog progress, optionally keeping failed attempts inline for compact table contexts.
+    private renderCatalogProgress(stats: IObsGroupStatistics, includeNonDetections = true) {
         return (
             <span className={this.props.classes.progressPrimary}>
-                {stats.observed}{this.renderNonDetections(stats.nonDetections)} / {stats.total}
+                {stats.observed}{includeNonDetections && this.renderNonDetections(stats.nonDetections)} / {stats.total}
                 <span className={this.props.classes.percentText}>({this.formatPercent(stats.observed, stats.total)})</span>
+            </span>
+        );
+    }
+
+    // Renders a delta for catalog progress cells without repeating the unchanged catalog total.
+    private renderCatalogProgressDelta(stats: IObsGroupStatistics, allStats?: IObsGroupStatistics, includeNonDetections = true) {
+        if (!allStats) {
+            return null;
+        }
+
+        const nonDetectionDelta = includeNonDetections
+            ? ` (${this.formatSignedDelta(allStats.nonDetections - stats.nonDetections)})`
+            : "";
+
+        return this.renderNowComparison(
+            `${this.formatSignedDelta(allStats.observed - stats.observed)}${nonDetectionDelta}`,
+            this.formatSignedPercentDelta(this.getRoundedPercent(allStats.observed, allStats.total) - this.getRoundedPercent(stats.observed, stats.total)));
+    }
+
+    // Renders a blue signed delta for simple number-only cells.
+    private renderNumberDelta(value: number, allValue?: number) {
+        if (allValue === undefined) {
+            return null;
+        }
+
+        return <span className={this.props.classes.nowComparison}>{this.formatSignedDelta(allValue - value)}</span>;
+    }
+
+    // Renders the shared blue comparison text for count plus percentage deltas.
+    private renderNowComparison(countDelta: string, percentDelta: string) {
+        return (
+            <span className={this.props.classes.nowComparison}>
+                {countDelta}
+                <span className={this.props.classes.percentText}>({percentDelta})</span>
             </span>
         );
     }
@@ -282,8 +431,20 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         return <span className={this.props.classes.nonDetection}> (+{nonDetections})</span>;
     }
 
+    private getRoundedPercent(count: number, total: number) {
+        return total === 0 ? 0 : Math.round(count / total * 100);
+    }
+
     private formatPercent(count: number, total: number) {
-        return total === 0 ? "0%" : `${Math.round(count / total * 100)}%`;
+        return `${this.getRoundedPercent(count, total)}%`;
+    }
+
+    private formatSignedDelta(delta: number) {
+        return delta > 0 ? `+${delta}` : delta.toString();
+    }
+
+    private formatSignedPercentDelta(delta: number) {
+        return `${this.formatSignedDelta(delta)}%`;
     }
 
     private updateConstellationSort(column: ConstellationSortColumn) {
@@ -426,15 +587,22 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
 
         return (
             <TableCell size="small" align={align} sortDirection={isActive ? this.state.constellationSortDirection : false}>
-                <button
-                    type="button"
+                <span
                     className={this.props.classes.catalogSortLabel}
                     onClick={() => this.updateConstellationSort(column)}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            this.updateConstellationSort(column);
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
                 >
                     {this.renderCatalogSortIndicators(column)}
                     <ArrowDownwardIcon className={arrowClassName} />
                     <span>{label}</span>
-                </button>
+                </span>
             </TableCell>
         );
     }
@@ -476,40 +644,117 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     private renderConstellationTable(stats: IConstellationStatistics[]) {
         const { classes } = this.props;
         const sortedStats = this.sortConstellationStats(stats);
+        const allConstellations = this.getAllSessionsConstellationsByAbbreviation();
+        const showNowComparison = this.shouldShowNowComparison();
         return (
             <Table className={classes.constellationTable} size="small">
                 <TableHead>
                     <TableRow>
                         {this.renderSortableHeader("Constellation", "constellation")}
                         {this.renderSortableHeader("Observed", "observed", "right")}
+                        {showNowComparison && <TableCell className={`${classes.nowComparison} ${classes.constellationNowComparisonCell}`} size="small" align="right">(now)</TableCell>}
                         {this.renderSortableHeader("H400", "h400", "right")}
+                        {showNowComparison && <TableCell className={`${classes.nowComparison} ${classes.constellationNowComparisonCell}`} size="small" align="right">(now)</TableCell>}
                         {this.renderSortableHeader("H2500", "h2500", "right")}
+                        {showNowComparison && <TableCell className={`${classes.nowComparison} ${classes.constellationNowComparisonCell}`} size="small" align="right">(now)</TableCell>}
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {sortedStats.map(row => (
-                        <TableRow
-                            key={row.constellation}
-                            className={classes.constellationRow}
-                            hover={true}
-                            tabIndex={0}
-                            onClick={() => this.openConstellationDialog(row)}
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                    event.preventDefault();
-                                    this.openConstellationDialog(row);
-                                }
-                            }}
-                        >
-                            <TableCell size="small" component="th" scope="row">{row.constellation}</TableCell>
-                            <TableCell size="small" align="right">{row.observed}</TableCell>
-                            <TableCell size="small" align="right">{this.renderCatalogProgress(row.h400)}</TableCell>
-                            <TableCell size="small" align="right">{this.renderCatalogProgress(row.h2500)}</TableCell>
-                        </TableRow>
-                    ))}
+                    {sortedStats.map(row => {
+                        const allConstellation = allConstellations.get(row.constellationAbbrv);
+                        return (
+                            <TableRow
+                                key={row.constellation}
+                                className={classes.constellationRow}
+                                hover={true}
+                                tabIndex={0}
+                                onClick={() => this.openConstellationDialog(row)}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
+                                        this.openConstellationDialog(row);
+                                    }
+                                }}
+                            >
+                                <TableCell size="small" component="th" scope="row">{row.constellation}</TableCell>
+                                <TableCell size="small" align="right">{row.observed}</TableCell>
+                                {showNowComparison && <TableCell className={classes.constellationNowComparisonCell} size="small" align="right">{this.renderNumberDelta(row.observed, allConstellation?.observed)}</TableCell>}
+                                <TableCell size="small" align="right">{this.renderCatalogProgress(row.h400)}</TableCell>
+                                {showNowComparison && <TableCell className={classes.constellationNowComparisonCell} size="small" align="right">{this.renderCatalogProgressDelta(row.h400, allConstellation?.h400)}</TableCell>}
+                                <TableCell size="small" align="right">{this.renderCatalogProgress(row.h2500)}</TableCell>
+                                {showNowComparison && <TableCell className={classes.constellationNowComparisonCell} size="small" align="right">{this.renderCatalogProgressDelta(row.h2500, allConstellation?.h2500)}</TableCell>}
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
         );
+    }
+
+    // Indexes the all-session constellation statistics so scoped rows can render adjacent deltas.
+    private getAllSessionsConstellationsByAbbreviation() {
+        return new Map((this.state.allSessionsStatistics?.constellations || [])
+            .map(constellation => [constellation.constellationAbbrv, constellation]));
+    }
+
+    // Applies the session-scope stepper value and reloads both statistics tables from the API.
+    private updateStatsExcludeLastSessions(delta: number) {
+        const nextStatsExcludeLastSessions = Math.max(0, this.state.statsExcludeLastSessions + delta);
+        if (nextStatsExcludeLastSessions === this.state.statsExcludeLastSessions) {
+            return;
+        }
+
+        this.setState({
+            allSessionsStatistics: undefined,
+            isError: false,
+            isLoading: true,
+            statsExcludeLastSessions: nextStatsExcludeLastSessions,
+        }, () => this.loadData());
+    }
+
+    // Builds the compact header label for the current session-scope filter.
+    private getStatsSessionScopeLabel() {
+        const { statsExcludeLastSessions } = this.state;
+        if (statsExcludeLastSessions === 0) {
+            return "All sessions";
+        }
+
+        return statsExcludeLastSessions === 1
+            ? "All but last 1 session"
+            : `All but last ${statsExcludeLastSessions} sessions`;
+    }
+
+    // Renders the header control as "label < >" while keeping the all-sessions decrement button disabled.
+    private renderStatsSessionScopeControl() {
+        const { classes } = this.props;
+        const isAtAllSessions = this.state.statsExcludeLastSessions === 0;
+
+        return (
+            <span className={classes.sessionScopeControl}>
+                <span className={classes.sessionScopeLabel}>{this.getStatsSessionScopeLabel()}</span>
+                <IconButton
+                    className={classes.sessionScopeButton}
+                    aria-label="Exclude one more recent session"
+                    onClick={() => this.updateStatsExcludeLastSessions(1)}
+                    size="small"
+                >
+                    <ChevronLeftIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                    className={classes.sessionScopeButton}
+                    aria-label="Include one more recent session"
+                    disabled={isAtAllSessions}
+                    onClick={() => this.updateStatsExcludeLastSessions(-1)}
+                    size="small"
+                >
+                    <ChevronRightIcon fontSize="small" />
+                </IconButton>
+            </span>
+        );
+    }
+
+    private shouldShowNowComparison() {
+        return this.state.statsExcludeLastSessions > 0 && !!this.state.allSessionsStatistics;
     }
 
     private openConstellationDialog(constellation: IConstellationStatistics) {
@@ -578,6 +823,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
 
     public render() {
         const { classes } = this.props;
+        const showNowComparison = this.shouldShowNowComparison();
 
         const rowsData = this.state.isLoading ? [] : this.createRowsData(this.state.statistics);
         const tableRows = rowsData.map(row => {
@@ -585,8 +831,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 <TableRow key={row.key}>
                     <TableCell size="small" component="th" scope="row">{row.text}</TableCell>
                     <TableCell size="small" align="right">{row.value}</TableCell>
+                    {showNowComparison && <TableCell className={classes.mainNowComparisonCell} size="small" align="right">{row.nowValue}</TableCell>}
                     <TableCell size="small" component="th" scope="row">{row.text2}</TableCell>
                     <TableCell size="small" align="right">{row.value2}</TableCell>
+                    {showNowComparison && <TableCell className={classes.mainNowComparisonCell} size="small" align="right">{row.nowValue2}</TableCell>}
                 </TableRow>
             );
         });
@@ -615,10 +863,15 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                         <Table className={classes.table} >
                             <TableHead>
                                 <TableRow>
-                                    <TableCell size="small" >Statistics</TableCell>
-                                    <TableCell size="small" align="right" />
-                                    <TableCell size="small" />
-                                    <TableCell size="small" align="right" />
+                                    <TableCell className={classes.statisticsHeaderCell} size="small" colSpan={showNowComparison ? 6 : 4}>
+                                        <div className={classes.statisticsHeaderLayout}>
+                                            <span className={classes.statisticsHeaderSide} />
+                                            <span className={classes.statisticsHeaderTitle}>Statistics</span>
+                                            <span className={classes.statisticsHeaderControls}>
+                                                {this.renderStatsSessionScopeControl()}
+                                            </span>
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>

@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using Moq;
 using ObsTool;
@@ -172,6 +173,89 @@ namespace TestProject
 
             Assert.That(_statisticsService.GetNumDetections(TestUserId), Is.EqualTo(1));
             Assert.That(_statisticsService.GetNumNonDetections(TestUserId), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void GetStatistics_ExcludesMostRecentSessionsByDate()
+        {
+            // The session exclusion is date-based, so the newest user session is ignored while older sessions remain counted.
+            _dbContext.ObsSessions.AddRange(
+                CreateObsSession(1, TestUserId, new DateTime(2024, 1, 1), 10),
+                CreateObsSession(2, TestUserId, new DateTime(2024, 1, 3), 11),
+                CreateObsSession(3, TestUserId, new DateTime(2024, 1, 2), 10),
+                CreateObsSession(4, 2, new DateTime(2024, 1, 4), 12)
+            );
+            _dbContext.Dso.AddRange(
+                CreateDso(1, "M", "GALXY"),
+                CreateDso(2, "NGC", "GALXY"),
+                CreateDso(3, "NGC", "OPNCL")
+            );
+            _dbContext.Observations.AddRange(
+                CreateObservation(1, 1),
+                CreateObservation(3, 2),
+                CreateObservation(2, 3)
+            );
+            _dbContext.SaveChanges();
+
+            var statistics = _statisticsService.GetStatistics(TestUserId, statsExcludeLastSessions: 1);
+
+            Assert.That(statistics.NumObsSessions, Is.EqualTo(2));
+            Assert.That(statistics.NumObservations, Is.EqualTo(2));
+            Assert.That(statistics.NumObservedObjects, Is.EqualTo(2));
+            Assert.That(statistics.NumObservedGalaxies, Is.EqualTo(2));
+            Assert.That(statistics.NumObservedOpenClusters, Is.EqualTo(0));
+            Assert.That(statistics.NumObservedMessierObjects, Is.EqualTo(1));
+            Assert.That(statistics.NumObservedNGCObjects, Is.EqualTo(1));
+            Assert.That(statistics.NumLocations, Is.EqualTo(1));
+        }
+
+        // Creates a dated session row for statistics exclusion tests.
+        private static ObsSession CreateObsSession(int id, int userId, DateTime date, int locationId)
+        {
+            return new ObsSession
+            {
+                Id = id,
+                UserId = userId,
+                Date = date,
+                LocationId = locationId,
+                Title = $"Session {id}"
+            };
+        }
+
+        // Creates a single detected observation linked to one DSO.
+        private static Observation CreateObservation(int obsSessionId, int dsoId)
+        {
+            return new Observation
+            {
+                Identifier = $"{obsSessionId}-{dsoId}",
+                NonDetection = false,
+                UserId = TestUserId,
+                ObsSessionId = obsSessionId,
+                DsoObservations = new List<DsoObservation>
+                {
+                    new DsoObservation { DsoId = dsoId }
+                }
+            };
+        }
+
+        // Creates the minimum DSO row needed for type and catalog statistics.
+        private static Dso CreateDso(int id, string catalog, string type)
+        {
+            return new Dso
+            {
+                Id = id,
+                Catalog = catalog,
+                CatalogNumber = id.ToString(),
+                Name = $"{catalog} {id}",
+                Type = type,
+                Con = "ORI",
+                RA = "00 00",
+                DEC = "+00 00",
+                Mag = "10",
+                SB = "10",
+                U2K = 1,
+                TI = 1
+            };
         }
     }
 }

@@ -18,10 +18,10 @@ namespace ObsTool.Controllers
         }
 
         [HttpGet()]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] int statsExcludeLastSessions = 0)
         {
             var userId = _currentUserService.GetRequiredUserId();
-            return Ok(_statisticsService.GetStatistics(userId));
+            return Ok(_statisticsService.GetStatistics(userId, statsExcludeLastSessions));
         }
 
         [HttpGet("constellations/{constellation}/h2500")]

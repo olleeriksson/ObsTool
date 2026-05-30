@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
@@ -101,6 +102,31 @@ namespace TestProject
         }
 
         [Test]
+        public void GetCatalogProgressStatistics_ExcludesMostRecentSessionsByDate()
+        {
+            SeedConstellationsAndDsos();
+            SeedHerschelObjects();
+            _dbContext.ObsSessions.AddRange(
+                CreateObsSession(1, new DateTime(2024, 1, 1)),
+                CreateObsSession(2, new DateTime(2024, 1, 2))
+            );
+            _dbContext.Observations.AddRange(
+                CreateObservation(1, 1),
+                CreateObservation(2, 2)
+            );
+            _dbContext.SaveChanges();
+
+            var allStatistics = _statisticsService.GetCatalogProgressStatistics(TestUserId, statsExcludeLastSessions: 0);
+            var statistics = _statisticsService.GetCatalogProgressStatistics(TestUserId, statsExcludeLastSessions: 1);
+            var orion = statistics.Constellations.Single(c => c.Constellation == "Orion");
+
+            Assert.That(allStatistics.H2500.Observed, Is.EqualTo(3));
+            Assert.That(statistics.H2500.Observed, Is.EqualTo(2));
+            Assert.That(orion.Observed, Is.EqualTo(1));
+            Assert.That(orion.H2500.Observed, Is.EqualTo(1));
+        }
+
+        [Test]
         public void GetH2500ObjectsForConstellationMap_ReturnsLinkedObjectsWithCoordinates()
         {
             SeedConstellationsAndDsos();
@@ -198,6 +224,34 @@ namespace TestProject
                 }
             );
             _dbContext.SaveChanges();
+        }
+
+        // Creates a dated session row for catalog-progress exclusion tests.
+        private static ObsSession CreateObsSession(int id, DateTime date)
+        {
+            return new ObsSession
+            {
+                Id = id,
+                UserId = TestUserId,
+                Date = date,
+                Title = $"Session {id}"
+            };
+        }
+
+        // Creates a single detected observation linked to one DSO.
+        private static Observation CreateObservation(int obsSessionId, int dsoId)
+        {
+            return new Observation
+            {
+                Identifier = $"{obsSessionId}-{dsoId}",
+                ObsSessionId = obsSessionId,
+                UserId = TestUserId,
+                NonDetection = false,
+                DsoObservations = new List<DsoObservation>
+                {
+                    new DsoObservation { DsoId = dsoId, NonDetection = false }
+                }
+            };
         }
 
         private static H2500 CreateH2500Object(int herschelId, int? sacDeepSkyObjectsId, bool h400, string constellation)

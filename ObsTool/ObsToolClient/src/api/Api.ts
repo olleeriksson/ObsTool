@@ -210,8 +210,10 @@ class Api {
         return axios.delete(import.meta.env.VITE_API_URL + "/resources/" + resourceId);
     }
 
-    public static getStatistics() {
-        return axios.get<IStatistics>(import.meta.env.VITE_API_URL + "/statistics/");
+    public static getStatistics(statsExcludeLastSessions = 0) {
+        return axios.get<IStatistics>(import.meta.env.VITE_API_URL + "/statistics/", {
+            params: { statsExcludeLastSessions },
+        });
     }
 
     public static getH2500ObjectsForConstellationMap(constellation: string) {
