@@ -11,15 +11,12 @@ import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
-import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import BrightnessAutoIcon from "@mui/icons-material/BrightnessAuto";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import IconButton from "@mui/material/IconButton";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -127,13 +124,6 @@ const styles = (theme: Theme) => createStyles({
     userMenuIcon: {
         color: theme.palette.text.primary,
     },
-    themeButton: {
-        color: theme.palette.text.primary,
-        margin: theme.spacing(0.25),
-    },
-    themeButtonIcon: {
-        fontSize: "1.2rem",
-    },
 });
 
 // Defined at module level so React sees a stable component identity across renders.
@@ -148,13 +138,9 @@ const LinkToInstruments = React.forwardRef<HTMLAnchorElement, any>((props, ref) 
 const LinkToEyepieces = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/eyepieces" ref={ref} {...props} />);
 const LinkToLogin = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/login" ref={ref} {...props} />);
 
-// Cycles through the available color-theme preferences from the navbar button.
+// Toggles the menu theme action between the two supported color modes.
 function getNextThemePreference(preference: ThemePreference): ThemePreference {
-    if (preference === "system") {
-        return "dark";
-    }
-
-    return preference === "dark" ? "light" : "system";
+    return preference === "dark" ? "light" : "dark";
 }
 
 export interface ILayoutState {
@@ -239,7 +225,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         });
     }
 
-    // Advances the persisted app theme preference between system, dark, and light modes.
+    // Advances the persisted app theme preference between dark and light modes.
     private handleToggleTheme = () => {
         this.context.setPreference(getNextThemePreference(this.context.preference));
     }
@@ -257,6 +243,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 ?? this.props.store.loggedInFullName
                 ?? this.props.store.loggedInEmail
                 ?? "User";
+            const themePreference = this.context.preference;
+            const nextThemePreference = getNextThemePreference(themePreference);
+            const themeMenuLabel = `Go to ${nextThemePreference === "dark" ? "Dark theme" : "Light theme"}`;
+            const themeMenuIcon = nextThemePreference === "dark"
+                ? <DarkModeIcon fontSize="small" />
+                : <LightModeIcon fontSize="small" />;
             userMenuComponent = (
                 <>
                     <Button
@@ -284,6 +276,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             horizontal: "right"
                         }}
                     >
+                        <MenuItem onClick={this.handleToggleTheme}>
+                            <ListItemIcon>
+                                {themeMenuIcon}
+                            </ListItemIcon>
+                            <ListItemText>{themeMenuLabel}</ListItemText>
+                        </MenuItem>
                         <MenuItem onClick={this.handleClickChangePassword}>
                             <ListItemIcon>
                                 <LockResetIcon fontSize="small" />
@@ -330,13 +328,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
 
         const weAreOnSearchView = this.props.onSearchView ?? false;
-        const themePreference = this.context.preference;
-        const themeButtonLabel = `Theme: ${themePreference}`;
-        const themeButtonIcon = themePreference === "system"
-            ? <BrightnessAutoIcon className={classes.themeButtonIcon} />
-            : themePreference === "dark"
-                ? <DarkModeIcon className={classes.themeButtonIcon} />
-                : <LightModeIcon className={classes.themeButtonIcon} />;
 
         return <div>
             <CssBaseline />
@@ -375,16 +366,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         <Button component={LinkToEyepieces} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="eye" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Eyepieces
                         </Button>
-                        <Tooltip title={themeButtonLabel}>
-                            <IconButton
-                                aria-label={themeButtonLabel}
-                                className={classes.themeButton}
-                                onClick={this.handleToggleTheme}
-                                size="small"
-                            >
-                                {themeButtonIcon}
-                            </IconButton>
-                        </Tooltip>
                         {userMenuComponent}
                     </div>
                 </Toolbar>

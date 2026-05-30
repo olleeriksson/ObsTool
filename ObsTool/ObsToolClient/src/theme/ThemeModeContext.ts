@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export type ThemePreference = "system" | "light" | "dark";
+export type ThemePreference = "light" | "dark";
 export type ResolvedThemeMode = "light" | "dark";
 
 export interface IThemeModeContext {
@@ -11,7 +11,7 @@ export interface IThemeModeContext {
 
 // Provides a stable fallback for components rendered outside the app-level provider in tests.
 export const ThemeModeContext = React.createContext<IThemeModeContext>({
-    preference: "system",
+    preference: "light",
     resolvedMode: "light",
     setPreference: () => undefined,
 });

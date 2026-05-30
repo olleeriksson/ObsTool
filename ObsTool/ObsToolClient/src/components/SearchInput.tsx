@@ -19,7 +19,7 @@ interface ISuggestion {
     altText?: string;
 }
 
-const styles = (_theme: Theme) => createStyles({
+const styles = (theme: Theme) => createStyles({
     root: {
         flexGrow: 1,
     },
@@ -43,7 +43,7 @@ const styles = (_theme: Theme) => createStyles({
         },
     },
     moreOption: {
-        color: "rgba(0, 0, 0, 0.72)",
+        color: theme.palette.text.secondary,
         fontStyle: "italic",
         minHeight: 42,
     },
@@ -216,6 +216,7 @@ export class SearchInput extends React.Component<ISearchInputProps, ISearchInput
                         renderInput={(params) => (
                             <TextField
                                 {...params}
+                                size="small"
                                 placeholder="Search for an object.."
                             />
                         )}

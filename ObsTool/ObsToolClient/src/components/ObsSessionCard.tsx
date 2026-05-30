@@ -309,7 +309,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
         {objectStats.map(item => (
           <Typography key={item.label} className={classes.objectStat} variant="caption" title={item.label}>
             {item.type && <DsoTypeIcon type={item.type} size={14} />}
-            <span>{item.label === "Objects" ? `${item.value} obj` : item.value}</span>
+            <span>{item.label === "Objects" ? `${item.value} objects` : item.value}</span>
           </Typography>
         ))}
       </div>
