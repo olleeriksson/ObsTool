@@ -1,6 +1,11 @@
 import * as React from "react";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -14,7 +19,7 @@ import { connect } from "react-redux";
 import Api from "src/api/Api";
 import { createStyles, withStyles } from "src/muiCompat";
 import type { WithStyles } from "src/muiCompat";
-import { IAppState, IDataState, IUserAdminList } from "src/types/Types";
+import { IAppState, IDataState, IUserAdmin, IUserAdminList } from "src/types/Types";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -31,10 +36,13 @@ const styles = (theme: Theme) => createStyles({
         display: "flex",
         gap: theme.spacing(1)
     },
-    passwordFields: {
+    passwordDialogFields: {
         display: "grid",
         gap: theme.spacing(1),
-        minWidth: 230
+        marginTop: theme.spacing(2)
+    },
+    userIdentity: {
+        fontWeight: theme.typography.fontWeightMedium
     },
     error: {
         color: theme.palette.error.main,
@@ -65,14 +73,37 @@ function getErrorMessage(error: any) {
         ?? "User Management request failed.";
 }
 
+// Formats admin timestamps with a stable sortable date and 24-hour time.
 function formatDate(value?: string) {
-    return value ? new Date(value).toLocaleString() : "";
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+    const pad = (part: number) => part.toString().padStart(2, "0");
+
+    return [
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+        `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+    ].join(" ");
+}
+
+// Builds the primary user label shown in the password dialog and success message.
+function getUserDisplayName(user: IUserAdmin) {
+    return user.fullName || user.email || user.username || `User ${user.id}`;
+}
+
+// Builds the secondary identity line so admins can verify exactly which account is being changed.
+function getUserIdentityLine(user: IUserAdmin) {
+    const parts = [user.email, user.username ? `@${user.username}` : undefined].filter(Boolean);
+    return parts.join(" - ");
 }
 
 function UserAdminPage(props: IUserAdminPageProps) {
     const { classes } = props;
     const [adminList, setAdminList] = React.useState<IUserAdminList | undefined>();
-    const [passwordFields, setPasswordFields] = React.useState<Record<number, IPasswordFields>>({});
+    const [passwordDialogUser, setPasswordDialogUser] = React.useState<IUserAdmin | undefined>();
+    const [passwordFields, setPasswordFields] = React.useState<IPasswordFields>({ password: "", confirmPassword: "" });
     const [isLoading, setIsLoading] = React.useState(false);
     const [busyUserId, setBusyUserId] = React.useState<number | undefined>();
     const [error, setError] = React.useState<string | undefined>();
@@ -102,37 +133,55 @@ function UserAdminPage(props: IUserAdminPageProps) {
         loadUsers();
     }, [loadUsers]);
 
-    const updatePasswordField = (userId: number, fieldName: keyof IPasswordFields, value: string) => {
-        const currentFields = passwordFields[userId] ?? { password: "", confirmPassword: "" };
+    // Opens a focused password dialog for the selected database user.
+    const openPasswordDialog = (user: IUserAdmin) => {
+        setPasswordDialogUser(user);
+        setPasswordFields({ password: "", confirmPassword: "" });
+        setError(undefined);
+        setMessage(undefined);
+    };
+
+    // Keeps the dialog fields together because only one user can be edited at a time.
+    const updatePasswordField = (fieldName: keyof IPasswordFields, value: string) => {
         setPasswordFields({
             ...passwordFields,
-            [userId]: {
-                ...currentFields,
-                [fieldName]: value
-            }
+            [fieldName]: value
         });
     };
 
-    const handleChangePassword = (userId: number) => {
-        const fields = passwordFields[userId] ?? { password: "", confirmPassword: "" };
+    // Sends the password change for the user currently shown in the dialog.
+    const handleChangePassword = () => {
+        if (!passwordDialogUser) {
+            return;
+        }
+
+        const userId = passwordDialogUser.id;
         setBusyUserId(userId);
         setError(undefined);
         setMessage(undefined);
 
-        Api.adminChangeUserPassword(userId, fields).then(
+        Api.adminChangeUserPassword(userId, passwordFields).then(
             () => {
-                setPasswordFields({
-                    ...passwordFields,
-                    [userId]: { password: "", confirmPassword: "" }
-                });
+                setPasswordFields({ password: "", confirmPassword: "" });
+                setPasswordDialogUser(undefined);
                 setBusyUserId(undefined);
-                setMessage("Password changed.");
+                setMessage(`Password changed for ${getUserDisplayName(passwordDialogUser)}.`);
             },
             errorResponse => {
                 setError(getErrorMessage(errorResponse));
                 setBusyUserId(undefined);
             }
         );
+    };
+
+    // Closes the dialog without changing the selected user's password.
+    const closePasswordDialog = () => {
+        if (busyUserId !== undefined) {
+            return;
+        }
+
+        setPasswordDialogUser(undefined);
+        setPasswordFields({ password: "", confirmPassword: "" });
     };
 
     const handleDeleteUser = (userId: number) => {
@@ -193,7 +242,6 @@ function UserAdminPage(props: IUserAdminPageProps) {
                         </TableHead>
                         <TableBody>
                             {(adminList?.users ?? []).map(user => {
-                                const fields = passwordFields[user.id] ?? { password: "", confirmPassword: "" };
                                 const isBusy = busyUserId === user.id;
                                 return (
                                     <TableRow key={user.id}>
@@ -204,30 +252,15 @@ function UserAdminPage(props: IUserAdminPageProps) {
                                         <TableCell>{formatDate(user.createdUtc)}</TableCell>
                                         <TableCell>{formatDate(user.lastLoginUtc)}</TableCell>
                                         <TableCell>
-                                            <div className={classes.passwordFields}>
-                                                <TextField
-                                                    size="small"
-                                                    label="New password"
-                                                    type="password"
-                                                    value={fields.password}
-                                                    onChange={event => updatePasswordField(user.id, "password", event.currentTarget.value)}
-                                                />
-                                                <TextField
-                                                    size="small"
-                                                    label="Confirm password"
-                                                    type="password"
-                                                    value={fields.confirmPassword}
-                                                    onChange={event => updatePasswordField(user.id, "confirmPassword", event.currentTarget.value)}
-                                                />
-                                                <Button
-                                                    variant="outlined"
-                                                    color="primary"
-                                                    disabled={isBusy}
-                                                    onClick={() => handleChangePassword(user.id)}
-                                                >
-                                                    Change
-                                                </Button>
-                                            </div>
+                                            <Button
+                                                variant="outlined"
+                                                color="primary"
+                                                size="small"
+                                                disabled={isBusy}
+                                                onClick={() => openPasswordDialog(user)}
+                                            >
+                                                Change password
+                                            </Button>
                                         </TableCell>
                                         <TableCell>
                                             <Button
@@ -249,6 +282,56 @@ function UserAdminPage(props: IUserAdminPageProps) {
                         </TableBody>
                     </Table>
                 </div>
+
+                <Dialog
+                    open={Boolean(passwordDialogUser)}
+                    onClose={closePasswordDialog}
+                    fullWidth
+                    maxWidth="xs"
+                >
+                    <DialogTitle>Change password</DialogTitle>
+                    <DialogContent>
+                        {passwordDialogUser && (
+                            <DialogContentText component="div">
+                                <div>Changing password for:</div>
+                                <div className={classes.userIdentity}>{getUserDisplayName(passwordDialogUser)}</div>
+                                <div>{getUserIdentityLine(passwordDialogUser)}</div>
+                            </DialogContentText>
+                        )}
+                        <div className={classes.passwordDialogFields}>
+                            <TextField
+                                autoFocus
+                                fullWidth
+                                label="New password"
+                                type="password"
+                                value={passwordFields.password}
+                                onChange={event => updatePasswordField("password", event.currentTarget.value)}
+                                autoComplete="new-password"
+                            />
+                            <TextField
+                                fullWidth
+                                label="Confirm password"
+                                type="password"
+                                value={passwordFields.confirmPassword}
+                                onChange={event => updatePasswordField("confirmPassword", event.currentTarget.value)}
+                                autoComplete="new-password"
+                            />
+                        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button disabled={busyUserId !== undefined} onClick={closePasswordDialog}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            disabled={busyUserId !== undefined}
+                            onClick={handleChangePassword}
+                        >
+                            Change password
+                        </Button>
+                    </DialogActions>
+                </Dialog>
 
                 <div className={classes.section}>
                     <Typography variant="h6">Configured superadmins</Typography>
