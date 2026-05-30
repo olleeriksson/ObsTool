@@ -4,6 +4,8 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import AladinLiteFrame from "./AladinLiteFrame";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 
 export interface IResourceImageBounds {
     naturalWidth: number;
@@ -33,21 +35,55 @@ interface IResourceImageProps extends WithStyles<typeof styles> {
     onImageBoundsChange?: (bounds: IResourceImageBounds) => void;
 }
 
+interface IResourceImageState {
+    hasImageLoadError: boolean;
+}
+
 const styles = (theme: Theme) => createStyles({
     imageContainer: {
         overflow: "hidden",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        alignSelf: "stretch"
+        alignSelf: "stretch",
+        position: "relative"
     },
     image: {
         width: "100%",
         // height: "auto"
     },
+    brokenImageFallback: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        width: "100%",
+        height: "100%",
+        padding: 10,
+        boxSizing: "border-box",
+        textAlign: "center",
+    },
+    brokenImageFallbackLight: {
+        backgroundColor: "#ffffff",
+        color: "#dbdbdb",
+    },
+    brokenImageFallbackDark: {
+        backgroundColor: "#000000",
+        color: "#3d3d3d",
+    },
+    brokenImageIcon: {
+        fontSize: 52,
+        fontWeight: 900,
+    },
+    brokenImageText: {
+        fontSize: "0.82rem",
+        lineHeight: 1.1,
+        fontWeight: 700,
+    },
 });
 
-class ResourceImage extends React.PureComponent<IResourceImageProps> {
+class ResourceImage extends React.PureComponent<IResourceImageProps, IResourceImageState> {
     private imgRef: React.RefObject<HTMLImageElement>;
     private imgContainerRef: React.RefObject<HTMLDivElement>;
     private resizeObserver?: ResizeObserver;
@@ -56,6 +92,9 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
         super(props);
         this.imgRef = React.createRef();
         this.imgContainerRef = React.createRef();
+        this.state = {
+            hasImageLoadError: false
+        };
     }
 
     public componentDidMount() {
@@ -67,7 +106,13 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
         // }
     }
 
-    public componentDidUpdate() {
+    // Clears stale error state when a different image source is rendered, then reports updated bounds.
+    public componentDidUpdate(prevProps: IResourceImageProps) {
+        if (this.state.hasImageLoadError && this.computeImageSrc(prevProps) !== this.computeImageSrc(this.props)) {
+            this.setState({ hasImageLoadError: false });
+            return;
+        }
+
         this.notifyImageBoundsChange();
     }
 
@@ -105,6 +150,33 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
             containerWidth: containerRect.width,
             containerHeight: containerRect.height
         });
+    }
+
+    // Normalizes image source generation so render and update checks stay consistent.
+    private computeImageSrc = (props: IResourceImageProps): string | undefined => {
+        if (props.type === "sketch" || props.type === "jot") {
+            const imageId = props.url;  // the google image id is stored in the url field
+            const driveMaxWidth = props.driveMaxWidth || "100";
+            const driveMaxHeight = props.driveMaxHeight || "100";
+            return "https://drive.google.com/thumbnail?id=" + imageId + "&sz=w" + driveMaxWidth + "-h" + driveMaxHeight;
+        }
+        if (props.type === "image") {
+            return props.url;
+        }
+        return undefined;
+    }
+
+    // Marks the current image URL as failed so the tile can show a broken-image indicator.
+    private handleImageLoadError = () => {
+        this.setState({ hasImageLoadError: true });
+    }
+
+    // Clears temporary error state when an image URL loads successfully.
+    private handleImageLoaded = () => {
+        if (this.state.hasImageLoadError) {
+            this.setState({ hasImageLoadError: false });
+        }
+        this.notifyImageBoundsChange();
     }
 
     // private getAverageRGB = (imgEl: any) => {
@@ -184,17 +256,9 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
             const scaleToUse = this.props.preventUpscale ? Math.min(scale, 1) : scale;
             const backgroundColor = this.props.backgroundColor && this.props.backgroundColor >= 255 ? "white" : "black";
             const shouldUseNaturalSize = this.props.fitContainer || this.props.preventUpscale;
-            const shouldFillImageBounds = this.props.fitContainer || this.props.preventUpscale;
-            let imgSrc;
-
-            if (this.props.type === "sketch" || this.props.type === "jot") {
-                const imageId = this.props.url;  // the google image id is stored in the url field
-                const driveMaxWidth = this.props.driveMaxWidth || "100";
-                const driveMaxHeight = this.props.driveMaxHeight || "100";
-                imgSrc = "https://drive.google.com/thumbnail?id=" + imageId + "&sz=w" + driveMaxWidth + "-h" + driveMaxHeight;
-            } else if (this.props.type === "image") {
-                imgSrc = this.props.url;
-            }
+            const shouldFillImageBounds = this.props.fitContainer || this.props.preventUpscale || (this.props.preview && this.state.hasImageLoadError);
+            const imgSrc = this.computeImageSrc(this.props);
+            const brokenImageFallbackThemeClass = backgroundColor === "white" ? classes.brokenImageFallbackLight : classes.brokenImageFallbackDark;
 
             return (
                 <div
@@ -202,15 +266,23 @@ class ResourceImage extends React.PureComponent<IResourceImageProps> {
                     className={classes.imageContainer}
                     style={{ backgroundColor: `${backgroundColor}`, width: shouldFillImageBounds ? "100%" : undefined, height: shouldFillImageBounds ? "100%" : undefined }}
                 >
-                    <img
-                        //crossOrigin="anonymous"
-                        ref={this.imgRef}
-                        src={imgSrc}
-                        title={this.props.name}
-                        className={classes.image}
-                        onLoad={this.notifyImageBoundsChange}
-                        style={{ transform: `rotate(${rotation}deg) scale(${scaleToUse})`, filter: `invert(${invert}%)`, width: shouldUseNaturalSize ? "auto" : undefined, maxWidth: shouldUseNaturalSize ? "100%" : undefined, maxHeight: shouldUseNaturalSize ? "100%" : undefined }}
-                    />
+                    {this.state.hasImageLoadError ? (
+                        <div className={`${classes.brokenImageFallback} ${brokenImageFallbackThemeClass}`} title="Image URL could not be loaded">
+                            <FontAwesomeIcon icon={faQuestionCircle} className={classes.brokenImageIcon} />
+                            <span className={classes.brokenImageText}>Image unavailable</span>
+                        </div>
+                    ) : (
+                        <img
+                            //crossOrigin="anonymous"
+                            ref={this.imgRef}
+                            src={imgSrc}
+                            title={this.props.name}
+                            className={classes.image}
+                            onLoad={this.handleImageLoaded}
+                            onError={this.handleImageLoadError}
+                            style={{ transform: `rotate(${rotation}deg) scale(${scaleToUse})`, filter: `invert(${invert}%)`, width: shouldUseNaturalSize ? "auto" : undefined, maxWidth: shouldUseNaturalSize ? "100%" : undefined, maxHeight: shouldUseNaturalSize ? "100%" : undefined }}
+                        />
+                    )}
                 </div>
             );
         }
