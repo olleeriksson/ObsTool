@@ -7,6 +7,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import DeleteIcon from "@mui/icons-material/Delete";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -22,6 +23,7 @@ import Api from "src/api/Api";
 import { createStyles, withStyles } from "src/muiCompat";
 import type { WithStyles } from "src/muiCompat";
 import { IAppState, IDataState, IUserAdmin, IUserAdminList } from "src/types/Types";
+import DeleteDialog from "./DeleteDialog";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -134,6 +136,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
     const [userFields, setUserFields] = React.useState<IUserFormFields>(emptyUserFormFields);
     const [passwordDialogUser, setPasswordDialogUser] = React.useState<IUserAdmin | undefined>();
     const [passwordFields, setPasswordFields] = React.useState<IPasswordFields>({ password: "", confirmPassword: "" });
+    const [deleteDialogUser, setDeleteDialogUser] = React.useState<IUserAdmin | undefined>();
     const [isLoading, setIsLoading] = React.useState(false);
     const [isSavingUser, setIsSavingUser] = React.useState(false);
     const [busyUserId, setBusyUserId] = React.useState<number | undefined>();
@@ -303,11 +306,16 @@ function UserAdminPage(props: IUserAdminPageProps) {
         setPasswordFields({ password: "", confirmPassword: "" });
     };
 
-    const handleDeleteUser = (userId: number) => {
-        if (!window.confirm("Delete this database user?")) {
-            return;
-        }
+    // Opens the high-friction delete dialog for the selected database user.
+    const openDeleteUserDialog = (user: IUserAdmin) => {
+        setDeleteDialogUser(user);
+        setError(undefined);
+        setMessage(undefined);
+    };
 
+    // Runs the actual delete request after the dialog has completed its two-step confirmation.
+    const deleteUser = (user: IUserAdmin) => {
+        const userId = user.id;
         setBusyUserId(userId);
         setError(undefined);
         setMessage(undefined);
@@ -315,7 +323,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
         Api.adminDeleteUser(userId).then(
             () => {
                 setBusyUserId(undefined);
-                setMessage("User deleted.");
+                setMessage(`User deleted: ${getUserDisplayName(user)}.`);
                 loadUsers();
             },
             errorResponse => {
@@ -323,6 +331,18 @@ function UserAdminPage(props: IUserAdminPageProps) {
                 setBusyUserId(undefined);
             }
         );
+    };
+
+    // Closes the delete dialog and only deletes after the shared dialog reports a confirmed action.
+    const handleDeleteDialogClosed = (confirm: boolean) => {
+        const user = deleteDialogUser;
+        setDeleteDialogUser(undefined);
+
+        if (!confirm || !user) {
+            return;
+        }
+
+        deleteUser(user);
     };
 
     if (!props.store.canManageUsers) {
@@ -403,9 +423,10 @@ function UserAdminPage(props: IUserAdminPageProps) {
                                         </TableCell>
                                         <TableCell>
                                             <Button
-                                                color="secondary"
+                                                color="error"
+                                                startIcon={<DeleteIcon />}
                                                 disabled={isBusy || isSavingUser}
-                                                onClick={() => handleDeleteUser(user.id)}
+                                                onClick={() => openDeleteUserDialog(user)}
                                             >
                                                 Delete
                                             </Button>
@@ -546,6 +567,18 @@ function UserAdminPage(props: IUserAdminPageProps) {
                         </Button>
                     </DialogActions>
                 </Dialog>
+
+                <DeleteDialog
+                    isOpen={Boolean(deleteDialogUser)}
+                    title={deleteDialogUser ? `Delete ${getUserDisplayName(deleteDialogUser)}?` : "Delete user?"}
+                    text={deleteDialogUser
+                        ? `Are you sure you want to delete this database user? ${getUserIdentityLine(deleteDialogUser)} This action cannot be undone.`
+                        : "Are you sure you want to delete this database user? This action cannot be undone."}
+                    finalWarningText="Final warning: this will permanently delete the database user. Click Delete again to continue."
+                    requireSecondDeleteClick={true}
+                    showWarningSign={true}
+                    onHandleClose={handleDeleteDialogClosed}
+                />
 
                 <div className={classes.section}>
                     <Typography variant="h6">Configured superadmins</Typography>

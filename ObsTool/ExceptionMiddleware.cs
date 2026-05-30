@@ -28,7 +28,7 @@ namespace ObsTool
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong: {ex}");
+                _logger.LogError(ex, "Unhandled exception while processing {Method} {Path}.", httpContext.Request.Method, httpContext.Request.Path);
                 await HandleExceptionAsync(httpContext, ex);
             }
         }

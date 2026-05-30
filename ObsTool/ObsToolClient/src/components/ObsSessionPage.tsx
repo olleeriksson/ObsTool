@@ -14,9 +14,12 @@ import ObsSessionForm from "./ObsSessionForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Navigate } from "react-router-dom";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import DeleteIcon from "@mui/icons-material/Delete";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 import DeleteDialog from "./DeleteDialog";
 import Api from "../api/Api";
 import { connect } from "react-redux";
@@ -41,6 +44,13 @@ const styles = (theme: Theme) => createStyles({
         borderTop: `1px solid ${theme.palette.divider}`,
         marginTop: theme.spacing(2),
         paddingTop: theme.spacing(1),
+    },
+    deleteMenuIcon: {
+        color: theme.palette.error.main,
+        minWidth: 36,
+    },
+    deleteMenuText: {
+        color: theme.palette.error.main,
     }
 });
 
@@ -372,7 +382,12 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                         open={Boolean(this.state.menuAnchorEl)}
                         onClose={this.handleCloseMenu}
                     >
-                        <MenuItem onClick={this.handleMenuClickDeleteObsSession}>Delete session</MenuItem>
+                        <MenuItem onClick={this.handleMenuClickDeleteObsSession}>
+                            <ListItemIcon className={classes.deleteMenuIcon}>
+                                <DeleteIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText className={classes.deleteMenuText}>Delete session</ListItemText>
+                        </MenuItem>
                     </Menu>
                 </div>
             );
@@ -385,12 +400,20 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
         const deleteDialogTitle = "Delete " + (this.state.obsSession && this.state.obsSession.title) + "?";
         const deleteDialogText = "Are you sure you want to delete the observation session titled " +
-            (this.state.obsSession && this.state.obsSession.title) + "?";
+            (this.state.obsSession && this.state.obsSession.title) + "? All associated observations will also be deleted. This action cannot be undone.";
 
         return (
             <div className="circularProgressSuperContainer">
                 {/* {circularProgress} */}
-                <DeleteDialog isOpen={this.state.isDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleDeleteDialogClosed} />
+                <DeleteDialog
+                    isOpen={this.state.isDeleteDialogOpen}
+                    title={deleteDialogTitle}
+                    text={deleteDialogText}
+                    finalWarningText="Final warning: this will permanently delete the observation session and all associated observations. Click Delete again to continue."
+                    requireSecondDeleteClick={true}
+                    showWarningSign={true}
+                    onHandleClose={this.handleDeleteDialogClosed}
+                />
                 <div className={classes.root} >
                     <div className={classes.header}>
                         <Grid container direction="row">

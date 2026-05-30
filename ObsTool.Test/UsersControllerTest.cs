@@ -123,6 +123,33 @@ namespace TestProject
             Assert.That(result, Is.TypeOf<ForbidResult>());
         }
 
+        [Test]
+        public void DeleteUser_DetachesSystemEventsBeforeDeletingAccount()
+        {
+            AddUser(2, "test@example.com", "test", "Test User");
+            AddSystemEvent(2);
+            var controller = CreateController(userId: 1, isSuperAdmin: false);
+
+            var result = controller.DeleteUser(2);
+
+            Assert.That(result, Is.TypeOf<OkResult>());
+            Assert.That(_dbContext.Users.Any(user => user.Id == 2), Is.False);
+            Assert.That(_dbContext.Events.Single().UserId, Is.Null);
+        }
+
+        [Test]
+        public void DeleteUser_BlocksUserWithUserDefinedObjects()
+        {
+            AddUser(2, "test@example.com", "test", "Test User");
+            AddUserObject(2);
+            var controller = CreateController(userId: 1, isSuperAdmin: false);
+
+            var result = controller.DeleteUser(2);
+
+            Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+            Assert.That(_dbContext.Users.Any(user => user.Id == 2), Is.True);
+        }
+
         /// <summary>
         /// Adds a database-backed account for user-management list tests.
         /// </summary>
@@ -139,6 +166,35 @@ namespace TestProject
                 PasswordHash = "hash",
                 EmailConfirmed = true,
                 CreatedUtc = DateTime.UtcNow
+            });
+            _dbContext.SaveChanges();
+        }
+
+        /// <summary>
+        /// Adds an audit event that references the user through the nullable Events.UserId relationship.
+        /// </summary>
+        private void AddSystemEvent(int userId)
+        {
+            _dbContext.Events.Add(new SystemEvent
+            {
+                UserId = userId,
+                EventKey = "UserLoggedIn",
+                EventName = "User logged in",
+                Details = "Test event",
+                OccurredUtc = DateTime.UtcNow
+            });
+            _dbContext.SaveChanges();
+        }
+
+        /// <summary>
+        /// Adds a user-owned object so user deletion can prove it blocks all owned data categories.
+        /// </summary>
+        private void AddUserObject(int userId)
+        {
+            _dbContext.UserObjects.Add(new UserObject
+            {
+                UserId = userId,
+                Name = "Test object"
             });
             _dbContext.SaveChanges();
         }

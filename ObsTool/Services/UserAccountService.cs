@@ -418,7 +418,8 @@ namespace ObsTool.Services
                 ("observation resources", _dbContext.ObsResources.Any(r => r.UserId == userId)),
                 ("locations", _dbContext.Locations.Any(l => l.UserId == userId)),
                 ("instruments", _dbContext.Instruments.Any(i => i.UserId == userId)),
-                ("eyepieces", _dbContext.Eyepieces.Any(e => e.UserId == userId))
+                ("eyepieces", _dbContext.Eyepieces.Any(e => e.UserId == userId)),
+                ("user-defined objects", _dbContext.UserObjects.Any(o => o.UserId == userId))
             }
             .Where(item => item.Item2)
             .Select(item => item.Item1)
@@ -427,6 +428,12 @@ namespace ObsTool.Services
             if (ownedData.Count > 0)
             {
                 throw new InvalidOperationException("Cannot delete this user because they still own " + string.Join(", ", ownedData) + ".");
+            }
+
+            // Keep the audit trail but detach it from the account row so the Users FK does not block deletion.
+            foreach (var systemEvent in _dbContext.Events.Where(systemEvent => systemEvent.UserId == userId))
+            {
+                systemEvent.UserId = null;
             }
 
             _dbContext.Users.Remove(user);
