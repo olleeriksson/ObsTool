@@ -14,7 +14,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Tooltip from "@mui/material/Tooltip";
 import classNames from "classnames";
 import ImageList from "./ImageList";
-import InstrumentBadge from "./InstrumentBadge";
+import ObsInstrumentBadge from "./ObsInstrumentBadge";
 import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 
 const styles = (theme: Theme) => createStyles({
@@ -188,7 +188,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
         <Grid size={12}>
           <Grid container spacing={0} direction="row">
             <Grid>
-              <InstrumentBadge
+              <ObsInstrumentBadge
                 instrument={this.props.observation.instrument}
                 compact={true}
                 iconSize={28}

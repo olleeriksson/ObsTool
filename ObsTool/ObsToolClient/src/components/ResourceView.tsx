@@ -696,6 +696,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         margin="dense"
                         label={(this.state.type === "sketch" || this.state.type === "jot") ? "Relative Google Drive path for easier identification" : "Name"}
                         type="text"
+                        size="small"
                         fullWidth={true}
                         onChange={this.handleChange("name")}
                         value={this.state.name}
@@ -710,6 +711,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                         name="url"
                         label={(this.state.type === "sketch" || this.state.type === "jot") ? "Google Drive image id" : "Url"}
                         type="text"
+                        size="small"
                         fullWidth={true}
                         onChange={this.handleChange("url")}
                         value={this.state.url}

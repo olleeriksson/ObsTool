@@ -45,7 +45,7 @@ const styles = (theme: Theme) => createStyles({
   },
   dateBadge: {
     alignItems: "center",
-    border: `1px solid ${theme.palette.divider}`,
+    border: `2px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     color: theme.palette.text.secondary,
     display: "grid",
@@ -89,6 +89,7 @@ const styles = (theme: Theme) => createStyles({
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+    fontWeight: 500,
   },
   metaLine: {
     color: theme.palette.text.secondary,
@@ -108,8 +109,8 @@ const styles = (theme: Theme) => createStyles({
   },
   objectStat: {
     alignItems: "center",
-    backgroundColor: theme.palette.action.hover,
-    border: `1px solid ${theme.palette.divider}`,
+    // backgroundColor: theme.palette.action.hover,
+    // border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     display: "inline-flex",
     gap: 3,

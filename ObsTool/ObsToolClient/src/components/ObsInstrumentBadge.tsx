@@ -3,10 +3,10 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { IInstrument } from "../types/Types";
-import SvgIcon, { isKnownSvgIconVariant, resolveSvgIconVariant } from "./icons/SvgIcon";
+import SvgIcon from "./icons/SvgIcon";
 import TelescopeIcon, { isKnownTelescopeIconVariant, resolveTelescopeIconVariant } from "./icons/TelescopeIcon";
 
-interface IInstrumentBadgeProps {
+interface IObsInstrumentBadgeProps {
   instrument?: IInstrument;
   compact?: boolean;
   iconSize?: number;
@@ -19,14 +19,13 @@ interface IInstrumentBadgeProps {
 /**
  * Renders the observation-side telescope image and optional instrument key as one tooltip target.
  */
-class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
+class ObsInstrumentBadge extends React.Component<IObsInstrumentBadgeProps> {
   public render() {
     const instrument = this.props.instrument;
     const iconSize = this.props.iconSize || 28;
     const labelWidth = this.props.labelWidth || iconSize;
     const hasTelescopeIcon = isKnownTelescopeIconVariant(instrument?.iconReference);
-    const hasSvgIcon = isKnownSvgIconVariant(instrument?.iconReference);
-    const hasSelectedIcon = hasTelescopeIcon || hasSvgIcon;
+    const hasSelectedIcon = hasTelescopeIcon;
 
     const diameterText = instrument && instrument.diameterMm !== undefined && instrument.diameterMm !== null
       ? `${instrument.diameterMm} mm`
@@ -42,9 +41,7 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
       ? <VisibilityOffIcon fontSize="inherit" sx={{ fontSize: this.props.nonDetectionIconSize || iconSize }} />
       : hasTelescopeIcon
         ? <TelescopeIcon variant={resolveTelescopeIconVariant(instrument?.iconReference)} size={iconSize} />
-        : hasSvgIcon
-          ? <SvgIcon variant={resolveSvgIconVariant(instrument?.iconReference)} size={iconSize} />
-          : <SvgIcon variant="observationChart3" size={iconSize * 1} />;
+        : <SvgIcon variant="observationChart3" size={iconSize * 1} />;
 
     const content = (
       <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
@@ -67,4 +64,4 @@ class InstrumentBadge extends React.Component<IInstrumentBadgeProps> {
   }
 }
 
-export default InstrumentBadge;
+export default ObsInstrumentBadge;

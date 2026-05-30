@@ -19,19 +19,13 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Api from "../api/Api";
 import { IInstrument, IAppState, IDataState } from "src/types/Types";
-import classNames from "classnames";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import * as instrumentActions from "../actions/InstrumentActions";
-import SvgIcon, { SVG_ICON_OPTIONS, isKnownSvgIconVariant, resolveSvgIconVariant, type SvgIconVariant } from "./icons/SvgIcon";
 import TelescopeIcon, { TELESCOPE_ICON_OPTIONS, isKnownTelescopeIconVariant, resolveTelescopeIconVariant } from "./icons/TelescopeIcon";
-
-// Limits the generic SVG choices in the instrument picker to the chart assets intended for InstrumentBadge.
-const INSTRUMENT_SVG_ICON_VARIANTS: SvgIconVariant[] = ["observationChart1", "observationChart2", "observationChart3"];
-const INSTRUMENT_SVG_ICON_OPTIONS = SVG_ICON_OPTIONS.filter(iconOption => INSTRUMENT_SVG_ICON_VARIANTS.includes(iconOption.variant));
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -73,15 +67,13 @@ const styles = (theme: Theme) => createStyles({
         paddingLeft: theme.spacing(1),
         width: "auto",
     },
-    iconColumnLabel: {
-        marginBottom: theme.spacing(0.75),
-    },
     iconPickerButton: {
         alignItems: "center",
         alignSelf: "flex-start",
         display: "inline-flex",
         height: 96,
         justifyContent: "center",
+        marginTop: theme.spacing(1),
         minWidth: 96,
         overflow: "hidden",
         padding: 0,
@@ -92,23 +84,40 @@ const styles = (theme: Theme) => createStyles({
             width: "90%",
         },
     },
+    noIconLabel: {
+        display: "inline-flex",
+        flexDirection: "column",
+        lineHeight: 1.25,
+        maxWidth: "82%",
+        textAlign: "center",
+    },
+    noIconPrimaryText: {
+        fontSize: "1.1rem",
+        fontWeight: 600,
+    },
+    noIconHelpText: {
+        fontSize: "0.7rem",
+        marginTop: 5,
+        textTransform: "none",
+        whiteSpace: "normal",
+        wordBreak: "normal",
+    },
     iconPopoverPaper: {
-        padding: theme.spacing(1),
+        maxWidth: 280,
+        padding: theme.spacing(0.5),
     },
     iconSelector: {
         alignItems: "center",
         display: "flex",
         flexWrap: "wrap",
-        gap: theme.spacing(1),
+        gap: theme.spacing(0.5),
     },
     iconToggle: {
-        height: 60,
-        minWidth: 60,
+        height: 84,
+        minWidth: 84,
         padding: theme.spacing(0.75),
     },
     actionRow: {
-        marginLeft: theme.spacing(1),
-        marginRight: theme.spacing(1),
         marginTop: theme.spacing(1),
     },
 });
@@ -215,7 +224,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
         this.setState((prevState) => ({
             currentInstrument: {
                 ...prevState.currentInstrument,
-                iconReference: isKnownTelescopeIconVariant(iconReference) || isKnownSvgIconVariant(iconReference) ? iconReference : null
+                iconReference: isKnownTelescopeIconVariant(iconReference) ? iconReference : null
             },
             iconPickerAnchorEl: null
         }));
@@ -327,9 +336,12 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
 
         const selectedIconPreview = isKnownTelescopeIconVariant(this.state.currentInstrument.iconReference)
             ? <TelescopeIcon variant={resolveTelescopeIconVariant(this.state.currentInstrument.iconReference)} size={196} />
-            : isKnownSvgIconVariant(this.state.currentInstrument.iconReference)
-                ? <SvgIcon variant={resolveSvgIconVariant(this.state.currentInstrument.iconReference)} size={196} />
-                : <span>None</span>;
+            : (
+                <span className={classes.noIconLabel}>
+                    <span className={classes.noIconPrimaryText}>NO ICON</span>
+                    <span className={classes.noIconHelpText}>(click to change)</span>
+                </span>
+            );
 
         const iconSelector = (
             <ToggleButtonGroup
@@ -344,12 +356,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                 </ToggleButton>
                 {TELESCOPE_ICON_OPTIONS.map(iconOption => (
                     <ToggleButton key={iconOption.variant} value={iconOption.variant} aria-label={iconOption.label} className={classes.iconToggle}>
-                        <TelescopeIcon variant={iconOption.variant} size={48} />
-                    </ToggleButton>
-                ))}
-                {INSTRUMENT_SVG_ICON_OPTIONS.map(iconOption => (
-                    <ToggleButton key={iconOption.variant} value={iconOption.variant} aria-label={iconOption.label} className={classes.iconToggle}>
-                        <SvgIcon variant={iconOption.variant} size={48} />
+                        <TelescopeIcon variant={iconOption.variant} size={72} />
                     </ToggleButton>
                 ))}
             </ToggleButtonGroup>
@@ -371,7 +378,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
         const instrumentForm = (
             <div>
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
-                    <Grid container spacing={2} size="grow" sx={{ px: 1 }}>
+                    <Grid container spacing={0} size="grow" sx={{ px: 1 }}>
                         <Grid className={classes.fieldColumn} size={{ xs: 12, md: "grow" }}>
                             <Grid container direction="column">
                                 <Grid container spacing={2}>
@@ -430,9 +437,6 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                             </Grid>
                         </Grid>
                         <Grid className={classes.iconColumn} size={{ xs: "auto", md: "auto" }}>
-                            <Typography variant="caption" color="textSecondary" className={classes.iconColumnLabel}>
-                                Icon
-                            </Typography>
                             <Button
                                 variant="outlined"
                                 className={classes.iconPickerButton}
@@ -475,13 +479,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                         , Icon: <TelescopeIcon variant={resolveTelescopeIconVariant(instrument.iconReference)} size={18} />
                     </>
                 )
-                : isKnownSvgIconVariant(instrument.iconReference)
-                    ? (
-                        <>
-                            , Icon: <SvgIcon variant={resolveSvgIconVariant(instrument.iconReference)} size={18} />
-                        </>
-                    )
-                    : null;
+                : null;
 
             return (
                 <Grid key={instrument.id} size={12}>

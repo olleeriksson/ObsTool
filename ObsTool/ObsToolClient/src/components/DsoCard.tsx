@@ -212,7 +212,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     );
 
     const dsoLabel = (
-      <Grid container>
+      <Grid container alignItems="center">
         <Grid size={"auto"}>
           <DsoTypeIcon type={dso.type} size={dsoTypeIconSize} className={classes.dsoTypeIcon} />
         </Grid>

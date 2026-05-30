@@ -17,7 +17,7 @@ import classNames from "classnames";
 import DsoCard from "./DsoCard";
 import ObservationSecondary from "./ObservationSecondary";
 import ImageList from "./ImageList";
-import InstrumentBadge from "./InstrumentBadge";
+import ObsInstrumentBadge from "./ObsInstrumentBadge";
 import { getEyepiecesCached, renderReportTextAnnotated } from "./ReportTextAnnotated";
 import { getObservedObjectTargetId, getObservedObjectTargetKey } from "./ObservationTarget";
 
@@ -164,7 +164,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
           <Grid size={12}>
             <Grid container spacing={2} wrap="nowrap">
               <Grid>
-                <InstrumentBadge
+                <ObsInstrumentBadge
                   instrument={this.props.observation.instrument}
                   compact={true}
                   iconSize={50}
