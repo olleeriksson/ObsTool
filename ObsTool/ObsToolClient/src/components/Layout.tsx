@@ -11,11 +11,16 @@ import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import BrightnessAutoIcon from "@mui/icons-material/BrightnessAuto";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import IconButton from "@mui/material/IconButton";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import LogoutIcon from "@mui/icons-material/Logout";
 import classNames from "classnames";
@@ -32,6 +37,7 @@ import * as obsSessionAction from "../actions/ObsSessionActions";
 import { bindActionCreators, Dispatch } from "redux";
 import { connect } from "react-redux";
 import TelescopeIcon from "./icons/TelescopeIcon";
+import { ThemeModeContext, ThemePreference } from "src/theme/ThemeModeContext";
 
 const styles = (theme: Theme) => createStyles({
     appBar: {
@@ -104,7 +110,7 @@ const styles = (theme: Theme) => createStyles({
         overflow: "visible",
     },
     navButtonIcon: {
-        color: "#000",
+        color: theme.palette.text.primary,
         fontSize: "1.35em",
         verticalAlign: "baseline",
         transformOrigin: "bottom center",
@@ -115,11 +121,18 @@ const styles = (theme: Theme) => createStyles({
         overflow: "visible",
     },
     navTelescopeIcon: {
-        color: "#000",
+        color: theme.palette.text.primary,
         transform: "translateY(-8px)",
     },
     userMenuIcon: {
-        color: "#000",
+        color: theme.palette.text.primary,
+    },
+    themeButton: {
+        color: theme.palette.text.primary,
+        margin: theme.spacing(0.25),
+    },
+    themeButtonIcon: {
+        fontSize: "1.2rem",
     },
 });
 
@@ -135,6 +148,15 @@ const LinkToInstruments = React.forwardRef<HTMLAnchorElement, any>((props, ref) 
 const LinkToEyepieces = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/eyepieces" ref={ref} {...props} />);
 const LinkToLogin = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/login" ref={ref} {...props} />);
 
+// Cycles through the available color-theme preferences from the navbar button.
+function getNextThemePreference(preference: ThemePreference): ThemePreference {
+    if (preference === "system") {
+        return "dark";
+    }
+
+    return preference === "dark" ? "light" : "system";
+}
+
 export interface ILayoutState {
     userMenuAnchorEl: HTMLElement | null;
     exportDialogOpen: boolean;
@@ -149,6 +171,9 @@ export interface ILayoutProps extends WithStyles<typeof styles> {
 }
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
+    public static contextType = ThemeModeContext;
+    declare context: React.ContextType<typeof ThemeModeContext>;
+
     constructor(props: ILayoutProps) {
         super(props);
 
@@ -212,6 +237,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.setState({
             exportDialogOpen: false
         });
+    }
+
+    // Advances the persisted app theme preference between system, dark, and light modes.
+    private handleToggleTheme = () => {
+        this.context.setPreference(getNextThemePreference(this.context.preference));
     }
 
     public render() {
@@ -300,6 +330,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
 
         const weAreOnSearchView = this.props.onSearchView ?? false;
+        const themePreference = this.context.preference;
+        const themeButtonLabel = `Theme: ${themePreference}`;
+        const themeButtonIcon = themePreference === "system"
+            ? <BrightnessAutoIcon className={classes.themeButtonIcon} />
+            : themePreference === "dark"
+                ? <DarkModeIcon className={classes.themeButtonIcon} />
+                : <LightModeIcon className={classes.themeButtonIcon} />;
 
         return <div>
             <CssBaseline />
@@ -338,6 +375,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         <Button component={LinkToEyepieces} className={classes.appbarButton}>
                             <FontAwesomeIcon icon="eye" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Eyepieces
                         </Button>
+                        <Tooltip title={themeButtonLabel}>
+                            <IconButton
+                                aria-label={themeButtonLabel}
+                                className={classes.themeButton}
+                                onClick={this.handleToggleTheme}
+                                size="small"
+                            >
+                                {themeButtonIcon}
+                            </IconButton>
+                        </Tooltip>
                         {userMenuComponent}
                     </div>
                 </Toolbar>

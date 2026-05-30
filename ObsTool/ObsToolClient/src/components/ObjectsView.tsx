@@ -42,6 +42,7 @@ import { DsoTypeIcon } from "./DsoTypeIcon";
 
 const SAC_OBJECT_TYPE_OPTIONS = getDsoTypeOptions().map(option => option.code);
 const UNSPECIFIED_CONSTELLATION_OPTION: IConstellationOption = { name: "Unspecified", abbreviation: "" };
+const TYPE_ICON_PREVIEW_EXPANDED_STORAGE_KEY = "obstool.objectsView.typeIconPreviewExpanded";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -225,7 +226,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             constellations: [],
             canCreateOtherObjects: false,
             saveAsUserObject: true,
-            isTypeIconPreviewExpanded: false,
+            isTypeIconPreviewExpanded: this.readTypeIconPreviewExpandedPreference(),
             currentObject: this.getEmptyObject(),
             similarSacObjects: [],
             isCheckingSimilar: false,
@@ -262,7 +263,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 constellations: response.data.constellations || [],
                 canCreateOtherObjects: !!response.data.canCreateOtherObjects,
                 saveAsUserObject: prevState.saveAsUserObject,
-                isTypeIconPreviewExpanded: false,
+                isTypeIconPreviewExpanded: prevState.isTypeIconPreviewExpanded,
                 currentObject: this.getEmptyObject(),
                 similarSacObjects: [],
                 isCheckingSimilar: false,
@@ -542,9 +543,32 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         );
     }
 
+    // Reads the last requested icon-preview state without blocking page render if browser storage is unavailable.
+    private readTypeIconPreviewExpandedPreference = () => {
+        try {
+            return window.localStorage.getItem(TYPE_ICON_PREVIEW_EXPANDED_STORAGE_KEY) === "true";
+        } catch {
+            return false;
+        }
+    }
+
+    // Stores the icon-preview state so the Objects view returns to the user's last chosen layout.
+    private writeTypeIconPreviewExpandedPreference = (isExpanded: boolean) => {
+        try {
+            window.localStorage.setItem(TYPE_ICON_PREVIEW_EXPANDED_STORAGE_KEY, isExpanded ? "true" : "false");
+        } catch {
+            // Browsers can deny storage in restricted contexts; the in-memory state should still update.
+        }
+    }
+
     // Toggles the inline icon preview without changing any editable object fields.
     private handleToggleTypeIconPreview = () => {
-        this.setState(prevState => ({ isTypeIconPreviewExpanded: !prevState.isTypeIconPreviewExpanded }));
+        this.setState(prevState => {
+            const isTypeIconPreviewExpanded = !prevState.isTypeIconPreviewExpanded;
+            this.writeTypeIconPreviewExpandedPreference(isTypeIconPreviewExpanded);
+
+            return { isTypeIconPreviewExpanded };
+        });
     }
 
     // Renders every SAC object type directly below the object form heading.

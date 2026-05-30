@@ -91,8 +91,8 @@ type ConstellationMapMarkerKind = "background" | "normal" | "highlighted";
 
 const styles = (theme: Theme) => createStyles({
     root: {
-        background: "#f2f2f2",
-        border: "1px solid #bdbdbd",
+        background: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
         borderRadius: 6,
         display: "flex",
         overflow: "hidden",
@@ -107,7 +107,7 @@ const styles = (theme: Theme) => createStyles({
         minWidth: 0,
     },
     plotSvg: {
-        background: "#f4f4f4",
+        background: theme.palette.mode === "dark" ? "#111820" : "#f4f4f4",
         display: "block",
         maxWidth: "100%",
         touchAction: "none",
@@ -121,63 +121,63 @@ const styles = (theme: Theme) => createStyles({
     },
     surroundingBoundary: {
         fill: "none",
-        stroke: "#d1d1d1",
+        stroke: theme.palette.mode === "dark" ? "#314052" : "#d1d1d1",
         strokeDasharray: "5 4",
         strokeWidth: 0.9,
     },
     gridLine: {
         fill: "none",
-        stroke: "#cfcfcf",
+        stroke: theme.palette.mode === "dark" ? "#263444" : "#cfcfcf",
         strokeWidth: 0.8,
     },
     surroundingLine: {
         fill: "none",
-        stroke: "#c2c2c2",
+        stroke: theme.palette.mode === "dark" ? "#384759" : "#c2c2c2",
         strokeLinecap: "round",
         strokeLinejoin: "round",
         strokeWidth: 1.1,
     },
     focusedBoundary: {
         fill: "none",
-        stroke: "#626262",
+        stroke: theme.palette.mode === "dark" ? "#93a4b8" : "#626262",
         strokeDasharray: "6 4",
         strokeWidth: 1.5,
     },
     focusedLine: {
         fill: "none",
-        stroke: "#777777",
+        stroke: theme.palette.mode === "dark" ? "#a6b5c6" : "#777777",
         strokeLinecap: "round",
         strokeLinejoin: "round",
         strokeWidth: 1.6,
     },
     surroundingVertex: {
-        fill: "#b2b2b2",
+        fill: theme.palette.mode === "dark" ? "#596b80" : "#b2b2b2",
     },
     focusedVertex: {
-        fill: "#666666",
+        fill: theme.palette.mode === "dark" ? "#b9c6d6" : "#666666",
     },
     objectLabel: {
         cursor: "pointer",
-        fill: "#0184bc",
+        fill: theme.palette.primary.main,
         fontFamily: "'Trebuchet MS', Verdana, sans-serif",
         fontSize: labelFontSize,
         paintOrder: "stroke",
-        stroke: "#ffffff",
+        stroke: theme.palette.mode === "dark" ? "#0d1117" : "#ffffff",
         strokeWidth: 2.2,
     },
     controlsPanel: {
-        background: "#ececec",
-        borderLeft: "1px solid #c8c8c8",
-        color: "#333",
+        background: theme.palette.mode === "dark" ? "#161b22" : "#ececec",
+        borderLeft: `1px solid ${theme.palette.divider}`,
+        color: theme.palette.text.primary,
         flex: "0 0 194px",
         padding: "18px 16px",
     },
     controlsTitle: {
-        color: "#222",
+        color: theme.palette.text.primary,
         letterSpacing: 1.2,
     },
     labelsCaption: {
-        color: "#4d4d4d",
+        color: theme.palette.text.secondary,
         marginBottom: theme.spacing(0.75),
         marginTop: theme.spacing(1.5),
     },
@@ -191,19 +191,19 @@ const styles = (theme: Theme) => createStyles({
         padding: "2px 6px",
     },
     labelCount: {
-        color: "#4d4d4d",
+        color: theme.palette.text.secondary,
     },
     controlHelpText: {
-        color: "#666",
+        color: theme.palette.text.secondary,
         lineHeight: 1.35,
         marginTop: theme.spacing(2.25),
     },
     zoomText: {
-        color: "#666",
+        color: theme.palette.text.secondary,
         marginTop: theme.spacing(1),
     },
     markerVisibilityCaption: {
-        color: "#4d4d4d",
+        color: theme.palette.text.secondary,
         marginBottom: theme.spacing(0.25),
         marginTop: theme.spacing(1.5),
     },
@@ -212,7 +212,7 @@ const styles = (theme: Theme) => createStyles({
         marginLeft: -6,
         marginRight: 0,
         "& .MuiFormControlLabel-label": {
-            color: "#333",
+            color: theme.palette.text.primary,
             fontSize: 12,
         },
     },
@@ -221,14 +221,33 @@ const styles = (theme: Theme) => createStyles({
         paddingTop: 2,
     },
     selectedObjectInfo: {
-        background: "#f8f8f8",
-        border: "1px solid #b8b8b8",
+        background: theme.palette.mode === "dark" ? "#0d1117" : "#f8f8f8",
+        border: `1px solid ${theme.palette.divider}`,
         borderRadius: 4,
-        color: "#222",
+        color: theme.palette.text.primary,
         fontSize: 12,
         lineHeight: 1.35,
         marginTop: 14,
         padding: "8px 10px",
+    },
+    plotBackground: {
+        fill: theme.palette.mode === "dark" ? "#111820" : "#f4f4f4",
+    },
+    focusedBoundaryFill: {
+        fill: theme.palette.mode === "dark" ? "#0d1117" : "#ffffff",
+    },
+    backgroundObjectMarker: {
+        stroke: theme.palette.mode === "dark" ? "#6f7d8f" : "#b4b4b4",
+    },
+    normalObjectMarker: {
+        stroke: theme.palette.primary.main,
+    },
+    highlightedObjectMarker: {
+        stroke: theme.palette.mode === "dark" ? "#f0f6fc" : "#111111",
+    },
+    transparentHitArea: {
+        fill: "transparent",
+        stroke: "none",
     },
 });
 
@@ -516,13 +535,13 @@ function renderPlot(
                     ))}
                 </clipPath>
             </defs>
-            <rect x={0} y={0} width={viewBoxWidth} height={height} fill="#f4f4f4" />
+            <rect x={0} y={0} width={viewBoxWidth} height={height} className={classes.plotBackground} data-map-layer="background" />
             <g aria-hidden="true">
                 {surroundingBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, viewBoxWidth, height, true, {
                     key: `surrounding-boundary-${index}`,
                     className: classes.surroundingBoundary,
                 }, mapPadding))}
-                {focusedBoundaryFillPaths.length > 0 && <rect x={0} y={0} width={viewBoxWidth} height={height} fill="#ffffff" clipPath={`url(#${focusedBoundaryClipPathId})`} />}
+                {focusedBoundaryFillPaths.length > 0 && <rect x={0} y={0} width={viewBoxWidth} height={height} className={classes.focusedBoundaryFill} data-map-layer="focused-fill" clipPath={`url(#${focusedBoundaryClipPathId})`} />}
                 {gridSegments.map((segment, index) => renderPath(segment, viewExtent, viewBoxWidth, height, false, {
                     key: `grid-${index}`,
                     className: classes.gridLine,
@@ -559,9 +578,9 @@ function renderPlot(
                 ))}
             </g>
             <g>
-                {projectedBackgroundObjects.map(object => renderCrosshair(object, "#b4b4b4", 4, 9))}
-                {projectedObjects.map(object => renderCrosshair(object, "#0184bc", 4.5, 10))}
-                {projectedHighlightedObjects.map(object => renderCrosshair(object, "#111111", 6, 12))}
+                {projectedBackgroundObjects.map(object => renderCrosshair(object, "background", classes.backgroundObjectMarker, classes.transparentHitArea, 4, 9))}
+                {projectedObjects.map(object => renderCrosshair(object, "normal", classes.normalObjectMarker, classes.transparentHitArea, 4.5, 10))}
+                {projectedHighlightedObjects.map(object => renderCrosshair(object, "highlighted", classes.highlightedObjectMarker, classes.transparentHitArea, 6, 12))}
             </g>
             <g>
                 {labelPlacements.map(placement => renderObjectLabel(placement, setSelectedObjectInfo, classes.objectLabel))}
@@ -770,7 +789,7 @@ function createGridSegments(focusedBoundaryPositions: CelestialPosition[]) {
     return segments;
 }
 
-function renderCrosshair(object: ProjectedMapObject, stroke: string, radius: number, hitRadius: number) {
+function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMapMarkerKind, markerClassName: string, hitAreaClassName: string, radius: number, hitRadius: number) {
     return (
         <Tooltip
             key={object.key}
@@ -782,14 +801,13 @@ function renderCrosshair(object: ProjectedMapObject, stroke: string, radius: num
             arrow={true}
         >
             <g>
-                <line x1={object.x - radius} y1={object.y} x2={object.x + radius} y2={object.y} stroke={stroke} strokeWidth={1.8} strokeLinecap="round" />
-                <line x1={object.x} y1={object.y - radius} x2={object.x} y2={object.y + radius} stroke={stroke} strokeWidth={1.8} strokeLinecap="round" />
+                <line x1={object.x - radius} y1={object.y} x2={object.x + radius} y2={object.y} className={markerClassName} data-marker-kind={markerKind} strokeWidth={1.8} strokeLinecap="round" />
+                <line x1={object.x} y1={object.y - radius} x2={object.x} y2={object.y + radius} className={markerClassName} data-marker-kind={markerKind} strokeWidth={1.8} strokeLinecap="round" />
                 <circle
                     cx={object.x}
                     cy={object.y}
                     r={hitRadius}
-                    fill="transparent"
-                    stroke="none"
+                    className={hitAreaClassName}
                     pointerEvents="all"
                 />
             </g>

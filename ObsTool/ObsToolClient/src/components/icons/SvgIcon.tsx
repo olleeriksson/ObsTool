@@ -1,5 +1,6 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 import MuiSvgIcon, { SvgIconProps as MuiSvgIconProps } from "@mui/material/SvgIcon";
 import observation1Svg from "src/assets/svg/observation1.svg";
 import observation2Svg from "src/assets/svg/observation2.svg";
@@ -60,6 +61,16 @@ const svgFileByVariant: Record<FileSvgIconVariant, string> = {
 };
 
 /**
+ * Confirms whether a file-backed generic SVG is one of the four plain observation assets.
+ */
+function isPlainObservationSvgIconVariant(variant: SvgIconVariant): variant is Extract<FileSvgIconVariant, "observation1" | "observation2" | "observation3" | "observation4"> {
+    return variant === "observation1"
+        || variant === "observation2"
+        || variant === "observation3"
+        || variant === "observation4";
+}
+
+/**
  * Confirms whether a generic icon variant is backed by an imported SVG file.
  */
 function isFileSvgIconVariant(variant: SvgIconVariant): variant is FileSvgIconVariant {
@@ -86,6 +97,11 @@ export function resolveSvgIconVariant(variant?: string | null): SvgIconVariant {
  * Renders reusable custom SVG icons that are not tied to DSO type classification.
  */
 export function SvgIcon({ variant, size = 24, sx, ...props }: ISvgIconProps) {
+    const theme = useTheme();
+    const darkThemeFilter = theme.palette.mode === "dark" && isPlainObservationSvgIconVariant(variant)
+        ? "invert(1)"
+        : undefined;
+
     if (isFileSvgIconVariant(variant)) {
         return (
             <Box
@@ -94,7 +110,7 @@ export function SvgIcon({ variant, size = 24, sx, ...props }: ISvgIconProps) {
                 className={props.className}
                 component="img"
                 src={svgFileByVariant[variant]}
-                sx={{ display: "inline-block", fontSize: size, height: size, objectFit: "contain", verticalAlign: "text-bottom", width: size, ...sx }}
+                sx={{ display: "inline-block", filter: darkThemeFilter, fontSize: size, height: size, objectFit: "contain", verticalAlign: "text-bottom", width: size, ...sx }}
             />
         );
     }

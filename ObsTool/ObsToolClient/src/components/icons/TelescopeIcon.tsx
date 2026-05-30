@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTheme } from "@mui/material/styles";
 import telescopeBigDobSvg from "src/assets/svg/scope-big-dob.svg";
 import telescopeBinoSvg from "src/assets/svg/scope-bino.svg";
 import telescopeDobSvg from "src/assets/svg/scope-dob.svg";
@@ -72,7 +73,10 @@ export function resolveTelescopeIconVariant(variant?: string | null): TelescopeI
  * Renders one of the custom telescope SVG icons.
  */
 const TelescopeIcon: React.FC<ITelescopeIconProps> = ({ variant = DEFAULT_TELESCOPE_ICON_VARIANT, className, size = 26 }) => {
+    const theme = useTheme();
     const iconSource = iconByVariant[variant];
+    const darkThemeFilter = theme.palette.mode === "dark" ? "invert(1)" : undefined;
+
     return (
         <img
             src={iconSource}
@@ -81,7 +85,7 @@ const TelescopeIcon: React.FC<ITelescopeIconProps> = ({ variant = DEFAULT_TELESC
             className={className}
             width={size}
             height={size}
-            style={{ display: "inline-block", verticalAlign: "text-bottom" }}
+            style={{ display: "inline-block", filter: darkThemeFilter, verticalAlign: "text-bottom" }}
         />
     );
 };

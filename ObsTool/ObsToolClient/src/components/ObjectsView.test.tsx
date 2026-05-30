@@ -8,6 +8,7 @@ import { StyledObjectsView } from "./ObjectsView";
 import { MemoryRouter } from "react-router-dom";
 
 const theme = createTheme();
+const typeIconPreviewExpandedStorageKey = "obstool.objectsView.typeIconPreviewExpanded";
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
     <MemoryRouter>
@@ -44,6 +45,7 @@ const ngc102: IDso = {
 };
 
 afterEach(() => {
+    window.localStorage.removeItem(typeIconPreviewExpandedStorageKey);
     vi.restoreAllMocks();
 });
 
@@ -222,6 +224,30 @@ it("renders the type icon preview inline after the add label with one large icon
     expect(galaxyIcons[0]).toHaveAttribute("width", "32");
     expect(asterismIcons).toHaveLength(1);
     expect(planetIcons).toHaveLength(1);
+});
+
+it("remembers the type icon preview expanded state across Objects view remounts", async () => {
+    const firstRender = renderObjectsView();
+
+    await screen.findByText("Add user defined object");
+    fireEvent.click(screen.getByRole("button", { name: "Show object type icons" }));
+
+    expect(window.localStorage.getItem(typeIconPreviewExpandedStorageKey)).toBe("true");
+    firstRender.unmount();
+
+    const secondRender = renderObjectsView();
+
+    expect(await screen.findByRole("button", { name: "Hide object type icons" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Object type icons" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Hide object type icons" }));
+
+    expect(window.localStorage.getItem(typeIconPreviewExpandedStorageKey)).toBe("false");
+    secondRender.unmount();
+
+    renderObjectsView();
+
+    expect(await screen.findByRole("button", { name: "Show object type icons" })).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Object type icons" })).not.toBeInTheDocument();
 });
 
 it("hides the type icon preview toggle for users other than user id 1", async () => {

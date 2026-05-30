@@ -100,21 +100,21 @@ it("toggles each marker type from the controls panel", () => {
         />
     );
 
-    expect(container.querySelectorAll("line[stroke='#b4b4b4']")).toHaveLength(2);
-    expect(container.querySelectorAll("line[stroke='#0184bc']")).toHaveLength(2);
-    expect(container.querySelectorAll("line[stroke='#111111']")).toHaveLength(2);
+    expect(container.querySelectorAll("line[data-marker-kind='background']")).toHaveLength(2);
+    expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(2);
+    expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
 
-    expect(container.querySelectorAll("line[stroke='#b4b4b4']")).toHaveLength(0);
-    expect(container.querySelectorAll("line[stroke='#0184bc']")).toHaveLength(0);
-    expect(container.querySelectorAll("line[stroke='#111111']")).toHaveLength(0);
+    expect(container.querySelectorAll("line[data-marker-kind='background']")).toHaveLength(0);
+    expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(0);
+    expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(0);
 
     fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
 
-    expect(container.querySelectorAll("line[stroke='#0184bc']")).toHaveLength(2);
+    expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(2);
 });
 
 it("shows selected object information when a label is clicked", () => {
@@ -201,7 +201,7 @@ it("clips the white constellation fill to the focused boundary", () => {
     const clippedFill = container.querySelector("rect[clip-path]");
 
     expect(clipPath).toBeInTheDocument();
-    expect(clippedFill).toHaveAttribute("fill", "#ffffff");
+    expect(clippedFill).toHaveAttribute("data-map-layer", "focused-fill");
 });
 
 it("fits the SVG viewBox to the measured plot viewport", async () => {
@@ -240,7 +240,7 @@ it("fits the SVG viewBox to the measured plot viewport", async () => {
         const map = screen.getByRole("img", { name: "Constellation map" });
 
         await waitFor(() => expect(map).toHaveAttribute("viewBox", "0 0 640 500"));
-        expect(map.querySelector("rect[fill='#f4f4f4']")).toHaveAttribute("width", "640");
+        expect(map.querySelector("rect[data-map-layer='background']")).toHaveAttribute("width", "640");
     } finally {
         globalThis.ResizeObserver = originalResizeObserver;
     }

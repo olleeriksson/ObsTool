@@ -1,6 +1,7 @@
 import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -100,7 +101,7 @@ const styles = (theme: Theme) => createStyles({
     marginTop: "0.8em"
   },
   unmatchedObservationContainer: {
-    borderLeft: "3px solid #b26a00",
+    borderLeft: `3px solid ${theme.palette.warning.dark}`,
     marginBottom: "0.8em",
     marginTop: "0.8em",
     paddingLeft: theme.spacing(0.6),
@@ -113,7 +114,7 @@ const styles = (theme: Theme) => createStyles({
     overflowWrap: "anywhere",
   },
   formError: {
-    backgroundColor: "#fff5f5",
+    backgroundColor: alpha(theme.palette.error.main, theme.palette.mode === "dark" ? 0.16 : 0.08),
     borderLeft: `3px solid ${theme.palette.error.main}`,
     color: theme.palette.error.dark,
     marginLeft: theme.spacing(1),
@@ -226,9 +227,9 @@ const styles = (theme: Theme) => createStyles({
     fontWeight: 700,
   },
   keyChip: {
-    border: "1px solid #d4d4d4",
+    border: `1px solid ${theme.palette.divider}`,
     borderRadius: 4,
-    backgroundColor: "#f1f1f1",
+    backgroundColor: theme.palette.action.hover,
     color: theme.palette.text.primary,
     cursor: "pointer",
     fontFamily: "Consolas, 'Courier New', monospace",

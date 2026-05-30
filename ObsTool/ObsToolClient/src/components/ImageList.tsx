@@ -34,7 +34,7 @@ const styles = (theme: Theme) => createStyles({
     flexWrap: "wrap",
     justifyContent: "space-around",
     overflow: "hidden",
-    backgroundColor: "red"
+    backgroundColor: theme.palette.background.paper
   },
   gridList: {
     flexWrap: "wrap",
@@ -45,7 +45,7 @@ const styles = (theme: Theme) => createStyles({
   },
   title: {
     fontSize: "0.8rem",
-    color: "gray", // theme.palette.primary.light,
+    color: theme.palette.text.secondary,
   },
   titleBarBlack: {
     backgroundColor: "black",
@@ -82,17 +82,17 @@ const styles = (theme: Theme) => createStyles({
     width: 120,
   },
   iconButtonContainer: {  // The container around the checkboxes, clear checkbox button, compare button
-    color: "lightgray",
+    color: theme.palette.text.secondary,
   },
   iconButtonIcon: {  // Checkbox, clear checkboxes, compare
     fontSize: 20,
-    color: "lightgray",
+    color: theme.palette.text.secondary,
   },
   addButton: {
-    color: "green"
+    color: theme.palette.success.main,
   },
   error: {
-    color: "red"
+    color: theme.palette.error.main,
   },
 });
 

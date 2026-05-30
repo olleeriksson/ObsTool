@@ -124,7 +124,7 @@ export const renderReportTextAnnotated = (
       <span
         key={`${match.start}-${match.end}-${index}`}
         style={{
-          backgroundColor: "#f3f3f3",
+          backgroundColor: "var(--obstool-inline-annotation-bg)",
           textDecoration: "underline",
           textDecorationStyle: "dotted",
           textUnderlineOffset: "0.2em",
