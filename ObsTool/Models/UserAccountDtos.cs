@@ -47,6 +47,24 @@ namespace ObsTool.Models
         public string ConfirmPassword { get; set; }
     }
 
+    public class AdminCreateUserDto
+    {
+        public string Email { get; set; }
+        public string Username { get; set; }
+        public string FullName { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public string Password { get; set; }
+        public string ConfirmPassword { get; set; }
+    }
+
+    public class AdminUpdateUserDto
+    {
+        public string Email { get; set; }
+        public string Username { get; set; }
+        public string FullName { get; set; }
+        public bool EmailConfirmed { get; set; }
+    }
+
     public class UserAdminDto
     {
         public int Id { get; set; }

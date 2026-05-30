@@ -27,6 +27,48 @@ namespace ObsTool.Controllers
             return Ok(_userAccountService.GetAdminList());
         }
 
+        /// <summary>
+        /// Creates a database-backed user account from the admin-only management page.
+        /// </summary>
+        [HttpPost]
+        public IActionResult CreateUser([FromBody] AdminCreateUserDto requestDto)
+        {
+            if (!UserManagementAuthorization.CanManageUsers(User))
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                return Ok(_userAccountService.AdminCreateUser(requestDto));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToErrorDetails(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Updates editable profile fields for an existing database-backed user account.
+        /// </summary>
+        [HttpPut("{userId}")]
+        public IActionResult UpdateUser(int userId, [FromBody] AdminUpdateUserDto requestDto)
+        {
+            if (!UserManagementAuthorization.CanManageUsers(User))
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                return Ok(_userAccountService.AdminUpdateUser(userId, requestDto));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToErrorDetails(ex.Message));
+            }
+        }
+
         [HttpPut("{userId}/password")]
         public IActionResult ChangeUserPassword(int userId, [FromBody] AdminChangeUserPasswordDto requestDto)
         {

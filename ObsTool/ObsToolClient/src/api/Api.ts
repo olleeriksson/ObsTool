@@ -1,4 +1,4 @@
-import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings, IAuthenticationStatus, ISignupRequest, IConfirmEmailRequest, IConfirmEmailResult, IForgotPasswordRequest, IResetPasswordRequest, IChangePasswordRequest, IUserAdminList, IAdminChangePasswordRequest, IObjectList, IObservedObject, IUserObjectForSave } from "../types/Types";
+import { IObsSession, ILocation, IInstrument, IEyepiece, IPagedDsoList, IObsResource, IStatistics, ILoginInfo, IHerschelDetails, IConstellationMapObject, IEmailTestRequest, IEmailTestResult, IEmailTestSettings, IAuthenticationStatus, ISignupRequest, IConfirmEmailRequest, IConfirmEmailResult, IForgotPasswordRequest, IResetPasswordRequest, IChangePasswordRequest, IUserAdminList, IAdminChangePasswordRequest, IAdminCreateUserRequest, IAdminUpdateUserRequest, IUserAdmin, IObjectList, IObservedObject, IUserObjectForSave } from "../types/Types";
 import axios from "axios";
 
 // The Api is at 50995 from within Visual Studio
@@ -56,6 +56,14 @@ class Api {
 
     public static getUserAdminList() {
         return axios.get<IUserAdminList>(import.meta.env.VITE_API_URL + "/users/admin/");
+    }
+
+    public static adminCreateUser(request: IAdminCreateUserRequest) {
+        return axios.post<IUserAdmin>(import.meta.env.VITE_API_URL + "/users/", request);
+    }
+
+    public static adminUpdateUser(userId: number, request: IAdminUpdateUserRequest) {
+        return axios.put<IUserAdmin>(import.meta.env.VITE_API_URL + "/users/" + userId, request);
     }
 
     public static adminChangeUserPassword(userId: number, request: IAdminChangePasswordRequest) {

@@ -1,11 +1,13 @@
 import * as React from "react";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -41,6 +43,11 @@ const styles = (theme: Theme) => createStyles({
         gap: theme.spacing(1),
         marginTop: theme.spacing(2)
     },
+    userDialogFields: {
+        display: "grid",
+        gap: theme.spacing(2),
+        marginTop: theme.spacing(2)
+    },
     userIdentity: {
         fontWeight: theme.typography.fontWeightMedium
     },
@@ -65,6 +72,26 @@ interface IPasswordFields {
     password: string;
     confirmPassword: string;
 }
+
+interface IUserFormFields {
+    email: string;
+    username: string;
+    fullName: string;
+    emailConfirmed: boolean;
+    password: string;
+    confirmPassword: string;
+}
+
+type UserDialogMode = "create" | "edit";
+
+const emptyUserFormFields: IUserFormFields = {
+    email: "",
+    username: "",
+    fullName: "",
+    emailConfirmed: true,
+    password: "",
+    confirmPassword: ""
+};
 
 function getErrorMessage(error: any) {
     return error?.response?.data?.Message
@@ -102,9 +129,13 @@ function getUserIdentityLine(user: IUserAdmin) {
 function UserAdminPage(props: IUserAdminPageProps) {
     const { classes } = props;
     const [adminList, setAdminList] = React.useState<IUserAdminList | undefined>();
+    const [userDialogMode, setUserDialogMode] = React.useState<UserDialogMode | undefined>();
+    const [userDialogUser, setUserDialogUser] = React.useState<IUserAdmin | undefined>();
+    const [userFields, setUserFields] = React.useState<IUserFormFields>(emptyUserFormFields);
     const [passwordDialogUser, setPasswordDialogUser] = React.useState<IUserAdmin | undefined>();
     const [passwordFields, setPasswordFields] = React.useState<IPasswordFields>({ password: "", confirmPassword: "" });
     const [isLoading, setIsLoading] = React.useState(false);
+    const [isSavingUser, setIsSavingUser] = React.useState(false);
     const [busyUserId, setBusyUserId] = React.useState<number | undefined>();
     const [error, setError] = React.useState<string | undefined>();
     const [message, setMessage] = React.useState<string | undefined>();
@@ -132,6 +163,94 @@ function UserAdminPage(props: IUserAdminPageProps) {
     React.useEffect(() => {
         loadUsers();
     }, [loadUsers]);
+
+    // Opens the user dialog with blank fields for an admin-created database account.
+    const openCreateUserDialog = () => {
+        setUserDialogMode("create");
+        setUserDialogUser(undefined);
+        setUserFields({ ...emptyUserFormFields });
+        setError(undefined);
+        setMessage(undefined);
+    };
+
+    // Opens the user dialog with the selected account details for profile editing.
+    const openEditUserDialog = (user: IUserAdmin) => {
+        setUserDialogMode("edit");
+        setUserDialogUser(user);
+        setUserFields({
+            email: user.email || "",
+            username: user.username || "",
+            fullName: user.fullName || "",
+            emailConfirmed: user.emailConfirmed,
+            password: "",
+            confirmPassword: ""
+        });
+        setError(undefined);
+        setMessage(undefined);
+    };
+
+    // Keeps the create/edit dialog state normalized before it is sent to the API.
+    const updateUserField = (fieldName: keyof IUserFormFields, value: string | boolean) => {
+        setUserFields({
+            ...userFields,
+            [fieldName]: value
+        });
+    };
+
+    // Closes the create/edit dialog unless a save request is currently in flight.
+    const closeUserDialog = () => {
+        if (isSavingUser) {
+            return;
+        }
+
+        setUserDialogMode(undefined);
+        setUserDialogUser(undefined);
+        setUserFields({ ...emptyUserFormFields });
+    };
+
+    // Saves either a new user or profile edits for the selected database user.
+    const handleSaveUser = () => {
+        const request = {
+            email: userFields.email,
+            username: userFields.username || undefined,
+            fullName: userFields.fullName,
+            emailConfirmed: userFields.emailConfirmed
+        };
+        const saveRequest = userDialogMode === "create"
+            ? Api.adminCreateUser({
+                ...request,
+                password: userFields.password,
+                confirmPassword: userFields.confirmPassword
+            })
+            : userDialogUser
+                ? Api.adminUpdateUser(userDialogUser.id, request)
+                : undefined;
+
+        if (!saveRequest) {
+            return;
+        }
+
+        setIsSavingUser(true);
+        setError(undefined);
+        setMessage(undefined);
+
+        saveRequest.then(
+            response => {
+                setIsSavingUser(false);
+                setUserDialogMode(undefined);
+                setUserDialogUser(undefined);
+                setUserFields({ ...emptyUserFormFields });
+                setMessage(userDialogMode === "create"
+                    ? `User created for ${response.data.email}.`
+                    : `User updated for ${response.data.email}.`);
+                loadUsers();
+            },
+            errorResponse => {
+                setError(getErrorMessage(errorResponse));
+                setIsSavingUser(false);
+            }
+        );
+    };
 
     // Opens a focused password dialog for the selected database user.
     const openPasswordDialog = (user: IUserAdmin) => {
@@ -223,6 +342,15 @@ function UserAdminPage(props: IUserAdminPageProps) {
                 <div className={classes.actions}>
                     <Typography variant="h5">User Management</Typography>
                     {isLoading && <CircularProgress size={20} />}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        disabled={isSavingUser || busyUserId !== undefined}
+                        onClick={openCreateUserDialog}
+                    >
+                        New user
+                    </Button>
                 </div>
 
                 <div className={classes.section}>
@@ -236,6 +364,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
                                 <TableCell>Confirmed</TableCell>
                                 <TableCell>Created</TableCell>
                                 <TableCell>Last login</TableCell>
+                                <TableCell>Edit</TableCell>
                                 <TableCell>Change password</TableCell>
                                 <TableCell>Delete</TableCell>
                             </TableRow>
@@ -254,9 +383,19 @@ function UserAdminPage(props: IUserAdminPageProps) {
                                         <TableCell>
                                             <Button
                                                 variant="outlined"
+                                                size="small"
+                                                disabled={isBusy || isSavingUser}
+                                                onClick={() => openEditUserDialog(user)}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="outlined"
                                                 color="primary"
                                                 size="small"
-                                                disabled={isBusy}
+                                                disabled={isBusy || isSavingUser}
                                                 onClick={() => openPasswordDialog(user)}
                                             >
                                                 Change password
@@ -265,7 +404,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
                                         <TableCell>
                                             <Button
                                                 color="secondary"
-                                                disabled={isBusy}
+                                                disabled={isBusy || isSavingUser}
                                                 onClick={() => handleDeleteUser(user.id)}
                                             >
                                                 Delete
@@ -276,12 +415,87 @@ function UserAdminPage(props: IUserAdminPageProps) {
                             })}
                             {adminList && adminList.users.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={8}>No database users.</TableCell>
+                                    <TableCell colSpan={9}>No database users.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
                 </div>
+
+                <Dialog
+                    open={Boolean(userDialogMode)}
+                    onClose={closeUserDialog}
+                    fullWidth
+                    maxWidth="xs"
+                >
+                    <DialogTitle>{userDialogMode === "create" ? "New user" : "Edit user"}</DialogTitle>
+                    <DialogContent>
+                        <div className={classes.userDialogFields}>
+                            <TextField
+                                autoFocus
+                                fullWidth
+                                label="Email"
+                                type="email"
+                                value={userFields.email}
+                                onChange={event => updateUserField("email", event.currentTarget.value)}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Username"
+                                value={userFields.username}
+                                onChange={event => updateUserField("username", event.currentTarget.value)}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Full name"
+                                value={userFields.fullName}
+                                onChange={event => updateUserField("fullName", event.currentTarget.value)}
+                            />
+                            <FormControlLabel
+                                control={(
+                                    <Checkbox
+                                        checked={userFields.emailConfirmed}
+                                        onChange={event => updateUserField("emailConfirmed", event.currentTarget.checked)}
+                                    />
+                                )}
+                                label="Email confirmed"
+                            />
+                            {userDialogMode === "create" && (
+                                <>
+                                    <TextField
+                                        fullWidth
+                                        label="Password"
+                                        type="password"
+                                        value={userFields.password}
+                                        onChange={event => updateUserField("password", event.currentTarget.value)}
+                                        autoComplete="new-password"
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Confirm password"
+                                        type="password"
+                                        value={userFields.confirmPassword}
+                                        onChange={event => updateUserField("confirmPassword", event.currentTarget.value)}
+                                        autoComplete="new-password"
+                                    />
+                                </>
+                            )}
+                        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button disabled={isSavingUser} onClick={closeUserDialog}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            disabled={isSavingUser}
+                            onClick={handleSaveUser}
+                        >
+                            {userDialogMode === "create" ? "Create user" : "Save changes"}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
 
                 <Dialog
                     open={Boolean(passwordDialogUser)}

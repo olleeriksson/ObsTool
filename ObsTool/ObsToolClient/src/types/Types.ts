@@ -51,6 +51,22 @@ export interface IAdminChangePasswordRequest {
     confirmPassword: string;
 }
 
+export interface IAdminCreateUserRequest {
+    email: string;
+    username?: string;
+    fullName: string;
+    emailConfirmed: boolean;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface IAdminUpdateUserRequest {
+    email: string;
+    username?: string;
+    fullName: string;
+    emailConfirmed: boolean;
+}
+
 export interface IUserAdmin {
     id: number;
     email: string;

@@ -291,16 +291,8 @@ namespace ObsTool.Services
             {
                 Users = _dbContext.Users
                     .OrderBy(u => u.Email)
-                    .Select(u => new UserAdminDto
-                    {
-                        Id = u.Id,
-                        Email = u.Email,
-                        Username = u.Username,
-                        FullName = u.FullName,
-                        EmailConfirmed = u.EmailConfirmed,
-                        CreatedUtc = u.CreatedUtc.ToString("O"),
-                        LastLoginUtc = u.LastLoginUtc == null ? null : u.LastLoginUtc.Value.ToString("O")
-                    })
+                    .AsEnumerable()
+                    .Select(u => ToUserAdminDto(u))
                     .ToList(),
                 SuperAdmins = GetConfiguredUsers()
                     .Select(u => new SuperAdminUserDto
@@ -311,6 +303,82 @@ namespace ObsTool.Services
                     })
                     .ToList()
             };
+        }
+
+        public UserAdminDto AdminCreateUser(AdminCreateUserDto request)
+        {
+            // Admin-created accounts skip the public confirmation email flow and use the selected confirmation state.
+            if (request == null)
+            {
+                throw new InvalidOperationException("User details are required.");
+            }
+
+            var normalizedEmail = NormalizeEmail(request.Email);
+            var username = NormalizeOptionalText(request.Username);
+            var fullName = NormalizeRequiredText(request.FullName, "Full name");
+
+            ValidateEmail(normalizedEmail);
+            ValidateUniqueEmail(normalizedEmail);
+            ValidateUniqueUsername(username);
+            ValidatePasswordPair(request.Password, request.ConfirmPassword, normalizedEmail, username);
+
+            var user = new AppUser
+            {
+                Email = normalizedEmail,
+                NormalizedEmail = Normalize(normalizedEmail),
+                Username = username,
+                NormalizedUsername = NormalizeOptionalTextForLookup(username),
+                FullName = fullName,
+                PasswordHash = new PasswordHasher<string>().HashPassword(null, request.Password),
+                EmailConfirmed = request.EmailConfirmed,
+                CreatedUtc = DateTime.UtcNow
+            };
+
+            _dbContext.Users.Add(user);
+            _dbContext.SaveChanges();
+
+            return ToUserAdminDto(user);
+        }
+
+        public UserAdminDto AdminUpdateUser(int userId, AdminUpdateUserDto request)
+        {
+            // Profile edits deliberately leave the password hash untouched; password changes use the separate admin flow.
+            if (request == null)
+            {
+                throw new InvalidOperationException("User details are required.");
+            }
+
+            var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found.");
+            }
+
+            var normalizedEmail = NormalizeEmail(request.Email);
+            var username = NormalizeOptionalText(request.Username);
+            var fullName = NormalizeRequiredText(request.FullName, "Full name");
+
+            ValidateEmail(normalizedEmail);
+            ValidateUniqueEmail(normalizedEmail, userId);
+            ValidateUniqueUsername(username, userId);
+
+            user.Email = normalizedEmail;
+            user.NormalizedEmail = Normalize(normalizedEmail);
+            user.Username = username;
+            user.NormalizedUsername = NormalizeOptionalTextForLookup(username);
+            user.FullName = fullName;
+            user.EmailConfirmed = request.EmailConfirmed;
+            user.UpdatedUtc = DateTime.UtcNow;
+
+            if (request.EmailConfirmed)
+            {
+                user.EmailConfirmationTokenHash = null;
+                user.EmailConfirmationTokenExpiresUtc = null;
+            }
+
+            _dbContext.SaveChanges();
+
+            return ToUserAdminDto(user);
         }
 
         public void AdminChangePassword(int userId, AdminChangeUserPasswordDto request)
@@ -398,6 +466,62 @@ namespace ObsTool.Services
             };
         }
 
+        /// <summary>
+        /// Maps the persistent user row into the admin table contract.
+        /// </summary>
+        private static UserAdminDto ToUserAdminDto(AppUser user)
+        {
+            return new UserAdminDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Username = user.Username,
+                FullName = user.FullName,
+                EmailConfirmed = user.EmailConfirmed,
+                CreatedUtc = user.CreatedUtc.ToString("O"),
+                LastLoginUtc = user.LastLoginUtc == null ? null : user.LastLoginUtc.Value.ToString("O")
+            };
+        }
+
+        /// <summary>
+        /// Ensures the e-mail address is unique among database users and configured superadmins.
+        /// </summary>
+        private void ValidateUniqueEmail(string email, int? existingUserId = null)
+        {
+            var normalizedEmail = Normalize(email);
+            if (_dbContext.Users.Any(u => u.NormalizedEmail == normalizedEmail && (!existingUserId.HasValue || u.Id != existingUserId.Value)))
+            {
+                throw new InvalidOperationException("A user with this email address already exists.");
+            }
+
+            if (GetConfiguredUsers().Any(u => !string.IsNullOrWhiteSpace(u.Email) && Normalize(u.Email) == normalizedEmail))
+            {
+                throw new InvalidOperationException("A configured superadmin user already uses this email address.");
+            }
+        }
+
+        /// <summary>
+        /// Ensures the optional username is unique among database users and configured superadmins.
+        /// </summary>
+        private void ValidateUniqueUsername(string username, int? existingUserId = null)
+        {
+            var normalizedUsername = NormalizeOptionalTextForLookup(username);
+            if (string.IsNullOrWhiteSpace(normalizedUsername))
+            {
+                return;
+            }
+
+            if (_dbContext.Users.Any(u => u.NormalizedUsername == normalizedUsername && (!existingUserId.HasValue || u.Id != existingUserId.Value)))
+            {
+                throw new InvalidOperationException("A user with this username already exists.");
+            }
+
+            if (GetConfiguredUsers().Any(u => Normalize(u.Username) == normalizedUsername))
+            {
+                throw new InvalidOperationException("A configured superadmin user already uses this username.");
+            }
+        }
+
         private static void ValidatePasswordPair(string password, string confirmPassword, string email, string username)
         {
             if (password != confirmPassword)
@@ -468,6 +592,15 @@ namespace ObsTool.Services
         {
             var normalized = value?.Trim();
             return string.IsNullOrWhiteSpace(normalized) ? null : normalized;
+        }
+
+        /// <summary>
+        /// Normalizes optional text for case-insensitive lookup columns.
+        /// </summary>
+        private static string NormalizeOptionalTextForLookup(string value)
+        {
+            var normalized = NormalizeOptionalText(value);
+            return string.IsNullOrWhiteSpace(normalized) ? null : Normalize(normalized);
         }
 
         private static string Normalize(string value)

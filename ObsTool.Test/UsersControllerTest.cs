@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -84,6 +85,42 @@ namespace TestProject
             var result = controller.GetAdminList();
 
             Assert.That(result, Is.TypeOf<OkObjectResult>());
+        }
+
+        [Test]
+        public void CreateUser_AllowsDatabaseUserOne()
+        {
+            var controller = CreateController(userId: 1, isSuperAdmin: false);
+
+            var result = controller.CreateUser(new AdminCreateUserDto
+            {
+                Email = "created@example.com",
+                Username = "created",
+                FullName = "Created User",
+                EmailConfirmed = true,
+                Password = "Strong12345",
+                ConfirmPassword = "Strong12345"
+            });
+
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
+            Assert.That(_dbContext.Users.Any(user => user.Email == "created@example.com"), Is.True);
+        }
+
+        [Test]
+        public void UpdateUser_ForbidsOtherDatabaseUsers()
+        {
+            AddUser(2, "user@example.com", "user", "Normal User");
+            var controller = CreateController(userId: 2, isSuperAdmin: false);
+
+            var result = controller.UpdateUser(2, new AdminUpdateUserDto
+            {
+                Email = "updated@example.com",
+                Username = "updated",
+                FullName = "Updated User",
+                EmailConfirmed = true
+            });
+
+            Assert.That(result, Is.TypeOf<ForbidResult>());
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +73,52 @@ namespace TestProject
 
             Assert.That(loginResult.Success, Is.False);
             Assert.That(loginResult.UserId, Is.Null);
+        }
+
+        [Test]
+        public void AdminCreateUser_CreatesConfirmedDatabaseUserWithPassword()
+        {
+            var createdUser = _service.AdminCreateUser(new AdminCreateUserDto
+            {
+                Email = " new-user@example.com ",
+                Username = " newuser ",
+                FullName = " New User ",
+                EmailConfirmed = true,
+                Password = "Strong12345",
+                ConfirmPassword = "Strong12345"
+            });
+
+            var loginResult = _service.ValidateLogin("new-user@example.com", "Strong12345");
+
+            Assert.That(createdUser.Email, Is.EqualTo("new-user@example.com"));
+            Assert.That(createdUser.Username, Is.EqualTo("newuser"));
+            Assert.That(createdUser.FullName, Is.EqualTo("New User"));
+            Assert.That(createdUser.EmailConfirmed, Is.True);
+            Assert.That(loginResult.Success, Is.True);
+            Assert.That(loginResult.UserId, Is.EqualTo(createdUser.Id));
+        }
+
+        [Test]
+        public void AdminUpdateUser_ChangesProfileAndConfirmationState()
+        {
+            AddUser(1, "owner@example.com", "owner", "Owner User");
+
+            var updatedUser = _service.AdminUpdateUser(1, new AdminUpdateUserDto
+            {
+                Email = " updated@example.com ",
+                Username = " updated-owner ",
+                FullName = " Updated Owner ",
+                EmailConfirmed = false
+            });
+
+            var savedUser = _dbContext.Users.Single(u => u.Id == 1);
+            Assert.That(updatedUser.Email, Is.EqualTo("updated@example.com"));
+            Assert.That(updatedUser.Username, Is.EqualTo("updated-owner"));
+            Assert.That(updatedUser.FullName, Is.EqualTo("Updated Owner"));
+            Assert.That(updatedUser.EmailConfirmed, Is.False);
+            Assert.That(savedUser.NormalizedEmail, Is.EqualTo("UPDATED@EXAMPLE.COM"));
+            Assert.That(savedUser.NormalizedUsername, Is.EqualTo("UPDATED-OWNER"));
+            Assert.That(savedUser.UpdatedUtc, Is.Not.Null);
         }
 
         private void AddUser(int userId, string email, string username, string fullName)
