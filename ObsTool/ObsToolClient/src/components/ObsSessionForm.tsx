@@ -66,6 +66,28 @@ const styles = (theme: Theme) => createStyles({
   bottomSaveButton: {
     marginRight: 0,
   },
+  saveAction: {
+    alignItems: "center",
+    display: "inline-flex",
+    justifyContent: "flex-end",
+  },
+  bottomSaveAction: {
+    flexDirection: "column",
+  },
+  saveProgressSlot: {
+    alignItems: "center",
+    display: "inline-flex",
+    flex: "0 0 38px",
+    justifyContent: "center",
+    minHeight: 24,
+    width: 38,
+  },
+  topSaveProgressSlot: {
+    marginRight: theme.spacing(1),
+  },
+  bottomSaveProgressSlot: {
+    marginTop: theme.spacing(1),
+  },
   dateField: {
     width: 180,
     marginRight: theme.spacing(2),
@@ -519,6 +541,17 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     );
   }
 
+  // Keeps the spinner's sibling slot mounted so Save buttons do not shift when loading changes.
+  private renderSaveProgressSlot = (className?: string) => {
+    const { classes } = this.props;
+
+    return (
+      <span className={classNames(classes.saveProgressSlot, className)}>
+        {this.props.isLoading && <CircularProgress className="circularProgress" size={20} />}
+      </span>
+    );
+  }
+
   public render() {
     const { classes } = this.props;
 
@@ -593,11 +626,6 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     const transparencyOptionValues: IKeyValuePair[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ({ key: "" + n, value: "" + n }));
     const transparencyOptions: IKeyValuePair[] = [{ key: "", value: "n/a" }];
     transparencyOptions.push(...transparencyOptionValues);
-
-    let circularProgress;
-    if (this.props.isLoading) {
-      circularProgress = <CircularProgress className="circularProgress" style={{ marginLeft: 20 }} />;
-    }
 
     return (
       <div className="obsSessionForm">
@@ -712,8 +740,8 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                         />
                       </Grid>
                       <Grid size="grow" className={classes.topActionColumn}>
-                        <div>
-                          {circularProgress}
+                        <div className={classes.saveAction}>
+                          {this.renderSaveProgressSlot(classes.topSaveProgressSlot)}
                           <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.bottomSaveButton}>
                             Save
                           </Button>
@@ -761,11 +789,11 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                           {this.renderKeyReferenceSection("Instruments", this.props.instruments || [], classes.instrumentKeyGrid, instrumentKeyChipWidth)}
                         </Grid>
                         <Grid className={classes.bottomActionColumn}>
-                          <div>
+                          <div className={classNames(classes.saveAction, classes.bottomSaveAction)}>
                             <Button variant="contained" type="submit" disabled={!this.props.allowEditing} className={classes.bottomSaveButton}>
                               Save
                             </Button>
-                            {circularProgress}
+                            {this.renderSaveProgressSlot(classes.bottomSaveProgressSlot)}
                           </div>
                         </Grid>
                       </Grid>
