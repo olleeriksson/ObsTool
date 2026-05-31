@@ -62,6 +62,13 @@ const renderObjectsView = (
     return { searchDso, ...render(<StyledObjectsView store={store} />, { wrapper }) };
 };
 
+// Reads the first-column object names from a rendered management table body.
+const getObjectTableRowNames = (table: HTMLElement) => {
+    return within(table).getAllByRole("row")
+        .slice(1)
+        .map(row => within(row).getAllByRole("cell")[0].textContent);
+};
+
 it("flags duplicate user object names immediately and disables save", async () => {
     renderObjectsView({
         userObjects: [{ id: 7, name: "Jupiter", objectKind: "User", canDelete: true }],
@@ -427,6 +434,79 @@ it("renders each object reference date as a session link", async () => {
     const olderLink = screen.getByRole("link", { name: "2026-05-24" });
     expect(latestLink).toHaveAttribute("href", "/session/41");
     expect(olderLink).toHaveAttribute("href", "/session/39");
+});
+
+it("filters user and other object tables independently on the frontend", async () => {
+    renderObjectsView({
+        userObjects: [
+            { id: 7, name: "Mars", objectKind: "User", canDelete: true },
+            { id: 8, name: "Pluto", objectKind: "User", canDelete: true },
+        ],
+        otherObjects: [
+            { id: 9, name: "Mercury", objectKind: "Other" },
+            { id: 10, name: "Neptune", objectKind: "Other" },
+        ],
+    });
+
+    const userSearch = await screen.findByRole("searchbox", { name: "Search user defined objects" });
+    const otherSearch = screen.getByRole("searchbox", { name: "Search other objects" });
+
+    fireEvent.change(userSearch, { target: { value: "plu" } });
+
+    expect(screen.queryByText("Mars")).not.toBeInTheDocument();
+    expect(screen.getByText("Pluto")).toBeInTheDocument();
+    expect(screen.getByText("Mercury")).toBeInTheDocument();
+    expect(screen.getByText("Neptune")).toBeInTheDocument();
+
+    fireEvent.change(otherSearch, { target: { value: "nep" } });
+
+    expect(screen.queryByText("Mercury")).not.toBeInTheDocument();
+    expect(screen.getByText("Neptune")).toBeInTheDocument();
+});
+
+it("sorts both object tables by latest modified date by default", async () => {
+    renderObjectsView({
+        userObjects: [
+            { id: 7, name: "Old User", objectKind: "User", canDelete: true, modifiedDate: "2026-05-20T10:00:00Z" },
+            { id: 8, name: "New User", objectKind: "User", canDelete: true, modifiedDate: "2026-05-30T10:00:00Z" },
+        ],
+        otherObjects: [
+            { id: 9, name: "Old Other", objectKind: "Other", modifiedDate: "2026-05-18T10:00:00Z" },
+            { id: 10, name: "New Other", objectKind: "Other", modifiedDate: "2026-05-29T10:00:00Z" },
+        ],
+    });
+
+    await screen.findByText("New User");
+
+    const tables = screen.getAllByRole("table");
+    expect(getObjectTableRowNames(tables[0])).toEqual(["New User", "Old User"]);
+    expect(getObjectTableRowNames(tables[1])).toEqual(["New Other", "Old Other"]);
+    expect(screen.getByText("2026-05-30")).toBeInTheDocument();
+    expect(screen.getByText("2026-05-29")).toBeInTheDocument();
+});
+
+it("sorts reference counts numerically in each object table", async () => {
+    renderObjectsView({
+        userObjects: [
+            { id: 7, name: "Two User References", objectKind: "User", canDelete: true, numReferences: 2 },
+            { id: 8, name: "Ten User References", objectKind: "User", canDelete: true, numReferences: 10 },
+        ],
+        otherObjects: [
+            { id: 9, name: "Two Other References", objectKind: "Other", numReferences: 2 },
+            { id: 10, name: "Ten Other References", objectKind: "Other", numReferences: 10 },
+        ],
+    });
+
+    await screen.findByText("Two User References");
+
+    const tables = screen.getAllByRole("table");
+    fireEvent.click(within(tables[0]).getByRole("button", { name: "References" }));
+    fireEvent.click(within(tables[0]).getByRole("button", { name: "References" }));
+    fireEvent.click(within(tables[1]).getByRole("button", { name: "References" }));
+    fireEvent.click(within(tables[1]).getByRole("button", { name: "References" }));
+
+    expect(getObjectTableRowNames(tables[0])).toEqual(["Ten User References", "Two User References"]);
+    expect(getObjectTableRowNames(tables[1])).toEqual(["Ten Other References", "Two Other References"]);
 });
 
 it("hides the Clear button until the form contains a name", async () => {

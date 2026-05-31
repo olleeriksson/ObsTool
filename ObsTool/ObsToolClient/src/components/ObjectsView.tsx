@@ -22,6 +22,7 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import TableSortLabel from "@mui/material/TableSortLabel";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
@@ -32,6 +33,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SaveIcon from "@mui/icons-material/Save";
+import SearchIcon from "@mui/icons-material/Search";
 import Api from "../api/Api";
 import { IAppState, IConstellationOption, IDataState, IDso, IObservedObject, IUserObjectForSave } from "../types/Types";
 import { connect } from "react-redux";
@@ -47,6 +49,15 @@ const TYPE_ICON_PREVIEW_EXPANDED_STORAGE_KEY = "obstool.objectsView.typeIconPrev
 interface ITypeOptionCandidate {
     modifiedDate?: string | null;
     value: string;
+}
+
+type ObjectTableKey = "user" | "other";
+type ObjectTableSortColumn = "name" | "type" | "constellation" | "mag" | "references" | "modified";
+type ObjectTableSortDirection = "asc" | "desc";
+
+interface IObjectTableSortState {
+    column?: ObjectTableSortColumn;
+    direction: ObjectTableSortDirection;
 }
 
 const styles = (theme: Theme) => createStyles({
@@ -122,6 +133,26 @@ const styles = (theme: Theme) => createStyles({
         gap: theme.spacing(1),
         justifyContent: "space-between",
         width: "100%",
+    },
+    objectTableHeader: {
+        alignItems: "center",
+        display: "flex",
+        gap: theme.spacing(2),
+        justifyContent: "space-between",
+        marginBottom: theme.spacing(1),
+        [theme.breakpoints.down("sm")]: {
+            alignItems: "stretch",
+            flexDirection: "column",
+            gap: theme.spacing(0.5),
+        },
+    },
+    objectTableSearch: {
+        flex: "0 1 280px",
+        marginLeft: "auto",
+        [theme.breakpoints.down("sm")]: {
+            flex: "1 1 auto",
+            marginLeft: 0,
+        },
     },
     typePreviewToggle: {
         marginLeft: "auto",
@@ -211,6 +242,10 @@ interface IObjectsViewState {
     constellations: IConstellationOption[];
     canCreateOtherObjects: boolean;
     saveAsUserObject: boolean;
+    userObjectSearchText: string;
+    otherObjectSearchText: string;
+    userObjectSort: IObjectTableSortState;
+    otherObjectSort: IObjectTableSortState;
     isTypeIconPreviewExpanded: boolean;
     currentObject: IObservedObject;
     similarSacObjects: IDso[];
@@ -231,6 +266,10 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             constellations: [],
             canCreateOtherObjects: false,
             saveAsUserObject: true,
+            userObjectSearchText: "",
+            otherObjectSearchText: "",
+            userObjectSort: { column: "modified", direction: "desc" },
+            otherObjectSort: { column: "modified", direction: "desc" },
             isTypeIconPreviewExpanded: this.readTypeIconPreviewExpandedPreference(),
             currentObject: this.getEmptyObject(),
             similarSacObjects: [],
@@ -266,15 +305,42 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 userObjects: response.data.userObjects || [],
                 otherObjects: response.data.otherObjects || [],
                 constellations: response.data.constellations || [],
-                canCreateOtherObjects: !!response.data.canCreateOtherObjects,
-                saveAsUserObject: prevState.saveAsUserObject,
-                isTypeIconPreviewExpanded: prevState.isTypeIconPreviewExpanded,
-                currentObject: this.getEmptyObject(preservedType),
-                similarSacObjects: [],
+            canCreateOtherObjects: !!response.data.canCreateOtherObjects,
+            saveAsUserObject: prevState.saveAsUserObject,
+            userObjectSearchText: prevState.userObjectSearchText,
+            otherObjectSearchText: prevState.otherObjectSearchText,
+            userObjectSort: prevState.userObjectSort,
+            otherObjectSort: prevState.otherObjectSort,
+            isTypeIconPreviewExpanded: prevState.isTypeIconPreviewExpanded,
+            currentObject: this.getEmptyObject(preservedType),
+            similarSacObjects: [],
                 isCheckingSimilar: false,
             }));
         }).catch(() => {
             this.setState({ isLoading: false, isError: true, errorMessage: "Failed to load objects." });
+        });
+    }
+
+    // Updates one table's local search string without affecting the other object table.
+    private handleObjectSearchChange = (tableKey: ObjectTableKey) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        const stateKey = tableKey === "user" ? "userObjectSearchText" : "otherObjectSearchText";
+        this.setState({ [stateKey]: value } as Pick<IObjectsViewState, "userObjectSearchText" | "otherObjectSearchText">);
+    }
+
+    // Changes a table sort column, toggling direction when the current sorted column is clicked again.
+    private handleObjectSortChange = (tableKey: ObjectTableKey, column: ObjectTableSortColumn) => () => {
+        const stateKey = tableKey === "user" ? "userObjectSort" : "otherObjectSort";
+        this.setState(prevState => {
+            const currentSort = prevState[stateKey];
+            const direction = currentSort.column === column && currentSort.direction === "asc" ? "desc" : "asc";
+
+            return {
+                [stateKey]: {
+                    column,
+                    direction,
+                },
+            } as Pick<IObjectsViewState, "userObjectSort" | "otherObjectSort">;
         });
     }
 
@@ -691,6 +757,223 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         </div>
     )
 
+    // Returns the independent search value used by the requested object table.
+    private getObjectTableSearchText = (tableKey: ObjectTableKey) => {
+        return tableKey === "user"
+            ? this.state.userObjectSearchText
+            : this.state.otherObjectSearchText;
+    }
+
+    // Returns the active sort state used by the requested object table.
+    private getObjectTableSortState = (tableKey: ObjectTableKey) => {
+        return tableKey === "user"
+            ? this.state.userObjectSort
+            : this.state.otherObjectSort;
+    }
+
+    // Filters and sorts a table's objects entirely in the browser without mutating API response arrays.
+    private getVisibleObjects = (objects: IObservedObject[], searchText: string, sortState: IObjectTableSortState) => {
+        const filteredObjects = objects.filter(object => this.objectMatchesSearch(object, searchText));
+        if (!sortState.column) {
+            return filteredObjects;
+        }
+
+        return [...filteredObjects].sort((left, right) => this.compareObjectsByColumn(left, right, sortState.column!, sortState.direction));
+    }
+
+    // Checks the object fields a user can reasonably search from the management table and edit form.
+    private objectMatchesSearch = (object: IObservedObject, searchText: string) => {
+        const query = this.normalizeFreeText(searchText);
+        if (!query) {
+            return true;
+        }
+
+        const referenceDates = [
+            ...(object.references || []).map(reference => reference.date),
+            ...(object.referencedSessionDates || []),
+        ];
+        const searchableValues = [
+            object.name,
+            object.commonName,
+            object.otherNames,
+            object.allCommonNames,
+            object.notes,
+            this.getObjectTypeDisplayValue(object),
+            object.type,
+            object.const,
+            object.ra,
+            object.dec,
+            object.mag,
+            this.formatModifiedDate(object.modifiedDate),
+            object.modifiedDate,
+            `${object.numReferences || 0}`,
+            ...referenceDates,
+        ];
+
+        return searchableValues.some(value => this.normalizeFreeText(value || "").includes(query));
+    }
+
+    // Compares two objects for one sortable table column, keeping empty values at the bottom in both directions.
+    private compareObjectsByColumn = (
+        left: IObservedObject,
+        right: IObservedObject,
+        column: ObjectTableSortColumn,
+        direction: ObjectTableSortDirection,
+    ) => {
+        const primaryComparison = column === "mag" || column === "references" || column === "modified"
+            ? this.compareObjectNumberValues(this.getObjectSortNumberValue(left, column), this.getObjectSortNumberValue(right, column), direction)
+            : this.compareObjectTextValues(this.getObjectSortTextValue(left, column), this.getObjectSortTextValue(right, column), direction);
+
+        if (primaryComparison !== 0) {
+            return primaryComparison;
+        }
+
+        return this.compareObjectTextValues(left.name || "", right.name || "", "asc");
+    }
+
+    // Extracts the display text used for text-sortable object table columns.
+    private getObjectSortTextValue = (object: IObservedObject, column: ObjectTableSortColumn) => {
+        switch (column) {
+            case "name":
+                return object.name || "";
+            case "type":
+                return this.getObjectTypeDisplayValue(object);
+            case "constellation":
+                return object.const || "";
+            default:
+                return "";
+        }
+    }
+
+    // Extracts the numeric value used for Mag and References sorting.
+    private getObjectSortNumberValue = (object: IObservedObject, column: ObjectTableSortColumn) => {
+        if (column === "references") {
+            return object.numReferences || 0;
+        }
+
+        if (column === "modified") {
+            return this.getObjectModifiedDateSortValue(object.modifiedDate);
+        }
+
+        const magnitude = Number.parseFloat(object.mag || "");
+        return Number.isNaN(magnitude) ? undefined : magnitude;
+    }
+
+    // Converts an object's modified date to a timestamp for table sorting, leaving missing dates last.
+    private getObjectModifiedDateSortValue = (modifiedDate?: string | null) => {
+        if (!modifiedDate) {
+            return undefined;
+        }
+
+        const timestamp = Date.parse(modifiedDate);
+        return Number.isNaN(timestamp) ? undefined : timestamp;
+    }
+
+    // Compares optional table text values with blanks last and locale-aware ordering for labels.
+    private compareObjectTextValues = (leftValue: string, rightValue: string, direction: ObjectTableSortDirection) => {
+        const left = this.normalizeFreeText(leftValue || "");
+        const right = this.normalizeFreeText(rightValue || "");
+        if (!left && !right) {
+            return 0;
+        }
+
+        if (!left) {
+            return 1;
+        }
+
+        if (!right) {
+            return -1;
+        }
+
+        const comparison = left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
+        return direction === "asc" ? comparison : -comparison;
+    }
+
+    // Compares optional table number values with blanks last in both ascending and descending order.
+    private compareObjectNumberValues = (
+        leftValue: number | undefined,
+        rightValue: number | undefined,
+        direction: ObjectTableSortDirection,
+    ) => {
+        if (leftValue === undefined && rightValue === undefined) {
+            return 0;
+        }
+
+        if (leftValue === undefined) {
+            return 1;
+        }
+
+        if (rightValue === undefined) {
+            return -1;
+        }
+
+        const comparison = leftValue - rightValue;
+        return direction === "asc" ? comparison : -comparison;
+    }
+
+    // Centralizes Type table display so sorting and searching match what the user sees.
+    private getObjectTypeDisplayValue = (object: IObservedObject) => {
+        return getDsoTypeAbbreviation(object.type || "") || object.type || "";
+    }
+
+    // Formats modified dates compactly for the object tables while preserving empty cells for unknown dates.
+    private formatModifiedDate = (modifiedDate?: string | null) => {
+        if (!modifiedDate) {
+            return "";
+        }
+
+        const date = new Date(modifiedDate);
+        if (Number.isNaN(date.getTime())) {
+            return modifiedDate;
+        }
+
+        return date.toISOString().slice(0, 10);
+    }
+
+    // Renders one sortable header cell for the columns that support table ordering.
+    private renderSortableHeaderCell = (
+        label: string,
+        column: ObjectTableSortColumn,
+        tableKey: ObjectTableKey,
+        sortState: IObjectTableSortState,
+    ) => (
+        <TableCell className={this.props.classes.tableCell}>
+            <TableSortLabel
+                active={sortState.column === column}
+                direction={sortState.column === column ? sortState.direction : "asc"}
+                onClick={this.handleObjectSortChange(tableKey, column)}
+            >
+                {label}
+            </TableSortLabel>
+        </TableCell>
+    )
+
+    // Renders the table title row and right-aligned frontend search field.
+    private renderObjectTableHeader = (title: string, tableKey: ObjectTableKey, searchText: string) => (
+        <div className={this.props.classes.objectTableHeader}>
+            <Typography variant="h6">{title}</Typography>
+            <TextField
+                className={this.props.classes.objectTableSearch}
+                margin="dense"
+                onChange={this.handleObjectSearchChange(tableKey)}
+                placeholder="Search"
+                size="small"
+                type="search"
+                value={searchText}
+                inputProps={{
+                    "aria-label": `Search ${title.toLowerCase()}`,
+                }}
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                    ),
+                }}
+            />
+        </div>
+    )
+
     // Extracts API error messages from both string BadRequest bodies and ObsToolException JSON bodies.
     private getApiErrorMessage = (error: any, fallbackMessage: string) => {
         const data = error?.response?.data;
@@ -859,10 +1142,14 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         );
     }
 
-    // Renders one object table with per-row edit/delete controls from the API flags.
-    private renderObjectTable = (title: string, objects: IObservedObject[]) => {
+    // Renders one object table with search, sortable columns, and per-row edit/delete controls from API flags.
+    private renderObjectTable = (title: string, objects: IObservedObject[], tableKey: ObjectTableKey) => {
+        const searchText = this.getObjectTableSearchText(tableKey);
+        const sortState = this.getObjectTableSortState(tableKey);
+        const visibleObjects = this.getVisibleObjects(objects, searchText, sortState);
         const hasActions = objects.some(object => object.canEdit || object.objectKind === "User");
-        const rows = objects.map(object => {
+        const columnCount = hasActions ? 9 : 8;
+        const rows = visibleObjects.map(object => {
             const canEditObject = !!object.canEdit;
             const showDeleteObject = object.objectKind === "User";
             const deleteDisabled = !object.canDelete;
@@ -872,12 +1159,13 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                         <Typography variant="body2" className={this.props.classes.objectName}>{object.name}</Typography>
                         <Typography variant="caption" color="textSecondary">{object.commonName || object.otherNames || ""}</Typography>
                     </TableCell>
-                    <TableCell className={this.props.classes.tableCell}>{getDsoTypeAbbreviation(object.type || "") || object.type || ""}</TableCell>
+                    <TableCell className={this.props.classes.tableCell}>{this.getObjectTypeDisplayValue(object)}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.const || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.ra || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.dec || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.mag || ""}</TableCell>
                     <TableCell className={this.props.classes.metadataCell}>{this.renderReferenceSummary(object)}</TableCell>
+                    <TableCell className={this.props.classes.tableCell}>{this.formatModifiedDate(object.modifiedDate)}</TableCell>
                     {hasActions && (
                         <TableCell align="right" className={this.props.classes.actionCell}>
                             {canEditObject && (
@@ -913,7 +1201,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
 
         return (
             <Paper className={this.props.classes.panel} elevation={1}>
-                <Typography variant="h6" gutterBottom={true}>{title}</Typography>
+                {this.renderObjectTableHeader(title, tableKey, searchText)}
                 {objects.length === 0 ? (
                     <Typography variant="body2" color="textSecondary">None</Typography>
                 ) : (
@@ -921,17 +1209,26 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                         <Table size="small" padding="none">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell className={this.props.classes.tableCell}>Name</TableCell>
-                                    <TableCell className={this.props.classes.tableCell}>Type</TableCell>
-                                    <TableCell className={this.props.classes.tableCell}>Constellation</TableCell>
+                                    {this.renderSortableHeaderCell("Name", "name", tableKey, sortState)}
+                                    {this.renderSortableHeaderCell("Type", "type", tableKey, sortState)}
+                                    {this.renderSortableHeaderCell("Constellation", "constellation", tableKey, sortState)}
                                     <TableCell className={this.props.classes.tableCell}>RA</TableCell>
                                     <TableCell className={this.props.classes.tableCell}>DEC</TableCell>
-                                    <TableCell className={this.props.classes.tableCell}>Mag</TableCell>
-                                    <TableCell className={this.props.classes.tableCell}>References</TableCell>
+                                    {this.renderSortableHeaderCell("Mag", "mag", tableKey, sortState)}
+                                    {this.renderSortableHeaderCell("References", "references", tableKey, sortState)}
+                                    {this.renderSortableHeaderCell("Modified", "modified", tableKey, sortState)}
                                     {hasActions && <TableCell align="right">Actions</TableCell>}
                                 </TableRow>
                             </TableHead>
-                            <TableBody>{rows}</TableBody>
+                            <TableBody>
+                                {rows.length > 0 ? rows : (
+                                    <TableRow>
+                                        <TableCell colSpan={columnCount} className={this.props.classes.tableCell}>
+                                            <Typography variant="body2" color="textSecondary">No matching objects</Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
                         </Table>
                     </div>
                 )}
@@ -1110,8 +1407,8 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                             </Paper>
                         ) : (
                             <>
-                                {this.renderObjectTable("User defined objects", this.state.userObjects)}
-                                {this.renderObjectTable("Other objects", this.state.otherObjects)}
+                                {this.renderObjectTable("User defined objects", this.state.userObjects, "user")}
+                                {this.renderObjectTable("Other objects", this.state.otherObjects, "other")}
                             </>
                         )}
                     </Grid>

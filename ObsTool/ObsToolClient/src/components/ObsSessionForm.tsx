@@ -153,12 +153,12 @@ const styles = (theme: Theme) => createStyles({
     flex: "0 0 90px",
     maxWidth: 90,
     minWidth: 90,
-    paddingTop: theme.spacing(5),
+    paddingTop: theme.spacing(5.5),
   },
   objectListHeading: {
     fontWeight: 900,
     fontSize: "0.95rem",
-    fontStyle: "underline",
+    textDecoration: "underline",
     marginBottom: theme.spacing(1.5),
   },
   helpReferenceRow: {
