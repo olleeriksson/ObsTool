@@ -183,6 +183,30 @@ it("offers previously saved custom object types in the Type dropdown", async () 
     expect(within(listbox).getByText("Satellite")).toBeInTheDocument();
 });
 
+it("orders Type dropdown options by user, hardcoded, then other object sources", async () => {
+    renderObjectsView({
+        userObjects: [
+            { id: 4, name: "Older User Type", type: "Older user type", objectKind: "User", modifiedDate: null },
+            { id: 5, name: "Latest User Type", type: "Latest user type", objectKind: "User", modifiedDate: "2026-05-30T20:00:00Z" },
+        ],
+        otherObjects: [
+            { id: 6, name: "Latest Other Type", type: "Latest other type", objectKind: "Other", modifiedDate: "2026-05-31T20:00:00Z" },
+        ],
+    });
+
+    const typeField = await screen.findByRole("combobox", { name: "Type" });
+    fireEvent.mouseDown(typeField);
+
+    const listbox = await screen.findByRole("listbox");
+    const latestUserType = within(listbox).getByText("Latest user type");
+    const olderUserType = within(listbox).getByText("Older user type");
+    const hardcodedType = within(listbox).getByText("Galaxy");
+    const latestOtherType = within(listbox).getByText("Latest other type");
+    expect(latestUserType.compareDocumentPosition(olderUserType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(olderUserType.compareDocumentPosition(hardcodedType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hardcodedType.compareDocumentPosition(latestOtherType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
 it("deduplicates saved display names that resolve to known SAC object types", async () => {
     renderObjectsView({
         userObjects: [{ id: 4, name: "Mars", type: "Planet", objectKind: "User" }],

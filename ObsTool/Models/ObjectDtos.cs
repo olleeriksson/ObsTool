@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ObsTool.Entities;
@@ -30,6 +31,7 @@ namespace ObsTool.Models
         public int NumReferences { get; set; }
         public string[] ReferencedSessionDates { get; set; }
         public ObjectReferenceDto[] References { get; set; }
+        public DateTime? ModifiedDate { get; set; }
         public bool CanEdit { get; set; }
         public bool CanDelete { get; set; }
 
@@ -56,6 +58,7 @@ namespace ObsTool.Models
                 NumReferences = references.NumReferences,
                 ReferencedSessionDates = references.SessionDates.ToArray(),
                 References = references.Sessions.ToArray(),
+                ModifiedDate = otherObject.ModifiedDate,
                 CanEdit = canEdit,
                 CanDelete = false
             };
@@ -84,6 +87,7 @@ namespace ObsTool.Models
                 NumReferences = references.NumReferences,
                 ReferencedSessionDates = references.SessionDates.ToArray(),
                 References = references.Sessions.ToArray(),
+                ModifiedDate = userObject.ModifiedDate,
                 CanEdit = true,
                 CanDelete = references.NumReferences == 0
             };

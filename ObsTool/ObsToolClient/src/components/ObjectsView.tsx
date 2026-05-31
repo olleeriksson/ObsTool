@@ -44,6 +44,11 @@ const SAC_OBJECT_TYPE_OPTIONS = getDsoTypeOptions().map(option => option.code);
 const UNSPECIFIED_CONSTELLATION_OPTION: IConstellationOption = { name: "Unspecified", abbreviation: "" };
 const TYPE_ICON_PREVIEW_EXPANDED_STORAGE_KEY = "obstool.objectsView.typeIconPreviewExpanded";
 
+interface ITypeOptionCandidate {
+    modifiedDate?: string | null;
+    value: string;
+}
+
 const styles = (theme: Theme) => createStyles({
     root: {
     },
@@ -522,28 +527,73 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
     }
 
     // Adds a Type option once, treating custom type labels as case-insensitive choices.
-    private addTypeOption = (options: Set<string>, value: string) => {
+    private addTypeOption = (options: string[], existingOptions: Set<string>, value: string) => {
         const resolvedType = this.resolveStoredObjectType(value);
         const normalizedType = resolvedType.toLowerCase();
-        const optionAlreadyExists = Array.from(options).some(option => option.toLowerCase() === normalizedType);
-        if (!optionAlreadyExists) {
-            options.add(resolvedType);
+        if (resolvedType && !existingOptions.has(normalizedType)) {
+            options.push(resolvedType);
+            existingOptions.add(normalizedType);
         }
     }
 
-    // Builds Type dropdown options from SAC types plus custom object types already stored on this page.
-    private getTypeOptions = () => {
-        const options = new Set<string>(SAC_OBJECT_TYPE_OPTIONS);
-        [...this.state.userObjects, ...this.state.otherObjects, this.state.currentObject]
-            .map(object => (object.type || "").trim())
-            .filter(type => type.length > 0)
-            .forEach(type => this.addTypeOption(options, type));
+    // Builds one option per object type, ordered by latest modification date and with null dates last.
+    private getObjectTypeOptionsByModifiedDate = (objects: IObservedObject[]) => {
+        const candidatesByType = new Map<string, ITypeOptionCandidate>();
+        objects
+            .map(object => ({
+                modifiedDate: object.modifiedDate,
+                value: this.resolveStoredObjectType(object.type || ""),
+            }))
+            .filter(candidate => candidate.value.length > 0)
+            .forEach(candidate => {
+                const normalizedType = candidate.value.toLowerCase();
+                const existingCandidate = candidatesByType.get(normalizedType);
+                if (!existingCandidate || this.compareTypeOptionsByModifiedDate(candidate, existingCandidate) < 0) {
+                    candidatesByType.set(normalizedType, candidate);
+                }
+            });
 
-        return Array.from(options).sort((left, right) => {
-            const leftLabel = translateDsoType(left) || left;
-            const rightLabel = translateDsoType(right) || right;
-            return leftLabel.localeCompare(rightLabel);
-        });
+        return Array.from(candidatesByType.values())
+            .sort(this.compareTypeOptionsByModifiedDate)
+            .map(candidate => candidate.value);
+    }
+
+    // Compares type options by modification time descending, falling back to display label order.
+    private compareTypeOptionsByModifiedDate = (left: ITypeOptionCandidate, right: ITypeOptionCandidate) => {
+        const leftModified = this.getModifiedDateSortValue(left.modifiedDate);
+        const rightModified = this.getModifiedDateSortValue(right.modifiedDate);
+        if (leftModified !== rightModified) {
+            return rightModified - leftModified;
+        }
+
+        const leftLabel = translateDsoType(left.value) || left.value;
+        const rightLabel = translateDsoType(right.value) || right.value;
+        return leftLabel.localeCompare(rightLabel);
+    }
+
+    // Converts absent or invalid modified dates to the oldest possible sort value.
+    private getModifiedDateSortValue = (modifiedDate?: string | null) => {
+        if (!modifiedDate) {
+            return Number.NEGATIVE_INFINITY;
+        }
+
+        const timestamp = Date.parse(modifiedDate);
+        return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
+    }
+
+    // Builds Type dropdown options in source order: user object types, SAC types, shared object types.
+    private getTypeOptions = () => {
+        const options: string[] = [];
+        const existingOptions = new Set<string>();
+
+        this.getObjectTypeOptionsByModifiedDate(this.state.userObjects)
+            .forEach(type => this.addTypeOption(options, existingOptions, type));
+        SAC_OBJECT_TYPE_OPTIONS.forEach(type => this.addTypeOption(options, existingOptions, type));
+        this.getObjectTypeOptionsByModifiedDate(this.state.otherObjects)
+            .forEach(type => this.addTypeOption(options, existingOptions, type));
+        this.addTypeOption(options, existingOptions, this.state.currentObject.type || "");
+
+        return options;
     }
 
     // Keeps the free-solo Type input text synchronized with the stored type code when the form resets.

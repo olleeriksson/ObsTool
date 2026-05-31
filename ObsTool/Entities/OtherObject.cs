@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace ObsTool.Entities
 {
@@ -38,6 +39,8 @@ namespace ObsTool.Entities
 
         [MaxLength(50)]
         public string Mag { get; set; }
+
+        public DateTime? ModifiedDate { get; set; }
 
         public ICollection<DsoObservation> DsoObservations { get; set; }
     }

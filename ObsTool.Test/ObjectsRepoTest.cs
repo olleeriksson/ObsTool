@@ -90,6 +90,22 @@ namespace TestProject
         }
 
         [Test]
+        public void AddUserObject_StoresModifiedDate()
+        {
+            _repo.AddUserObject(new UserObject { Name = "Mars" }, 1);
+
+            Assert.That(_dbContext.UserObjects.Single().ModifiedDate, Is.Not.Null);
+        }
+
+        [Test]
+        public void AddOtherObject_StoresModifiedDate()
+        {
+            _repo.AddOtherObject(new OtherObject { Name = "Mars" });
+
+            Assert.That(_dbContext.OtherObjects.Single().ModifiedDate, Is.Not.Null);
+        }
+
+        [Test]
         public void AddUserObject_RejectsExistingOtherObjectName()
         {
             _dbContext.OtherObjects.Add(new OtherObject { Name = "Mars" });
@@ -151,6 +167,16 @@ namespace TestProject
             Assert.That(otherObject.Name, Is.EqualTo("Saturn"));
             Assert.That(otherObject.Notes, Is.EqualTo("New"));
             Assert.That(otherObject.Const, Is.Null);
+        }
+
+        [Test]
+        public void UpdateEditableFields_StoresModifiedDate()
+        {
+            var userObject = new UserObject { Name = "Saturn" };
+
+            _repo.UpdateEditableFields(userObject, new UserObjectDtoForUpdate { Notes = "New" });
+
+            Assert.That(userObject.ModifiedDate, Is.Not.Null);
         }
 
         [Test]

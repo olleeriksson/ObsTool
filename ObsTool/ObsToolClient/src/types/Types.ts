@@ -267,6 +267,7 @@ export interface IObservedObject {
     numReferences?: number;
     referencedSessionDates?: string[];
     references?: IObjectReference[];
+    modifiedDate?: string | null;
     canEdit?: boolean;
     canDelete?: boolean;
 }
@@ -276,7 +277,7 @@ export interface IObjectReference {
     date: string;
 }
 
-export type IUserObjectForSave = Omit<IObservedObject, "id" | "objectKind" | "objectKey" | "numReferences" | "referencedSessionDates" | "references" | "canEdit" | "canDelete">;
+export type IUserObjectForSave = Omit<IObservedObject, "id" | "objectKind" | "objectKey" | "numReferences" | "referencedSessionDates" | "references" | "modifiedDate" | "canEdit" | "canDelete">;
 
 export interface IObsSession {
     id?: number;

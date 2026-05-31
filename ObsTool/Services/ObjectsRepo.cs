@@ -131,6 +131,7 @@ namespace ObsTool.Services
             RejectExistingSacObjectConflict(userObject.Name);
 
             userObject.UserId = userId;
+            userObject.ModifiedDate = DateTime.UtcNow;
             var added = _dbContext.UserObjects.Add(userObject);
             _dbContext.SaveChanges();
             return added.Entity;
@@ -150,6 +151,7 @@ namespace ObsTool.Services
 
             RejectExistingSacObjectConflict(otherObject.Name);
 
+            otherObject.ModifiedDate = DateTime.UtcNow;
             var added = _dbContext.OtherObjects.Add(otherObject);
             _dbContext.SaveChanges();
             return added.Entity;
@@ -169,6 +171,7 @@ namespace ObsTool.Services
             target.RA = NormalizeOptionalText(update.RA);
             target.DEC = NormalizeOptionalText(update.DEC);
             target.Mag = NormalizeOptionalText(update.Mag);
+            target.ModifiedDate = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -185,6 +188,7 @@ namespace ObsTool.Services
             target.RA = NormalizeOptionalText(update.RA);
             target.DEC = NormalizeOptionalText(update.DEC);
             target.Mag = NormalizeOptionalText(update.Mag);
+            target.ModifiedDate = DateTime.UtcNow;
         }
 
         /// <summary>
