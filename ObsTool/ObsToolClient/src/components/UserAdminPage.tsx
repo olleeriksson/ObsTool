@@ -574,7 +574,7 @@ function UserAdminPage(props: IUserAdminPageProps) {
                     text={deleteDialogUser
                         ? `Are you sure you want to delete this database user? ${getUserIdentityLine(deleteDialogUser)} This action cannot be undone.`
                         : "Are you sure you want to delete this database user? This action cannot be undone."}
-                    finalWarningText="Final warning: this will permanently delete the database user. Click Delete again to continue."
+                    finalWarningText="Please reconfirm that you want to permanently delete the database user. Click Delete to continue."
                     requireSecondDeleteClick={true}
                     showWarningSign={true}
                     onHandleClose={handleDeleteDialogClosed}

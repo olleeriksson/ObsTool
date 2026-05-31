@@ -7,11 +7,6 @@ import Autocomplete from "@mui/material/Autocomplete";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid2";
 import IconButton from "@mui/material/IconButton";
@@ -41,6 +36,7 @@ import { getDsoTypeAbbreviation, getDsoTypeOptions, resolveDsoTypeCode, translat
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
 import { DsoTypeIcon } from "./DsoTypeIcon";
+import DeleteDialog from "./DeleteDialog";
 
 const SAC_OBJECT_TYPE_OPTIONS = getDsoTypeOptions().map(option => option.code);
 const UNSPECIFIED_CONSTELLATION_OPTION: IConstellationOption = { name: "Unspecified", abbreviation: "" };
@@ -1096,6 +1092,16 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         this.setState({ deleteCandidate: undefined });
     }
 
+    // Closes the shared high-friction delete dialog and deletes only after confirmed.
+    private handleDeleteDialogClosed = (confirm: boolean) => {
+        if (!confirm) {
+            this.handleCancelDelete();
+            return;
+        }
+
+        this.handleConfirmDelete();
+    }
+
     // Deletes the selected object through the matching API endpoint, relying on the backend to reject references too.
     private handleConfirmDelete = () => {
         const deleteCandidate = this.state.deleteCandidate;
@@ -1268,23 +1274,22 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 SAC object already exists: {exactSacObjectNames.join(", ")}
             </Alert>
         ) : null;
+        const deleteCandidate = this.state.deleteCandidate;
+        const deleteObjectKindLabel = deleteCandidate?.objectKind === "Other" ? "other object" : "user object";
         const deleteDialog = (
-            <Dialog open={!!this.state.deleteCandidate} onClose={this.handleCancelDelete}>
-                <DialogTitle>
-                    {this.state.deleteCandidate?.objectKind === "Other"
-                        ? "Delete other object?"
-                        : "Delete user object?"}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Delete <strong>{this.state.deleteCandidate?.name}</strong>?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={this.handleCancelDelete} color="primary">Cancel</Button>
-                    <Button onClick={this.handleConfirmDelete} color="primary">Delete</Button>
-                </DialogActions>
-            </Dialog>
+            <DeleteDialog
+                isOpen={Boolean(deleteCandidate)}
+                title={deleteCandidate
+                    ? `Delete ${deleteObjectKindLabel} ${deleteCandidate.name}?`
+                    : "Delete object?"}
+                text={deleteCandidate
+                    ? `Are you sure you want to delete this ${deleteObjectKindLabel}?`
+                    : "Are you sure you want to delete this object?"}
+                finalWarningText={`Please reconfirm that you want to delete the ${deleteObjectKindLabel}.`}
+                requireSecondDeleteClick={true}
+                showWarningSign={true}
+                onHandleClose={this.handleDeleteDialogClosed}
+            />
         );
 
         return (

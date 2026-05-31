@@ -21,7 +21,7 @@ describe("DeleteDialog", () => {
                 isOpen={true}
                 title="Delete session?"
                 text="This action cannot be undone."
-                finalWarningText="Final warning: click Delete again."
+                finalWarningText="Please reconfirm this deletion."
                 requireSecondDeleteClick={true}
                 showWarningSign={true}
                 onHandleClose={onHandleClose}
@@ -31,14 +31,18 @@ describe("DeleteDialog", () => {
         fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
         expect(onHandleClose).not.toHaveBeenCalled();
-        expect(screen.getByText("Final warning: click Delete again.")).toBeVisible();
-        expect(screen.getByRole("button", { name: /Delete again in/ })).toBeDisabled();
+        expect(screen.getByText("Please reconfirm this deletion.")).toBeVisible();
+        expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+        expect(screen.getByTestId("WarningAmberIcon")).toHaveStyle({
+            color: "#000",
+            fontSize: "72px"
+        });
 
         act(() => {
             vi.advanceTimersByTime(2000);
         });
 
-        const secondDeleteButton = screen.getByRole("button", { name: "Delete again" });
+        const secondDeleteButton = screen.getByRole("button", { name: "Delete" });
         expect(secondDeleteButton).toBeEnabled();
 
         fireEvent.click(secondDeleteButton);

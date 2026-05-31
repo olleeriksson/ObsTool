@@ -110,14 +110,9 @@ class DeleteDialog extends React.Component<IDeleteDialogProps, IDeleteDialogStat
         });
     }
 
-    // Builds the Delete button text from the current confirmation step.
+    // Keeps the destructive action label stable while the delay controls availability.
     private getDeleteButtonLabel() {
-        if (!this.props.requireSecondDeleteClick || !this.state.isAwaitingSecondClick) {
-            return "Delete";
-        }
-
-        const remainingSeconds = Math.ceil(this.getRemainingDelayMs() / 1000);
-        return remainingSeconds > 0 ? `Delete again in ${remainingSeconds}s` : "Delete again";
+        return "Delete";
     }
 
     // Renders the optional visual warning block for high-impact delete operations.
@@ -128,7 +123,7 @@ class DeleteDialog extends React.Component<IDeleteDialogProps, IDeleteDialogStat
 
         return (
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-                <WarningAmberIcon color="error" style={{ fontSize: 88 }} />
+                <WarningAmberIcon style={{ color: "#000", fontSize: 72 }} />
             </div>
         );
     }
@@ -138,7 +133,7 @@ class DeleteDialog extends React.Component<IDeleteDialogProps, IDeleteDialogStat
             && this.state.isAwaitingSecondClick
             && this.getRemainingDelayMs() > 0;
         const finalWarningText = this.props.finalWarningText
-            || "Final warning: click Delete again to permanently delete this item.";
+            || "Please reconfirm that you want to permanently delete this item. Click Delete to continue.";
 
         return <div>
             <Dialog

@@ -69,6 +69,16 @@ const getObjectTableRowNames = (table: HTMLElement) => {
         .map(row => within(row).getAllByRole("cell")[0].textContent);
 };
 
+// Completes the shared two-step delete dialog, including its two-second delay before final confirmation.
+const confirmDelayedDeleteDialog = async (expectedFinalWarningText: string) => {
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(screen.getByText(expectedFinalWarningText)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Delete" })).toBeEnabled(), { timeout: 3500 });
+    const finalDeleteButton = screen.getByRole("button", { name: "Delete" });
+    fireEvent.click(finalDeleteButton);
+};
+
 it("flags duplicate user object names immediately and disables save", async () => {
     renderObjectsView({
         userObjects: [{ id: 7, name: "Jupiter", objectKind: "User", canDelete: true }],
@@ -415,6 +425,23 @@ it("lets privileged users edit other objects through the other object endpoint",
     expect(updateUserObject).not.toHaveBeenCalled();
 });
 
+it("requires a warning icon and delayed second confirmation before deleting user objects", async () => {
+    const deleteUserObject = vi.spyOn(Api, "deleteUserObject").mockResolvedValue({} as any);
+    renderObjectsView({
+        userObjects: [{ id: 7, name: "Mars", objectKind: "User", canDelete: true }],
+        otherObjects: [],
+    });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Delete Mars" }));
+    expect(screen.getByRole("heading", { name: "Delete user object Mars?" })).toBeInTheDocument();
+    expect(screen.getByTestId("WarningAmberIcon")).toBeInTheDocument();
+    expect(screen.getByText("Are you sure you want to delete this user object?")).toBeInTheDocument();
+
+    await confirmDelayedDeleteDialog("Please reconfirm that you want to delete the user object.");
+
+    await waitFor(() => expect(deleteUserObject).toHaveBeenCalledWith(7));
+});
+
 it("lets privileged users delete unreferenced other objects through the other object endpoint", async () => {
     const deleteOtherObject = vi.spyOn(Api, "deleteOtherObject").mockResolvedValue({} as any);
     const deleteUserObject = vi.spyOn(Api, "deleteUserObject");
@@ -425,8 +452,11 @@ it("lets privileged users delete unreferenced other objects through the other ob
     });
 
     fireEvent.click(await screen.findByRole("button", { name: "Delete Saturn" }));
-    expect(screen.getByRole("heading", { name: "Delete other object?" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(screen.getByRole("heading", { name: "Delete other object Saturn?" })).toBeInTheDocument();
+    expect(screen.getByTestId("WarningAmberIcon")).toBeInTheDocument();
+    expect(screen.getByText("Are you sure you want to delete this other object?")).toBeInTheDocument();
+
+    await confirmDelayedDeleteDialog("Please reconfirm that you want to delete the other object.");
 
     await waitFor(() => expect(deleteOtherObject).toHaveBeenCalledWith(12));
     expect(deleteUserObject).not.toHaveBeenCalled();

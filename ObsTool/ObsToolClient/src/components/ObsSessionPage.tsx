@@ -440,7 +440,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                     isOpen={this.state.isDeleteDialogOpen}
                     title={deleteDialogTitle}
                     text={deleteDialogText}
-                    finalWarningText="Final warning: this will permanently delete the observation session and all associated observations. Click Delete again to continue."
+                    finalWarningText="Please reconfirm that you want to permanently delete the observation session and all associated observations. Click Delete to continue."
                     requireSecondDeleteClick={true}
                     showWarningSign={true}
                     onHandleClose={this.handleDeleteDialogClosed}
