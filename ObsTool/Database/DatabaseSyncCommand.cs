@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -360,11 +361,12 @@ ORDER BY name";
                 }
             }
 
-            var upsertedRows = UpsertRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableSync, columnsToCopy);
-            Console.WriteLine($"{UpdateGeneralTablesOption}: {tableSync.TableName}: upserted {upsertedRows} row(s) using {columnsToCopy.Count} column(s).");
+            var transferResult = UpsertRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableSync, columnsToCopy);
+            Console.WriteLine($"{UpdateGeneralTablesOption}: {tableSync.TableName}: upserted {transferResult.RowsTransferred} row(s) using {columnsToCopy.Count} column(s) in {FormatElapsed(transferResult.Elapsed)}.");
         }
 
-        private static int UpsertRows(
+        // Streams one shared/catalog table from SQLite to the target database while reporting live row progress.
+        private static TableTransferResult UpsertRows(
             SqliteConnection sourceConnection,
             DbConnection targetConnection,
             DbTransaction targetTransaction,
@@ -376,6 +378,8 @@ ORDER BY name";
             using var sourceCommand = sourceConnection.CreateCommand();
             sourceCommand.CommandText = $"SELECT {sourceColumnSql} FROM {QuoteIdentifier("sqlite", tableSync.TableName)}";
 
+            var totalRows = CountSourceRows(sourceConnection, tableSync.TableName, null, null);
+            using var progress = TableTransferProgress.Start(UpdateGeneralTablesOption, tableSync.TableName, totalRows);
             using var sourceReader = sourceCommand.ExecuteReader();
             var upsertedRows = 0;
             while (sourceReader.Read())
@@ -387,9 +391,10 @@ ORDER BY name";
                 AddReaderParameters(sourceReader, targetCommand, columns.Count);
                 targetCommand.ExecuteNonQuery();
                 upsertedRows++;
+                progress.Report(upsertedRows);
             }
 
-            return upsertedRows;
+            return progress.Complete(upsertedRows);
         }
 
         private static string BuildUpsertCommandText(
@@ -443,7 +448,12 @@ ORDER BY name";
             string targetProvider,
             int userId)
         {
-            ValidateSourceUserExists(sourceConnection, userId);
+            var sourceUser = GetSourceUserIdentity(sourceConnection, userId);
+            var coveringDashes = new string('-', sourceUser.DisplayLabel.Length);
+            Console.WriteLine($"{ReplaceUserDataOption}: -----------------------------{coveringDashes}-------");
+            Console.WriteLine($"{ReplaceUserDataOption}: ------ Copying user data for {sourceUser.DisplayLabel} ------");
+            Console.WriteLine($"{ReplaceUserDataOption}: -----------------------------{coveringDashes}-------");
+
             EnsureTargetUserExists(sourceConnection, targetConnection, targetTransaction, targetProvider, userId);
             DeleteTargetUserData(targetConnection, targetTransaction, targetProvider, userId);
 
@@ -453,17 +463,31 @@ ORDER BY name";
             }
         }
 
-        private static void ValidateSourceUserExists(SqliteConnection sourceConnection, int userId)
+        // Reads the source account identity so the sync output shows which user is being copied.
+        private static SourceUserIdentity GetSourceUserIdentity(SqliteConnection sourceConnection, int userId)
         {
             using var command = sourceConnection.CreateCommand();
-            command.CommandText = "SELECT COUNT(*) FROM \"Users\" WHERE \"Id\" = @userId";
+            command.CommandText = "SELECT \"Id\", \"FullName\", \"Username\", \"Email\" FROM \"Users\" WHERE \"Id\" = @userId";
             AddUserIdParameter(command, userId);
 
-            var rows = Convert.ToInt64(command.ExecuteScalar());
-            if (rows != 1)
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
             {
-                throw new InvalidOperationException($"Source SQLite must contain exactly one Users row with Id {userId}; found {rows}.");
+                throw new InvalidOperationException($"Source SQLite must contain exactly one Users row with Id {userId}; found 0.");
             }
+
+            var sourceUser = new SourceUserIdentity(
+                reader.GetInt32(reader.GetOrdinal("Id")),
+                GetNullableString(reader, "FullName"),
+                GetNullableString(reader, "Username"),
+                GetNullableString(reader, "Email"));
+
+            if (reader.Read())
+            {
+                throw new InvalidOperationException($"Source SQLite must contain exactly one Users row with Id {userId}; found more than one.");
+            }
+
+            return sourceUser;
         }
 
         private static void EnsureTargetUserExists(
@@ -552,11 +576,12 @@ ORDER BY name";
             }
 
             var columnsToCopy = GetCommonColumns(sourceColumns, targetColumns, tableImport.TableName);
-            var insertedRows = InsertRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableImport, columnsToCopy, userId);
-            Console.WriteLine($"{ReplaceUserDataOption}: {tableImport.TableName}: inserted {insertedRows} row(s) using {columnsToCopy.Count} column(s).");
+            var transferResult = InsertRows(sourceConnection, targetConnection, targetTransaction, targetProvider, tableImport, columnsToCopy, userId);
+            Console.WriteLine($"{ReplaceUserDataOption}: {tableImport.TableName}: inserted {transferResult.RowsTransferred} row(s) using {columnsToCopy.Count} column(s) in {FormatElapsed(transferResult.Elapsed)}.");
         }
 
-        private static int InsertRows(
+        // Streams one user-owned table from SQLite to the target database while reporting live row progress.
+        private static TableTransferResult InsertRows(
             SqliteConnection sourceConnection,
             DbConnection targetConnection,
             DbTransaction targetTransaction,
@@ -575,6 +600,8 @@ ORDER BY name";
                 AddUserIdParameter(sourceCommand, userId);
             }
 
+            var totalRows = CountSourceRows(sourceConnection, tableName, tableImport.SourceWhereClause, userId);
+            using var progress = TableTransferProgress.Start(ReplaceUserDataOption, tableName, totalRows);
             using var sourceReader = sourceCommand.ExecuteReader();
             var insertedRows = 0;
 
@@ -590,9 +617,10 @@ ORDER BY name";
                 AddReaderParameters(sourceReader, targetCommand, columns.Count);
                 targetCommand.ExecuteNonQuery();
                 insertedRows++;
+                progress.Report(insertedRows);
             }
 
-            return insertedRows;
+            return progress.Complete(insertedRows);
         }
 
         private static IReadOnlyList<string> GetCommonColumns(
@@ -612,6 +640,24 @@ ORDER BY name";
             return columnsToCopy;
         }
 
+        // Counts source rows before transfer so the live status can show current and total row counts.
+        private static long CountSourceRows(SqliteConnection sourceConnection, string tableName, string sourceWhereClause, int? userId)
+        {
+            using var command = sourceConnection.CreateCommand();
+            command.CommandText = $"SELECT COUNT(*) FROM {QuoteIdentifier("sqlite", tableName)} AS source";
+            if (!string.IsNullOrWhiteSpace(sourceWhereClause))
+            {
+                command.CommandText += $" WHERE {sourceWhereClause}";
+            }
+
+            if (userId.HasValue)
+            {
+                AddUserIdParameter(command, userId.Value);
+            }
+
+            return Convert.ToInt64(command.ExecuteScalar());
+        }
+
         private static void AddReaderParameters(DbDataReader sourceReader, DbCommand targetCommand, int columnCount)
         {
             for (var i = 0; i < columnCount; i++)
@@ -621,6 +667,13 @@ ORDER BY name";
                 parameter.Value = sourceReader.IsDBNull(i) ? DBNull.Value : sourceReader.GetValue(i);
                 targetCommand.Parameters.Add(parameter);
             }
+        }
+
+        // Reads an optional string column without treating missing display data as a sync failure.
+        private static string GetNullableString(DbDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
         }
 
         private static void AddUserIdParameter(DbCommand command, int userId)
@@ -796,6 +849,13 @@ ORDER BY ORDINAL_POSITION";
                 || string.Equals(key, "Pwd", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static string FormatElapsed(TimeSpan elapsed)
+        {
+            return elapsed.TotalHours >= 1
+                ? elapsed.ToString(@"h\:mm\:ss")
+                : elapsed.ToString(@"m\:ss\.fff");
+        }
+
         private sealed class GeneralTableSync
         {
             public GeneralTableSync(string tableName, IReadOnlyCollection<string> keyColumns)
@@ -807,6 +867,168 @@ ORDER BY ORDINAL_POSITION";
             public string TableName { get; }
 
             public IReadOnlyCollection<string> KeyColumns { get; }
+        }
+
+        private sealed class TableTransferResult
+        {
+            public TableTransferResult(int rowsTransferred, TimeSpan elapsed)
+            {
+                RowsTransferred = rowsTransferred;
+                Elapsed = elapsed;
+            }
+
+            public int RowsTransferred { get; }
+
+            public TimeSpan Elapsed { get; }
+        }
+
+        private sealed class TableTransferProgress : IDisposable
+        {
+            private static readonly TimeSpan MinimumRefreshInterval = TimeSpan.FromMilliseconds(250);
+            private readonly string _operation;
+            private readonly string _tableName;
+            private readonly long _totalRows;
+            private readonly Stopwatch _stopwatch;
+            private readonly bool _canRewriteStatusLine;
+            private DateTime _lastRefreshUtc = DateTime.MinValue;
+            private int _lastStatusLength;
+            private bool _completed;
+
+            private TableTransferProgress(string operation, string tableName, long totalRows)
+            {
+                _operation = operation;
+                _tableName = tableName;
+                _totalRows = totalRows;
+                _canRewriteStatusLine = !Console.IsOutputRedirected;
+                _stopwatch = Stopwatch.StartNew();
+            }
+
+            // Starts a per-table progress line immediately, including zero-row tables.
+            public static TableTransferProgress Start(string operation, string tableName, long totalRows)
+            {
+                var progress = new TableTransferProgress(operation, tableName, totalRows);
+                progress.WriteStatus(0, force: true);
+                return progress;
+            }
+
+            public void Report(int rowsTransferred)
+            {
+                if (ShouldRefreshStatus())
+                {
+                    WriteStatus(rowsTransferred, force: true);
+                }
+            }
+
+            // Clears the live status line and returns the duration that should remain in the completed summary.
+            public TableTransferResult Complete(int rowsTransferred)
+            {
+                WriteStatus(rowsTransferred, force: true);
+                _stopwatch.Stop();
+                ClearStatusLine();
+                _completed = true;
+                return new TableTransferResult(rowsTransferred, _stopwatch.Elapsed);
+            }
+
+            public void Dispose()
+            {
+                if (!_completed)
+                {
+                    ClearStatusLine();
+                }
+            }
+
+            private bool ShouldRefreshStatus()
+            {
+                if (!_canRewriteStatusLine)
+                {
+                    return false;
+                }
+
+                var now = DateTime.UtcNow;
+                if (now - _lastRefreshUtc < MinimumRefreshInterval)
+                {
+                    return false;
+                }
+
+                _lastRefreshUtc = now;
+                return true;
+            }
+
+            private void WriteStatus(int rowsTransferred, bool force)
+            {
+                if (!_canRewriteStatusLine && !force)
+                {
+                    return;
+                }
+
+                if (!_canRewriteStatusLine)
+                {
+                    return;
+                }
+
+                var status = $"{_operation}: {_tableName}: transferring {rowsTransferred}/{_totalRows} row(s), elapsed {FormatElapsed(_stopwatch.Elapsed)}";
+                var padding = _lastStatusLength > status.Length ? new string(' ', _lastStatusLength - status.Length) : string.Empty;
+                Console.Write($"\r{status}{padding}");
+                _lastStatusLength = status.Length;
+            }
+
+            private void ClearStatusLine()
+            {
+                if (!_canRewriteStatusLine || _lastStatusLength == 0)
+                {
+                    return;
+                }
+
+                Console.Write($"\r{new string(' ', _lastStatusLength)}\r");
+                _lastStatusLength = 0;
+            }
+        }
+
+        private sealed class SourceUserIdentity
+        {
+            public SourceUserIdentity(int id, string fullName, string username, string email)
+            {
+                Id = id;
+                FullName = fullName;
+                Username = username;
+                Email = email;
+            }
+
+            public int Id { get; }
+
+            public string FullName { get; }
+
+            public string Username { get; }
+
+            public string Email { get; }
+
+            public string DisplayLabel
+            {
+                get
+                {
+                    var displayName = FirstNonEmpty(FullName, Username, Email, $"Users.Id {Id}");
+                    var details = new List<string>();
+                    AddDetail(details, "username", Username, displayName);
+
+                    var detailText = details.Count == 0 ? string.Empty : $" ({string.Join(", ", details)})";
+                    return $"Users.Id {Id}: {displayName}{detailText}";
+                }
+            }
+
+            // Picks the clearest account label while tolerating partially populated maintenance data.
+            private static string FirstNonEmpty(params string[] values)
+            {
+                return values.First(value => !string.IsNullOrWhiteSpace(value));
+            }
+
+            // Avoids repeating the primary display name in the detail suffix.
+            private static void AddDetail(List<string> details, string label, string value, string displayName)
+            {
+                if (!string.IsNullOrWhiteSpace(value) && !string.Equals(value, displayName, StringComparison.Ordinal))
+                {
+                    details.Add($"{label}: {value}");
+                }
+            }
         }
 
         private sealed class TableImport
