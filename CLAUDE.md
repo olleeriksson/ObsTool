@@ -166,9 +166,12 @@ Use `--update-general-tables` to upsert the shared catalog tables:
 
 - `Constellations`
 - `SacDeepSkyObjects`
+- `OtherObjects`
 - `H2500`
 
 `--update-general-tables` inserts missing rows and updates existing rows by stable primary key. It does not delete target rows that are missing from the source SQLite database.
+
+For routine runs, `--exclude-sac-data` and `--exclude-h2500-data` skip updating the large `SacDeepSkyObjects` and `H2500` tables. These flags are ignored when `--recreate-target-schema` is supplied so a rebuilt schema is repopulated with the full reference data set.
 
 Use `--replace-user-data={userid}` to replace user-owned observation data for a hardcoded allowlist of database users. Pass a comma-separated list to replace all allowed users in one run:
 

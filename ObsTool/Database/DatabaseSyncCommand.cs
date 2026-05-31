@@ -20,6 +20,8 @@ namespace ObsTool.Database
         private const string SourceSqliteOption = "--source-sqlite";
         private const string UpdateGeneralTablesOption = "--update-general-tables";
         private const string ReplaceUserDataOption = "--replace-user-data";
+        private const string ExcludeSacDataOption = "--exclude-sac-data";
+        private const string ExcludeH2500DataOption = "--exclude-h2500-data";
         private const string RecreateTargetSchemaOption = "--recreate-target-schema";
         private const string ConfirmRecreateTargetSchemaOption = "--confirm-recreate-target-schema";
         private const string RecreateConfirmationPhrase = "RECREATE TARGET SCHEMA";
@@ -58,6 +60,7 @@ namespace ObsTool.Database
             var replaceUserDataUserIds = GetReplaceUserDataUserIds(args);
             var replaceUserData = replaceUserDataUserIds.Count > 0;
             var recreateTargetSchema = HasFlag(args, RecreateTargetSchemaOption);
+            var excludedGeneralTableNames = GetExcludedGeneralTableNames(args, recreateTargetSchema);
 
             if (!updateGeneralTables && !replaceUserData)
             {
@@ -78,6 +81,10 @@ namespace ObsTool.Database
             if (replaceUserData)
             {
                 Console.WriteLine($"{ReplaceUserDataOption}: target/source Users.Id {string.Join(", ", replaceUserDataUserIds)}");
+            }
+            if (updateGeneralTables && excludedGeneralTableNames.Count > 0)
+            {
+                Console.WriteLine($"{UpdateGeneralTablesOption}: excluding data for {string.Join(", ", excludedGeneralTableNames)}");
             }
 
             if (recreateTargetSchema)
@@ -103,7 +110,7 @@ namespace ObsTool.Database
             {
                 if (updateGeneralTables)
                 {
-                    UpdateGeneralTables(sourceConnection, targetConnection, targetTransaction, targetContext.Database.ProviderName);
+                    UpdateGeneralTables(sourceConnection, targetConnection, targetTransaction, targetContext.Database.ProviderName, excludedGeneralTableNames);
                 }
 
                 if (replaceUserData)
@@ -151,6 +158,28 @@ namespace ObsTool.Database
             {
                 yield return ReplaceUserDataOption;
             }
+        }
+
+        // Resolves optional general-table exclusions; a schema rebuild always needs the full reference data set.
+        private static IReadOnlyCollection<string> GetExcludedGeneralTableNames(string[] args, bool recreateTargetSchema)
+        {
+            if (recreateTargetSchema)
+            {
+                return Array.Empty<string>();
+            }
+
+            var excludedTableNames = new List<string>();
+            if (HasFlag(args, ExcludeSacDataOption))
+            {
+                excludedTableNames.Add("SacDeepSkyObjects");
+            }
+
+            if (HasFlag(args, ExcludeH2500DataOption))
+            {
+                excludedTableNames.Add("H2500");
+            }
+
+            return excludedTableNames;
         }
 
         // Parses the required user id list for the replace-user-data operation.
@@ -321,14 +350,22 @@ ORDER BY name";
             return sqliteTableNames;
         }
 
+        // Applies the selected general-table sync set, skipping optional large catalog tables when requested.
         private static void UpdateGeneralTables(
             SqliteConnection sourceConnection,
             DbConnection targetConnection,
             DbTransaction targetTransaction,
-            string targetProvider)
+            string targetProvider,
+            IReadOnlyCollection<string> excludedTableNames)
         {
             foreach (var tableSync in GeneralTables)
             {
+                if (excludedTableNames.Contains(tableSync.TableName, StringComparer.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"{UpdateGeneralTablesOption}: {tableSync.TableName}: skipped by command-line option.");
+                    continue;
+                }
+
                 UpsertGeneralTable(sourceConnection, targetConnection, targetTransaction, targetProvider, tableSync);
             }
         }

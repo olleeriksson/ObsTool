@@ -37,6 +37,8 @@ Operations
 Choose one or both of these operations:
 
     --update-general-tables
+    --exclude-sac-data
+    --exclude-h2500-data
     --replace-user-data=1
     --replace-user-data=2
     --replace-user-data=3
@@ -50,12 +52,14 @@ source SQLite database:
 
     Constellations
     SacDeepSkyObjects
+    OtherObjects
     H2500
 
 It upserts by stable primary key:
 
     Constellations.Id
     SacDeepSkyObjects.Id
+    OtherObjects.Id
     H2500.HerschelId
 
 For each source row, the command inserts the row if it is missing in MySQL, or
@@ -64,6 +68,15 @@ rows that are missing from the source SQLite database.
 
 This operation is intended to be safe after multiple users exist because it does
 not touch user-owned observation data.
+
+For routine sync runs, add these optional flags to skip large catalog table data:
+
+    --exclude-sac-data
+    --exclude-h2500-data
+
+The exclude flags only apply to normal --update-general-tables runs. They are
+ignored when --recreate-target-schema is supplied, because a recreated target
+schema needs the full reference data set to satisfy foreign-key relationships.
 
 --replace-user-data={userid}
 ----------------------------

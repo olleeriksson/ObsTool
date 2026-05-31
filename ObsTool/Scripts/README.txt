@@ -37,6 +37,25 @@ In appsettings.json, legacy but usable, and only superadmin:
   }
 
 
+#=======================================================================
+# To test MySQL locally
+#=======================================================================
+
+Run
+---------------
+<Start Docker Desktop>
+Scripts\LOCAL-MYSQL-start-mysql-via-docker.cmd
+Scripts\LOCAL-MYSQL-start-obstool-backend.cmd
+Scripts\LOCAL-DEV-build-and-run-FE.cmd
+
+Transfer data
+---------------
+  ./Scripts/LOCAL-MYSQL-sync-db.cmd                                                   (Updates all data)
+  ./Scripts/LOCAL-MYSQL-sync-db.cmd --exclude-sac-data and --exclude-h2500-data       (Excludes the heavy tables)
+  ./Scripts/LOCAL-MYSQL-sync-db.cmd --recreate-target-schema                          (Recreates the schema)
+
+
+
 #=============================================
 # Run Local Production
 #=============================================
@@ -64,8 +83,9 @@ Release
 
 Transfer data
 ---------------
-  ./Scripts/PROD-EXTERNAL-sync-db.cmd                                (just updates everything)
-  ./Scripts/PROD-EXTERNAL-sync-db.cmd --recreate-target-schema       (drops and recreates the schema)
+  ./Scripts/PROD-EXTERNAL-sync-db.cmd                                                   (Updates all data)
+  ./Scripts/PROD-EXTERNAL-sync-db.cmd --exclude-sac-data and --exclude-h2500-data       (Excludes the heavy tables)
+  ./Scripts/PROD-EXTERNAL-sync-db.cmd --recreate-target-schema                          (Recreates the schema)
 
 Manage super admins
 ---------------------
@@ -104,21 +124,13 @@ Manage super admins
       Control Panel V5 > Hosting Control Panel > Advance > Pool Manager > Actions > Restart
 
 
-#=======================================================================
-# To test External Production at SmarterASP.NET but with local MySQL
-#=======================================================================
 
-Run
----------------
-<Start Docker Desktop>
-Scripts\LOCAL-MYSQL-start-mysql-via-docker.cmd
-Scripts\LOCAL-MYSQL-start-obstool-backend.cmd
-Scripts\LOCAL-DEV-build-and-run-FE.cmd
 
-Transfer data
----------------
-  ./Scripts/LOCAL-MYSQL-sync-db.cmd                                (just updates everything)
-  ./Scripts/LOCAL-MYSQL-sync-db.cmd --recreate-target-schema       (drops and recreates the schema)
+
+
+**************************************************************************************************************
+**************************************************** OLD *****************************************************
+**************************************************************************************************************
 
 
 #=======================================================================
