@@ -1,3 +1,4 @@
 2026-05-21    - 
 2026-05-23    - Transferred local data to external db
 2026-05-23-02 - Added event notification system
+2026-05-31    - All the major new features
