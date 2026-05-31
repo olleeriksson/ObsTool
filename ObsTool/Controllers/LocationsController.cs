@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -72,7 +72,9 @@ namespace ObsTool.Controllers
                 })
                 .ThenByDescending(loc => loc.Id);
 
-            var results = _mapper.Map<IEnumerable<LocationDto>>(sortedLocations);
+            var results = sortedLocations.Select(location => MapLocationDto(location, locationUsage.ContainsKey(location.Id)
+                ? locationUsage[location.Id].Count
+                : 0));
             return Ok(results);
         }
 
@@ -88,7 +90,7 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            var locationDto = _mapper.Map<LocationDto>(location);
+            var locationDto = MapLocationDto(location, _obsSessionsRepository.GetNumObsSessionsForLocation(userId, id));
 
             return Ok(locationDto);
         }
@@ -107,7 +109,7 @@ namespace ObsTool.Controllers
                 return StatusCode(500, "Something went wrong creating a location");
             }
 
-            LocationDto addedLocationDto = _mapper.Map<LocationDto>(addedLocation);
+            LocationDto addedLocationDto = MapLocationDto(addedLocation, 0);
             return CreatedAtRoute("GetOneLocation", new { id = addedLocationDto.Id }, addedLocationDto);
         }
         
@@ -141,7 +143,7 @@ namespace ObsTool.Controllers
                 return StatusCode(500, "Something went wrong updating the location");
             }
 
-            LocationDto locationDtoUpdated = _mapper.Map<LocationDto>(locationEntity);
+            LocationDto locationDtoUpdated = MapLocationDto(locationEntity, _obsSessionsRepository.GetNumObsSessionsForLocation(userId, id));
             return Ok(locationDtoUpdated);
         }
 
@@ -156,10 +158,10 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            bool anyObsSessionReferring = _obsSessionsRepository.GetObsSessions(userId).Any(s => s.LocationId == id);
-            if (anyObsSessionReferring)
+            int numObsSessionReferences = _obsSessionsRepository.GetNumObsSessionsForLocation(userId, id);
+            if (numObsSessionReferences > 0)
             {
-                return BadRequest("There are observation sessions referring to this location. Can not delete.");
+                return BadRequest(FormatLocationDeleteReferenceMessage(numObsSessionReferences));
             }
 
             bool result = _locationsRepository.DeleteLocation(locationEntity);
@@ -169,6 +171,25 @@ namespace ObsTool.Controllers
             }
 
             return Ok();
+        }
+
+        // Adds the calculated session-reference count to the normal AutoMapper location DTO.
+        private LocationDto MapLocationDto(Location location, int numReferences)
+        {
+            var locationDto = _mapper.Map<LocationDto>(location);
+            locationDto.NumReferences = numReferences;
+            return locationDto;
+        }
+
+        // Builds the delete-blocking message with singular/plural wording for the session count.
+        private static string FormatLocationDeleteReferenceMessage(int numReferences)
+        {
+            if (numReferences == 1)
+            {
+                return "There is 1 observation session referring to this location. Can not delete.";
+            }
+
+            return $"There are {numReferences} observation sessions referring to this location. Can not delete.";
         }
     }
 }

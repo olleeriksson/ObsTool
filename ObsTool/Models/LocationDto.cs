@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,5 +12,6 @@ namespace ObsTool.Models
         public string Longitude { get; set; }
         public string Latitude { get; set; }
         public string GoogleMapsAddress { get; set; }
+        public int NumReferences { get; set; }
     }
 }

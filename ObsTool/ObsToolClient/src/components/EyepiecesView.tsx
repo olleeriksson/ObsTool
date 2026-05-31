@@ -243,7 +243,9 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                 <DialogTitle>Delete eyepiece?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete <strong>{this.state.currentEyepiece.name}</strong>? This cannot be undone.
+                        Are you sure you want to delete <strong>{this.state.currentEyepiece.name}</strong>? 
+                        An eyepiece can be re-added later if needed, and any references in observation reports will applied
+                        dynamically, so this action is reversible and does not cause data loss.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

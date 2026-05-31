@@ -56,6 +56,12 @@ namespace ObsTool.Services
             return _dbContext.ObsSessions.Count(obsSession => obsSession.UserId == userId);
         }
 
+        // Counts how many sessions owned by the user currently reference a single location.
+        public int GetNumObsSessionsForLocation(int userId, int locationId)
+        {
+            return _dbContext.ObsSessions.Count(obsSession => obsSession.UserId == userId && obsSession.LocationId == locationId);
+        }
+
         public ObsSession GetObsSession(int id)
         {
             return _dbContext.ObsSessions.FirstOrDefault(s => s.Id == id);

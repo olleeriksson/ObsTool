@@ -9,6 +9,7 @@ import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
+import Tooltip from "@mui/material/Tooltip";
 import Api from "../api/Api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ILocation, IAppState, IDataState } from "src/types/Types";
@@ -16,6 +17,7 @@ import classNames from "classnames";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { connect } from "react-redux";
+import DeleteDialog from "./DeleteDialog";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -60,6 +62,8 @@ interface ILocationsViewProps extends WithStyles<typeof styles> {
 interface ILocationsViewState {
     isLoading: boolean;
     isError: boolean;
+    errorMessage?: string;
+    isConfirmDeleteOpen: boolean;
     locations: ILocation[];
     currentLocation: ILocation;
 }
@@ -71,18 +75,21 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         this.state = {
             isLoading: false,
             isError: false,
+            isConfirmDeleteOpen: false,
             locations: [],
             currentLocation: this.getEmptyLocation()
         };
     }
 
+    // Creates the blank editable location used for the add form and after clearing selection.
     private getEmptyLocation = () => {
         return {
             id: undefined,
             name: "",
             longitude: "",
             latitude: "",
-            googleMapsAddress: ""
+            googleMapsAddress: "",
+            numReferences: 0
         };
     }
 
@@ -92,7 +99,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
 
     private loadLocationsFromApi() {
         this.setState({ currentLocation: this.getEmptyLocation() });
-        this.setState({ isLoading: true });
+        this.setState({ isLoading: true, errorMessage: undefined });
         Api.getLocations().then(
             (response) => {
                 const locations: ILocation[] = response.data;
@@ -103,10 +110,12 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                 (error) => {
                     this.setState({ isLoading: false });
                     this.setState({ isError: true });
+                    this.setState({ errorMessage: this.getApiErrorMessage(error, "Error loading locations!") });
                 }
             );
     }
 
+    // Updates one field on the currently selected location without mutating the previous state object.
     private handleFormChange = (name: string) => (event: any) => {
         const newValue = event.target.value;
         this.setState((prevState, props) => ({
@@ -122,28 +131,25 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         if (this.state.locations) {
             const clickedLocation = this.state.locations.find(r => r.id === locationId);
             if (clickedLocation) {
-                this.setState({ currentLocation: clickedLocation });
+                this.setState({ currentLocation: { ...clickedLocation }, isError: false, errorMessage: undefined });
             }
         }
     }
 
+    // Clears the form back to add mode while keeping the loaded location list intact.
     private onClear = () => {
         this.setState({
-            currentLocation: {
-                id: undefined,
-                name: "",
-                longitude: "",
-                latitude: "",
-                googleMapsAddress: ""
-            },
-            isError: false
+            currentLocation: this.getEmptyLocation(),
+            isError: false,
+            errorMessage: undefined
         });
     }
 
+    // Saves either a new or existing location through the matching API endpoint.
     private handleSubmit = (e: any) => {
         e.preventDefault();
         this.setState({ isLoading: true });
-        this.setState({ isError: false });
+        this.setState({ isError: false, errorMessage: undefined });
         if (this.state.currentLocation.id) {
             Api.updateLocation(this.state.currentLocation).then(
                 (response) => {
@@ -152,6 +158,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                     (error) => {
                         this.setState({ isLoading: false });
                         this.setState({ isError: true });
+                        this.setState({ errorMessage: this.getApiErrorMessage(error, "Error saving!") });
                     }
                 );
         } else {
@@ -162,29 +169,62 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                     (error) => {
                         this.setState({ isLoading: false });
                         this.setState({ isError: true });
+                        this.setState({ errorMessage: this.getApiErrorMessage(error, "Error saving!") });
                     }
                 );
         }
     }
 
+    // Opens the shared delete confirmation only for selected, unreferenced locations.
     private onClickDelete = () => {
-        if (this.state.currentLocation.id) {
-            this.setState({ isLoading: true });
-            this.setState({ isError: false });
-            Api.deleteLocation(this.state.currentLocation.id).then(
-                (response) => {
-                    this.loadLocationsFromApi();
-                }).catch(
-                    (error) => {
-                        this.setState({ isLoading: false });
-                        this.setState({ isError: true });
-                    }
-                );
+        if (this.state.currentLocation.id && !this.hasCurrentLocationReferences()) {
+            this.setState({ isConfirmDeleteOpen: true });
         }
+    }
+
+    // Closes the confirmation dialog and deletes only after the shared dialog reports a confirmed action.
+    private handleConfirmDeleteDialogClosed = (confirm: boolean) => {
+        this.setState({ isConfirmDeleteOpen: false });
+        if (!confirm || !this.state.currentLocation.id) {
+            return;
+        }
+
+        this.setState({ isLoading: true, isError: false, errorMessage: undefined });
+        Api.deleteLocation(this.state.currentLocation.id).then(
+            (response) => {
+                this.loadLocationsFromApi();
+            }).catch(
+                (error) => {
+                    this.setState({
+                        isLoading: false,
+                        isError: true,
+                        errorMessage: this.getApiErrorMessage(error, "Error deleting location!")
+                    });
+                }
+            );
+    }
+
+    // Treats any positive session-reference count as a delete blocker.
+    private hasCurrentLocationReferences = () => {
+        return (this.state.currentLocation.numReferences || 0) > 0;
+    }
+
+    // Extracts a readable backend error when the API sends one, falling back to the caller's generic message.
+    private getApiErrorMessage = (error: any, fallbackMessage: string) => {
+        if (typeof error?.response?.data === "string" && error.response.data) {
+            return error.response.data;
+        }
+
+        return fallbackMessage;
     }
 
     public render() {
         const { classes } = this.props;
+        const currentLocationReferenceCount = this.state.currentLocation.numReferences || 0;
+        const deleteDisabled = !this.props.store.isLoggedIn || !this.state.currentLocation.id || this.hasCurrentLocationReferences();
+        const deleteTooltip = this.hasCurrentLocationReferences()
+            ? "Locations used by observation sessions cannot be deleted"
+            : "Delete";
 
         let circularProgress;
         if (this.state.isLoading) {
@@ -255,16 +295,27 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                         Clear
                                     </Button>
                                     {circularProgress}
-                                    {this.state.isError ? <span style={{ color: "red", fontWeight: "bold" }}>Error saving!</span> : null}
+                                    {this.state.isError ? <span style={{ color: "red", fontWeight: "bold" }}>{this.state.errorMessage || "Error saving!"}</span> : null}
                                 </Grid>
                                 <Grid size="grow" style={{ textAlign: "right" }}>
-                                    <IconButton onClick={this.onClickDelete} disabled={!this.props.store.isLoggedIn || !this.state.currentLocation.id} >
-                                        <DeleteIcon />
-                                    </IconButton>
+                                    <Tooltip title={deleteTooltip}>
+                                        <span>
+                                            <IconButton onClick={this.onClickDelete} disabled={deleteDisabled} >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
                                 </Grid>
                             </Grid>
 
                         </Grid>
+                        {this.state.currentLocation.id ? (
+                            <Grid sx={{ px: 1, pt: 1 }}>
+                                <Typography variant="caption" color="textSecondary">
+                                    Referenced by {currentLocationReferenceCount} observation session{currentLocationReferenceCount === 1 ? "" : "s"}.
+                                </Typography>
+                            </Grid>
+                        ) : null}
                     </Grid>
                 </form>
             </div>
@@ -281,10 +332,20 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                 <Typography variant="caption" gutterBottom={true}>
                     Longitude: <strong>{location.longitude || "N/A"}</strong>,
                     Latitude: <strong>{location.latitude || "N/A"}</strong>,
-                    Google Maps address: <strong>{location.googleMapsAddress || "N/A"}</strong>
+                    Obs sessions: <strong>{location.numReferences || 0}</strong>
                 </Typography>
             </Grid>
         ));
+        const deleteDialog = (
+            <DeleteDialog
+                isOpen={this.state.isConfirmDeleteOpen}
+                title={this.state.currentLocation.name ? `Delete location ${this.state.currentLocation.name}?` : "Delete location?"}
+                text={this.state.currentLocation.name
+                    ? `Are you sure you want to delete this location? ${this.state.currentLocation.name} will be removed.`
+                    : "Are you sure you want to delete this location?"}
+                onHandleClose={this.handleConfirmDeleteDialogClosed}
+            />
+        );
 
         return <div className={classes.root}>
             <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
@@ -302,6 +363,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                     </Paper>
                 </Grid>
             </Grid>
+            {deleteDialog}
         </div>;
     }
 }

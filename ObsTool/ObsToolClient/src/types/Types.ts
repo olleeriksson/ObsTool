@@ -364,6 +364,7 @@ export interface ILocation {
     longitude?: string;
     latitude?: string;
     googleMapsAddress: string;
+    numReferences?: number;
 }
 
 export interface IInstrument {
