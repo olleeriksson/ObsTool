@@ -201,6 +201,15 @@ namespace ObsTool.Services
         }
 
         /// <summary>
+        /// Deletes an unreferenced shared object; callers are expected to check references first.
+        /// </summary>
+        public bool DeleteOtherObject(OtherObject otherObject)
+        {
+            _dbContext.OtherObjects.Remove(otherObject);
+            return _dbContext.SaveChanges() > 0;
+        }
+
+        /// <summary>
         /// Returns whether a user object currently participates in any observation link for this user.
         /// </summary>
         public bool AnyUserObjectReferences(int userObjectId, int userId)
@@ -209,6 +218,15 @@ namespace ObsTool.Services
                 .Any(dsoObservation =>
                     dsoObservation.UserObjectId == userObjectId &&
                     dsoObservation.Observation.UserId == userId);
+        }
+
+        /// <summary>
+        /// Returns whether a shared object participates in any observation link across all users.
+        /// </summary>
+        public bool AnyOtherObjectReferences(int otherObjectId)
+        {
+            return _dbContext.DsoObservations
+                .Any(dsoObservation => dsoObservation.OtherObjectId == otherObjectId);
         }
 
         /// <summary>

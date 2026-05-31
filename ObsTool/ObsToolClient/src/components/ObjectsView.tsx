@@ -1086,7 +1086,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         });
     }
 
-    // Opens the confirmation dialog for deletable user objects.
+    // Opens the confirmation dialog for deletable user and shared objects.
     private handleRequestDelete = (objectToDelete: IObservedObject) => {
         this.setState({ deleteCandidate: objectToDelete });
     }
@@ -1096,7 +1096,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         this.setState({ deleteCandidate: undefined });
     }
 
-    // Deletes the selected user object, relying on the API to reject referenced objects too.
+    // Deletes the selected object through the matching API endpoint, relying on the backend to reject references too.
     private handleConfirmDelete = () => {
         const deleteCandidate = this.state.deleteCandidate;
         if (!deleteCandidate?.id) {
@@ -1105,7 +1105,11 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         }
 
         this.setState({ isSaving: true, deleteCandidate: undefined, isError: false, errorMessage: undefined });
-        Api.deleteUserObject(deleteCandidate.id).then(() => {
+        const deleteRequest = deleteCandidate.objectKind === "Other"
+            ? Api.deleteOtherObject(deleteCandidate.id)
+            : Api.deleteUserObject(deleteCandidate.id);
+
+        deleteRequest.then(() => {
             this.setState({ isSaving: false });
             this.loadObjectsFromApi();
         }).catch(error => {
@@ -1151,7 +1155,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         const columnCount = hasActions ? 9 : 8;
         const rows = visibleObjects.map(object => {
             const canEditObject = !!object.canEdit;
-            const showDeleteObject = object.objectKind === "User";
+            const showDeleteObject = object.objectKind === "User" || (object.objectKind === "Other" && canEditObject);
             const deleteDisabled = !object.canDelete;
             return (
                 <TableRow key={object.objectKey || `${title}-${object.id}`}>
@@ -1266,7 +1270,11 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         ) : null;
         const deleteDialog = (
             <Dialog open={!!this.state.deleteCandidate} onClose={this.handleCancelDelete}>
-                <DialogTitle>Delete user object?</DialogTitle>
+                <DialogTitle>
+                    {this.state.deleteCandidate?.objectKind === "Other"
+                        ? "Delete other object?"
+                        : "Delete user object?"}
+                </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
                         Delete <strong>{this.state.deleteCandidate?.name}</strong>?

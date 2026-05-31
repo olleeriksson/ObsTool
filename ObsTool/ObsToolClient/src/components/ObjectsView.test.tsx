@@ -415,6 +415,40 @@ it("lets privileged users edit other objects through the other object endpoint",
     expect(updateUserObject).not.toHaveBeenCalled();
 });
 
+it("lets privileged users delete unreferenced other objects through the other object endpoint", async () => {
+    const deleteOtherObject = vi.spyOn(Api, "deleteOtherObject").mockResolvedValue({} as any);
+    const deleteUserObject = vi.spyOn(Api, "deleteUserObject");
+    renderObjectsView({
+        ...emptyObjectList,
+        canCreateOtherObjects: true,
+        otherObjects: [{ id: 12, name: "Saturn", objectKind: "Other", canEdit: true, canDelete: true }],
+    });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Delete Saturn" }));
+    expect(screen.getByRole("heading", { name: "Delete other object?" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(deleteOtherObject).toHaveBeenCalledWith(12));
+    expect(deleteUserObject).not.toHaveBeenCalled();
+});
+
+it("disables other object deletion when the backend marks the object as referenced", async () => {
+    renderObjectsView({
+        ...emptyObjectList,
+        canCreateOtherObjects: true,
+        otherObjects: [{
+            id: 12,
+            name: "Saturn",
+            objectKind: "Other",
+            canEdit: true,
+            canDelete: false,
+            numReferences: 1,
+        }],
+    });
+
+    expect(await screen.findByRole("button", { name: "Delete Saturn" })).toBeDisabled();
+});
+
 it("renders each object reference date as a session link", async () => {
     renderObjectsView({
         userObjects: [{

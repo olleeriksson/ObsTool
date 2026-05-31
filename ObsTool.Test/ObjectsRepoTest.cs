@@ -170,6 +170,91 @@ namespace TestProject
         }
 
         [Test]
+        public void Get_SetsOtherObjectDeleteFlagOnlyForPrivilegedUnreferencedObjects()
+        {
+            _dbContext.Users.Add(new AppUser
+            {
+                Id = 2,
+                Email = "other@example.test",
+                NormalizedEmail = "OTHER@EXAMPLE.TEST",
+                Username = "other",
+                NormalizedUsername = "OTHER",
+                FullName = "Other User",
+                PasswordHash = "hash",
+                CreatedUtc = DateTime.UtcNow
+            });
+            _dbContext.OtherObjects.AddRange(
+                new OtherObject { Id = 5, Name = "Referenced" },
+                new OtherObject { Id = 6, Name = "Unreferenced" });
+            _dbContext.ObsSessions.Add(new ObsSession { Id = 11, UserId = 2, Date = new DateTime(2026, 5, 24) });
+            _dbContext.Observations.Add(new Observation { Id = 101, UserId = 2, ObsSessionId = 11, Text = "Referenced" });
+            _dbContext.DsoObservations.Add(new DsoObservation { Id = 1001, ObservationId = 101, OtherObjectId = 5 });
+            _dbContext.SaveChanges();
+            var controller = CreateObjectsController(userId: 1, isSuperAdmin: false);
+
+            var result = (OkObjectResult)controller.Get();
+
+            var objectList = (ObjectListDto)result.Value;
+            Assert.That(objectList.OtherObjects.Single(o => o.Name == "Referenced").CanDelete, Is.False);
+            Assert.That(objectList.OtherObjects.Single(o => o.Name == "Unreferenced").CanDelete, Is.True);
+        }
+
+        [Test]
+        public void DeleteOtherObject_ForbidsNormalUsersExceptUserOne()
+        {
+            _dbContext.OtherObjects.Add(new OtherObject { Id = 5, Name = "Saturn" });
+            _dbContext.SaveChanges();
+            var controller = CreateObjectsController(userId: 2, isSuperAdmin: false);
+
+            var result = controller.DeleteOtherObject(5);
+
+            Assert.That(result, Is.TypeOf<ForbidResult>());
+            Assert.That(_dbContext.OtherObjects.Single(o => o.Id == 5).Name, Is.EqualTo("Saturn"));
+        }
+
+        [Test]
+        public void DeleteOtherObject_AllowsDatabaseUserOneWhenUnreferenced()
+        {
+            _dbContext.OtherObjects.Add(new OtherObject { Id = 5, Name = "Saturn" });
+            _dbContext.SaveChanges();
+            var controller = CreateObjectsController(userId: 1, isSuperAdmin: false);
+
+            var result = controller.DeleteOtherObject(5);
+
+            Assert.That(result, Is.TypeOf<OkResult>());
+            Assert.That(_dbContext.OtherObjects.Any(o => o.Id == 5), Is.False);
+        }
+
+        [Test]
+        public void DeleteOtherObject_AllowsSuperAdminWhenUnreferenced()
+        {
+            _dbContext.OtherObjects.Add(new OtherObject { Id = 5, Name = "Saturn" });
+            _dbContext.SaveChanges();
+            var controller = CreateObjectsController(userId: 2, isSuperAdmin: true);
+
+            var result = controller.DeleteOtherObject(5);
+
+            Assert.That(result, Is.TypeOf<OkResult>());
+            Assert.That(_dbContext.OtherObjects.Any(o => o.Id == 5), Is.False);
+        }
+
+        [Test]
+        public void DeleteOtherObject_RejectsReferencedObjects()
+        {
+            _dbContext.OtherObjects.Add(new OtherObject { Id = 5, Name = "Saturn" });
+            _dbContext.ObsSessions.Add(new ObsSession { Id = 11, UserId = 1, Date = new DateTime(2026, 5, 24) });
+            _dbContext.Observations.Add(new Observation { Id = 101, UserId = 1, ObsSessionId = 11, Text = "Saturn" });
+            _dbContext.DsoObservations.Add(new DsoObservation { Id = 1001, ObservationId = 101, OtherObjectId = 5 });
+            _dbContext.SaveChanges();
+            var controller = CreateObjectsController(userId: 1, isSuperAdmin: false);
+
+            var result = controller.DeleteOtherObject(5);
+
+            Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+            Assert.That(_dbContext.OtherObjects.Single(o => o.Id == 5).Name, Is.EqualTo("Saturn"));
+        }
+
+        [Test]
         public void UpdateEditableFields_StoresModifiedDate()
         {
             var userObject = new UserObject { Name = "Saturn" };

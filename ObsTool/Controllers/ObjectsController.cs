@@ -35,6 +35,7 @@ namespace ObsTool.Controllers
             var otherReferences = userId.HasValue
                 ? _objectsRepo.GetOtherObjectReferenceSummaries(userId.Value)
                 : new System.Collections.Generic.Dictionary<int, ObjectReferenceSummary>();
+            var otherObjects = _objectsRepo.GetOtherObjects().ToList();
 
             // The page intentionally groups editable user objects before readonly shared objects.
             return Ok(new ObjectListDto
@@ -44,8 +45,12 @@ namespace ObsTool.Controllers
                     .Select(userObject => ObjectDto.FromUserObject(userObject, GetReferences(userReferences, userObject.Id)))
                     .ToList()
                     : Enumerable.Empty<ObjectDto>(),
-                OtherObjects = _objectsRepo.GetOtherObjects()
-                    .Select(otherObject => ObjectDto.FromOtherObject(otherObject, GetReferences(otherReferences, otherObject.Id), canCreateOtherObjects))
+                OtherObjects = otherObjects
+                    .Select(otherObject => ObjectDto.FromOtherObject(
+                        otherObject,
+                        GetReferences(otherReferences, otherObject.Id),
+                        canCreateOtherObjects,
+                        canCreateOtherObjects && !_objectsRepo.AnyOtherObjectReferences(otherObject.Id)))
                     .ToList(),
                 Constellations = _objectsRepo.GetConstellationOptions(),
                 CanCreateOtherObjects = canCreateOtherObjects
@@ -132,7 +137,7 @@ namespace ObsTool.Controllers
             };
 
             var added = _objectsRepo.AddOtherObject(entity);
-            return Ok(ObjectDto.FromOtherObject(added, new ObjectReferenceSummary()));
+            return Ok(ObjectDto.FromOtherObject(added, new ObjectReferenceSummary(), canEdit: true, canDelete: true));
         }
 
         /// <summary>
@@ -195,7 +200,11 @@ namespace ObsTool.Controllers
             var references = userId.HasValue
                 ? _objectsRepo.GetOtherObjectReferenceSummaries(userId.Value)
                 : new System.Collections.Generic.Dictionary<int, ObjectReferenceSummary>();
-            return Ok(ObjectDto.FromOtherObject(entity, GetReferences(references, entity.Id), canEdit: true));
+            return Ok(ObjectDto.FromOtherObject(
+                entity,
+                GetReferences(references, entity.Id),
+                canEdit: true,
+                canDelete: !_objectsRepo.AnyOtherObjectReferences(entity.Id)));
         }
 
         /// <summary>
@@ -219,6 +228,37 @@ namespace ObsTool.Controllers
             if (!_objectsRepo.DeleteUserObject(entity))
             {
                 return StatusCode(500, "Something went wrong deleting the user object");
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Deletes an unreferenced shared object for users allowed to curate shared targets.
+        /// </summary>
+        [HttpDelete("other/{id}")]
+        public IActionResult DeleteOtherObject(int id)
+        {
+            int? userId = _currentUserService.GetUserId();
+            if (!CanCreateOtherObjects(userId))
+            {
+                return Forbid();
+            }
+
+            var entity = _objectsRepo.GetOtherObject(id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            if (_objectsRepo.AnyOtherObjectReferences(id))
+            {
+                return BadRequest("There are observations referring to this other object. Cannot delete.");
+            }
+
+            if (!_objectsRepo.DeleteOtherObject(entity))
+            {
+                return StatusCode(500, "Something went wrong deleting the other object");
             }
 
             return Ok();

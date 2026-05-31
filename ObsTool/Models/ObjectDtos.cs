@@ -38,7 +38,11 @@ namespace ObsTool.Models
         /// <summary>
         /// Projects a readonly shared object with its per-user reference summary.
         /// </summary>
-        public static ObjectDto FromOtherObject(OtherObject otherObject, ObjectReferenceSummary references, bool canEdit = false)
+        public static ObjectDto FromOtherObject(
+            OtherObject otherObject,
+            ObjectReferenceSummary references,
+            bool canEdit = false,
+            bool canDelete = false)
         {
             return new ObjectDto
             {
@@ -60,7 +64,7 @@ namespace ObsTool.Models
                 References = references.Sessions.ToArray(),
                 ModifiedDate = otherObject.ModifiedDate,
                 CanEdit = canEdit,
-                CanDelete = false
+                CanDelete = canDelete
             };
         }
 

@@ -196,6 +196,11 @@ class Api {
         return axios.delete(import.meta.env.VITE_API_URL + "/objects/user/" + objectId);
     }
 
+    // Deletes a shared object only when the backend confirms the manager is allowed and the object is unreferenced.
+    public static deleteOtherObject(objectId: number) {
+        return axios.delete(import.meta.env.VITE_API_URL + "/objects/other/" + objectId);
+    }
+
     public static getHerschelDetails(dsoId: number) {
         return axios.get<IHerschelDetails[]>(import.meta.env.VITE_API_URL + "/dso/" + dsoId + "/herschel");
     }
