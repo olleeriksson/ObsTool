@@ -183,6 +183,34 @@ it("offers previously saved custom object types in the Type dropdown", async () 
     expect(within(listbox).getByText("Satellite")).toBeInTheDocument();
 });
 
+it("deduplicates saved display names that resolve to known SAC object types", async () => {
+    renderObjectsView({
+        userObjects: [{ id: 4, name: "Mars", type: "Planet", objectKind: "User" }],
+        otherObjects: [],
+    });
+
+    const typeField = await screen.findByRole("combobox", { name: "Type" });
+    fireEvent.mouseDown(typeField);
+
+    const listbox = await screen.findByRole("listbox");
+    expect(within(listbox).getAllByText("Planet")).toHaveLength(1);
+});
+
+it("clears the displayed Type text after saving and reloading the empty add form", async () => {
+    vi.spyOn(Api, "addUserObject").mockResolvedValue({
+        data: { id: 11, name: "Mars", type: "PLANET" },
+    } as any);
+    renderObjectsView();
+
+    fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "Mars" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Type" }), { target: { value: "Planet" } });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.getByRole("textbox", { name: /^Name/ })).toHaveValue(""));
+    expect(screen.getByRole("combobox", { name: "Type" })).toHaveValue("");
+});
+
 it("shows custom object type icons in the Type dropdown and selected field", async () => {
     renderObjectsView({
         userObjects: [{ id: 4, name: "Ceres", type: "Dwarf planet", objectKind: "User" }],

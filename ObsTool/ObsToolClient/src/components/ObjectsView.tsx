@@ -500,13 +500,19 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         [...this.state.userObjects, ...this.state.otherObjects, this.state.currentObject]
             .map(object => (object.type || "").trim())
             .filter(type => type.length > 0)
-            .forEach(type => options.add(type));
+            .forEach(type => options.add(resolveDsoTypeCode(type)));
 
         return Array.from(options).sort((left, right) => {
             const leftLabel = translateDsoType(left) || left;
             const rightLabel = translateDsoType(right) || right;
             return leftLabel.localeCompare(rightLabel);
         });
+    }
+
+    // Keeps the free-solo Type input text synchronized with the stored type code when the form resets.
+    private getTypeInputValue = () => {
+        const currentType = this.state.currentObject.type || "";
+        return translateDsoType(currentType) || currentType;
     }
 
     // Renders a Type dropdown option with the custom object-type preview icon before the label.
@@ -953,6 +959,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                                         freeSolo={true}
                                         options={this.getTypeOptions()}
                                         value={this.state.currentObject.type || null}
+                                        inputValue={this.getTypeInputValue()}
                                         getOptionLabel={(option) => translateDsoType(option) || option}
                                         onChange={this.handleTypeChange}
                                         onInputChange={this.handleTypeInputChange}
