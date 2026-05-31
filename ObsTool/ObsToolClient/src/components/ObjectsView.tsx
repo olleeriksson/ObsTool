@@ -237,15 +237,15 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         this.loadObjectsFromApi();
     }
 
-    // Builds the empty editable form object used when adding a new user object.
-    private getEmptyObject = (): IObservedObject => ({
+    // Builds the empty editable form object used when adding a new object, optionally retaining the last saved type.
+    private getEmptyObject = (type: string = ""): IObservedObject => ({
         id: undefined,
         name: "",
         otherNames: "",
         commonName: "",
         allCommonNames: "",
         notes: "",
-        type: "",
+        type,
         const: "",
         ra: "",
         dec: "",
@@ -253,7 +253,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
     });
 
     // Loads user and shared object lists together so reference counts stay consistent after edits.
-    private loadObjectsFromApi = () => {
+    private loadObjectsFromApi = (preservedType: string = "") => {
         this.setState({ isLoading: true, isError: false, errorMessage: undefined });
         Api.getObjects().then(response => {
             this.setState(prevState => ({
@@ -264,7 +264,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 canCreateOtherObjects: !!response.data.canCreateOtherObjects,
                 saveAsUserObject: prevState.saveAsUserObject,
                 isTypeIconPreviewExpanded: prevState.isTypeIconPreviewExpanded,
-                currentObject: this.getEmptyObject(),
+                currentObject: this.getEmptyObject(preservedType),
                 similarSacObjects: [],
                 isCheckingSimilar: false,
             }));
@@ -287,7 +287,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         }));
     }
 
-    // Updates the free-text Type dropdown while storing known selections as SAC type codes.
+    // Updates the free-text Type dropdown while preserving existing custom type casing on exact matches.
     private handleTypeInputChange = (_event: React.SyntheticEvent, value: string, reason: string) => {
         if (reason !== "input" && reason !== "clear") {
             return;
@@ -296,19 +296,19 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         this.setState(prevState => ({
             currentObject: {
                 ...prevState.currentObject,
-                type: reason === "clear" ? "" : value,
+                type: reason === "clear" ? "" : this.resolveObjectTypeOption(value),
             },
             isError: false,
             errorMessage: undefined,
         }));
     }
 
-    // Stores the selected SAC type code when a known dropdown option is chosen.
+    // Stores the canonical type value when a known dropdown option is chosen.
     private handleTypeChange = (_event: React.SyntheticEvent, value: string | null) => {
         this.setState(prevState => ({
             currentObject: {
                 ...prevState.currentObject,
-                type: value ? resolveDsoTypeCode(value) : "",
+                type: value ? this.resolveObjectTypeOption(value) : "",
             },
             isError: false,
             errorMessage: undefined,
@@ -494,13 +494,50 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         return Array.from(requestedKeys).some(key => dsoKeys.has(key));
     }
 
+    // Resolves typed or selected Type values to SAC codes or the existing custom type's stored casing.
+    private resolveObjectTypeOption = (value: string) => {
+        const trimmedValue = (value || "").trim();
+        if (!trimmedValue) {
+            return "";
+        }
+
+        const sacTypeCode = resolveDsoTypeCode(trimmedValue);
+        if (translateDsoType(sacTypeCode)) {
+            return sacTypeCode;
+        }
+
+        const normalizedValue = trimmedValue.toLowerCase();
+        const existingCustomType = [...this.state.userObjects, ...this.state.otherObjects]
+            .map(object => this.resolveStoredObjectType(object.type || ""))
+            .find(type => type.toLowerCase() === normalizedValue);
+
+        return existingCustomType || trimmedValue;
+    }
+
+    // Converts stored object type strings to their canonical dropdown value without losing custom casing.
+    private resolveStoredObjectType = (value: string) => {
+        const trimmedValue = (value || "").trim();
+        const sacTypeCode = resolveDsoTypeCode(trimmedValue);
+        return translateDsoType(sacTypeCode) ? sacTypeCode : trimmedValue;
+    }
+
+    // Adds a Type option once, treating custom type labels as case-insensitive choices.
+    private addTypeOption = (options: Set<string>, value: string) => {
+        const resolvedType = this.resolveStoredObjectType(value);
+        const normalizedType = resolvedType.toLowerCase();
+        const optionAlreadyExists = Array.from(options).some(option => option.toLowerCase() === normalizedType);
+        if (!optionAlreadyExists) {
+            options.add(resolvedType);
+        }
+    }
+
     // Builds Type dropdown options from SAC types plus custom object types already stored on this page.
     private getTypeOptions = () => {
         const options = new Set<string>(SAC_OBJECT_TYPE_OPTIONS);
         [...this.state.userObjects, ...this.state.otherObjects, this.state.currentObject]
             .map(object => (object.type || "").trim())
             .filter(type => type.length > 0)
-            .forEach(type => options.add(resolveDsoTypeCode(type)));
+            .forEach(type => this.addTypeOption(options, type));
 
         return Array.from(options).sort((left, right) => {
             const leftLabel = translateDsoType(left) || left;
@@ -665,7 +702,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
 
             request.then(() => {
                 this.setState({ isSaving: false });
-                this.loadObjectsFromApi();
+                this.loadObjectsFromApi(currentId ? "" : payload.type);
             }).catch(error => {
                 const message = this.getApiErrorMessage(error, "Failed to save object.");
                 this.setState({ isSaving: false, isError: true, errorMessage: message });

@@ -196,19 +196,56 @@ it("deduplicates saved display names that resolve to known SAC object types", as
     expect(within(listbox).getAllByText("Planet")).toHaveLength(1);
 });
 
-it("clears the displayed Type text after saving and reloading the empty add form", async () => {
+it("deduplicates custom object types case-insensitively while preserving stored casing", async () => {
+    renderObjectsView({
+        userObjects: [{ id: 4, name: "Custom One", type: "Type1", objectKind: "User" }],
+        otherObjects: [{ id: 5, name: "Custom Two", type: "type1", objectKind: "Other" }],
+    });
+
+    const typeField = await screen.findByRole("combobox", { name: "Type" });
+    fireEvent.mouseDown(typeField);
+
+    const listbox = await screen.findByRole("listbox");
+    expect(within(listbox).getAllByText("Type1")).toHaveLength(1);
+    expect(within(listbox).queryByText("type1")).not.toBeInTheDocument();
+});
+
+it("reuses existing custom type casing when saving a lowercase exact match", async () => {
+    const addUserObject = vi.spyOn(Api, "addUserObject").mockResolvedValue({
+        data: { id: 11, name: "My Custom Object", type: "Type1" },
+    } as any);
+    renderObjectsView({
+        userObjects: [{ id: 4, name: "Existing Custom", type: "Type1", objectKind: "User" }],
+        otherObjects: [],
+    });
+
+    fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "My Custom Object" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Type" }), { target: { value: "type1" } });
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Type" })).toHaveValue("Type1"));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(addUserObject).toHaveBeenCalledWith(expect.objectContaining({
+        name: "My Custom Object",
+        type: "Type1",
+    })));
+});
+
+it("keeps the displayed Type text after saving and reloading the empty add form", async () => {
     vi.spyOn(Api, "addUserObject").mockResolvedValue({
         data: { id: 11, name: "Mars", type: "PLANET" },
     } as any);
     renderObjectsView();
 
     fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "Mars" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Common name" }), { target: { value: "The red planet" } });
     fireEvent.change(screen.getByRole("combobox", { name: "Type" }), { target: { value: "Planet" } });
     await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(screen.getByRole("textbox", { name: /^Name/ })).toHaveValue(""));
-    expect(screen.getByRole("combobox", { name: "Type" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "Common name" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Type" })).toHaveValue("Planet");
 });
 
 it("shows custom object type icons in the Type dropdown and selected field", async () => {
@@ -307,17 +344,20 @@ it("lets privileged users save new objects into the readonly other object list",
 
 it("keeps the other object checkbox state after saving an other object", async () => {
     vi.spyOn(Api, "addOtherObject").mockResolvedValue({
-        data: { id: 12, name: "Saturn", objectKind: "Other" },
+        data: { id: 12, name: "Saturn", type: "PLANET", objectKind: "Other" },
     } as any);
     renderObjectsView({ ...emptyObjectList, canCreateOtherObjects: true });
 
     fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "Saturn" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Type" }), { target: { value: "Planet" } });
     fireEvent.click(screen.getByRole("checkbox", { name: "User defined object" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(screen.getByText("Add other object")).toBeInTheDocument());
     expect(screen.getByRole("checkbox", { name: "User defined object" })).not.toBeChecked();
+    expect(screen.getByRole("textbox", { name: /^Name/ })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Type" })).toHaveValue("Planet");
 });
 
 it("lets privileged users edit other objects through the other object endpoint", async () => {
