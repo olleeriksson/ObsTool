@@ -30,8 +30,13 @@ namespace ObsTool.Controllers
         {
             var userId = _currentUserService.GetRequiredUserId();
             var instruments = _instrumentsRepo.GetInstruments(userId);
+            var observationReferenceCounts = _instrumentsRepo.GetObservationReferenceCounts(userId);
+            var obsSessionReferenceCounts = _instrumentsRepo.GetObsSessionReferenceCounts(userId);
             var sorted = instruments.OrderByDescending(i => i.Id);
-            var results = _mapper.Map<IEnumerable<InstrumentDto>>(sorted);
+            var results = sorted.Select(instrument => MapInstrumentDto(
+                instrument,
+                observationReferenceCounts.ContainsKey(instrument.Id) ? observationReferenceCounts[instrument.Id] : 0,
+                obsSessionReferenceCounts.ContainsKey(instrument.Id) ? obsSessionReferenceCounts[instrument.Id] : 0));
             return Ok(results);
         }
 
@@ -45,7 +50,10 @@ namespace ObsTool.Controllers
             {
                 return NotFound();
             }
-            return Ok(_mapper.Map<InstrumentDto>(instrument));
+            return Ok(MapInstrumentDto(
+                instrument,
+                _instrumentsRepo.GetNumObservationsForInstrument(id, userId),
+                _instrumentsRepo.GetNumObsSessionsForInstrument(id, userId)));
         }
 
         // POST: api/Instruments
@@ -60,7 +68,7 @@ namespace ObsTool.Controllers
             {
                 return StatusCode(500, "Something went wrong creating an instrument");
             }
-            var addedDto = _mapper.Map<InstrumentDto>(added);
+            var addedDto = MapInstrumentDto(added, 0, 0);
             return CreatedAtRoute("GetOneInstrument", new { id = addedDto.Id }, addedDto);
         }
 
@@ -75,13 +83,15 @@ namespace ObsTool.Controllers
                 return NotFound();
             }
 
-            if (_instrumentsRepo.AnyObservationReferences(id, userId))
+            int numObservationReferences = _instrumentsRepo.GetNumObservationsForInstrument(id, userId);
+            if (numObservationReferences > 0)
             {
-                return BadRequest("There are observations referring to this instrument. Cannot delete.");
+                return BadRequest(FormatInstrumentDeleteReferenceMessage(numObservationReferences));
             }
-            if (_instrumentsRepo.AnyObsSessionReferences(id, userId))
+            int numObsSessionReferences = _instrumentsRepo.GetNumObsSessionsForInstrument(id, userId);
+            if (numObsSessionReferences > 0)
             {
-                return BadRequest("There are observation sessions referring to this instrument. Cannot delete.");
+                return BadRequest(FormatInstrumentObsSessionDeleteReferenceMessage(numObsSessionReferences));
             }
 
             if (!_instrumentsRepo.DeleteInstrument(entity))
@@ -116,7 +126,48 @@ namespace ObsTool.Controllers
                 return StatusCode(500, "Something went wrong updating the instrument");
             }
 
-            return Ok(_mapper.Map<InstrumentDto>(entity));
+            return Ok(MapInstrumentDto(
+                entity,
+                _instrumentsRepo.GetNumObservationsForInstrument(id, userId),
+                _instrumentsRepo.GetNumObsSessionsForInstrument(id, userId)));
+        }
+
+        /// <summary>
+        /// Adds calculated reference counts to the normal AutoMapper instrument DTO.
+        /// </summary>
+        private InstrumentDto MapInstrumentDto(Instrument instrument, int numObservationReferences, int numObsSessionReferences)
+        {
+            var instrumentDto = _mapper.Map<InstrumentDto>(instrument);
+            instrumentDto.NumObservationReferences = numObservationReferences;
+            instrumentDto.NumObsSessionReferences = numObsSessionReferences;
+            instrumentDto.NumReferences = numObservationReferences + numObsSessionReferences;
+            return instrumentDto;
+        }
+
+        /// <summary>
+        /// Builds the delete-blocking message with singular/plural wording for the observation count.
+        /// </summary>
+        private static string FormatInstrumentDeleteReferenceMessage(int numReferences)
+        {
+            if (numReferences == 1)
+            {
+                return "There is 1 observation referring to this instrument. Cannot delete.";
+            }
+
+            return $"There are {numReferences} observations referring to this instrument. Cannot delete.";
+        }
+
+        /// <summary>
+        /// Builds the delete-blocking message with singular/plural wording for the observation-session count.
+        /// </summary>
+        private static string FormatInstrumentObsSessionDeleteReferenceMessage(int numReferences)
+        {
+            if (numReferences == 1)
+            {
+                return "There is 1 observation session referring to this instrument. Cannot delete.";
+            }
+
+            return $"There are {numReferences} observation sessions referring to this instrument. Cannot delete.";
         }
 
         /// <summary>

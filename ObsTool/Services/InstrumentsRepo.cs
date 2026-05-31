@@ -58,6 +58,36 @@ namespace ObsTool.Services
             return (_dbContext.SaveChanges() > 0);
         }
 
+        // Counts the user's observations that directly reference this instrument.
+        public int GetNumObservationsForInstrument(int instrumentId, int userId)
+        {
+            return _dbContext.Observations.Count(o => o.InstrumentId == instrumentId && o.UserId == userId);
+        }
+
+        // Counts the user's observation sessions that directly reference this instrument.
+        public int GetNumObsSessionsForInstrument(int instrumentId, int userId)
+        {
+            return _dbContext.ObsSessions.Count(s => s.InstrumentId == instrumentId && s.UserId == userId);
+        }
+
+        // Builds per-instrument observation counts for the user's Instruments list.
+        public IReadOnlyDictionary<int, int> GetObservationReferenceCounts(int userId)
+        {
+            return _dbContext.Observations
+                .Where(o => o.UserId == userId && o.InstrumentId.HasValue)
+                .GroupBy(o => o.InstrumentId.Value)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+
+        // Builds per-instrument observation-session counts for the user's Instruments list.
+        public IReadOnlyDictionary<int, int> GetObsSessionReferenceCounts(int userId)
+        {
+            return _dbContext.ObsSessions
+                .Where(s => s.UserId == userId && s.InstrumentId.HasValue)
+                .GroupBy(s => s.InstrumentId.Value)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+
         public bool AnyObservationReferences(int instrumentId)
         {
             return _dbContext.Observations.Any(o => o.InstrumentId == instrumentId);

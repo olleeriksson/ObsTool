@@ -8,5 +8,8 @@ namespace ObsTool.Models
         public int? DiameterMm { get; set; }
         public int? FocalLengthMm { get; set; }
         public string IconReference { get; set; }
+        public int NumObservationReferences { get; set; }
+        public int NumObsSessionReferences { get; set; }
+        public int NumReferences { get; set; }
     }
 }

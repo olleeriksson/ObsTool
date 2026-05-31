@@ -374,6 +374,9 @@ export interface IInstrument {
     diameterMm?: number | null;
     focalLengthMm?: number | null;
     iconReference?: string | null;
+    numObservationReferences?: number;
+    numObsSessionReferences?: number;
+    numReferences?: number;
 }
 
 export interface IEyepiece {

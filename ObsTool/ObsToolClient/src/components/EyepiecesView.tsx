@@ -310,6 +310,9 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                                     {this.state.isError ? <span style={{ color: "red", fontWeight: "bold" }}>Error saving!</span> : null}
                                 </Grid>
                                 <Grid size="grow" style={{ textAlign: "right" }}>
+                                    <Typography variant="caption" style={{ marginRight: 8 }}>
+                                        Eyepieces can be deleted, and re-created withut loosing data
+                                    </Typography>
                                     <IconButton onClick={this.onClickDelete} disabled={!this.props.store.isLoggedIn || !this.state.currentEyepiece.id}>
                                         <DeleteIcon />
                                     </IconButton>

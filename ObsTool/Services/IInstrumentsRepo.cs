@@ -13,6 +13,10 @@ namespace ObsTool.Services
         IEnumerable<Instrument> GetInstruments();
         IEnumerable<Instrument> GetInstruments(int userId);
         bool DeleteInstrument(Instrument instrument);
+        int GetNumObservationsForInstrument(int instrumentId, int userId);
+        int GetNumObsSessionsForInstrument(int instrumentId, int userId);
+        IReadOnlyDictionary<int, int> GetObservationReferenceCounts(int userId);
+        IReadOnlyDictionary<int, int> GetObsSessionReferenceCounts(int userId);
         bool AnyObservationReferences(int instrumentId);
         bool AnyObservationReferences(int instrumentId, int userId);
         bool AnyObsSessionReferences(int instrumentId);

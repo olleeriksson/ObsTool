@@ -1092,7 +1092,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         this.setState({ deleteCandidate: undefined });
     }
 
-    // Closes the shared high-friction delete dialog and deletes only after confirmed.
+    // Closes the shared delete dialog and deletes only after the single confirmation click.
     private handleDeleteDialogClosed = (confirm: boolean) => {
         if (!confirm) {
             this.handleCancelDelete();
@@ -1283,11 +1283,8 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                     ? `Delete ${deleteObjectKindLabel} ${deleteCandidate.name}?`
                     : "Delete object?"}
                 text={deleteCandidate
-                    ? `Are you sure you want to delete this ${deleteObjectKindLabel}?`
-                    : "Are you sure you want to delete this object?"}
-                finalWarningText={`Please reconfirm that you want to delete the ${deleteObjectKindLabel}.`}
-                requireSecondDeleteClick={true}
-                showWarningSign={true}
+                    ? `Are you sure you want to delete this ${deleteObjectKindLabel}? The object is not referenced by any observation and can be safely removed.`
+                    : "Are you sure you want to delete this object? The object is not referenced by any observation and can be safely removed."}
                 onHandleClose={this.handleDeleteDialogClosed}
             />
         );

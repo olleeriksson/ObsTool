@@ -120,6 +120,35 @@ const styles = (theme: Theme) => createStyles({
     actionRow: {
         marginTop: theme.spacing(1),
     },
+    deleteGuidance: {
+        color: theme.palette.text.secondary,
+        display: "inline-flex",
+        fontSize: "0.8rem",
+        marginRight: theme.spacing(1),
+        verticalAlign: "middle",
+    },
+    instrumentListItem: {
+        alignItems: "center",
+        display: "grid",
+        gap: theme.spacing(1.5),
+        gridTemplateColumns: "76px minmax(0, 1fr)",
+    },
+    instrumentListIconCell: {
+        alignItems: "center",
+        display: "flex",
+        justifyContent: "center",
+        minHeight: 76,
+    },
+    instrumentListNoIcon: {
+        color: theme.palette.text.secondary,
+        fontSize: "0.65rem",
+        fontWeight: 700,
+        letterSpacing: "0.04em",
+        textAlign: "center",
+    },
+    instrumentListContent: {
+        minWidth: 0,
+    },
 });
 
 interface IInstrumentsViewProps extends WithStyles<typeof styles> {
@@ -159,6 +188,24 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             focalLengthMm: undefined,
             iconReference: null
         };
+    }
+
+    /**
+     * Treats any positive observation-reference count as a delete blocker.
+     */
+    private isCurrentInstrumentReferenced = (): boolean => {
+        return (this.state.currentInstrument.numReferences || 0) > 0;
+    }
+
+    /**
+     * Renders the persisted telescope icon as a larger two-row list marker.
+     */
+    private renderInstrumentListIcon = (instrument: IInstrument) => {
+        if (isKnownTelescopeIconVariant(instrument.iconReference)) {
+            return <TelescopeIcon variant={resolveTelescopeIconVariant(instrument.iconReference)} size={64} />;
+        }
+
+        return <span className={this.props.classes.instrumentListNoIcon}>NO ICON</span>;
     }
 
     public componentDidMount() {
@@ -306,6 +353,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
     public render() {
         const { classes } = this.props;
 
+        const deleteDisabled = !this.props.store.isLoggedIn || !this.state.currentInstrument.id || this.isCurrentInstrumentReferenced();
+
         const circularProgress = this.state.isLoading
             ? <CircularProgress className="circularProgress" style={{ marginLeft: 20 }} />
             : null;
@@ -324,7 +373,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                 <DialogTitle>Delete instrument?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete <strong>{this.state.currentInstrument.name}</strong>? This cannot be undone.
+                        Are you sure you want to delete this instrument <strong>{this.state.currentInstrument.name}</strong>? The instrument is not referenced by any observation session or observation and can be safely removed.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -461,7 +510,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                     {this.state.isError ? <span style={{ color: "red", fontWeight: "bold" }}>Error saving!</span> : null}
                                 </Grid>
                                 <Grid size="grow" style={{ textAlign: "right" }}>
-                                    <IconButton onClick={this.onClickDelete} disabled={!this.props.store.isLoggedIn || !this.state.currentInstrument.id}>
+                                    <span className={classes.deleteGuidance}>Only unreferenced instruments can be deleted</span>
+                                    <IconButton onClick={this.onClickDelete} disabled={deleteDisabled}>
                                         <DeleteIcon />
                                     </IconButton>
                                 </Grid>
@@ -473,27 +523,33 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
         );
 
         const instrumentList = this.state.instruments.map(instrument => {
-            const selectedIcon = isKnownTelescopeIconVariant(instrument.iconReference)
-                ? (
-                    <>
-                        , Icon: <TelescopeIcon variant={resolveTelescopeIconVariant(instrument.iconReference)} size={18} />
-                    </>
-                )
+            const keySuffix = instrument.key?.trim()
+                ? <span style={{ color: "gray", fontSize: "0.85em" }}>({instrument.key})</span>
                 : null;
 
             return (
                 <Grid key={instrument.id} size={12}>
-                    <Typography variant="subtitle1" gutterBottom={true}>
-                        {instrument.name} <span style={{ color: "gray", fontSize: "0.85em" }}>({instrument.key})</span>
-                        <a href="" onClick={this.handleClickResource(instrument.id)}>
-                            <EditIcon style={{ fontSize: 16, marginLeft: "1em" }} />
-                        </a>
-                    </Typography>
-                    <Typography variant="caption" gutterBottom={true}>
-                        Diameter: <strong>{instrument.diameterMm !== undefined && instrument.diameterMm !== null ? `${instrument.diameterMm} mm` : "N/A"}</strong>,{" "}
-                        Focal length: <strong>{instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `${instrument.focalLengthMm} mm` : "N/A"}</strong>
-                        {selectedIcon}
-                    </Typography>
+                    <div className={classes.instrumentListItem}>
+                        <div className={classes.instrumentListIconCell}>
+                            {this.renderInstrumentListIcon(instrument)}
+                        </div>
+                        <div className={classes.instrumentListContent}>
+                            <Typography variant="subtitle1" gutterBottom={true}>
+                                {instrument.name} {keySuffix}
+                                <a href="" onClick={this.handleClickResource(instrument.id)}>
+                                    <EditIcon style={{ fontSize: 16, marginLeft: "1em" }} />
+                                </a>
+                            </Typography>
+                            <Typography variant="caption" gutterBottom={true}>
+                                Diameter: <strong>{instrument.diameterMm !== undefined && instrument.diameterMm !== null ? `${instrument.diameterMm} mm` : "N/A"}</strong>,{" "}
+                                Focal length: <strong>{instrument.focalLengthMm !== undefined && instrument.focalLengthMm !== null ? `${instrument.focalLengthMm} mm` : "N/A"}</strong>
+                                {", "}
+                                Obs sessions: <strong>{instrument.numObsSessionReferences || 0}</strong>
+                                {", "}
+                                Observations: <strong>{instrument.numObservationReferences || 0}</strong>
+                            </Typography>
+                        </div>
+                    </div>
                 </Grid>
             );
         });
