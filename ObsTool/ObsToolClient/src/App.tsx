@@ -23,18 +23,25 @@ function getInitialThemePreference(): ThemePreference {
   }
 
   const storedPreference = window.localStorage.getItem(themePreferenceStorageKey);
-  return storedPreference === "light" || storedPreference === "dark"
+  return storedPreference === "light" || storedPreference === "dark" || storedPreference === "blue"
     ? storedPreference
     : "light";
 }
 
+// Resolves app-level theme choices to the two MUI palette modes.
+function resolveThemeMode(themePreference: ThemePreference): ResolvedThemeMode {
+  return themePreference === "dark" ? "dark" : "light";
+}
+
 // Creates the shared MUI theme so MUI components and tss-react styles use the same color mode.
-function createAppTheme(mode: ResolvedThemeMode) {
+function createAppTheme(themePreference: ThemePreference) {
+  const mode = resolveThemeMode(themePreference);
+
   return createTheme({
     palette: {
       mode,
       background: {
-        default: mode === "dark" ? "#0d1117" : "#fafafa",
+        default: mode === "dark" ? "#0d1117" : "#F7F7F7",
         paper: mode === "dark" ? "#161b22" : "#ffffff",
       },
       primary: {
@@ -79,8 +86,8 @@ class App extends React.Component<{}, IAppState> {
     const store = this.store;
     // Keep React Router aligned with Vite's base path for subdirectory deployments.
     const baseName = import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, "");
-    const resolvedMode = this.state.themePreference;
-    const theme = createAppTheme(resolvedMode);
+    const resolvedMode = resolveThemeMode(this.state.themePreference);
+    const theme = createAppTheme(this.state.themePreference);
 
     return (
       <ThemeProvider theme={theme}>

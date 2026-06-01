@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export type ThemePreference = "light" | "dark";
+export type ThemePreference = "light" | "dark" | "blue";
 export type ResolvedThemeMode = "light" | "dark";
 
 export interface IThemeModeContext {

@@ -47,11 +47,34 @@ const styles = (theme: Theme) => createStyles({
         fontStyle: "italic",
         minHeight: 42,
     },
+    navBarContrastField: {
+        "& .MuiOutlinedInput-root": {
+            backgroundColor: "rgba(255, 255, 255, 0.08)",
+            color: theme.palette.common.white,
+            "& fieldset": {
+                borderColor: "rgba(255, 255, 255, 0.36)",
+            },
+            "&:hover fieldset": {
+                borderColor: "rgba(255, 255, 255, 0.72)",
+            },
+            "&.Mui-focused fieldset": {
+                borderColor: theme.palette.common.white,
+            },
+        },
+        "& .MuiInputBase-input::placeholder": {
+            color: theme.palette.common.white,
+            opacity: 0.76,
+        },
+        "& .MuiSvgIcon-root": {
+            color: theme.palette.common.white,
+        },
+    },
 });
 
 const maxVisibleDsoSuggestions = 6;
 
 interface ISearchInputProps extends WithStyles<typeof styles> {
+    navBarContrast?: boolean;
     onSearchView?: boolean;
     store: ReadonlyDataState;
     actions: any;
@@ -216,6 +239,7 @@ export class SearchInput extends React.Component<ISearchInputProps, ISearchInput
                         renderInput={(params) => (
                             <TextField
                                 {...params}
+                                className={this.props.navBarContrast ? classes.navBarContrastField : undefined}
                                 size="small"
                                 placeholder="Search for an object.."
                             />

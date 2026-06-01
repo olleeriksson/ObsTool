@@ -14,12 +14,14 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PaletteIcon from "@mui/icons-material/Palette";
 import classNames from "classnames";
 import logo from "../assets/images/obstool-logo-navbar-55px.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -36,9 +38,20 @@ import { connect } from "react-redux";
 import TelescopeIcon from "./icons/TelescopeIcon";
 import { ThemeModeContext, ThemePreference } from "src/theme/ThemeModeContext";
 
+const blueThemeAppBarBackgroundColor = "#273A51";
+const themeMenuOptions: Array<{ preference: ThemePreference; label: string }> = [
+    { preference: "light", label: "Light theme" },
+    { preference: "dark", label: "Dark theme" },
+    { preference: "blue", label: "Blue theme" },
+];
+
 const styles = (theme: Theme) => createStyles({
     appBar: {
         position: "relative",
+    },
+    appBarBlueTheme: {
+        backgroundColor: blueThemeAppBarBackgroundColor,
+        color: theme.palette.common.white,
     },
     toolbar: {
         flex: 1,
@@ -106,6 +119,12 @@ const styles = (theme: Theme) => createStyles({
         whiteSpace: "nowrap",
         overflow: "visible",
     },
+    appbarButtonBlueTheme: {
+        color: theme.palette.common.white,
+        "&:hover": {
+            backgroundColor: "rgba(255, 255, 255, 0.08)",
+        },
+    },
     navButtonIcon: {
         color: theme.palette.text.primary,
         fontSize: "1.35em",
@@ -114,15 +133,26 @@ const styles = (theme: Theme) => createStyles({
         transform: "translateY(-4px)",
         marginRight: theme.spacing(1)
     },
+    navButtonIconBlueTheme: {
+        color: "inherit",
+    },
     instrumentsNavButton: {
         overflow: "visible",
     },
     navTelescopeIcon: {
-        color: theme.palette.text.primary,
         transform: "translateY(-8px)",
+    },
+    navTelescopeIconBlueTheme: {
+        filter: "invert(1) brightness(2)",
     },
     userMenuIcon: {
         color: theme.palette.text.primary,
+    },
+    userMenuIconBlueTheme: {
+        color: "inherit",
+    },
+    submenuChevron: {
+        marginLeft: theme.spacing(2),
     },
 });
 
@@ -138,13 +168,21 @@ const LinkToInstruments = React.forwardRef<HTMLAnchorElement, any>((props, ref) 
 const LinkToEyepieces = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/eyepieces" ref={ref} {...props} />);
 const LinkToLogin = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/login" ref={ref} {...props} />);
 
-// Toggles the menu theme action between the two supported color modes.
-function getNextThemePreference(preference: ThemePreference): ThemePreference {
-    return preference === "dark" ? "light" : "dark";
+// Returns the icon shown next to each selectable theme in the user menu.
+function getThemeMenuIcon(preference: ThemePreference): React.ReactNode {
+    switch (preference) {
+        case "dark":
+            return <DarkModeIcon fontSize="small" />;
+        case "blue":
+            return <PaletteIcon fontSize="small" />;
+        default:
+            return <LightModeIcon fontSize="small" />;
+    }
 }
 
 export interface ILayoutState {
     userMenuAnchorEl: HTMLElement | null;
+    themeMenuAnchorEl: HTMLElement | null;
     exportDialogOpen: boolean;
 }
 
@@ -159,14 +197,20 @@ export interface ILayoutProps extends WithStyles<typeof styles> {
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
     public static contextType = ThemeModeContext;
     declare context: React.ContextType<typeof ThemeModeContext>;
+    private themeMenuCloseTimer: number | null = null;
 
     constructor(props: ILayoutProps) {
         super(props);
 
         this.state = {
             userMenuAnchorEl: null,
+            themeMenuAnchorEl: null,
             exportDialogOpen: false
         };
+    }
+
+    public componentWillUnmount() {
+        this.clearThemeMenuCloseTimer();
     }
 
     private handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -174,7 +218,40 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     }
 
     private handleCloseUserMenu = () => {
-        this.setState({ userMenuAnchorEl: null });
+        this.clearThemeMenuCloseTimer();
+        this.setState({
+            userMenuAnchorEl: null,
+            themeMenuAnchorEl: null,
+        });
+    }
+
+    // Opens the theme submenu from the authenticated user's top-nav menu.
+    private handleOpenThemeMenu = (event: React.MouseEvent<HTMLElement>) => {
+        this.clearThemeMenuCloseTimer();
+        this.setState({ themeMenuAnchorEl: event.currentTarget });
+    }
+
+    // Closes only the theme submenu while keeping the parent user menu available.
+    private handleCloseThemeMenu = () => {
+        this.clearThemeMenuCloseTimer();
+        this.setState({ themeMenuAnchorEl: null });
+    }
+
+    // Cancels a pending theme-submenu close while the pointer is still in the submenu area.
+    private clearThemeMenuCloseTimer = () => {
+        if (this.themeMenuCloseTimer !== null) {
+            window.clearTimeout(this.themeMenuCloseTimer);
+            this.themeMenuCloseTimer = null;
+        }
+    }
+
+    // Delays submenu closing briefly so the pointer can travel from the parent item into the submenu.
+    private handleScheduleThemeMenuClose = () => {
+        this.clearThemeMenuCloseTimer();
+        this.themeMenuCloseTimer = window.setTimeout(() => {
+            this.setState({ themeMenuAnchorEl: null });
+            this.themeMenuCloseTimer = null;
+        }, 250);
     }
 
     private handleClickLogout = () => {
@@ -225,9 +302,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         });
     }
 
-    // Advances the persisted app theme preference between dark and light modes.
-    private handleToggleTheme = () => {
-        this.context.setPreference(getNextThemePreference(this.context.preference));
+    // Persists the selected app theme and closes the user menu.
+    private handleSetThemePreference = (themePreference: ThemePreference) => {
+        this.context.setPreference(themePreference);
+        this.handleCloseThemeMenu();
+        this.handleCloseUserMenu();
     }
 
     public render() {
@@ -237,28 +316,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //console.log(this.props.location);
 
         const isUserMenuOpen = Boolean(this.state.userMenuAnchorEl);
+        const isThemeMenuOpen = Boolean(this.state.themeMenuAnchorEl);
+        const isBlueTheme = this.context.preference === "blue";
+        const selectedThemeLabel = themeMenuOptions.find(option => option.preference === this.context.preference)?.label ?? "Light theme";
+        const appBarClassName = classNames(classes.appBar, isBlueTheme && classes.appBarBlueTheme);
+        const appbarButtonClassName = classNames(classes.appbarButton, isBlueTheme && classes.appbarButtonBlueTheme);
+        const navButtonIconClassName = classNames("faSpaceAfter", classes.navButtonIcon, isBlueTheme && classes.navButtonIconBlueTheme);
+        const userMenuIconClassName = classNames(classes.userMenuIcon, isBlueTheme && classes.userMenuIconBlueTheme);
         let userMenuComponent;
         if (this.props.store.isLoggedIn) {
             const userMenuLabel = this.props.store.loggedInUsername
                 ?? this.props.store.loggedInFullName
                 ?? this.props.store.loggedInEmail
                 ?? "User";
-            const themePreference = this.context.preference;
-            const nextThemePreference = getNextThemePreference(themePreference);
-            const themeMenuLabel = `Go to ${nextThemePreference === "dark" ? "Dark theme" : "Light theme"}`;
-            const themeMenuIcon = nextThemePreference === "dark"
-                ? <DarkModeIcon fontSize="small" />
-                : <LightModeIcon fontSize="small" />;
             userMenuComponent = (
                 <>
                     <Button
                         color="primary"
-                        className={classes.appbarButton}
+                        className={appbarButtonClassName}
                         onClick={this.handleOpenUserMenu}
                         aria-controls={isUserMenuOpen ? "user-menu" : undefined}
                         aria-haspopup="true"
                         aria-expanded={isUserMenuOpen ? "true" : undefined}
-                        startIcon={<AccountCircleIcon className={classes.userMenuIcon} />}
+                        startIcon={<AccountCircleIcon className={userMenuIconClassName} />}
                     >
                         {userMenuLabel}
                     </Button>
@@ -276,12 +356,58 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             horizontal: "right"
                         }}
                     >
-                        <MenuItem onClick={this.handleToggleTheme}>
+                        <MenuItem
+                            aria-controls={isThemeMenuOpen ? "theme-menu" : undefined}
+                            aria-haspopup="menu"
+                            aria-expanded={isThemeMenuOpen ? "true" : undefined}
+                            onClick={this.handleOpenThemeMenu}
+                            onMouseEnter={this.handleOpenThemeMenu}
+                            onMouseLeave={this.handleScheduleThemeMenuClose}
+                        >
                             <ListItemIcon>
-                                {themeMenuIcon}
+                                <PaletteIcon fontSize="small" />
                             </ListItemIcon>
-                            <ListItemText>{themeMenuLabel}</ListItemText>
+                            <ListItemText primary="Theme" secondary={selectedThemeLabel} />
+                            <ChevronRightIcon className={classes.submenuChevron} fontSize="small" />
                         </MenuItem>
+                        <Menu
+                            id="theme-menu"
+                            anchorEl={this.state.themeMenuAnchorEl}
+                            open={isUserMenuOpen && isThemeMenuOpen}
+                            onClose={this.handleCloseThemeMenu}
+                            hideBackdrop
+                            anchorOrigin={{
+                                vertical: "top",
+                                horizontal: "left"
+                            }}
+                            transformOrigin={{
+                                vertical: "top",
+                                horizontal: "right"
+                            }}
+                            slotProps={{
+                                root: {
+                                    style: { pointerEvents: "none" }
+                                },
+                                paper: {
+                                    onMouseEnter: this.clearThemeMenuCloseTimer,
+                                    onMouseLeave: this.handleScheduleThemeMenuClose,
+                                    style: { pointerEvents: "auto" }
+                                }
+                            }}
+                        >
+                            {themeMenuOptions.map(option => (
+                                <MenuItem
+                                    key={option.preference}
+                                    selected={this.context.preference === option.preference}
+                                    onClick={() => this.handleSetThemePreference(option.preference)}
+                                >
+                                    <ListItemIcon>
+                                        {getThemeMenuIcon(option.preference)}
+                                    </ListItemIcon>
+                                    <ListItemText>{option.label}</ListItemText>
+                                </MenuItem>
+                            ))}
+                        </Menu>
                         <MenuItem onClick={this.handleClickChangePassword}>
                             <ListItemIcon>
                                 <LockResetIcon fontSize="small" />
@@ -321,8 +447,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             );
         } else {
             userMenuComponent = (
-                <Button component={LinkToLogin} color="primary" className={classes.appbarButton}>
-                    <FontAwesomeIcon icon="key" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Login
+                <Button component={LinkToLogin} color="primary" className={appbarButtonClassName}>
+                    <FontAwesomeIcon icon="key" className={navButtonIconClassName} /> Login
                 </Button>
             );
         }
@@ -331,7 +457,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return <div>
             <CssBaseline />
-            <AppBar position="static" color="default" className={classes.appBar}>
+            <AppBar position="static" color="default" className={appBarClassName}>
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false} className={classes.toolbarTitle}>
                         <a href={import.meta.env.BASE_URL} className="appbar-brand">
@@ -340,31 +466,31 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     </Typography>
                     <div className={classes.navControls}>
                         <div className={classes.searchContainer}>
-                            <SearchInput onSearchView={weAreOnSearchView} />
+                            <SearchInput navBarContrast={isBlueTheme} onSearchView={weAreOnSearchView} />
                         </div>
-                        <Button component={LinkToHome} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="home" className={classNames("faSpaceAfter", classes.navButtonIcon)} />Home
+                        <Button component={LinkToHome} className={appbarButtonClassName}>
+                            <FontAwesomeIcon icon="home" className={navButtonIconClassName} />Home
                         </Button>
-                        <Button component={LinkToObservedDsos} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="table" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Observations
+                        <Button component={LinkToObservedDsos} className={appbarButtonClassName}>
+                            <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Observations
                         </Button>
-                        <Button component={LinkToSessions} className={classes.appbarButton} onClick={this.handleClickSessions}>
-                            <FontAwesomeIcon icon="table" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Sessions
+                        <Button component={LinkToSessions} className={appbarButtonClassName} onClick={this.handleClickSessions}>
+                            <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Sessions
                         </Button>
-                        <Button component={LinkToNewSession} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="plus" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> New session
+                        <Button component={LinkToNewSession} className={appbarButtonClassName}>
+                            <FontAwesomeIcon icon="plus" className={navButtonIconClassName} /> New session
                         </Button>
-                        <Button component={LinkToObjects} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="star" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Objects
+                        <Button component={LinkToObjects} className={appbarButtonClassName}>
+                            <FontAwesomeIcon icon="star" className={navButtonIconClassName} /> Objects
                         </Button>
-                        <Button component={LinkToLocations} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="map-marked" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Locations
+                        <Button component={LinkToLocations} className={appbarButtonClassName}>
+                            <FontAwesomeIcon icon="map-marked" className={navButtonIconClassName} /> Locations
                         </Button>
-                        <Button component={LinkToInstruments} className={classNames(classes.appbarButton, classes.instrumentsNavButton)}>
-                            <TelescopeIcon variant="tableTop" size={24} className={classNames("faSpaceAfter", classes.navButtonIcon, classes.navTelescopeIcon)} /> Instruments
+                        <Button component={LinkToInstruments} className={classNames(appbarButtonClassName, classes.instrumentsNavButton)}>
+                            <TelescopeIcon variant="tableTop" size={24} className={classNames(navButtonIconClassName, classes.navTelescopeIcon, isBlueTheme && classes.navTelescopeIconBlueTheme)} /> Instruments
                         </Button>
-                        <Button component={LinkToEyepieces} className={classes.appbarButton}>
-                            <FontAwesomeIcon icon="eye" className={classNames("faSpaceAfter", classes.navButtonIcon)} /> Eyepieces
+                        <Button component={LinkToEyepieces} className={appbarButtonClassName}>
+                            <FontAwesomeIcon icon="eye" className={navButtonIconClassName} /> Eyepieces
                         </Button>
                         {userMenuComponent}
                     </div>
