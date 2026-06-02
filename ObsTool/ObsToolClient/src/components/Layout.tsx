@@ -37,8 +37,8 @@ import { bindActionCreators, Dispatch } from "redux";
 import { connect } from "react-redux";
 import TelescopeIcon from "./icons/TelescopeIcon";
 import { ThemeModeContext, ThemePreference } from "src/theme/ThemeModeContext";
+import { blueThemeAppBarBackgroundColor } from "src/theme/ThemeColors";
 
-const blueThemeAppBarBackgroundColor = "#273A51";
 const themeMenuOptions: Array<{ preference: ThemePreference; label: string }> = [
     { preference: "light", label: "Light theme" },
     { preference: "dark", label: "Dark theme" },
@@ -75,23 +75,36 @@ const styles = (theme: Theme) => createStyles({
     },
     navControls: {
         alignItems: "center",
-        display: "flex",
         flex: "1 1 640px",
-        flexWrap: "wrap",
+        display: "flex",
+        flexDirection: "row-reverse",
+        flexWrap: "nowrap",
         gap: theme.spacing(1),
-        justifyContent: "flex-end",
         minWidth: 0,
         [theme.breakpoints.down("md")]: {
             flexBasis: "100%",
+            flexWrap: "wrap",
+        },
+    },
+    navButtonGroup: {
+        alignItems: "center",
+        display: "flex",
+        flex: "1 1 auto",
+        gap: theme.spacing(1),
+        flexWrap: "wrap",
+        justifyContent: "flex-end",
+        minWidth: 0,
+        [theme.breakpoints.down("md")]: {
+            flexBasis: "auto",
             justifyContent: "flex-start",
         },
     },
     searchContainer: {
-        flex: "1 1 220px",
+        flex: "0 0 340px",
         marginLeft: theme.spacing(1),
         marginRight: theme.spacing(1),
-        maxWidth: 300,
-        minWidth: 180,
+        maxWidth: 420,
+        minWidth: 260,
         [theme.breakpoints.down("sm")]: {
             flexBasis: "100%",
             marginLeft: 0,
@@ -465,34 +478,36 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         </a>
                     </Typography>
                     <div className={classes.navControls}>
+                        <div className={classes.navButtonGroup}>
+                            <Button component={LinkToHome} className={appbarButtonClassName}>
+                                <FontAwesomeIcon icon="home" className={navButtonIconClassName} />Home
+                            </Button>
+                            <Button component={LinkToObservedDsos} className={appbarButtonClassName}>
+                                <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Observations
+                            </Button>
+                            <Button component={LinkToSessions} className={appbarButtonClassName} onClick={this.handleClickSessions}>
+                                <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Sessions
+                            </Button>
+                            <Button component={LinkToNewSession} className={appbarButtonClassName}>
+                                <FontAwesomeIcon icon="plus" className={navButtonIconClassName} /> New session
+                            </Button>
+                            <Button component={LinkToObjects} className={appbarButtonClassName}>
+                                <FontAwesomeIcon icon="star" className={navButtonIconClassName} /> Objects
+                            </Button>
+                            <Button component={LinkToLocations} className={appbarButtonClassName}>
+                                <FontAwesomeIcon icon="map-marked" className={navButtonIconClassName} /> Locations
+                            </Button>
+                            <Button component={LinkToInstruments} className={classNames(appbarButtonClassName, classes.instrumentsNavButton)}>
+                                <TelescopeIcon variant="tableTop" size={24} className={classNames(navButtonIconClassName, classes.navTelescopeIcon, isBlueTheme && classes.navTelescopeIconBlueTheme)} /> Instruments
+                            </Button>
+                            <Button component={LinkToEyepieces} className={appbarButtonClassName}>
+                                <FontAwesomeIcon icon="eye" className={navButtonIconClassName} /> Eyepieces
+                            </Button>
+                            {userMenuComponent}
+                        </div>
                         <div className={classes.searchContainer}>
                             <SearchInput navBarContrast={isBlueTheme} onSearchView={weAreOnSearchView} />
                         </div>
-                        <Button component={LinkToHome} className={appbarButtonClassName}>
-                            <FontAwesomeIcon icon="home" className={navButtonIconClassName} />Home
-                        </Button>
-                        <Button component={LinkToObservedDsos} className={appbarButtonClassName}>
-                            <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Observations
-                        </Button>
-                        <Button component={LinkToSessions} className={appbarButtonClassName} onClick={this.handleClickSessions}>
-                            <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Sessions
-                        </Button>
-                        <Button component={LinkToNewSession} className={appbarButtonClassName}>
-                            <FontAwesomeIcon icon="plus" className={navButtonIconClassName} /> New session
-                        </Button>
-                        <Button component={LinkToObjects} className={appbarButtonClassName}>
-                            <FontAwesomeIcon icon="star" className={navButtonIconClassName} /> Objects
-                        </Button>
-                        <Button component={LinkToLocations} className={appbarButtonClassName}>
-                            <FontAwesomeIcon icon="map-marked" className={navButtonIconClassName} /> Locations
-                        </Button>
-                        <Button component={LinkToInstruments} className={classNames(appbarButtonClassName, classes.instrumentsNavButton)}>
-                            <TelescopeIcon variant="tableTop" size={24} className={classNames(navButtonIconClassName, classes.navTelescopeIcon, isBlueTheme && classes.navTelescopeIconBlueTheme)} /> Instruments
-                        </Button>
-                        <Button component={LinkToEyepieces} className={appbarButtonClassName}>
-                            <FontAwesomeIcon icon="eye" className={navButtonIconClassName} /> Eyepieces
-                        </Button>
-                        {userMenuComponent}
                     </div>
                 </Toolbar>
             </AppBar>

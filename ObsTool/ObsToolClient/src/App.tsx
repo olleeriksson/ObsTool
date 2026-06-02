@@ -11,6 +11,7 @@ import * as Routes from "./components/Routes";
 import { Provider } from "react-redux";
 import initStore from "./store/AppStore";
 import { ThemeModeContext, themePreferenceStorageKey, ThemePreference, ResolvedThemeMode } from "./theme/ThemeModeContext";
+import { blueThemeAppBarBackgroundColor } from "./theme/ThemeColors";
 
 interface IAppState {
   themePreference: ThemePreference;
@@ -36,6 +37,11 @@ function resolveThemeMode(themePreference: ThemePreference): ResolvedThemeMode {
 // Creates the shared MUI theme so MUI components and tss-react styles use the same color mode.
 function createAppTheme(themePreference: ThemePreference) {
   const mode = resolveThemeMode(themePreference);
+  const primaryMain = themePreference === "blue"
+    ? blueThemeAppBarBackgroundColor
+    : mode === "dark"
+      ? "#7db7f0"
+      : "#1976d2";
 
   return createTheme({
     palette: {
@@ -45,7 +51,7 @@ function createAppTheme(themePreference: ThemePreference) {
         paper: mode === "dark" ? "#161b22" : "#ffffff",
       },
       primary: {
-        main: mode === "dark" ? "#7db7f0" : "#1976d2",
+        main: primaryMain,
       },
     },
     components: {
