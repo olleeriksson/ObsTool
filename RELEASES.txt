@@ -3,3 +3,4 @@
 2026-05-23-02 - Added event notification system
 2026-05-31    - All the major new features
 2026-05-31-02 - Fixes around user/other objects, instruments, and deleting these
+2026-06-03    - Layout, icons, themes
