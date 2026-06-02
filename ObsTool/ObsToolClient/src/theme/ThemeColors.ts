@@ -1,1 +1,1 @@
-export const blueThemeAppBarBackgroundColor = "#273A51";
+export const lightThemeAppBarBackgroundColor = "#273A51";

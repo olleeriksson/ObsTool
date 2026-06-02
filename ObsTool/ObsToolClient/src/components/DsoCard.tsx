@@ -31,6 +31,7 @@ const styles = (theme: Theme) => createStyles({
   },
   dsoTypeIcon: {
     marginRight: 10,
+    alignSelf: "flex-start",
   },
   titleRow: {
     alignItems: "center",
@@ -212,7 +213,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     );
 
     const dsoLabel = (
-      <Grid container alignItems="center">
+      <Grid container alignItems="flex-start">
         <Grid size={"auto"}>
           <DsoTypeIcon type={dso.type} size={dsoTypeIconSize} className={classes.dsoTypeIcon} />
         </Grid>

@@ -9,10 +9,15 @@ import logo from "../assets/images/obstool-logo-navbar-55px.png";
 import { createStyles, withStyles } from "src/muiCompat";
 import type { WithStyles } from "src/muiCompat";
 import "./Layout.css";
+import { lightThemeAppBarBackgroundColor } from "src/theme/ThemeColors";
 
 const styles = (theme: Theme) => createStyles({
+    appBar: {
+        backgroundColor: lightThemeAppBarBackgroundColor,
+        color: theme.palette.common.white,
+    },
     toolbar: {
-        paddingLeft: `${theme.spacing(1)} !important`
+        paddingLeft: `${theme.spacing(1)} !important`,
     },
     root: {
         margin: `${theme.spacing(6)} auto 0`,
@@ -36,7 +41,7 @@ function AuthenticationPageFrame(props: IAuthenticationPageFrameProps) {
     return (
         <div>
             <CssBaseline />
-            <AppBar position="static" color="default">
+            <AppBar position="static" color="default" className={classes.appBar}>
                 <Toolbar className={classes.toolbar}>
                     <Typography variant="h4" color="inherit" noWrap={false}>
                         <a href={import.meta.env.BASE_URL} className="appbar-brand">

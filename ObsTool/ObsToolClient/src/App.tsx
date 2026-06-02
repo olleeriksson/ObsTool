@@ -11,22 +11,25 @@ import * as Routes from "./components/Routes";
 import { Provider } from "react-redux";
 import initStore from "./store/AppStore";
 import { ThemeModeContext, themePreferenceStorageKey, ThemePreference, ResolvedThemeMode } from "./theme/ThemeModeContext";
-import { blueThemeAppBarBackgroundColor } from "./theme/ThemeColors";
+import { lightThemeAppBarBackgroundColor } from "./theme/ThemeColors";
 
 interface IAppState {
   themePreference: ThemePreference;
 }
 
-// Reads the persisted theme preference, falling back to light mode for first-time visitors.
+// Reads the persisted theme preference, falling back to the light theme for first-time visitors.
 function getInitialThemePreference(): ThemePreference {
   if (typeof window === "undefined") {
     return "light";
   }
 
   const storedPreference = window.localStorage.getItem(themePreferenceStorageKey);
-  return storedPreference === "light" || storedPreference === "dark" || storedPreference === "blue"
-    ? storedPreference
-    : "light";
+  if (storedPreference === "dark") {
+    return "dark";
+  }
+
+  // Treat legacy "blue" values as the current light theme so existing users keep their visual mode.
+  return "light";
 }
 
 // Resolves app-level theme choices to the two MUI palette modes.
@@ -37,11 +40,9 @@ function resolveThemeMode(themePreference: ThemePreference): ResolvedThemeMode {
 // Creates the shared MUI theme so MUI components and tss-react styles use the same color mode.
 function createAppTheme(themePreference: ThemePreference) {
   const mode = resolveThemeMode(themePreference);
-  const primaryMain = themePreference === "blue"
-    ? blueThemeAppBarBackgroundColor
-    : mode === "dark"
-      ? "#7db7f0"
-      : "#1976d2";
+  const primaryMain = mode === "dark"
+    ? "#7db7f0"
+    : lightThemeAppBarBackgroundColor;
 
   return createTheme({
     palette: {
@@ -82,7 +83,7 @@ class App extends React.Component<{}, IAppState> {
       faStarHalfAlt, faUndoAlt, faTimes, faExclamationTriangle, faKey);
   }
 
-  // Persists the user's explicit light or dark theme choice.
+  // Persists the user's explicit theme choice.
   private handleSetThemePreference = (themePreference: ThemePreference) => {
     window.localStorage.setItem(themePreferenceStorageKey, themePreference);
     this.setState({ themePreference });

@@ -37,20 +37,19 @@ import { bindActionCreators, Dispatch } from "redux";
 import { connect } from "react-redux";
 import TelescopeIcon from "./icons/TelescopeIcon";
 import { ThemeModeContext, ThemePreference } from "src/theme/ThemeModeContext";
-import { blueThemeAppBarBackgroundColor } from "src/theme/ThemeColors";
+import { lightThemeAppBarBackgroundColor } from "src/theme/ThemeColors";
 
 const themeMenuOptions: Array<{ preference: ThemePreference; label: string }> = [
     { preference: "light", label: "Light theme" },
     { preference: "dark", label: "Dark theme" },
-    { preference: "blue", label: "Blue theme" },
 ];
 
 const styles = (theme: Theme) => createStyles({
     appBar: {
         position: "relative",
     },
-    appBarBlueTheme: {
-        backgroundColor: blueThemeAppBarBackgroundColor,
+    appBarLightTheme: {
+        backgroundColor: lightThemeAppBarBackgroundColor,
         color: theme.palette.common.white,
     },
     toolbar: {
@@ -68,7 +67,7 @@ const styles = (theme: Theme) => createStyles({
         display: "flex",
         minWidth: 0,
         marginRight: theme.spacing(1),
-        [theme.breakpoints.down("md")]: {
+        [theme.breakpoints.down("lg")]: {
             flexBasis: "100%",
             marginRight: 0,
         },
@@ -94,14 +93,14 @@ const styles = (theme: Theme) => createStyles({
         flexWrap: "wrap",
         justifyContent: "flex-end",
         minWidth: 0,
-        [theme.breakpoints.down("md")]: {
+        [theme.breakpoints.down("sm")]: {
             flexBasis: "auto",
             justifyContent: "flex-start",
         },
     },
     searchContainer: {
         flex: "0 0 340px",
-        marginLeft: theme.spacing(1),
+        marginLeft: theme.spacing(3),
         marginRight: theme.spacing(1),
         maxWidth: 420,
         minWidth: 260,
@@ -132,7 +131,7 @@ const styles = (theme: Theme) => createStyles({
         whiteSpace: "nowrap",
         overflow: "visible",
     },
-    appbarButtonBlueTheme: {
+    appbarButtonLightTheme: {
         color: theme.palette.common.white,
         "&:hover": {
             backgroundColor: "rgba(255, 255, 255, 0.08)",
@@ -146,7 +145,7 @@ const styles = (theme: Theme) => createStyles({
         transform: "translateY(-4px)",
         marginRight: theme.spacing(1)
     },
-    navButtonIconBlueTheme: {
+    navButtonIconLightTheme: {
         color: "inherit",
     },
     instrumentsNavButton: {
@@ -155,13 +154,13 @@ const styles = (theme: Theme) => createStyles({
     navTelescopeIcon: {
         transform: "translateY(-8px)",
     },
-    navTelescopeIconBlueTheme: {
+    navTelescopeIconLightTheme: {
         filter: "invert(1) brightness(2)",
     },
     userMenuIcon: {
         color: theme.palette.text.primary,
     },
-    userMenuIconBlueTheme: {
+    userMenuIconLightTheme: {
         color: "inherit",
     },
     submenuChevron: {
@@ -186,8 +185,6 @@ function getThemeMenuIcon(preference: ThemePreference): React.ReactNode {
     switch (preference) {
         case "dark":
             return <DarkModeIcon fontSize="small" />;
-        case "blue":
-            return <PaletteIcon fontSize="small" />;
         default:
             return <LightModeIcon fontSize="small" />;
     }
@@ -330,12 +327,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         const isUserMenuOpen = Boolean(this.state.userMenuAnchorEl);
         const isThemeMenuOpen = Boolean(this.state.themeMenuAnchorEl);
-        const isBlueTheme = this.context.preference === "blue";
+        const isLightTheme = this.context.preference === "light";
         const selectedThemeLabel = themeMenuOptions.find(option => option.preference === this.context.preference)?.label ?? "Light theme";
-        const appBarClassName = classNames(classes.appBar, isBlueTheme && classes.appBarBlueTheme);
-        const appbarButtonClassName = classNames(classes.appbarButton, isBlueTheme && classes.appbarButtonBlueTheme);
-        const navButtonIconClassName = classNames("faSpaceAfter", classes.navButtonIcon, isBlueTheme && classes.navButtonIconBlueTheme);
-        const userMenuIconClassName = classNames(classes.userMenuIcon, isBlueTheme && classes.userMenuIconBlueTheme);
+        const appBarClassName = classNames(classes.appBar, isLightTheme && classes.appBarLightTheme);
+        const appbarButtonClassName = classNames(classes.appbarButton, isLightTheme && classes.appbarButtonLightTheme);
+        const navButtonIconClassName = classNames("faSpaceAfter", classes.navButtonIcon, isLightTheme && classes.navButtonIconLightTheme);
+        const userMenuIconClassName = classNames(classes.userMenuIcon, isLightTheme && classes.userMenuIconLightTheme);
         let userMenuComponent;
         if (this.props.store.isLoggedIn) {
             const userMenuLabel = this.props.store.loggedInUsername
@@ -498,7 +495,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 <FontAwesomeIcon icon="map-marked" className={navButtonIconClassName} /> Locations
                             </Button>
                             <Button component={LinkToInstruments} className={classNames(appbarButtonClassName, classes.instrumentsNavButton)}>
-                                <TelescopeIcon variant="tableTop" size={24} className={classNames(navButtonIconClassName, classes.navTelescopeIcon, isBlueTheme && classes.navTelescopeIconBlueTheme)} /> Instruments
+                                <TelescopeIcon variant="tableTop" size={24} className={classNames(navButtonIconClassName, classes.navTelescopeIcon, isLightTheme && classes.navTelescopeIconLightTheme)} /> Instruments
                             </Button>
                             <Button component={LinkToEyepieces} className={appbarButtonClassName}>
                                 <FontAwesomeIcon icon="eye" className={navButtonIconClassName} /> Eyepieces
@@ -506,7 +503,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             {userMenuComponent}
                         </div>
                         <div className={classes.searchContainer}>
-                            <SearchInput navBarContrast={isBlueTheme} onSearchView={weAreOnSearchView} />
+                            <SearchInput navBarContrast={isLightTheme} onSearchView={weAreOnSearchView} />
                         </div>
                     </div>
                 </Toolbar>
