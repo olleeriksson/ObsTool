@@ -11,7 +11,7 @@ import * as Routes from "./components/Routes";
 import { Provider } from "react-redux";
 import initStore from "./store/AppStore";
 import { ThemeModeContext, themePreferenceStorageKey, ThemePreference, ResolvedThemeMode } from "./theme/ThemeModeContext";
-import { lightThemeAppBarBackgroundColor } from "./theme/ThemeColors";
+import { darkThemeSecondaryColor, lightThemeAppBarBackgroundColor, lightThemeSecondaryColor } from "./theme/ThemeColors";
 
 interface IAppState {
   themePreference: ThemePreference;
@@ -43,6 +43,9 @@ function createAppTheme(themePreference: ThemePreference) {
   const primaryMain = mode === "dark"
     ? "#7db7f0"
     : lightThemeAppBarBackgroundColor;
+  const secondaryMain = mode === "dark"
+    ? darkThemeSecondaryColor
+    : lightThemeSecondaryColor;
 
   return createTheme({
     palette: {
@@ -53,6 +56,9 @@ function createAppTheme(themePreference: ThemePreference) {
       },
       primary: {
         main: primaryMain,
+      },
+      secondary: {
+        main: secondaryMain,
       },
     },
     components: {

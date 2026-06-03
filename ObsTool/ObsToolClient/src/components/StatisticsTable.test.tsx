@@ -5,9 +5,16 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { vi } from "vitest";
 import Api from "../api/Api";
 import { IStatistics } from "../types/Types";
+import { lightThemeSecondaryColor } from "../theme/ThemeColors";
 import StatisticsTable from "./StatisticsTable";
 
-const theme = createTheme();
+const theme = createTheme({
+    palette: {
+        secondary: {
+            main: lightThemeSecondaryColor,
+        },
+    },
+});
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
     <ThemeProvider theme={theme}>{children}</ThemeProvider>
@@ -151,10 +158,10 @@ it("shows blue now deltas when viewing historical statistics", async () => {
 
     const sessionRow = screen.getByRole("row", { name: "Observing sessions 1 +2 Observed Galaxies 1 +2" });
     expect(within(sessionRow).getAllByText("+2")).toHaveLength(2);
-    expect(within(sessionRow).getAllByText("+2")[0]).toHaveStyle({ color: theme.palette.primary.main });
+    expect(within(sessionRow).getAllByText("+2")[0]).toHaveStyle({ color: theme.palette.secondary.main });
 
     const h2500Row = screen.getByRole("row", { name: "Observed H2500 objects 4 / 10(40%) +2(+20%) Observed H400 objects 3 / 5(60%) +1(+20%)" });
-    expect(within(h2500Row).getByText("+2")).toHaveStyle({ color: theme.palette.primary.main });
+    expect(within(h2500Row).getByText("+2")).toHaveStyle({ color: theme.palette.secondary.main });
     expect(within(h2500Row).getAllByText("(+20%)")).toHaveLength(2);
 
     const failedRow = screen.getByRole("row", { name: "Unsuccessfull H2500 objects 2 +1 Unsuccessfull H400 objects 1 +1" });

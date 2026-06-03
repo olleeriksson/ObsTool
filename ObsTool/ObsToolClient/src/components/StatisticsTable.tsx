@@ -86,7 +86,7 @@ const styles = (theme: Theme) => createStyles({
         marginLeft: theme.spacing(0.5),
     },
     nowComparison: {
-        color: theme.palette.primary.main,
+        color: theme.palette.secondary.main,
         fontWeight: 500,
         whiteSpace: "nowrap",
     },

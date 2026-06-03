@@ -71,7 +71,7 @@ const styles = (theme: Theme) => createStyles({
     },
 });
 
-const maxVisibleDsoSuggestions = 6;
+const maxVisibleDsoSuggestions = 12;
 
 interface ISearchInputProps extends WithStyles<typeof styles> {
     navBarContrast?: boolean;

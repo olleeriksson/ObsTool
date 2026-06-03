@@ -13,6 +13,11 @@ import DsoCard from "./DsoCard";
 const styles = (theme: Theme) => createStyles({
     root: {
     },
+    loadingContainer: {
+        display: "flex",
+        justifyContent: "center",
+        marginTop: theme.spacing(4),
+    },
     textfieldPaper: {
         marginTop: theme.spacing(2),
         padding: theme.spacing(2),
@@ -86,13 +91,9 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
 
         if (this.state.isLoading) {
             return (
-                <Grid container spacing={5} justifyContent="center" direction="row">
-                    <Grid size={{ xs: 12, md: 8 }}>
-                        <Typography variant="caption" color="textSecondary" gutterBottom={true}>
-                            <CircularProgress />
-                        </Typography>
-                    </Grid>
-                </Grid>
+                <div className={classes.loadingContainer}>
+                    <CircularProgress />
+                </div>
             );
         } else if (this.state.isError) {
             return (
