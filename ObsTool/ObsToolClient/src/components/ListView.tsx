@@ -35,9 +35,6 @@ const styles = (theme: Theme) => createStyles({
         marginTop: theme.spacing(2),
         padding: theme.spacing(2),
     },
-    observationPaperEmpty: {
-        minHeight: "calc(100vh - 220px)",
-    },
     emptyRightSide: {
         alignItems: "center",
         display: "flex",
@@ -149,14 +146,18 @@ class ListView extends React.Component<IListViewProps> {
         let rightSideView;
         if (selectedObsSessionId) { // default view
             rightSideView = (
-                <ObsSessionPage obsSessionId={selectedObsSessionId} />
+                <Paper className={classes.observationPaper} elevation={1}>
+                    <ObsSessionPage obsSessionId={selectedObsSessionId} />
+                </Paper>
             );
         } else { // empty view
             rightSideView = (
                 <>
-                    <Typography variant="h6" align="center" color="textPrimary" component="p">
-                        <TelescopeIcon variant="tableTop" className="faSpaceAfter" /> Observations
-                    </Typography>
+                    <Paper className={classes.observationPaper} elevation={1}>
+                        <Typography variant="h6" align="center" color="textPrimary" component="p">
+                            <TelescopeIcon variant="tableTop" className="faSpaceAfter" /> Observations
+                        </Typography>
+                    </Paper>
                     <div className={classes.emptyRightSide}>
                         <Button
                             component={LinkToNewSession}
@@ -181,9 +182,7 @@ class ListView extends React.Component<IListViewProps> {
                     {leftSideView}
                 </Grid>
                 <Grid size={{ xs: 12, lg: 8 }} className={classes.column}>
-                    <Paper className={`${classes.observationPaper} ${!selectedObsSessionId ? classes.observationPaperEmpty : ""}`} elevation={1}>
-                        {rightSideView}
-                    </Paper>
+                    {rightSideView}
                 </Grid>
             </Grid>
         </div>;
