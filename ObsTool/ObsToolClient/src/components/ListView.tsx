@@ -42,8 +42,18 @@ const styles = (theme: Theme) => createStyles({
         minHeight: "calc(100vh - 252px)",
     },
     emptyNewSessionButton: {
-        paddingLeft: theme.spacing(4),
-        paddingRight: theme.spacing(4),
+        backgroundColor: theme.palette.mode === "dark" ? "#151a21" : "#eeeeee",
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: "none",
+        color: theme.palette.text.primary,
+        minHeight: 84,
+        minWidth: 240,
+        paddingLeft: theme.spacing(5),
+        paddingRight: theme.spacing(5),
+        "&:hover": {
+            backgroundColor: theme.palette.mode === "dark" ? "#1a2028" : "#e7e7e7",
+            boxShadow: "none",
+        },
     },
 });
 
@@ -162,7 +172,7 @@ class ListView extends React.Component<IListViewProps> {
                         <Button
                             component={LinkToNewSession}
                             className={classes.emptyNewSessionButton}
-                            color="primary"
+                            color="inherit"
                             size="large"
                             variant="contained"
                         >
