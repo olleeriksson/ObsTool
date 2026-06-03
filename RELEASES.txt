@@ -4,3 +4,4 @@
 2026-05-31    - All the major new features
 2026-05-31-02 - Fixes around user/other objects, instruments, and deleting these
 2026-06-03    - Layout, icons, themes
+2026-06-04    - Fixing memory of selected tab, added New session button, and changed secondary color
