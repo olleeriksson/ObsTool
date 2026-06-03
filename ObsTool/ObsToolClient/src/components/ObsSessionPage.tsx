@@ -79,7 +79,12 @@ interface IObsSessionPageState {
 class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPageState> {
     private static getInitialActiveTab = (obsSessionId?: number) => {
         // New sessions are an entry-flow exception: always open the edit form instead of restoring the last viewed tab.
-        return obsSessionId ? ObsSessionPage.readStoredActiveTab() : observationFormTab;
+        if (!obsSessionId) {
+            ObsSessionPage.writeStoredActiveTab(observationFormTab);
+            return observationFormTab;
+        }
+
+        return ObsSessionPage.readStoredActiveTab();
     }
 
     private static readStoredActiveTab = () => {
@@ -90,6 +95,15 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
             return activeTab === observedObjectsTab ? observedObjectsTab : observationFormTab;
         } catch {
             return observationFormTab;
+        }
+    }
+
+    private static writeStoredActiveTab = (activeTab: number) => {
+        // Browser storage is best-effort; the in-memory tab state still drives the current render.
+        try {
+            window.localStorage.setItem(obsSessionActiveTabStorageKey, activeTab.toString());
+        } catch {
+            // Browser storage can be unavailable in private or restricted contexts; state still works for this visit.
         }
     }
 
@@ -284,11 +298,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
 
     private setActiveTab = (activeTab: number, callback?: () => void) => {
         // Persist the last selected observation-page tab across browser visits.
-        try {
-            window.localStorage.setItem(obsSessionActiveTabStorageKey, activeTab.toString());
-        } catch {
-            // Browser storage can be unavailable in private or restricted contexts; state still works for this visit.
-        }
+        ObsSessionPage.writeStoredActiveTab(activeTab);
 
         this.setState({ activeTab }, callback);
     }

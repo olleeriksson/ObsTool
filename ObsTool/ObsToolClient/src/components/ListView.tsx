@@ -7,6 +7,7 @@ import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
 import "./Layout.css";
 // import { IObsSession } from "../types/Types";
 import ObsSessionList from "./ObsSessionList";
@@ -16,6 +17,7 @@ import { bindActionCreators, Dispatch } from "redux";
 import { IAppState, ReadonlyDataState } from "../types/Types";
 import * as actions from "../actions/ObsSessionActions";
 import Api from "../api/Api";
+import { Link } from "react-router-dom";
 import TelescopeIcon from "./icons/TelescopeIcon";
 
 const styles = (theme: Theme) => createStyles({
@@ -33,7 +35,23 @@ const styles = (theme: Theme) => createStyles({
         marginTop: theme.spacing(2),
         padding: theme.spacing(2),
     },
+    observationPaperEmpty: {
+        minHeight: "calc(100vh - 220px)",
+    },
+    emptyRightSide: {
+        alignItems: "center",
+        display: "flex",
+        justifyContent: "center",
+        minHeight: "calc(100vh - 252px)",
+    },
+    emptyNewSessionButton: {
+        paddingLeft: theme.spacing(4),
+        paddingRight: theme.spacing(4),
+    },
 });
+
+// MUI v6 ButtonBase requires router link components to forward their ref.
+const LinkToNewSession = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/newsession" ref={ref} {...props} />);
 
 interface IListViewProps extends WithStyles<typeof styles> {
     onIncrement?: () => void;
@@ -135,9 +153,22 @@ class ListView extends React.Component<IListViewProps> {
             );
         } else { // empty view
             rightSideView = (
-                <Typography variant="h6" align="center" color="textPrimary" component="p">
-                    <TelescopeIcon variant="tableTop" className="faSpaceAfter" /> Observations
-                </Typography>
+                <>
+                    <Typography variant="h6" align="center" color="textPrimary" component="p">
+                        <TelescopeIcon variant="tableTop" className="faSpaceAfter" /> Observations
+                    </Typography>
+                    <div className={classes.emptyRightSide}>
+                        <Button
+                            component={LinkToNewSession}
+                            className={classes.emptyNewSessionButton}
+                            color="primary"
+                            size="large"
+                            variant="contained"
+                        >
+                            <FontAwesomeIcon icon="plus" className="faSpaceAfter" /> New session
+                        </Button>
+                    </div>
+                </>
             );
         }
 
@@ -150,7 +181,7 @@ class ListView extends React.Component<IListViewProps> {
                     {leftSideView}
                 </Grid>
                 <Grid size={{ xs: 12, lg: 8 }} className={classes.column}>
-                    <Paper className={classes.observationPaper} elevation={1}>
+                    <Paper className={`${classes.observationPaper} ${!selectedObsSessionId ? classes.observationPaperEmpty : ""}`} elevation={1}>
                         {rightSideView}
                     </Paper>
                 </Grid>
