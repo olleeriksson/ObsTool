@@ -576,7 +576,6 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                             driveMaxHeight={driveMaxDimension}
                             driveMaxWidth={driveMaxDimension}
                             fitContainer={shouldFillDialogSpace}
-                            preventUpscale={true}
                             onImageBoundsChange={this.handleImageBoundsChange}
                         />
                     </div>
