@@ -175,8 +175,6 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                   compact={true}
                   iconSize={50}
                   labelWidth={48}
-                  nonDetection={this.props.observation.nonDetection}
-                  nonDetectionIconSize={32}
                   imageClassName={classes.image}
                 />
               </Grid>

@@ -94,7 +94,7 @@ it("keeps the autocomplete more marker visible by folding hidden current-page hi
     vi.useFakeTimers();
     const searchDso = vi.spyOn(Api, "searchDso").mockResolvedValue({
         data: {
-            data: Array.from({ length: 9 }, (_, index) => makeDso(index + 1, `NGC ${index + 1}`)),
+            data: Array.from({ length: 15 }, (_, index) => makeDso(index + 1, `NGC ${index + 1}`)),
             more: 12,
         },
     } as any);
@@ -126,8 +126,14 @@ it("keeps the autocomplete more marker visible by folding hidden current-page hi
             "NGC 4",
             "NGC 5",
             "NGC 6",
+            "NGC 7",
+            "NGC 8",
+            "NGC 9",
+            "NGC 10",
+            "NGC 11",
+            "NGC 12",
         ]);
-        expect(options[6].altText).toBe("... and 15 more ...");
+        expect(options[12].altText).toBe("... and 15 more ...");
     } finally {
         searchDso.mockRestore();
         vi.useRealTimers();
