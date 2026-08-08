@@ -63,6 +63,26 @@ namespace TestProject
             Assert.That(observationsMap.Count, Is.EqualTo(2));
         }
 
+        /// <summary>
+        /// Verifies that a catalog object followed immediately by a colon starts an observation section.
+        /// </summary>
+        [Test]
+        public void testParsingObjectNameFollowedByColon()
+        {
+            ReportTextManager reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            ObsSession obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = "M83: Bla bla bla",
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Single().Dso.Name, Is.EqualTo("M 83"));
+        }
+
         [Test]
         public void testParsing2()
         {

@@ -355,7 +355,7 @@ namespace ObsTool.Services
             string additionalCatalogNumberPartRegexp = @"(?:\s*[\+\-\.]\s*[A-Za-z]?\s*[0-9]+[A-Za-z]?)*";
             string catalogNumberRegexp = "(" + firstCatalogNumberPartRegexp + additionalCatalogNumberPartRegexp + ")";
             string endingMarkerRegexp = @"([)!])?";    // End markers: ) and !
-            string outroRegexp = @"(?=\s|[\.,]|$)";
+            string outroRegexp = @"(?=\s|[\.,:]|$)";
 
             // The ?: at the start of one of the groups is to make that the group is non-capturing.
             // This results in the fourth group always being the ending marker (parenthesis or bang).
