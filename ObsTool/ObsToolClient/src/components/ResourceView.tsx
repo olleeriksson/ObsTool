@@ -344,12 +344,11 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         return expandedBounds.width > bounds.imageWidth + 1 || expandedBounds.height > bounds.imageHeight + 1;
     }
 
-    // Estimates the rendered image size after resource-level fullscreen, using contain-fit and no upscaling.
+    // Estimates the rendered image size after resource-level fullscreen, allowing contain-fit to enlarge smaller images.
     private getExpandedImageBounds = (bounds: IResourceImageBounds) => {
         const expandedImageAreaWidth = Math.max(this.state.viewportWidth - 80, 0);
         const expandedImageAreaHeight = Math.max(this.state.viewportHeight - 160, 0);
         const scale = Math.min(
-            1,
             expandedImageAreaWidth / bounds.naturalWidth,
             expandedImageAreaHeight / bounds.naturalHeight
         );

@@ -242,10 +242,15 @@ class ResourceImage extends React.PureComponent<IResourceImageProps, IResourceIm
             const scale = this.props.zoomLevel / 100;
             const scaleToUse = this.props.preventUpscale ? Math.min(scale, 1) : scale;
             const backgroundColor = this.props.backgroundColor && this.props.backgroundColor >= 255 ? "white" : "black";
-            const shouldUseNaturalSize = this.props.fitContainer || this.props.preventUpscale;
-            const shouldFillImageBounds = this.props.fitContainer || this.props.preventUpscale || (this.props.preview && this.state.hasImageLoadError);
+            const shouldUseNaturalSize = this.props.preventUpscale;
+            // A failed image has no intrinsic width to size this flex item, so its container must claim the available image area.
+            const shouldFillImageBounds = this.props.fitContainer || this.props.preventUpscale || this.state.hasImageLoadError;
             const imgSrc = this.computeImageSrc(this.props);
             const brokenImageFallbackThemeClass = backgroundColor === "white" ? classes.brokenImageFallbackLight : classes.brokenImageFallbackDark;
+            // Expanded resources use the full viewport as an object-fit frame so smaller images can enlarge without distortion.
+            const imageFitStyle: React.CSSProperties = this.props.fitContainer
+                ? { width: "100%", height: "100%", objectFit: "contain" }
+                : { width: shouldUseNaturalSize ? "auto" : undefined, maxWidth: shouldUseNaturalSize ? "100%" : undefined, maxHeight: shouldUseNaturalSize ? "100%" : undefined };
 
             return (
                 <div
@@ -267,7 +272,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps, IResourceIm
                             className={classes.image}
                             onLoad={this.handleImageLoaded}
                             onError={this.handleImageLoadError}
-                            style={{ transform: `rotate(${rotation}deg) scale(${scaleToUse})`, filter: `invert(${invert}%)`, width: shouldUseNaturalSize ? "auto" : undefined, maxWidth: shouldUseNaturalSize ? "100%" : undefined, maxHeight: shouldUseNaturalSize ? "100%" : undefined }}
+                            style={{ transform: `rotate(${rotation}deg) scale(${scaleToUse})`, filter: `invert(${invert}%)`, ...imageFitStyle }}
                         />
                     )}
                 </div>
