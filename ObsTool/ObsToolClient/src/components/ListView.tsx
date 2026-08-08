@@ -36,7 +36,7 @@ const styles = (theme: Theme) => createStyles({
         padding: theme.spacing(2),
     },
     emptyRightSide: {
-        alignItems: "center",
+        alignItems: "start",
         display: "flex",
         justifyContent: "center",
         minHeight: "calc(100vh - 252px)",
@@ -48,6 +48,7 @@ const styles = (theme: Theme) => createStyles({
         color: theme.palette.text.primary,
         minHeight: 84,
         minWidth: 240,
+        margin: theme.spacing(5),
         paddingLeft: theme.spacing(5),
         paddingRight: theme.spacing(5),
         "&:hover": {
