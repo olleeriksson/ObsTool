@@ -273,6 +273,7 @@ class ResourceImage extends React.PureComponent<IResourceImageProps, IResourceIm
                             onLoad={this.handleImageLoaded}
                             onError={this.handleImageLoadError}
                             style={{ transform: `rotate(${rotation}deg) scale(${scaleToUse})`, filter: `invert(${invert}%)`, ...imageFitStyle }}
+                            referrerPolicy="no-referrer"
                         />
                     )}
                 </div>
