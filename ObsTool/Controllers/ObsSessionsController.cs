@@ -102,39 +102,7 @@ namespace ObsTool.Controllers
             // Retrieving also all the earlier/other observations of these objects will make this the biggest query ever :)
             if (includeOtherObservations)
             {
-                // Get the list of all parsed object keys, regardless of source table.
-                List<string> objectKeys = obsSession.Observations
-                    .SelectMany(obs => obs.DsoObservations.Select(dsoObs => dsoObs.GetObjectKey()))
-                    .Where(objectKey => !string.IsNullOrWhiteSpace(objectKey))
-                    .ToList();
-
-                // We need to know which are the primary observation id's so we can filter them out
-                int[] primaryObservationIds = obsSession.Observations.Select(o => o.Id).ToArray();
-
-                var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByObjectKey(
-                    userId, objectKeys, exludeObservationIds: primaryObservationIds, includePrevAndNextObservations);
-
-                // Go through each observation and..
-                foreach (var observationDto in obsSessionDto.Observations)
-                {
-                    observationDto.OtherObservations = new List<ObservationDto>();
-
-                    // ..and each DsoObservation (observed object)..
-                    foreach (var dsoObservation in observationDto.DsoObservations)
-                    {
-                        // ..and add any other observations for that DSO object to this observation
-                        if (mapOfOtherObservations.ContainsKey(dsoObservation.ObjectKey))
-                        {
-                            var allObservationsOfDso = mapOfOtherObservations[dsoObservation.ObjectKey];
-                            observationDto.OtherObservations.AddRange(allObservationsOfDso);
-                        }
-                    }
-
-                    observationDto.OtherObservations = observationDto.OtherObservations
-                        .OrderByDescending(o => ParseObservationDateOrMin(o.ObsSession?.Date))
-                        .ThenByDescending(o => o.Id)
-                        .ToList();
-                }
+                PopulateOtherObservations(obsSession, obsSessionDto, userId, includePrevAndNextObservations);
             }
 
             return Ok(obsSessionDto);
@@ -143,6 +111,45 @@ namespace ObsTool.Controllers
         private static DateTime ParseObservationDateOrMin(string date)
         {
             return DateTime.TryParse(date, out var parsedDate) ? parsedDate : DateTime.MinValue;
+        }
+
+        /// <summary>
+        /// Adds observations from other sessions for every object in the current session.
+        /// </summary>
+        private void PopulateOtherObservations(
+            ObsSession obsSession,
+            ObsSessionDto obsSessionDto,
+            int userId,
+            bool includePrevAndNextObservations)
+        {
+            // Build one lookup for all parsed object kinds, excluding observations already shown as part of this session.
+            List<string> objectKeys = obsSession.Observations
+                .SelectMany(obs => obs.DsoObservations.Select(dsoObs => dsoObs.GetObjectKey()))
+                .Where(objectKey => !string.IsNullOrWhiteSpace(objectKey))
+                .ToList();
+            int[] primaryObservationIds = obsSession.Observations.Select(o => o.Id).ToArray();
+            var mapOfOtherObservations = _observationsService.GetAllObservationDtosMappedByObjectKey(
+                userId, objectKeys, exludeObservationIds: primaryObservationIds, includePrevAndNextObservations);
+
+            // Attach the matching historical observations to the current observation DTO rendered by the frontend.
+            foreach (var observationDto in obsSessionDto.Observations)
+            {
+                observationDto.OtherObservations = new List<ObservationDto>();
+
+                foreach (var dsoObservation in observationDto.DsoObservations)
+                {
+                    if (mapOfOtherObservations.ContainsKey(dsoObservation.ObjectKey))
+                    {
+                        var allObservationsOfDso = mapOfOtherObservations[dsoObservation.ObjectKey];
+                        observationDto.OtherObservations.AddRange(allObservationsOfDso);
+                    }
+                }
+
+                observationDto.OtherObservations = observationDto.OtherObservations
+                    .OrderByDescending(o => ParseObservationDateOrMin(o.ObsSession?.Date))
+                    .ThenByDescending(o => o.Id)
+                    .ToList();
+            }
         }
 
         private void PopulateHerschelBadges(ObsSessionDto obsSessionDto)
@@ -185,6 +192,9 @@ namespace ObsTool.Controllers
             var obsSession = _obsSessionsRepository.GetObsSession(id, userId, includeLocation: true, includeObservations: true, includeDso: true);
             var obsSessionDto = _mapper.Map<ObsSessionDto>(obsSession);
 
+            // The Observed Objects tab renders this response immediately and must not depend on a later full-page GET.
+            PopulateOtherObservations(obsSession, obsSessionDto, userId, includePrevAndNextObservations: true);
+
             if (includeHerschel)
             {
                 PopulateHerschelBadges(obsSessionDto);
@@ -194,7 +204,7 @@ namespace ObsTool.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody]ObsSessionDtoForCreation newObsSessionDto)
+        public IActionResult Post([FromBody] ObsSessionDtoForCreation newObsSessionDto)
         {
             var userId = _currentUserService.GetRequiredUserId();
             ObsSession obsSession = _mapper.Map<ObsSession>(newObsSessionDto);

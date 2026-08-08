@@ -1,4 +1,4 @@
-﻿using ObsTool.Controllers;
+using ObsTool.Controllers;
 using NUnit.Framework;
 using System;
 using ObsTool.Entities;
@@ -59,11 +59,11 @@ namespace TestProject
         //[Test]
         //public void testDummyMethod()
         //{
-            //ObsSessionsController obsSessionsController = new ObsSessionsController(null, null, null, null, null, null, null, null);
-            //string result = obsSessionsController.dummyMethod();
+        //ObsSessionsController obsSessionsController = new ObsSessionsController(null, null, null, null, null, null, null, null);
+        //string result = obsSessionsController.dummyMethod();
 
-            //Assert.AreEqual(expected, result);
-            //Assert.That(result, Is.EqualTo(expected));
+        //Assert.AreEqual(expected, result);
+        //Assert.That(result, Is.EqualTo(expected));
         //}
 
         [Test]
@@ -105,6 +105,61 @@ namespace TestProject
 
             Assert.That(dso.HerschelObjects, Has.Length.EqualTo(1));
             Assert.That(dso.HerschelObjects[0].HerschelNo, Is.EqualTo("H I-150"));
+        }
+
+        [Test]
+        public void Post_ReturnsPreviousObservationsForParsedReportObjects()
+        {
+            SeedUser();
+            SeedDso(6440, "NGC", "6440", "NGC 6440");
+            var previousSessionId = SeedObsSession(DateTime.Today.AddDays(-1), "Previous session");
+            var previousObservationId = SeedObservation(
+                previousSessionId,
+                $"{previousSessionId}-6440",
+                "NGC 6440 was observed previously.",
+                new[] { 6440 });
+
+            var result = (CreatedAtRouteResult)_controller.Post(new ObsSessionDtoForCreation
+            {
+                Date = DateTime.Today,
+                Title = "New session",
+                ReportText = "NGC 6440 was observed again."
+            });
+
+            var obsSession = (ObsSessionDto)result.Value;
+            var otherObservations = obsSession.Observations.Single().OtherObservations;
+
+            Assert.That(otherObservations, Has.Count.EqualTo(1));
+            Assert.That(otherObservations.Single().Id, Is.EqualTo(previousObservationId));
+            Assert.That(otherObservations.Single().ObsSession.Title, Is.EqualTo("Previous session"));
+        }
+
+        [Test]
+        public void Put_ReturnsPreviousObservationsForParsedReportObjects()
+        {
+            SeedUser();
+            SeedDso(6440, "NGC", "6440", "NGC 6440");
+            var previousSessionId = SeedObsSession(DateTime.Today.AddDays(-1), "Previous session");
+            var previousObservationId = SeedObservation(
+                previousSessionId,
+                $"{previousSessionId}-6440",
+                "NGC 6440 was observed previously.",
+                new[] { 6440 });
+            var currentSessionId = SeedObsSession(DateTime.Today, "Current session");
+
+            var result = (OkObjectResult)_controller.Put(currentSessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                Title = "Current session",
+                ReportText = "NGC 6440 was observed again."
+            });
+
+            var obsSession = (ObsSessionDto)result.Value;
+            var otherObservations = obsSession.Observations.Single().OtherObservations;
+
+            Assert.That(otherObservations, Has.Count.EqualTo(1));
+            Assert.That(otherObservations.Single().Id, Is.EqualTo(previousObservationId));
+            Assert.That(otherObservations.Single().ObsSession.Title, Is.EqualTo("Previous session"));
         }
 
         [Test]
@@ -409,13 +464,13 @@ namespace TestProject
             _dbContext.SaveChanges();
         }
 
-        private int SeedObsSession()
+        private int SeedObsSession(DateTime? date = null, string title = "Existing session")
         {
             var obsSession = new ObsSession
             {
                 UserId = 1,
-                Date = DateTime.Today,
-                Title = "Existing session",
+                Date = date ?? DateTime.Today,
+                Title = title,
                 ReportText = ""
             };
             _dbContext.ObsSessions.Add(obsSession);
