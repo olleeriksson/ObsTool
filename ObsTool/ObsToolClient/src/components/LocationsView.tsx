@@ -17,6 +17,8 @@ import classNames from "classnames";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
+import * as locationActions from "../actions/LocationActions";
 import DeleteDialog from "./DeleteDialog";
 
 const styles = (theme: Theme) => createStyles({
@@ -57,6 +59,7 @@ const styles = (theme: Theme) => createStyles({
 
 interface ILocationsViewProps extends WithStyles<typeof styles> {
     store: IDataState;
+    actions: typeof locationActions;
 }
 
 interface ILocationsViewState {
@@ -97,20 +100,24 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         this.loadLocationsFromApi();
     }
 
+    // Reloads locations into both this management view and the shared session-form store.
     private loadLocationsFromApi() {
         this.setState({ currentLocation: this.getEmptyLocation() });
         this.setState({ isLoading: true, errorMessage: undefined });
+        this.props.actions.getLocationsBegin();
         Api.getLocations().then(
             (response) => {
                 const locations: ILocation[] = response.data;
                 this.setState({ locations: locations });
                 this.setState({ isLoading: false });
                 this.setState({ isError: false });
+                this.props.actions.getLocationsSuccess(locations);
             }).catch(
                 (error) => {
                     this.setState({ isLoading: false });
                     this.setState({ isError: true });
                     this.setState({ errorMessage: this.getApiErrorMessage(error, "Error loading locations!") });
+                    this.props.actions.getLocationsFailure("Failed to load locations");
                 }
             );
     }
@@ -374,5 +381,14 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-//export default withStyles(styles)(LocationsView);
-export default connect(mapStateToProps)(withStyles(styles)(LocationsView));
+// Exposes location reference-data actions so CRUD reloads keep session forms synchronized.
+const mapDispatchToProps = (dispatch: Dispatch<locationActions.LocationAction>) => {
+    return {
+        actions: bindActionCreators(
+            locationActions,
+            dispatch
+        )
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(LocationsView));

@@ -4,6 +4,7 @@ import { IEyepiece, IInstrument } from "../types/Types";
 
 let eyepiecesCache: IEyepiece[] | null = null;
 let eyepiecesPromise: Promise<IEyepiece[]> | null = null;
+let eyepiecesCacheVersion = 0;
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -27,18 +28,45 @@ const hasParsedFocalLength = (
   item: { eyepiece: IEyepiece; focalLengthMm: number | undefined }
 ): item is { eyepiece: IEyepiece; focalLengthMm: number } => !!item.eyepiece.key && item.focalLengthMm !== undefined;
 
+// Replaces cached eyepieces with reference data already loaded elsewhere in the application.
+export const replaceEyepiecesCache = (eyepieces: IEyepiece[]): void => {
+  eyepiecesCacheVersion++;
+  eyepiecesCache = [...eyepieces];
+  eyepiecesPromise = null;
+};
+
+// Invalidates cached data before eyepiece CRUD so an immediately opened observation cannot use stale values.
+export const invalidateEyepiecesCache = (): void => {
+  eyepiecesCacheVersion++;
+  eyepiecesCache = null;
+  eyepiecesPromise = null;
+};
+
+// Shares one in-flight API request while allowing invalidation and retry after a transient failure.
 export const getEyepiecesCached = async (): Promise<IEyepiece[]> => {
   if (eyepiecesCache) {
     return eyepiecesCache;
   }
 
   if (!eyepiecesPromise) {
+    const requestVersion = eyepiecesCacheVersion;
     eyepiecesPromise = Api.getEyepieces()
       .then(response => {
-        eyepiecesCache = response.data || [];
-        return eyepiecesCache;
+        if (requestVersion !== eyepiecesCacheVersion) {
+          return getEyepiecesCached();
+        }
+
+        replaceEyepiecesCache(response.data || []);
+        return eyepiecesCache || [];
       })
-      .catch(() => []);
+      .catch(() => {
+        if (requestVersion !== eyepiecesCacheVersion) {
+          return getEyepiecesCached();
+        }
+
+        eyepiecesPromise = null;
+        return [];
+      });
   }
 
   return eyepiecesPromise;

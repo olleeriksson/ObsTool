@@ -32,6 +32,7 @@ import * as eyepieceActions from "../actions/EyepieceActions";
 import * as utils from "../utils";
 import { getObservedObjectTargetId } from "./ObservationTarget";
 import { updateObservationResources } from "./ObsSessionResources";
+import { replaceEyepiecesCache } from "./ReportTextAnnotated";
 
 const obsSessionActiveTabStorageKey = "obstool.obsSessionPage.activeTab";
 const observationFormTab = 0;
@@ -148,18 +149,17 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
     }
 
+    // Always refreshes shared reference data when entering a session so location CRUD is visible immediately.
     private loadLocations = () => {
-        if (!this.props.store.locations) {
-            this.props.actions.getLocationsBegin();
-            Api.getLocations().then(
-                (response) => {
-                    this.props.actions.getLocationsSuccess(response.data);
-                },
-                () => {
-                    this.indicateError();
-                }
-            );
-        }
+        this.props.actions.getLocationsBegin();
+        Api.getLocations().then(
+            (response) => {
+                this.props.actions.getLocationsSuccess(response.data);
+            },
+            () => {
+                this.indicateError();
+            }
+        );
     }
 
     private loadInstruments = () => {
@@ -174,18 +174,18 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         );
     }
 
+    // Keeps both the session reference list and report-annotation cache on the same fresh API result.
     private loadEyepieces = () => {
-        if (!this.props.store.eyepieces) {
-            this.props.actions.getEyepiecesBegin();
-            Api.getEyepieces().then(
-                (response) => {
-                    this.props.actions.getEyepiecesSuccess(response.data);
-                },
-                () => {
-                    this.indicateError();
-                }
-            );
-        }
+        this.props.actions.getEyepiecesBegin();
+        Api.getEyepieces().then(
+            (response) => {
+                this.props.actions.getEyepiecesSuccess(response.data);
+                replaceEyepiecesCache(response.data);
+            },
+            () => {
+                this.indicateError();
+            }
+        );
     }
 
     private loadObsSession = (obsSessionId: number) => {

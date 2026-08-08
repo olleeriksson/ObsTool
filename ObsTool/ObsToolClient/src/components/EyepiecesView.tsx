@@ -21,6 +21,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
+import * as eyepieceActions from "../actions/EyepieceActions";
+import { invalidateEyepiecesCache, replaceEyepiecesCache } from "./ReportTextAnnotated";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -60,6 +63,7 @@ const styles = (theme: Theme) => createStyles({
 
 interface IEyepiecesViewProps extends WithStyles<typeof styles> {
     store: IDataState;
+    actions: typeof eyepieceActions;
 }
 
 interface IEyepiecesViewState {
@@ -96,15 +100,20 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
         this.loadFromApi();
     }
 
+    // Reloads eyepieces into the management view, Redux, and the report-annotation cache.
     private loadFromApi() {
         this.setState({ currentEyepiece: this.getEmptyEyepiece() });
         this.setState({ isLoading: true });
+        this.props.actions.getEyepiecesBegin();
         Api.getEyepieces().then(
             (response) => {
                 this.setState({ eyepieces: response.data, isLoading: false, isError: false });
+                this.props.actions.getEyepiecesSuccess(response.data);
+                replaceEyepiecesCache(response.data);
             }).catch(
                 () => {
                     this.setState({ isLoading: false, isError: true });
+                    this.props.actions.getEyepiecesFailure("Failed to load eyepieces");
                 }
             );
     }
@@ -180,6 +189,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
         this.setState({ isConfirmDeleteOpen: false });
         if (this.state.currentEyepiece.id) {
             this.setState({ isLoading: true, isError: false });
+            invalidateEyepiecesCache();
             Api.deleteEyepiece(this.state.currentEyepiece.id).then(
                 () => { this.loadFromApi(); }
             ).catch(
@@ -207,6 +217,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
         };
 
         this.setState({ isLoading: true, isError: false });
+        invalidateEyepiecesCache();
         if (this.state.currentEyepiece.id) {
             Api.updateEyepiece(eyepieceToSave).then(
                 () => { this.loadFromApi(); }
@@ -365,5 +376,15 @@ const mapStateToProps = (state: IAppState) => {
     };
 };
 
-export default connect(mapStateToProps)(withStyles(styles)(EyepiecesView));
+// Exposes eyepiece reference-data actions so CRUD reloads keep session forms synchronized.
+const mapDispatchToProps = (dispatch: Dispatch<eyepieceActions.EyepieceAction>) => {
+    return {
+        actions: bindActionCreators(
+            eyepieceActions,
+            dispatch
+        )
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(EyepiecesView));
 
