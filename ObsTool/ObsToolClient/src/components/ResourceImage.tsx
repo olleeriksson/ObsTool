@@ -3,7 +3,6 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import AladinLiteFrame from "./AladinLiteFrame";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 
@@ -236,18 +235,6 @@ class ResourceImage extends React.PureComponent<IResourceImageProps, IResourceIm
             const displayName = this.props.name || this.props.url;
             return (
                 <a href={this.props.url} title={displayName}>{displayName} </a>
-            );
-        } else if (this.props.type === "aladin") {
-            const aladinTargetName = this.props.url;  // the Aladin target name is stored in the url field
-            const driveMaxWidth = this.props.driveMaxWidth || "100";
-            const driveMaxHeight = this.props.driveMaxHeight || "100";
-            const aladinWidth = this.props.fitContainer ? driveMaxWidth : "550";
-            const aladinHeight = this.props.fitContainer ? driveMaxHeight : "550";
-            if (this.props.preview) {
-                return <img src={`${import.meta.env.BASE_URL}aladin.png`} />;
-            }
-            return (
-                <AladinLiteFrame target={aladinTargetName} width={aladinWidth} height={aladinHeight} />
             );
         } else {
             const invert = this.props.inverted ? "100" : "0";

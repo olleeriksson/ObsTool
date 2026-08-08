@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -127,8 +127,7 @@ namespace ObsTool.Controllers
             if (obsResourceDtoForUpdate.Type != "sketch" &&
                 obsResourceDtoForUpdate.Type != "jot" &&
                 obsResourceDtoForUpdate.Type != "image" &&
-                obsResourceDtoForUpdate.Type != "link" &&
-                obsResourceDtoForUpdate.Type != "aladin")
+                obsResourceDtoForUpdate.Type != "link")
             {
                 return BadRequest("Invalid type");
             }

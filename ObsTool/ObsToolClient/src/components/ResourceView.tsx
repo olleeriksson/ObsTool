@@ -536,7 +536,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         const deleteDialogText = "Are you sure you want to delete the " + (this.props.resource && this.props.resource.type) +
             " " + (this.props.resource && this.props.resource.name) + "?";
 
-        const disableImageControls = this.state.type === "link" || this.state.type === "aladin";
+        const disableImageControls = this.state.type === "link";
 
         // Simulates an XOR operator to invert the inverted value and background color
         const invertedInverted = (this.state.inverted && !this.props.inverted) || (!this.state.inverted && this.props.inverted);
@@ -616,7 +616,6 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
                                             <FormControlLabel value="sketch" control={<Radio />} label="Sketch" />
                                             <FormControlLabel value="jot" control={<Radio />} label="Jot" />
                                             <FormControlLabel value="link" control={<Radio />} label="Link" />
-                                            <FormControlLabel value="aladin" control={<Radio />} label="Aladin" />
                                         </RadioGroup>
                                     </FormControl>
                                 </Grid>
