@@ -11,7 +11,7 @@ import * as constants from "../types/Constants";
 
 export interface ISearchAction extends Action {
     type: constants.SEARCH;
-    payload: { query: string };
+    payload: { query: string; objectKey?: string };
 }
 
 export interface IClearSearchAction extends Action {
@@ -29,9 +29,9 @@ export type SearchAction =
 // Action creators
 // ---------------------------------------------------------------
 
-export const search: ActionCreator<ISearchAction> = (query: string) => ({
+export const search: ActionCreator<ISearchAction> = (query: string, objectKey?: string) => ({
     type: constants.SEARCH,
-    payload: { query: query },
+    payload: { query: query, objectKey: objectKey },
 });
 
 export const clearSearch: ActionCreator<IClearSearchAction> = () => ({

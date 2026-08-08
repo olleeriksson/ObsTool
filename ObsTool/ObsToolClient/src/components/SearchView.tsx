@@ -69,13 +69,13 @@ export class SearchView extends React.Component<ISearchViewProps, ISearchViewSta
         this.loadDsoFromApi = debounce(this.loadDsoFromApi, 300);
     }
 
-    private receiveAndResetSearchQueryFromRedux(queryFromRedux: string) {
+    private receiveAndResetSearchQueryFromRedux(queryFromRedux: string, objectKeyFromRedux?: string) {
         const trimmedQuery = queryFromRedux.trim();
         this.latestSearchQuery = trimmedQuery;
         this.cancelActiveSearchRequest();
         this.setState({ query: trimmedQuery });
         if (trimmedQuery !== "") {
-            this.loadDsoFromApi(trimmedQuery);
+            this.loadDsoFromApi(trimmedQuery, objectKeyFromRedux);
         }
 
         // Then clear it in the redux store
@@ -83,14 +83,14 @@ export class SearchView extends React.Component<ISearchViewProps, ISearchViewSta
     }
 
     public componentDidMount() {
-        this.receiveAndResetSearchQueryFromRedux(this.props.store.searchQuery || "");
+        this.receiveAndResetSearchQueryFromRedux(this.props.store.searchQuery || "", this.props.store.searchObjectKey);
     }
 
     public componentDidUpdate(prevProps: ISearchViewProps) {
         // If as new search query arrived from the redux store
         const newQueryFromRedux = this.props.store.searchQuery;
         if (newQueryFromRedux && newQueryFromRedux !== prevProps.store.searchQuery && newQueryFromRedux !== "") {
-            this.receiveAndResetSearchQueryFromRedux(newQueryFromRedux);
+            this.receiveAndResetSearchQueryFromRedux(newQueryFromRedux, this.props.store.searchObjectKey);
         }
     }
 
@@ -99,7 +99,7 @@ export class SearchView extends React.Component<ISearchViewProps, ISearchViewSta
         this.cancelActiveSearchRequest();
     }
 
-    private loadDsoFromApi(query: string) {
+    private loadDsoFromApi(query: string, objectKey?: string) {
         const trimmedQuery = query.trim();
         if (trimmedQuery === "") {
             this.setState({ dsoList: [], moreHits: 0, isError: false });
@@ -111,7 +111,7 @@ export class SearchView extends React.Component<ISearchViewProps, ISearchViewSta
         this.activeSearchController = controller;
         this.setState({ isLoading: true, isError: false });
 
-        Api.searchDso(trimmedQuery, true, controller.signal).then(
+        Api.searchDso(trimmedQuery, true, controller.signal, objectKey).then(
             (response) => {
                 if (requestId !== this.latestSearchRequestId || trimmedQuery !== this.latestSearchQuery) {
                     return;

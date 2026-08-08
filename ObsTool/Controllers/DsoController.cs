@@ -68,17 +68,41 @@ namespace ObsTool
         /// Used both by the page listing all observations, and all the search pages/components.
         /// </summary>
         [HttpGet()]
-        public IActionResult GetDso([FromQuery] string query, [FromQuery] string name, [FromQuery] bool includeHerschel = false)
+        public IActionResult GetDso([FromQuery] string query, [FromQuery] string name, [FromQuery] bool includeHerschel = false,
+            [FromQuery] string objectKey = null)
         {
             var userId = _currentUserService.GetRequiredUserId();
-            if ((name != null && query != null) || (name == null && query == null))
+            int specifiedLookupCount = new[] { query, name, objectKey }.Count(value => value != null);
+            if (specifiedLookupCount != 1)
             {
-                return BadRequest("Can't specify neither or both of 'name' and 'query'. Specify one or the other!");
+                return BadRequest("Specify exactly one of 'query', 'name', or 'objectKey'.");
             }
 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            if (objectKey != null)  // Loading one object selected from a search preview
+            {
+                var selectedObject = GetObjectDtosByKeys(userId, new[] { objectKey }).SingleOrDefault();
+                if (selectedObject == null)
+                {
+                    return NotFound();
+                }
+
+                var selectedObjects = new List<DsoDto> { selectedObject };
+                if (includeHerschel)
+                {
+                    PopulateHerschelBadges(selectedObjects);
+                }
+
+                bool includePrevAndNextObservations = true;
+                var observationsMapByObjectKey = _observationsService.GetAllObservationDtosMappedByObjectKey(
+                    userId, new[] { objectKey }, null, includePrevAndNextObservations);
+                AttachObservationsByObjectKey(selectedObjects, observationsMapByObjectKey, orderByDate: false);
+
+                return Ok(CreatePagedResult(selectedObjects, selectedObjects.Count));
             }
 
             ICollection<Dso> dsoList;
@@ -106,14 +130,8 @@ namespace ObsTool
                     userId, objectKeys, null, includePrevAndNextObservations);
                 AttachObservationsByObjectKey(truncatedDsoDtoList, observationsMapByObjectKey, orderByDate: false);
 
-                PagedResultDto<DsoDto> pagedResult = new PagedResultDto<DsoDto>();
                 int count = matchingObjectDtos.Count;
-                pagedResult.Count = count > maxCount ? maxCount : count;
-                pagedResult.Total = count;
-                pagedResult.More = count > maxCount ? count - maxCount : 0;
-                pagedResult.Data = truncatedDsoDtoList.ToArray();
-
-                return Ok(pagedResult);
+                return Ok(CreatePagedResult(truncatedDsoDtoList, count, maxCount));
             }
             else  // "Getting" one
             {
@@ -133,6 +151,23 @@ namespace ObsTool
                 }
                 return Ok(result);
             }
+        }
+
+        /// <summary>
+        /// Creates the common paged response shape used by both text searches and exact preview selections.
+        /// </summary>
+        private static PagedResultDto<DsoDto> CreatePagedResult(
+            ICollection<DsoDto> objects,
+            int total,
+            int maxCount = 1)
+        {
+            return new PagedResultDto<DsoDto>
+            {
+                Count = Math.Min(total, maxCount),
+                Total = total,
+                More = Math.Max(0, total - maxCount),
+                Data = objects.ToArray()
+            };
         }
 
         [HttpGet("{id}")]

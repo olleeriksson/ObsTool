@@ -61,6 +61,7 @@ const initialDataState: IDataState = {
     isLoadingEyepieces: false,
     isErrorEyepieces: undefined,
     searchQuery: "",
+    searchObjectKey: undefined,
     checkedObsResources: []
 };
 
@@ -256,13 +257,15 @@ const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, 
             const searchAction = action as ISearchAction;
             return {
                 ...state,
-                searchQuery: searchAction.payload.query
+                searchQuery: searchAction.payload.query,
+                searchObjectKey: searchAction.payload.objectKey
             };
         }
         case constants.CLEAR_SEARCH:
             return {
                 ...state,
-                searchQuery: ""
+                searchQuery: "",
+                searchObjectKey: undefined
             };
         case constants.RESOURCE_CHECKED: {
             const checkedAction = action as IObsResourceCheckedAction;

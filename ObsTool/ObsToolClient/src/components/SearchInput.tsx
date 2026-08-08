@@ -167,7 +167,8 @@ export class SearchInput extends React.Component<ISearchInputProps, ISearchInput
 
     private handleOptionSelected = (_event: any, value: ISuggestion | string | null) => {
         if (value && typeof value !== "string" && value.dso) {
-            this.props.actions.search(value.dso.name);
+            // Preserve the selected object's stable key so the search page can request only that object.
+            this.props.actions.search(value.dso.name, value.dso.objectKey || `Sac:${value.dso.id}`);
             this.setState({ redirectToSearchPage: true });
         }
     }

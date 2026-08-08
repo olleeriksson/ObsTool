@@ -156,9 +156,13 @@ class Api {
         return axios.delete(import.meta.env.VITE_API_URL + "/eyepieces/" + eyepieceId);
     }
 
-    public static searchDso(query: string, includeHerschel = false, signal?: AbortSignal) {
+    // Searches by text, or loads one exact preview selection when an object key is supplied.
+    public static searchDso(query: string, includeHerschel = false, signal?: AbortSignal, objectKey?: string) {
+        const searchParameter = objectKey
+            ? "objectKey=" + encodeURIComponent(objectKey)
+            : "query=" + encodeURIComponent(query);
         return axios.get<IPagedDsoList>(
-            import.meta.env.VITE_API_URL + "/dso?query=" + encodeURIComponent(query) + "&includeHerschel=" + includeHerschel,
+            import.meta.env.VITE_API_URL + "/dso?" + searchParameter + "&includeHerschel=" + includeHerschel,
             { signal });
     }
 

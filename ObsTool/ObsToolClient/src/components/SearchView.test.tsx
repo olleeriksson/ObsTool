@@ -93,3 +93,30 @@ it("keeps stale search page responses from replacing the latest results", async 
         vi.useRealTimers();
     }
 });
+
+it("loads only the object selected in the search preview", async () => {
+    vi.useFakeTimers();
+    const searchDso = vi.spyOn(Api, "searchDso").mockResolvedValue({
+        data: { data: [makeDso(31, "M 31")], more: 0 },
+    } as any);
+
+    try {
+        render(
+            <SearchView
+                classes={classes}
+                store={{ searchQuery: "M 31", searchObjectKey: "Sac:31" } as any}
+                actions={{ search: vi.fn(), clearSearch: vi.fn() }}
+            />
+        );
+
+        await act(async () => {
+            vi.advanceTimersByTime(300);
+            await Promise.resolve();
+        });
+
+        expect(searchDso).toHaveBeenCalledWith("M 31", true, expect.any(AbortSignal), "Sac:31");
+    } finally {
+        searchDso.mockRestore();
+        vi.useRealTimers();
+    }
+});

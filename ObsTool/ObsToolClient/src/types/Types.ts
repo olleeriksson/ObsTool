@@ -411,6 +411,7 @@ export interface IDataState {
     isLoadingEyepieces: boolean;
     isErrorEyepieces?: string;
     searchQuery?: string;
+    searchObjectKey?: string;
     checkedObsResources: IObsResource[];
 }
 
@@ -437,6 +438,7 @@ export interface IReadonlyDataState {
     isLoadingEyepieces: boolean;
     isErrorEyepieces?: string;
     searchQuery?: string;
+    searchObjectKey?: string;
     checkedObsResources: IObsResource[];
 }
 

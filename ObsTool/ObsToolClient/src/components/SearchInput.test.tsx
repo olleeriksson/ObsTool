@@ -139,3 +139,28 @@ it("keeps the autocomplete more marker visible by folding hidden current-page hi
         vi.useRealTimers();
     }
 });
+
+it("distinguishes a selected preview object from an entered text search", () => {
+    const search = vi.fn();
+    const ref = React.createRef<SearchInput>();
+    render(
+        <SearchInput
+            ref={ref}
+            classes={classes}
+            onSearchView={true}
+            store={{ searchQuery: "" } as any}
+            actions={{ search, clearSearch: vi.fn() }}
+        />
+    );
+
+    act(() => {
+        (ref.current as any).handleOptionSelected(null, { dso: { ...makeDso(31, "M 31"), objectKey: "Sac:31" } });
+    });
+    expect(search).toHaveBeenLastCalledWith("M 31", "Sac:31");
+
+    act(() => {
+        (ref.current as any).setState({ inputValue: "M 31" });
+    });
+    fireEvent.submit(screen.getByPlaceholderText("Search for an object..").closest("form")!);
+    expect(search).toHaveBeenLastCalledWith("M 31");
+});

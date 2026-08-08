@@ -99,6 +99,24 @@ namespace TestProject
         }
 
         [Test]
+        public void GetDso_ObjectKeyReturnsOnlyTheSelectedMixedObject()
+        {
+            SeedUserAndOtherObjectObservations();
+
+            var result = (OkObjectResult)_controller.GetDso(
+                query: null,
+                name: null,
+                includeHerschel: true,
+                objectKey: "Other:20");
+            var pagedResult = (PagedResultDto<DsoDto>)result.Value;
+
+            Assert.That(pagedResult.Total, Is.EqualTo(1));
+            Assert.That(pagedResult.More, Is.Zero);
+            Assert.That(pagedResult.Data.Single().ObjectKey, Is.EqualTo("Other:20"));
+            Assert.That(pagedResult.Data.Single().Observations, Has.Length.EqualTo(1));
+        }
+
+        [Test]
         public void GetAllObservedDso_IncludesUserAndOtherObjects()
         {
             SeedUserAndOtherObjectObservations();
