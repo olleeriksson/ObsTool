@@ -46,6 +46,14 @@ const styles = (theme: Theme) => createStyles({
   expandOpen: {
     transform: "rotate(180deg)",
   },
+  observationNavigationButton: {
+    color: theme.palette.text.disabled,
+    cursor: "pointer",
+    fontSize: "0.9em",
+  },
+  observationCloseButton: {
+    fontSize: "1.3em",
+  },
 });
 
 export interface IObservationSecondaryProps extends WithStyles<typeof styles> {
@@ -117,7 +125,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     if (this.props.showPrevAndNextObservation && this.props.observation.prevObservation && !this.state.isPrevObservationExpanded) {
       expandPrevObservationButton = (
         <Tooltip title="Click to show previous observation">
-          <span onClick={this.handleExpandPrevObservationClick} style={{ cursor: "pointer" }}>... </span>
+          <span className={classes.observationNavigationButton} onClick={this.handleExpandPrevObservationClick}>◀ </span>
         </Tooltip>
       );
     }
@@ -126,7 +134,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     if (this.props.showPrevAndNextObservation && this.props.observation.nextObservation && !this.state.isNextObservationExpanded) {
       expandNextObservationButton = (
         <Tooltip title="Click to show next observation">
-          <span onClick={this.handleExpandNextObservationClick} style={{ cursor: "pointer" }}> ...</span>
+          <span className={classes.observationNavigationButton} onClick={this.handleExpandNextObservationClick}> ▶</span>
         </Tooltip>
       );
     }
@@ -153,7 +161,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     if (this.state.isPrevObservationExpanded) {
       expandedPrevObservationItem = (
         <Typography variant="body2" color="text.secondary" style={{ marginBottom: "0.5em" }}>
-          <span onClick={this.handleExpandPrevObservationClick} style={{ cursor: "pointer" }}>... </span>
+          <span className={classNames(classes.observationNavigationButton, classes.observationCloseButton)} onClick={this.handleExpandPrevObservationClick}>× </span>
           {this.props.observation.prevObservation && renderReportTextAnnotated(
             this.props.observation.prevObservation.text,
             this.props.observation.prevObservation.instrument || this.props.observation.prevObservation.obsSession?.instrument,
@@ -167,7 +175,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     if (this.state.isNextObservationExpanded) {
       expandedNextObservationItem = (
         <Typography variant="body2" color="text.secondary" style={{ marginTop: "0.5em" }}>
-          <span onClick={this.handleExpandNextObservationClick} style={{ cursor: "pointer" }}>... </span>
+          <span className={classNames(classes.observationNavigationButton, classes.observationCloseButton)} onClick={this.handleExpandNextObservationClick}>× </span>
           {this.props.observation.nextObservation && renderReportTextAnnotated(
             this.props.observation.nextObservation.text,
             this.props.observation.nextObservation.instrument || this.props.observation.nextObservation.obsSession?.instrument,
