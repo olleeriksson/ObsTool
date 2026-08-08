@@ -443,6 +443,16 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         const deleteDialogText = "Are you sure you want to delete the observation session titled " +
             (this.state.obsSession && this.state.obsSession.title) + "? All associated observations will also be deleted. This action cannot be undone.";
 
+        // Distinguish the new-session form from an existing session that is still loading and one that has been persisted.
+        const isNewObsSession = !this.props.obsSessionId && !this.state.obsSession.id;
+        const hasLoadedObsSession = Boolean(this.state.obsSession.id);
+        const headerTitle = isNewObsSession
+            ? "New observation session"
+            : hasLoadedObsSession
+                ? this.state.obsSession.title
+                : "";
+        const headerDate = hasLoadedObsSession ? this.state.obsSession.date : "";
+
         return (
             <div className="circularProgressSuperContainer">
                 {/* {circularProgress} */}
@@ -470,10 +480,10 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                     </Grid>
                                     <Grid>
                                         <Typography variant="h6" align="center">
-                                            {this.state.obsSession ? this.state.obsSession.title : "New observation session"}
+                                            {headerTitle}
                                         </Typography>
                                         <Typography variant="subtitle1" align="center">
-                                            {this.state.obsSession ? this.state.obsSession.date : ""}
+                                            {headerDate}
                                         </Typography>
                                     </Grid>
                                 </Grid>
