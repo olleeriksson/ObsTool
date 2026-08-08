@@ -70,6 +70,9 @@ namespace TestProject
             Assert.That(exportFile.FileName, Does.EndWith(".txt"));
             Assert.That(text, Does.Contain("Title: Current user session"));
             Assert.That(text, Does.Contain("Instrument: Current scope"));
+            Assert.That(text, Does.Contain("Current user report\r\nImage: https://example.test/photo\r\nLink: https://example.test/article\r\nSketch: https://drive.google.com/open?id=drive-sketch-id\r\nReport ending\r\n"));
+            Assert.That(text, Does.Not.Contain("Current user report\r\n\r\nImage:"));
+            Assert.That(text, Does.Not.Contain("#1-1-2"));
             Assert.That(text, Does.Not.Contain("Other user session"));
             Assert.That(text, Does.Not.Contain("Other user report"));
         }
@@ -82,6 +85,7 @@ namespace TestProject
             var exportFile = _service.CreateAdvancedExport(TestUserId);
             var entries = ReadWorkbookEntries(exportFile.Contents);
             var workbookXml = entries["xl/workbook.xml"];
+            var sessionsWorksheetXml = entries["xl/worksheets/sheet1.xml"];
             var allWorksheetXml = string.Join("\n", entries
                 .Where(entry => entry.Key.StartsWith("xl/worksheets/"))
                 .Select(entry => entry.Value));
@@ -107,6 +111,9 @@ namespace TestProject
             Assert.That(allWorksheetXml, Does.Contain("Non-detected object"));
             Assert.That(allWorksheetXml, Does.Contain("Session-local internal identifier"));
             Assert.That(allWorksheetXml, Does.Contain("Sketch one"));
+            Assert.That(sessionsWorksheetXml, Does.Contain("Current user report"));
+            Assert.That(sessionsWorksheetXml.Replace("\r\n", "\n"), Does.Contain("Current user report\nReport ending"));
+            Assert.That(sessionsWorksheetXml, Does.Not.Contain("#1-1-2"));
             Assert.That(allWorksheetXml, Does.Contain("H I-1"));
             Assert.That(allWorksheetXml, Does.Contain("Herschel one"));
             Assert.That(allWorksheetXml, Does.Contain("2024-01-02"));
@@ -173,7 +180,7 @@ namespace TestProject
                     Seeing = 3,
                     Transparency = 4,
                     LimitingMagnitude = 5.5m,
-                    ReportText = "Current user report"
+                    ReportText = "Current user report\r\n#1-1-2\r\nReport ending"
                 },
                 new ObsSession
                 {
@@ -205,7 +212,9 @@ namespace TestProject
                     },
                     ObsResources = new List<ObsResource>
                     {
-                        new ObsResource { Id = 1, UserId = TestUserId, ObservationId = 1, Name = "Sketch one", Type = "sketch", Url = "https://example.test/sketch" }
+                        new ObsResource { Id = 1, UserId = TestUserId, ObservationId = 1, Name = "Photo one", Type = "image", Url = "https://example.test/photo" },
+                        new ObsResource { Id = 2, UserId = TestUserId, ObservationId = 1, Name = "Article one", Type = "link", Url = "https://example.test/article" },
+                        new ObsResource { Id = 3, UserId = TestUserId, ObservationId = 1, Name = "Sketch one", Type = "sketch", Url = "drive-sketch-id" }
                     }
                 },
                 new Observation

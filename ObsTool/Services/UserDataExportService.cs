@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace ObsTool.Services
@@ -35,6 +36,8 @@ namespace ObsTool.Services
         private const string PackageRelationshipsNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
         private const string OfficeRelationshipsNamespace = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
         private const string SpreadsheetNamespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        private const string ObservationIdentifierTokenPattern = @"(?:\d+|\[[^\]\r\n]+\]|\{[^\}\r\n]+\}|![A-Z0-9]+!)";
+        private const string ObservationIdentifierPattern = @"\d+(?:-" + ObservationIdentifierTokenPattern + @")*";
 
         private readonly MainDbContext _dbContext;
 
@@ -49,11 +52,15 @@ namespace ObsTool.Services
         public UserDataExportFile CreateSimpleExport(int userId)
         {
             var sessions = GetUserSessions(userId);
+            var observationsBySessionId = GetUserObservations(userId, sessions)
+                .GroupBy(observation => observation.ObsSessionId)
+                .ToDictionary(group => group.Key, group => group.AsEnumerable());
             var builder = new StringBuilder();
 
             foreach (var session in sessions)
             {
-                AppendSimpleSession(builder, session);
+                observationsBySessionId.TryGetValue(session.Id, out var observations);
+                AppendSimpleSession(builder, session, observations ?? Enumerable.Empty<Observation>());
             }
 
             return CreateFile(
@@ -76,7 +83,7 @@ namespace ObsTool.Services
             var constellationNamesByAbbreviation = GetConstellationNamesByAbbreviation();
             var worksheets = new[]
             {
-                CreateSessionsWorksheet(sessions),
+                CreateSessionsWorksheet(sessions, observations),
                 CreateObservationsWorksheet(observations, sessionById),
                 CreateObservationsExpandedWorksheet(observations, sessionById),
                 CreateSacDeepSkyObjectsWorksheet(dsoRows),
@@ -180,7 +187,7 @@ namespace ObsTool.Services
         /// <summary>
         /// Appends one readable text block for a session in the small export format.
         /// </summary>
-        private static void AppendSimpleSession(StringBuilder builder, ObsSession session)
+        private static void AppendSimpleSession(StringBuilder builder, ObsSession session, IEnumerable<Observation> observations)
         {
             if (builder.Length > 0)
             {
@@ -198,14 +205,23 @@ namespace ObsTool.Services
             builder.AppendLine($"Limiting magnitude: {session.LimitingMagnitude}");
             builder.AppendLine($"Instrument: {session.Instrument?.Name}");
             builder.AppendLine("Report text:");
-            builder.AppendLine(NormalizeMultilineText(session.ReportText));
+            var reportText = NormalizeMultilineText(CreateExportReportText(session.ReportText, observations, includeResources: true));
+            builder.Append(reportText);
+            if (!reportText.EndsWith("\r\n", StringComparison.Ordinal))
+            {
+                builder.AppendLine();
+            }
         }
 
         /// <summary>
         /// Creates the session-level worksheet for the advanced workbook.
         /// </summary>
-        private static UserDataExportWorksheet CreateSessionsWorksheet(IEnumerable<ObsSession> sessions)
+        private static UserDataExportWorksheet CreateSessionsWorksheet(IEnumerable<ObsSession> sessions, IEnumerable<Observation> observations)
         {
+            var observationsBySessionId = observations
+                .GroupBy(observation => observation.ObsSessionId)
+                .ToDictionary(group => group.Key, group => group.AsEnumerable());
+
             return new UserDataExportWorksheet
             {
                 Name = "Sessions",
@@ -222,18 +238,22 @@ namespace ObsTool.Services
                     "Instrument",
                     "Report text"
                 },
-                Rows = sessions.Select(session => new[]
+                Rows = sessions.Select(session =>
                 {
-                    FormatDate(session.Date),
-                    session.Title,
-                    session.Location?.Name,
-                    session.Summary,
-                    session.Conditions,
-                    FormatNullable(session.Seeing),
-                    FormatNullable(session.Transparency),
-                    FormatNullable(session.LimitingMagnitude),
-                    session.Instrument?.Name,
-                    session.ReportText
+                    observationsBySessionId.TryGetValue(session.Id, out var sessionObservations);
+                    return new[]
+                    {
+                        FormatDate(session.Date),
+                        session.Title,
+                        session.Location?.Name,
+                        session.Summary,
+                        session.Conditions,
+                        FormatNullable(session.Seeing),
+                        FormatNullable(session.Transparency),
+                        FormatNullable(session.LimitingMagnitude),
+                        session.Instrument?.Name,
+                        CreateExportReportText(session.ReportText, sessionObservations ?? Enumerable.Empty<Observation>(), includeResources: false)
+                    };
                 })
             };
         }
@@ -273,7 +293,7 @@ namespace ObsTool.Services
                         GetSessionDate(observation, sessionById),
                         FormatNullable(observation.DisplayOrder),
                         observation.Identifier,
-                        observation.Text,
+                        CreateExportReportText(observation.Text, Enumerable.Empty<Observation>(), includeResources: false),
                         FormatBool(!observation.NonDetection),
                         observation.Instrument?.Name,
                         string.Join(", ", observedObjects),
@@ -318,7 +338,7 @@ namespace ObsTool.Services
                         GetSessionDate(observation, sessionById),
                         FormatNullable(observation.DisplayOrder),
                         observation.Identifier,
-                        observation.Text,
+                        CreateExportReportText(observation.Text, Enumerable.Empty<Observation>(), includeResources: false),
                         FormatBool(!observation.NonDetection),
                         observation.Instrument?.Name,
                         FormatBool(!dsoObservation.NonDetection),
@@ -893,6 +913,65 @@ namespace ObsTool.Services
         private static string FormatBool(bool value)
         {
             return value ? "Yes" : "No";
+        }
+
+        /// <summary>
+        /// Removes internal observation markers and optionally restores each observation's resources at the marker position.
+        /// </summary>
+        private static string CreateExportReportText(string reportText, IEnumerable<Observation> observations, bool includeResources)
+        {
+            var observationsByIdentifier = observations
+                .Where(observation => !string.IsNullOrWhiteSpace(observation.Identifier))
+                .GroupBy(observation => observation.Identifier.TrimStart('#'), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+            return Regex.Replace(
+                reportText ?? string.Empty,
+                @"^[\t ]*#(?<identifier>" + ObservationIdentifierPattern + @")[\t ]*[\.$]?[\t ]*(?:\r?\n|$)",
+                match =>
+                {
+                    if (!includeResources || !observationsByIdentifier.TryGetValue(match.Groups["identifier"].Value, out var observation))
+                    {
+                        return string.Empty;
+                    }
+
+                    var resourceLines = observation.ObsResources
+                        .Where(resource => resource.UserId == observation.UserId)
+                        .OrderBy(resource => resource.Id)
+                        .Select(resource => FormatResourceForReportText(resource) + "\r\n");
+
+                    return string.Concat(resourceLines);
+                },
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline);
+        }
+
+        /// <summary>
+        /// Recreates one parser-compatible resource line, expanding stored Google Drive file ids into links.
+        /// </summary>
+        private static string FormatResourceForReportText(ObsResource resource)
+        {
+            var type = resource.Type?.Trim().ToLowerInvariant();
+            var label = type switch
+            {
+                "image" => "Image",
+                "link" => "Link",
+                "url" => "Link",
+                "sketch" => "Sketch",
+                "jot" => "Jot",
+                _ => string.IsNullOrWhiteSpace(type)
+                    ? "Resource"
+                    : char.ToUpperInvariant(type[0]) + type.Substring(1)
+            };
+            var url = resource.Url ?? string.Empty;
+
+            if ((type == "sketch" || type == "jot")
+                && !string.IsNullOrWhiteSpace(url)
+                && !url.StartsWith("https://drive.google.com", StringComparison.OrdinalIgnoreCase))
+            {
+                url = "https://drive.google.com/open?id=" + url;
+            }
+
+            return $"{label}: {url}";
         }
 
         /// <summary>
