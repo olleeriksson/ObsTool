@@ -43,19 +43,31 @@ const styles = (theme: Theme) => createStyles({
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
     transform: "translateZ(0)",
   },
-  title: {
-    fontSize: "0.8rem",
-    color: theme.palette.text.secondary,
-  },
   titleBarBlack: {
     backgroundColor: "black",
     padding: 0,
     height: 30,
+    "& .MuiImageListItemBar-title": {
+      fontSize: "0.8rem",
+      color: "rgba(255, 255, 255, 0.85)",
+    },
+    "& .MuiSvgIcon-root": {
+      fontSize: 20,
+      color: "rgba(255, 255, 255, 0.85)",
+    },
   },
   titleBarWhite: {
     backgroundColor: "#f1f1f1",
     padding: 0,
     height: 30,
+    "& .MuiImageListItemBar-title": {
+      fontSize: "0.8rem",
+      color: "rgba(0, 0, 0, 0.70)",
+    },
+    "& .MuiSvgIcon-root": {
+      fontSize: 20,
+      color: "rgba(0, 0, 0, 0.70)",
+    },
   },
   titleWrap: {
   },
@@ -84,7 +96,7 @@ const styles = (theme: Theme) => createStyles({
   iconButtonContainer: {  // The container around the checkboxes, clear checkbox button, compare button
     color: theme.palette.text.secondary,
   },
-  iconButtonIcon: {  // Checkbox, clear checkboxes, compare
+  iconButtonIcon: {  // Compare and add controls outside the image title bars
     fontSize: 20,
     color: theme.palette.text.secondary,
   },
@@ -265,11 +277,14 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       && this.state.resources.filter(r => r.type === "link") || [];
 
     const imageElements = images.map(r => {
+      // Keep the complete title bar legible as the resource setting switches it between light and dark.
+      const usesWhiteBackground = r.backgroundColor === 255;
+
       let clearIcon;
       if (this.props.store.checkedObsResources.length > 0) {
         clearIcon = (
           <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClearCheckboxes}>
-            <ClearIcon className={classes.iconButtonIcon} />
+            <ClearIcon />
           </IconButton>
         );
       }
@@ -280,7 +295,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       if (checkedResources.length === 2 && thisResourceIsChecked) {
         compareIcon = (
           <IconButton color="secondary" className={classes.iconButtonContainer} onClick={this.onClickCompare}>
-            <CompareIcon className={classes.iconButtonIcon} />
+            <CompareIcon />
           </IconButton>
         );
       }
@@ -288,8 +303,8 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       const checkboxIcon = (
         <Checkbox
           className={classes.iconButtonContainer}
-          icon={<CheckBoxOutlineBlankIcon className={classes.iconButtonIcon} />}
-          checkedIcon={<CheckBoxIcon className={classes.iconButtonIcon} />}
+          icon={<CheckBoxOutlineBlankIcon />}
+          checkedIcon={<CheckBoxIcon />}
           checked={this.props.store.checkedObsResources.some(storeRes => storeRes.id === r.id)}
           onChange={this.onCheckboxChanged(r.id || -1)}
         />
@@ -301,9 +316,9 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
         {checkboxIcon}
       </div>;
 
-      const titleBarClass = r.backgroundColor === 255 ? classes.titleBarWhite : classes.titleBarBlack;
+      const titleBarClass = usesWhiteBackground ? classes.titleBarWhite : classes.titleBarBlack;
 
-      const tileBackgroundClass = r.backgroundColor === 255 ? classes.tileWhiteBackground : classes.tileBlackBackground;
+      const tileBackgroundClass = usesWhiteBackground ? classes.tileWhiteBackground : classes.tileBlackBackground;
       // Google Drive resources use the same stable thumbnail URL in lists and dialogs so browser caching can work across views.
       const driveThumbnailDimension = (r.type === "sketch" || r.type === "jot") ? "1000" : "180";
 
@@ -324,7 +339,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
         </div>
         <ImageListItemBar
           title={r.type.charAt(0).toUpperCase() + r.type.slice(1)}
-          classes={{ root: titleBarClass, title: classes.title, positionBottom: classes.titleWrap }}
+          classes={{ root: titleBarClass, positionBottom: classes.titleWrap }}
           actionIcon={icons}
         />
       </ImageListItem>;
