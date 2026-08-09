@@ -278,19 +278,34 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
     }
 
     private isCurrentInstrumentValid = (): boolean => {
-        const { name } = this.state.currentInstrument;
-        return !!name.trim();
+        const { key, name } = this.state.currentInstrument;
+        return !!key?.trim() || !!name.trim();
     }
 
     /**
-     * Converts an empty key field into null before saving so keyless instruments are not parser directives.
+     * Prevents an instrument from reusing another instrument's parser key, ignoring case and surrounding whitespace.
+     */
+    private isInstrumentKeyDuplicate = (): boolean => {
+        const { id, key } = this.state.currentInstrument;
+        const normalizedKey = key?.trim().toLowerCase();
+        if (!normalizedKey) {
+            return false;
+        }
+
+        return this.state.instruments.some(instrument =>
+            instrument.id !== id && instrument.key?.trim().toLowerCase() === normalizedKey);
+    }
+
+    /**
+     * Normalizes the optional key and uses it as the persisted name when no separate display name was entered.
      */
     private getInstrumentForSave = (): IInstrument => {
         const trimmedKey = this.state.currentInstrument.key?.trim();
+        const trimmedName = this.state.currentInstrument.name.trim();
         return {
             ...this.state.currentInstrument,
             key: trimmedKey || null,
-            name: this.state.currentInstrument.name.trim()
+            name: trimmedName || trimmedKey || ""
         };
     }
 
@@ -328,6 +343,10 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
 
     private handleSubmit = (e: any) => {
         e.preventDefault();
+        if (this.isInstrumentKeyDuplicate()) {
+            return;
+        }
+
         if (!this.isCurrentInstrumentValid()) {
             this.setState({ isError: true });
             return;
@@ -352,6 +371,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
 
     public render() {
         const { classes } = this.props;
+        const hasDuplicateInstrumentKey = this.isInstrumentKeyDuplicate();
 
         const deleteDisabled = !this.props.store.isLoggedIn || !this.state.currentInstrument.id || this.isCurrentInstrumentReferenced();
 
@@ -437,6 +457,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                             label="Key"
                                             value={this.state.currentInstrument.key || ""}
                                             onChange={this.handleFormChange("key")}
+                                            error={hasDuplicateInstrumentKey}
+                                            helperText={hasDuplicateInstrumentKey ? "This key is already used by another instrument." : undefined}
                                             className={classes.rowField}
                                             margin="dense"
                                             size="small"
@@ -445,7 +467,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
                                             id="name"
-                                            label="Name"
+                                            label="Name (optional)"
                                             value={this.state.currentInstrument.name || ""}
                                             onChange={this.handleFormChange("name")}
                                             className={classes.rowField}
@@ -500,7 +522,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                         <Grid className={classes.actionRow} size={12}>
                             <Grid container direction="row">
                                 <Grid>
-                                    <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn || !this.isCurrentInstrumentValid()}>
+                                    <Button variant="contained" color="primary" type="submit" disabled={!this.props.store.isLoggedIn || !this.isCurrentInstrumentValid() || hasDuplicateInstrumentKey}>
                                         {this.state.currentInstrument.id ? "Update" : "Save"}
                                     </Button>
                                     <Button color="primary" onClick={this.onClear}>

@@ -397,7 +397,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
   // Shows keyless instruments by name only, because they do not have a report-parser key.
   private getInstrumentOptionLabel = (instrument: IInstrument) => {
     const key = instrument.key?.trim();
-    return key ? `${key} - ${instrument.name}` : instrument.name;
+    return key ? `${instrument.name} (${key})` : instrument.name;
   }
 
   // Builds a stable identity for the temporary copy feedback so duplicate keys in separate sections do not collide.
