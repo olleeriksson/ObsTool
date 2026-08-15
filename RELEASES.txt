@@ -7,3 +7,4 @@
 2026-06-04    - Fixing memory of selected tab, added New session button, and changed secondary color
 2026-06-05    - A better New session button
 2026-06-10    - Enabled admin notifications
+2026-08-15    - Multiple bug fixed ahead of Sagittarius.
