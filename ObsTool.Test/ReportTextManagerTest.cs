@@ -557,6 +557,34 @@ namespace TestProject
             Assert.That(obs.DsoObservations[0].NonDetection, Is.True);
         }
 
+        /// <summary>
+        /// Verifies that an attached section marker preserves every object and marks the whole group as not detected.
+        /// </summary>
+        [TestCase("NGC 123!!", new[] { "NGC 123" })]
+        [TestCase("NGC 123 !!", new[] { "NGC 123" })]
+        [TestCase("NGC 123 blaha!!", new[] { "NGC 123" })]
+        [TestCase("Test M31 and M33!!", new[] { "M 31", "M 33" })]
+        [TestCase("Test M31 and M33!!.", new[] { "M 31", "M 33" })]
+        [TestCase("M31!! and M33", new[] { "M 31", "M 33" })]
+        public void testSectionNonDetectionMarkerImmediatelyAfterObject(string reportText, string[] expectedNames)
+        {
+            var reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            var obsSession = new ObsSession
+            {
+                Id = 5,
+                Date = DateTime.Now,
+                ReportText = reportText,
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            var observation = observationsMap.GetAt(0).Value;
+            Assert.That(observation.DsoObservations.Select(dsoObs => dsoObs.Dso.Name), Is.EqualTo(expectedNames));
+            Assert.That(observation.NonDetection, Is.True);
+            Assert.That(observation.DsoObservations.All(dsoObs => dsoObs.NonDetection), Is.True);
+        }
+
         [TestCase("!! Looked for !NGC 206!.")]
         [TestCase("Looked for !NGC 981!. !!")]
         public void testSectionAndDsoNonDetectionConflict(string reportText)

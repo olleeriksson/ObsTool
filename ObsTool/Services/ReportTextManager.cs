@@ -347,6 +347,8 @@ namespace ObsTool.Services
             var allCatalogs = _dsoRepo.GetAllCatalogs();
             allCatalogs.Add("Sh2");
 
+            string flagOutro = @"(?:\s|\.|$)";  // non-capturing group of \s or . or $
+
             // Regexp for finding DSO names
             string regexpAllCatalogs = RegExpJoinCatalogs(allCatalogs);
             string introRegexp = @"(?:\s|\G)";  // non-capturing group of \s or end-of-previous-match (for when the designator starts at the beginning of the line)
@@ -355,7 +357,8 @@ namespace ObsTool.Services
             string additionalCatalogNumberPartRegexp = @"(?:\s*[\+\-\.]\s*[A-Za-z]?\s*[0-9]+[A-Za-z]?)*";
             string catalogNumberRegexp = "(" + firstCatalogNumberPartRegexp + additionalCatalogNumberPartRegexp + ")";
             string endingMarkerRegexp = @"([)!])?";    // End markers: ) and !
-            string outroRegexp = @"(?=\s|[\.,:]|$)";
+            // Recognize an adjacent section marker without consuming it as a single-object closing bang.
+            string outroRegexp = @"(?=\s|[\.,:]|!!" + flagOutro + "|$)";
 
             // The ?: at the start of one of the groups is to make that the group is non-capturing.
             // This results in the fourth group always being the ending marker (parenthesis or bang).
@@ -381,8 +384,6 @@ namespace ObsTool.Services
 
             string resourceRegexp = @"(Link|Image|Photo|Sketch|Jot):\s?(.*)";
             var findResourcesRegexp = new Regex(resourceRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-            string flagOutro = @"(?:\s|\.|$)";  // non-capturing group of \s or . or $
 
             string nonDetectionRegexp = @"!!" + flagOutro;
             var findNonDetectionRegexp = new Regex(nonDetectionRegexp, RegexOptions.Compiled | RegexOptions.IgnoreCase);
