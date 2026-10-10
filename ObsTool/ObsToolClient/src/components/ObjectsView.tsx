@@ -288,8 +288,8 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         this.loadObjectsFromApi();
     }
 
-    // Builds the empty editable form object used when adding a new object, optionally retaining the last saved type.
-    private getEmptyObject = (type: string = ""): IObservedObject => ({
+    // Builds the empty editable form object used when adding a new object, optionally retaining the last saved type and constellation.
+    private getEmptyObject = (type: string = "", constellation: string = ""): IObservedObject => ({
         id: undefined,
         name: "",
         otherNames: "",
@@ -297,14 +297,14 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         allCommonNames: "",
         notes: "",
         type,
-        const: "",
+        const: constellation,
         ra: "",
         dec: "",
         mag: "",
     });
 
-    // Loads user and shared object lists together so reference counts stay consistent after edits.
-    private loadObjectsFromApi = (preservedType: string = "") => {
+    // Loads object lists and retains the type and constellation after creating an object.
+    private loadObjectsFromApi = (preservedType: string = "", preservedConstellation: string = "") => {
         this.setState({ isLoading: true, isError: false, errorMessage: undefined });
         Api.getObjects().then(response => {
             this.setState(prevState => ({
@@ -319,7 +319,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             userObjectSort: prevState.userObjectSort,
             otherObjectSort: prevState.otherObjectSort,
             isTypeIconPreviewExpanded: prevState.isTypeIconPreviewExpanded,
-            currentObject: this.getEmptyObject(preservedType),
+            currentObject: this.getEmptyObject(preservedType, preservedConstellation),
             similarSacObjects: [],
                 isCheckingSimilar: false,
             }));
@@ -1052,7 +1052,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
 
             request.then(() => {
                 this.setState({ isSaving: false });
-                this.loadObjectsFromApi(currentId ? "" : payload.type);
+                this.loadObjectsFromApi(currentId ? "" : payload.type, currentId ? "" : payload.const);
             }).catch(error => {
                 const message = this.getApiErrorMessage(error, "Failed to save object.");
                 this.setState({ isSaving: false, isError: true, errorMessage: message });

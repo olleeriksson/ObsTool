@@ -267,21 +267,31 @@ it("reuses existing custom type casing when saving a lowercase exact match", asy
     })));
 });
 
-it("keeps the displayed Type text after saving and reloading the empty add form", async () => {
-    vi.spyOn(Api, "addUserObject").mockResolvedValue({
+// Verifies retained defaults are displayed and submitted when creating consecutive custom objects.
+it("keeps Type and Constellation after saving and uses them for the next object", async () => {
+    const addUserObject = vi.spyOn(Api, "addUserObject").mockResolvedValue({
         data: { id: 11, name: "Mars", type: "PLANET" },
     } as any);
-    renderObjectsView();
+    renderObjectsView({ ...emptyObjectList, constellations: [{ name: "Andromeda", abbreviation: "AND" }] });
 
     fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "Mars" } });
     fireEvent.change(screen.getByRole("textbox", { name: "Common name" }), { target: { value: "The red planet" } });
     fireEvent.change(screen.getByRole("combobox", { name: "Type" }), { target: { value: "Planet" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Constellation" }), { target: { value: "Andromeda" } });
+    fireEvent.click(await screen.findByRole("option", { name: "Andromeda" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(screen.getByRole("textbox", { name: /^Name/ })).toHaveValue(""));
     expect(screen.getByRole("textbox", { name: "Common name" })).toHaveValue("");
     expect(screen.getByRole("combobox", { name: "Type" })).toHaveValue("Planet");
+    expect(screen.getByRole("combobox", { name: "Constellation" })).toHaveValue("Andromeda");
+
+    fireEvent.change(screen.getByRole("textbox", { name: /^Name/ }), { target: { value: "Jupiter" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(addUserObject).toHaveBeenLastCalledWith(expect.objectContaining({
+        name: "Jupiter", type: "PLANET", const: "AND",
+    })));
 });
 
 it("shows custom object type icons in the Type dropdown and selected field", async () => {
