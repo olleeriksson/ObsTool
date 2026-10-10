@@ -8,9 +8,20 @@ let eyepiecesCacheVersion = 0;
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const getMagnificationText = (instrumentFocalLengthMm: number, eyepieceFocalLengthMm: number) => {
+// Formats magnification and exit pupil using the unrounded optical magnification.
+const getEyepieceAnnotationText = (
+  instrumentFocalLengthMm: number,
+  eyepieceFocalLengthMm: number,
+  instrumentDiameterMm: number | null | undefined
+) => {
   const magnification = instrumentFocalLengthMm / eyepieceFocalLengthMm;
-  return `${Math.round(magnification)}x`;
+  const magnificationText = `${Math.round(magnification)}x`;
+  if (!instrumentDiameterMm || !Number.isFinite(instrumentDiameterMm) || instrumentDiameterMm <= 0) {
+    return magnificationText;
+  }
+
+  const exitPupilMm = instrumentDiameterMm / magnification;
+  return `${magnificationText}, ${exitPupilMm.toFixed(1)}mm EP`;
 };
 
 const buildKeyRegex = (key: string) => new RegExp(`(^|[^A-Za-z0-9])(${escapeRegex(key)})(?=[^A-Za-z0-9]|$)`, "gi");
@@ -72,6 +83,7 @@ export const getEyepiecesCached = async (): Promise<IEyepiece[]> => {
   return eyepiecesPromise;
 };
 
+// Annotates matched eyepiece keys with optical values for the observation instrument.
 export const renderReportTextAnnotated = (
   text: string,
   instrument: IInstrument | undefined,
@@ -96,7 +108,7 @@ export const renderReportTextAnnotated = (
     start: number;
     end: number;
     fullText: string;
-    magnificationText: string;
+    annotationText: string;
   }> = [];
 
   relevantEyepieces.forEach(({ eyepiece, focalLengthMm }) => {
@@ -111,7 +123,7 @@ export const renderReportTextAnnotated = (
         start: keyStart,
         end: keyEnd,
         fullText: keyMatch,
-        magnificationText: getMagnificationText(instrumentFocalLengthMm, focalLengthMm),
+        annotationText: getEyepieceAnnotationText(instrumentFocalLengthMm, focalLengthMm, instrument.diameterMm),
       });
       match = regex.exec(text);
     }
@@ -158,7 +170,7 @@ export const renderReportTextAnnotated = (
           textUnderlineOffset: "0.2em",
         }}
       >
-        ({match.magnificationText})
+        ({match.annotationText})
       </span>
     );
 
