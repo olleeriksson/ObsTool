@@ -244,6 +244,15 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     );
   }
 
+  // Remove a confirmed deletion immediately and invalidate any list fetched before it completed.
+  private handleResourceDeleted = (resourceId: number) => {
+    ++this.resourcesRequestId;
+    const resources = (this.state.resources || []).filter(resource => resource.id !== resourceId);
+    this.setState({ resources, isLoading: false, isError: false });
+    this.props.onResourcesChanged?.(this.props.observationId, resources);
+  }
+
+  // Closing still refreshes saved edits; confirmed deletions have already updated the local snapshot.
   private handleEditResourceDialogClosed = (confirm: boolean) => {
     this.setState({ clickedResource: undefined }); // needed?
     this.setState({ isEditResourceDialogOpen: false });
@@ -392,6 +401,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           observationId={this.props.observationId}
           resource1={this.state.clickedResource}
           onHandleClose={this.handleEditResourceDialogClosed}
+          onResourceDeleted={this.handleResourceDeleted}
           displayMode="edit"
         />
       );
@@ -403,6 +413,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           resource1={this.state.checkedResource1}
           resource2={this.state.checkedResource2}
           onHandleClose={this.handleEditResourceDialogClosed}
+          onResourceDeleted={this.handleResourceDeleted}
           displayMode="compare"
         />
       );

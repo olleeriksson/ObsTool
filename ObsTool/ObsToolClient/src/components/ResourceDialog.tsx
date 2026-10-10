@@ -61,6 +61,7 @@ const styles = (theme: Theme) => createStyles({
 interface IResourceDialogProps extends WithStyles<typeof styles> {
     isOpen: boolean;
     onHandleClose: (confirm: boolean) => void;
+    onResourceDeleted?: (resourceId: number) => void;
     resource1?: IObsResource;
     resource2?: IObsResource;  // used when comparing
     observationId: number;  // used when opening the dialog to create a new resource
@@ -140,6 +141,7 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
                 observationId={this.props.observationId}
                 resource={this.props.resource1}
                 onHandleClose={this.handleCloseConfirm}
+                onResourceDeleted={this.props.onResourceDeleted}
                 displayMode="left"
                 inverted={this.state.invertBoth}
                 isExpanded={expandedResourceView === "left"}
@@ -153,6 +155,7 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
                 observationId={this.props.observationId}
                 resource={this.props.resource2}
                 onHandleClose={this.handleCloseConfirm}
+                onResourceDeleted={this.props.onResourceDeleted}
                 displayMode="right"
                 inverted={this.state.invertBoth}
                 isExpanded={expandedResourceView === "right"}

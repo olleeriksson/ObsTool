@@ -149,6 +149,7 @@ interface IResourceViewProps extends WithStyles<typeof styles> {
     resource?: IObsResource;
     displayMode?: string;
     onHandleClose: (confirm: boolean) => void;
+    onResourceDeleted?: (resourceId: number) => void;
     inverted: boolean;
     isExpanded?: boolean;
     dialogExpanded?: boolean;
@@ -434,11 +435,16 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         }
     }
 
-    // Separate function for actual deleting
+    // Publishes a successful deletion before closing so the list does not depend on a follow-up GET.
     private deleteResource = () => {
         if (this.props.resource && this.props.resource.id) {
-            Api.deleteResource(this.props.resource.id).then(
-                () => this.props.onHandleClose(true),  // only close this dialog if successfully deleted the resource
+            const resourceId = this.props.resource.id;
+            const onResourceDeleted = this.props.onResourceDeleted;
+            Api.deleteResource(resourceId).then(
+                () => {
+                    onResourceDeleted?.(resourceId);
+                    this.props.onHandleClose(true);
+                },
                 () => this.indicateError()
             );
         }
