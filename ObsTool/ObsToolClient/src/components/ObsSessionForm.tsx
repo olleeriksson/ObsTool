@@ -20,6 +20,7 @@ import CloudOutlinedIcon from "@mui/icons-material/CloudOutlined";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import AddIcon from "@mui/icons-material/Add";
 import IconButton from "@mui/material/IconButton";
+import { sortEyepiecesByFocalLength, sortInstrumentsByDiameter } from "../utils/EquipmentSorting";
 import { getObservedObjectTargetKey } from "./ObservationTarget";
 
 const hiddenObservationIdentifierRegexp = /#\d+(?:-(?:\d+|![A-Z0-9]+!))*/gi;
@@ -262,7 +263,10 @@ const styles = (theme: Theme) => createStyles({
     fontSize: "0.78rem",
     gap: theme.spacing(.5),
   },
+  // Fill the first eyepiece column before continuing in the second column.
   eyepieceKeyGrid: {
+    gridAutoFlow: "column",
+    gridTemplateRows: "repeat(var(--eyepiece-key-rows), auto)",
     columnGap: theme.spacing(1),
     gridTemplateColumns: "repeat(2, var(--key-chip-width))",
   },
@@ -523,20 +527,23 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     );
   }
 
+  // Renders copyable equipment keys using the ordering appropriate to each reference section.
   private renderKeyReferenceSection = <T extends { id?: number; key?: string | null }>(
     title: string,
     items: T[],
     gridClassName: string,
-    keyChipWidth: string
+    keyChipWidth: string,
+    sortItems: (itemA: T, itemB: T) => number = this.sortByKey
   ) => {
     // Keys are compact editing aids that can be copied without changing the saved session data.
-    const sortedItems = [...items].filter(this.hasReferenceKey).sort(this.sortByKey);
+    const sortedItems = [...items].filter(this.hasReferenceKey).sort(sortItems);
     const content = sortedItems.length === 0 ? (
       <Typography variant="caption" color="textSecondary">None</Typography>
     ) : (
       <div
         className={classNames(this.props.classes.keyChipGrid, gridClassName)}
-        style={{ "--key-chip-width": keyChipWidth } as React.CSSProperties}
+        // The two-column eyepiece grid needs a row count to preserve descending order down each column.
+        style={{ "--key-chip-width": keyChipWidth, "--eyepiece-key-rows": Math.ceil(sortedItems.length / 2) } as React.CSSProperties}
       >
         {sortedItems.map(item => {
           const key = item.key.trim();
@@ -839,10 +846,10 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                       </Grid>
                       <Grid className={classes.equipmentActionGrid}>
                         <Grid className={classNames(classes.keyReferenceColumn, classes.eyepieceReferenceColumn)}>
-                          {this.renderKeyReferenceSection("Eyepieces", this.props.eyepieces || [], classes.eyepieceKeyGrid, eyepieceKeyChipWidth)}
+                          {this.renderKeyReferenceSection("Eyepieces", this.props.eyepieces || [], classes.eyepieceKeyGrid, eyepieceKeyChipWidth, sortEyepiecesByFocalLength)}
                         </Grid>
                         <Grid className={classNames(classes.keyReferenceColumn, classes.instrumentReferenceColumn)}>
-                          {this.renderKeyReferenceSection("Instruments", this.props.instruments || [], classes.instrumentKeyGrid, instrumentKeyChipWidth)}
+                          {this.renderKeyReferenceSection("Instruments", this.props.instruments || [], classes.instrumentKeyGrid, instrumentKeyChipWidth, sortInstrumentsByDiameter)}
                         </Grid>
                         <Grid className={classes.bottomActionColumn}>
                           <div className={classNames(classes.saveAction, classes.bottomSaveAction)}>

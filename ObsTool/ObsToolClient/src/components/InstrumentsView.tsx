@@ -17,6 +17,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Popover from "@mui/material/Popover";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import { sortInstrumentsByDiameter } from "../utils/EquipmentSorting";
 import Api from "../api/Api";
 import { IInstrument, IAppState, IDataState } from "src/types/Types";
 import EditIcon from "@mui/icons-material/Edit";
@@ -544,7 +545,8 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             </div>
         );
 
-        const instrumentList = this.state.instruments.map(instrument => {
+        // Sort a copy for display so editing state retains its original equipment array.
+        const instrumentList = [...this.state.instruments].sort(sortInstrumentsByDiameter).map(instrument => {
             const keySuffix = instrument.key?.trim()
                 ? <span style={{ color: "gray", fontSize: "0.85em" }}>({instrument.key})</span>
                 : null;

@@ -14,6 +14,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import { sortEyepiecesByFocalLength } from "../utils/EquipmentSorting";
 import Api from "../api/Api";
 import { IEyepiece, IAppState, IDataState } from "src/types/Types";
 import classNames from "classnames";
@@ -335,7 +336,8 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
             </div>
         );
 
-        const eyepieceList = this.state.eyepieces.map(eyepiece => (
+        // Sort a copy for display so editing state retains its original equipment array.
+        const eyepieceList = [...this.state.eyepieces].sort(sortEyepiecesByFocalLength).map(eyepiece => (
             <Grid key={eyepiece.id} size={12}>
                 <Typography variant="subtitle1" gutterBottom={true}>
                     {eyepiece.name} <span style={{ color: "gray", fontSize: "0.85em" }}>({eyepiece.key})</span>
