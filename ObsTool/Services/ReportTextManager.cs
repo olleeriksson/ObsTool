@@ -444,7 +444,7 @@ namespace ObsTool.Services
                         parsedTargetsInSection.Add(new ParsedObjectTarget
                         {
                             Index = userObjectMatch.Index,
-                            NonDetection = false,
+                            NonDetection = IsNamedObjectNonDetection(sectionObsText, userObjectMatch.Index, userObjectMatch.Length, userObjectMatch.Object.Name),
                             UserObject = userObjectMatch.Object,
                             ObjectKey = objectKey
                         });
@@ -560,7 +560,7 @@ namespace ObsTool.Services
                         parsedTargetsInSection.Add(new ParsedObjectTarget
                         {
                             Index = otherObjectMatch.Index,
-                            NonDetection = false,
+                            NonDetection = IsNamedObjectNonDetection(sectionObsText, otherObjectMatch.Index, otherObjectMatch.Length, otherObjectMatch.Object.Name),
                             OtherObject = otherObjectMatch.Object,
                             ObjectKey = objectKey
                         });
@@ -982,6 +982,26 @@ namespace ObsTool.Services
                 .OrderBy(match => match.Index)
                 .ThenByDescending(match => match.Length)
                 .ToList();
+        }
+
+        /// <summary>
+        /// Reads paired individual markers around a stored name without mistaking a section marker for one.
+        /// </summary>
+        private bool IsNamedObjectNonDetection(string text, int index, int length, string objectName)
+        {
+            int endIndex = index + length;
+            // A doubled bang belongs to the whole section; only an adjacent single bang marks an object.
+            bool startIsBang = index > 0 && text[index - 1] == '!'
+                && (index < 2 || text[index - 2] != '!');
+            bool endIsBang = endIndex < text.Length && text[endIndex] == '!'
+                && (endIndex + 1 >= text.Length || text[endIndex + 1] != '!');
+            if (startIsBang != endIsBang)
+            {
+                throw new ObsToolException(
+                    $"Save aborted. Object {objectName} has unmatched non-detection markers — wrap it on both sides: !{objectName}!");
+            }
+
+            return startIsBang && endIsBang;
         }
 
         /// <summary>

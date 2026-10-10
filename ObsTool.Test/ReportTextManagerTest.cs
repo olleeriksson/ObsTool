@@ -499,7 +499,7 @@ namespace TestProject
                 Id = 5,
                 UserId = 1,
                 Date = DateTime.Now,
-                ReportText = "M 31 was recorded as my custom target.",
+                ReportText = "!M 31! was recorded as my custom target.",
             };
 
             var observationsMap = reportTextManager.Parse(obsSession);
@@ -509,6 +509,116 @@ namespace TestProject
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].UserObjectId, Is.EqualTo(20));
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].DsoId, Is.Null);
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].OtherObjectId, Is.Null);
+            Assert.That(observationsMap.GetAt(0).Value.DsoObservations[0].NonDetection, Is.True);
+        }
+
+        /// <summary>
+        /// Verifies individual non-detections for stored names, including repeated mentions and compact variants.
+        /// </summary>
+        [TestCase("Tried to see G305 and !A49!. Never saw !A49!.", false)]
+        [TestCase("!A49!", true)]
+        [TestCase("Never saw !A 49!.", true)]
+        [TestCase("Tried to see G305 and !A49!. Never saw !A49!.", false, true)]
+        [TestCase("!A49!", true, true)]
+        public void testNamedObjectNonDetection(string reportText, bool expectedSectionNonDetection, bool sharedObject = false)
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "G305", Type = "ASTER" });
+            if (sharedObject)
+            {
+                dbContext.OtherObjects.Add(new OtherObject { Id = 10, Name = "A 49", Type = "ASTER" });
+            }
+            else
+            {
+                dbContext.UserObjects.Add(new UserObject { Id = 21, UserId = 1, Name = "A 49", Type = "ASTER" });
+            }
+            dbContext.SaveChanges();
+
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession { Id = 5, UserId = 1, Date = DateTime.Now, ReportText = reportText };
+
+            // Reparse the injected identifier to ensure repeated mentions stay one stable object link.
+            for (int pass = 0; pass < 2; pass++)
+            {
+                var observation = reportTextManager.Parse(obsSession).Values.Single();
+                Assert.That(observation.NonDetection, Is.EqualTo(expectedSectionNonDetection));
+                Assert.That(observation.DsoObservations.Count, Is.EqualTo(expectedSectionNonDetection ? 1 : 2));
+                var target = observation.DsoObservations.Single(d => sharedObject ? d.OtherObjectId == 10 : d.UserObjectId == 21);
+                Assert.That(target.NonDetection, Is.True);
+                if (!expectedSectionNonDetection)
+                {
+                    Assert.That(observation.DsoObservations.Single(d => d.UserObjectId == 20).NonDetection, Is.False);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ensures section markers remain distinct from individual markers for named objects.
+        /// </summary>
+        [TestCase("A49!!")]
+        [TestCase("!! A49")]
+        [TestCase("A49 !!")]
+        public void testNamedObjectSectionNonDetection(string reportText)
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "A49", Type = "ASTER" });
+            dbContext.SaveChanges();
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession { Id = 5, UserId = 1, Date = DateTime.Now, ReportText = reportText };
+
+            var observation = reportTextManager.Parse(obsSession).Values.Single();
+
+            Assert.That(observation.NonDetection, Is.True);
+            Assert.That(observation.DsoObservations.Single().NonDetection, Is.True);
+        }
+
+        /// <summary>
+        /// Rejects unbalanced or conflicting markers for custom names just as for catalog objects.
+        /// </summary>
+        [TestCase("!A49")]
+        [TestCase("A49!")]
+        [TestCase("!! Looked for !A49!.")]
+        public void testNamedObjectInvalidNonDetectionMarkers(string reportText)
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "A49", Type = "ASTER" });
+            dbContext.SaveChanges();
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession { Id = 5, UserId = 1, Date = DateTime.Now, ReportText = reportText };
+
+            Assert.Throws<ObsToolException>(() => reportTextManager.Parse(obsSession));
+        }
+
+        /// <summary>
+        /// Keeps a shorter overlapping name from interpreting the markers belonging to a longer target.
+        /// </summary>
+        [Test]
+        public void testNamedObjectNonDetectionWithOverlappingNames()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "Barnard's Star", Type = "STAR" });
+            dbContext.UserObjects.Add(new UserObject { Id = 21, UserId = 1, Name = "Star", Type = "STAR" });
+            dbContext.OtherObjects.Add(new OtherObject { Id = 10, Name = "Barnard", Type = "STAR" });
+            dbContext.SaveChanges();
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession { Id = 5, UserId = 1, Date = DateTime.Now, ReportText = "!Barnard's Star!" };
+
+            var observation = reportTextManager.Parse(obsSession).Values.Single();
+
+            Assert.That(observation.DsoObservations.Single().UserObjectId, Is.EqualTo(20));
+            Assert.That(observation.DsoObservations.Single().NonDetection, Is.True);
         }
 
         private MainDbContext CreateObjectParserContext(SqliteConnection connection)
