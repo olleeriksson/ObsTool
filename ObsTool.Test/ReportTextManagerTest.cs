@@ -357,6 +357,49 @@ namespace TestProject
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations[1].Dso.Name, Is.EqualTo("M 101"));
         }
 
+        /// <summary>
+        /// Keeps ordinary conjunctions out of catalog matching while retaining case-insensitive M and NGC names.
+        /// </summary>
+        [TestCase("I observed M31 and M32. 31 was cool and 32 was fainter.", new[] { "M 31", "M 32" })]
+        [TestCase("ngc 123 And 32 was fainter.", new[] { "NGC 123" })]
+        [TestCase("and 32 was fainter.", new string[0])]
+        [TestCase("And 32 was fainter.", new string[0])]
+        [TestCase("aNd 32 was fainter.", new string[0])]
+        public void testAndCatalogIgnoresOrdinaryProse(string reportText, string[] expectedNames)
+        {
+            obsRepoMock.Setup(x => x.GetAllCatalogs()).Returns(new List<string> { "M", "NGC", "AND" });
+            obsRepoMock.Setup(x => x.GetDsoByName("AND 32", false)).Returns((Dso)null);
+            var reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            var obsSession = new ObsSession { Id = 5, ReportText = reportText };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(expectedNames.Length == 0 ? 0 : 1));
+            Assert.That(observationsMap.Values.SelectMany(o => o.DsoObservations).Select(o => o.Dso.Name),
+                Is.EqualTo(expectedNames));
+            obsRepoMock.Verify(x => x.GetDsoByName("AND 32", false), Times.Never);
+            Assert.That(obsSession.ReportText, Does.Not.Contain("!AND32!"));
+        }
+
+        /// <summary>
+        /// Retains explicit uppercase AND references, including the unidentified-object behavior for unknown numbers.
+        /// </summary>
+        [TestCase("AND 32 was faint.")]
+        [TestCase("AND32 was faint.")]
+        public void testUppercaseAndCatalogStillMatches(string reportText)
+        {
+            obsRepoMock.Setup(x => x.GetAllCatalogs()).Returns(new List<string> { "AND" });
+            obsRepoMock.Setup(x => x.GetDsoByName("AND 32", false)).Returns((Dso)null);
+            var reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            var obsSession = new ObsSession { Id = 5, ReportText = reportText };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            Assert.That(observationsMap.GetAt(0).Key, Is.EqualTo("5-!AND32!"));
+            obsRepoMock.Verify(x => x.GetDsoByName("AND 32", false), Times.Once);
+        }
+
         [Test]
         public void testUnmatchedDsoCreatesObservationWithIdentifierToken()
         {

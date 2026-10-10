@@ -90,13 +90,16 @@ namespace ObsTool.Services
         public void DisplayName() => Console.WriteLine(ToString());
 
         /// <summary>
-        /// Builds a safe catalog alternation, preferring longer catalog names so Sh2 is matched before Sh.
+        /// Builds a safe catalog alternation, preferring longer names and requiring uppercase.
         /// </summary>
         public string RegExpJoinCatalogs(IEnumerable<string> catalogs) => string.Join("|", catalogs
             .Where(catalog => !string.IsNullOrWhiteSpace(catalog))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderByDescending(catalog => catalog.Length)
-            .Select(Regex.Escape));
+            // Disable case-insensitive matching only for AND, which is a common word in normal english language.
+            .Select(catalog => string.Equals(catalog, "AND", StringComparison.OrdinalIgnoreCase)
+                ? "(?-i:AND)"
+                : Regex.Escape(catalog)));
 
         public void ParseAndStoreObservations(ObsSession obsSession, bool canCreateOtherObjects = false)
         {
