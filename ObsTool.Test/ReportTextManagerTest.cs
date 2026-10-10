@@ -621,6 +621,123 @@ namespace TestProject
             Assert.That(observation.DsoObservations.Single().NonDetection, Is.True);
         }
 
+        /// <summary>
+        /// Replaces standalone constellation keywords and keeps the saved report and observation text in sync.
+        /// </summary>
+        [TestCase("M 31 in const tonight.", "M 31 in Andromeda tonight.")]
+        [TestCase("M 31 in const, tonight.", "M 31 in Andromeda, tonight.")]
+        [TestCase("M 31 in const.", "M 31 in Andromeda.")]
+        [TestCase("M 31 in (const); constant stays.", "M 31 in (Andromeda); constant stays.")]
+        public void testConstellationKeywordReplacement(string reportText, string expectedText)
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.Constellations.Add(new Constellation("Andromeda", "AND"));
+            dbContext.SaveChanges();
+            obsRepoMock.Setup(x => x.GetDsoByName("M 31", false, 1))
+                .Returns(new Dso { Id = 31, Name = "M 31", Con = "AND" });
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession { Id = 5, UserId = 1, Date = DateTime.Now, ReportText = reportText };
+
+            var observation = reportTextManager.Parse(obsSession).Values.Single();
+            Assert.That(observation.Text, Is.EqualTo(expectedText));
+            Assert.That(obsSession.ReportText, Does.StartWith(expectedText));
+            Assert.That(obsSession.ReportText, Does.Not.Contain(" in const"));
+
+            var reparsedObservation = reportTextManager.Parse(obsSession).Values.Single();
+            Assert.That(reparsedObservation.Text, Is.EqualTo(expectedText));
+        }
+
+        /// <summary>
+        /// Uses the constellations on shared and user objects as well as catalog objects.
+        /// </summary>
+        [Test]
+        public void testConstellationKeywordWithAllObjectKinds()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.Constellations.Add(new Constellation("Andromeda", "AND"));
+            dbContext.OtherObjects.Add(new OtherObject { Id = 10, Name = "Shared target", Const = "AND" });
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "Personal target", Const = "AND" });
+            dbContext.SaveChanges();
+            obsRepoMock.Setup(x => x.GetDsoByName("M 31", false, 1))
+                .Returns(new Dso { Id = 31, Name = "M 31", Con = "AND" });
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession
+            {
+                Id = 5, UserId = 1, Date = DateTime.Now,
+                ReportText = "M 31, Shared target, and Personal target in const."
+            };
+
+            var observation = reportTextManager.Parse(obsSession).Values.Single();
+            Assert.That(observation.Text, Is.EqualTo("M 31, Shared target, and Personal target in Andromeda."));
+            Assert.That(observation.DsoObservations.Count, Is.EqualTo(3));
+            Assert.That(obsSession.ReportText, Does.Not.Contain("const"));
+        }
+
+        /// <summary>
+        /// Resolves each paragraph independently and permits a section containing only a custom object.
+        /// </summary>
+        [Test]
+        public void testConstellationKeywordInSeparateSections()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.Constellations.Add(new Constellation("Andromeda", "AND"));
+            dbContext.Constellations.Add(new Constellation("Orion", "ORI"));
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "Personal target", Const = "ORI" });
+            dbContext.SaveChanges();
+            obsRepoMock.Setup(x => x.GetDsoByName("M 31", false, 1))
+                .Returns(new Dso { Id = 31, Name = "M 31", Con = "AND" });
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession
+            {
+                Id = 5, UserId = 1, Date = DateTime.Now,
+                ReportText = "M 31 in const.\r\n\r\nPersonal target in const, clearly."
+            };
+
+            var observations = reportTextManager.Parse(obsSession).Values.ToList();
+            Assert.That(observations.Select(observation => observation.Text), Is.EqualTo(new[]
+            {
+                "M 31 in Andromeda.", "Personal target in Orion, clearly."
+            }));
+            Assert.That(obsSession.ReportText, Does.Contain("M 31 in Andromeda."));
+            Assert.That(obsSession.ReportText, Does.Contain("Personal target in Orion, clearly."));
+            Assert.That(obsSession.ReportText, Does.Not.Contain("const"));
+        }
+
+        /// <summary>
+        /// Warns when the keyword cannot identify one constellation for the section.
+        /// </summary>
+        [TestCase("Nothing in const.", false)]
+        [TestCase("M 31 and M 32 in const.", true)]
+        public void testConstellationKeywordWarnings(string reportText, bool hasConflictingObjects)
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.Constellations.Add(new Constellation("Andromeda", "AND"));
+            dbContext.SaveChanges();
+            obsRepoMock.Setup(x => x.GetDsoByName("M 31", false, 1))
+                .Returns(new Dso { Id = 31, Name = "M 31", Con = "AND" });
+            obsRepoMock.Setup(x => x.GetDsoByName("M 32", false, 1))
+                .Returns(new Dso { Id = 32, Name = "M 32", Con = "ORI" });
+            var reportTextManager = new ReportTextManager(
+                dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var obsSession = new ObsSession { Id = 5, UserId = 1, Date = DateTime.Now, ReportText = reportText };
+
+            var warning = Assert.Throws<ObsToolException>(() => reportTextManager.Parse(obsSession));
+            Assert.That(warning.Message, Does.StartWith("Warning:"));
+            Assert.That(warning.Message, Does.Contain(hasConflictingObjects ? "same known constellation" : "recognized object"));
+            Assert.That(obsSession.ReportText, Is.EqualTo(reportText));
+        }
+
         private MainDbContext CreateObjectParserContext(SqliteConnection connection)
         {
             var options = new DbContextOptionsBuilder<MainDbContext>()

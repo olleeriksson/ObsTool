@@ -18,6 +18,9 @@ namespace ObsTool.Services
         private const string ObservationIdentifierTokenPattern = @"(?:\d+|\[[^\]\r\n]+\]|\{[^\}\r\n]+\}|![A-Z0-9]+!)";
         private const string ObservationIdentifierPattern = @"\d+(?:-" + ObservationIdentifierTokenPattern + @")*";
         private const string DecoratedObservationIdentifierPattern = @"\s(#(" + ObservationIdentifierPattern + @"))[\s\.$]?";
+        private static readonly Regex ConstellationKeywordRegex = new Regex(
+            @"(?<![\p{L}\p{N}_])const(?![\p{L}\p{N}_])",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         private MainDbContext _dbContext;
         private ObservationsRepo _observationsRepo;
@@ -332,6 +335,7 @@ namespace ObsTool.Services
             string reportText = obsSession.ReportText;
             OrderedDictionary<string, Observation> observationsDict = new OrderedDictionary<string, Observation>();
             IDictionary<ReportParagraph, string> newSectionMatchesDict = new Dictionary<ReportParagraph, string>();
+            IDictionary<ReportParagraph, string> replacedSectionTexts = new Dictionary<ReportParagraph, string>();
             identifiersFoundInReportText = FindExistingObsIdentifiers(reportText);
             identifiersWithUnmatchedDsoNames = new HashSet<string>();
 
@@ -567,6 +571,16 @@ namespace ObsTool.Services
                         targetSpansInSection.Add(new TextSpan { Index = otherObjectMatch.Index, Length = otherObjectMatch.Length });
                     }
 
+                    // Resolve the keyword only after all three object types have been identified.
+                    if (ConstellationKeywordRegex.IsMatch(sectionText))
+                    {
+                        string constellationName = GetSectionConstellationName(parsedTargetsInSection);
+                        string replacedSectionText = ConstellationKeywordRegex.Replace(sectionsMatch.Text, constellationName);
+                        replacedSectionTexts.Add(sectionsMatch, replacedSectionText);
+                        sectionText = ConstellationKeywordRegex.Replace(sectionText, constellationName);
+                        sectionObsText = GetPartBeforeFirstNewlineIfAny(sectionText);
+                    }
+
                     // Collect all the obs resources
                     MatchCollection resourceMatches = findResourcesRegexp.Matches(sectionText);  // matching on a single section
                     foreach (Match resourceMatch in resourceMatches)
@@ -720,11 +734,19 @@ namespace ObsTool.Services
                 // Do it from back to front to keep the match indices from becoming obsolete when you add to the text.
                 foreach (ReportParagraph sectionsMatch in reportParagraphs.AsEnumerable().Reverse())
                 {
+                    string paragraphText = replacedSectionTexts.TryGetValue(sectionsMatch, out string replacement)
+                        ? replacement
+                        : sectionsMatch.Text;
+                    if (replacement != null)
+                    {
+                        reportText = reportText.Replace(sectionsMatch.Index, sectionsMatch.Text.Length, replacement);
+                    }
+
                     if (newSectionMatchesDict.ContainsKey(sectionsMatch))  // only the new ones
                     {
                         // Using the trimmed length to find the end position of the text to be replaced so that the
                         // inserted obs identifier doesn't end up two newlines below, at the start of the next section.
-                        int trimmedLength = sectionsMatch.Text.Trim().Length;
+                        int trimmedLength = paragraphText.Trim().Length;
                         int sectionEndPos = sectionsMatch.Index + trimmedLength;
                         string newObsIdentifier = newSectionMatchesDict[sectionsMatch];
                         string decoratedIdentifier = DecorateObsIdentifier(newObsIdentifier);
@@ -744,6 +766,39 @@ namespace ObsTool.Services
             obsSession.ReportText = reportText;
 
             return observationsDict;
+        }
+
+        /// <summary>
+        /// Resolves the single constellation shared by every recognized object in a report section.
+        /// </summary>
+        private string GetSectionConstellationName(IEnumerable<ParsedObjectTarget> targets)
+        {
+            List<string> abbreviations = targets
+                .Select(target => target.Dso?.Con ?? target.OtherObject?.Const ?? target.UserObject?.Const)
+                .Where(abbreviation => !string.IsNullOrWhiteSpace(abbreviation))
+                .Select(abbreviation => abbreviation.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (!targets.Any())
+            {
+                throw new ObsToolException("Warning: 'const' needs a recognized object in the same report section.");
+            }
+            if (abbreviations.Count != 1 || targets.Any(target =>
+                string.IsNullOrWhiteSpace(target.Dso?.Con ?? target.OtherObject?.Const ?? target.UserObject?.Const)))
+            {
+                throw new ObsToolException("Warning: 'const' needs every object in the section to have the same known constellation.");
+            }
+
+            string abbreviation = abbreviations[0];
+            string constellationName = _objectsRepo?.GetConstellationOptions()
+                .FirstOrDefault(constellation => string.Equals(constellation.Abbreviation, abbreviation, StringComparison.OrdinalIgnoreCase))?.Name;
+            if (string.IsNullOrWhiteSpace(constellationName))
+            {
+                throw new ObsToolException($"Warning: no constellation name was found for '{abbreviation}'.");
+            }
+
+            return constellationName;
         }
 
         /// <summary>

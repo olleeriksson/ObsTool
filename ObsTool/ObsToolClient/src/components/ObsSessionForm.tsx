@@ -836,12 +836,13 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     <Grid container direction="row" className={classes.helpReferenceRow}>
                       <Grid className={classes.helpTextColumn}>
                         <Typography variant="caption" color="textSecondary" component={"div" as any} className={classes.helpText}>
-                          <div><code>!!</code>{" - "}section not found</div>
-                          <div><code>!M 31!</code>{" - "}individual not found</div>
-                          <div><code>(M 31)</code>{" - "}suppress reference</div>
-                          <div><code>-1 +1 +2 * **</code>{" - "}rating</div>
-                          <div><code>revisit</code>{" / "}<code>come back</code>{" - "}follow-up</div>
-                          <div><code>Link: Image: Sketch: Jot:</code>{" - "}+ url</div>
+                          <div><code>!!</code>{" - "}Failed to observe all objects in the section</div>
+                          <div><code>!M 31!</code>{" - "}Failed to observe specific object in the section</div>
+                          <div><code>(M 31)</code>{" - "}Ignore object reference</div>
+                          <div><code>-1 +1 +2 * **</code>{" - "}Rate the object</div>
+                          <div><code>revisit</code>{" / "}<code>come back</code>{" - "}Reminder to observe the object again</div>
+                          <div><code>const</code>{" - "}Quick insert of constellation name</div>
+                          <div><code>Link: Image: Sketch: Jot: + url</code>{" - "}Quick insert of resource</div>
                         </Typography>
                       </Grid>
                       <Grid className={classes.equipmentActionGrid}>
