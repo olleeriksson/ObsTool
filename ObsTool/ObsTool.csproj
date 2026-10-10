@@ -20,11 +20,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
     <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="moq" Version="4.21.0" />
-    <PackageReference Include="NLog" Version="5.5.1" />
-    <PackageReference Include="Nlog.Web.AspNetCore" Version="5.5.0" />
+    <PackageReference Include="NLog" Version="6.2.1" />
+    <PackageReference Include="Nlog.Web.AspNetCore" Version="6.2.1" />
 
-    <!-- Keep the scaffolding tools' transitive NuGet family on patched 6.x releases. -->
-    <PackageReference Include="NuGet.ProjectModel" Version="6.14.3" />
+    <!-- Keep the scaffolding tools' transitive NuGet family aligned with the latest stable release. -->
+    <PackageReference Include="NuGet.ProjectModel" Version="7.9.0" />
 
   </ItemGroup>
 
