@@ -1,12 +1,42 @@
 import * as React from "react";
+import { withStyles, createStyles } from "src/muiCompat";
+import type { WithStyles } from "src/muiCompat";
+import type { Theme } from "@mui/material/styles";
 import CircularProgress from "@mui/material/CircularProgress";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
+import Tooltip from "@mui/material/Tooltip";
 import { DsoTypeIcon } from "./DsoTypeIcon";
 import { getDsoTypeAbbreviation } from "../utils/objectTypes";
 
-export interface IDsoShortProps {
+// Keep the catalog labels readable beside the muted constellation metadata.
+const styles = (theme: Theme) => createStyles({
+  // Align the icon to the first text line and reserve its size as metadata wraps.
+  metadata: {
+    alignItems: "flex-start",
+    display: "inline-flex",
+    gap: 4,
+  },
+  objectIcon: {
+    flex: "0 0 22px",
+    width: 22,
+    height: 22,
+  },
+  metadataText: {
+    minWidth: 0,
+  },
+  herschel: {
+    color: theme.palette.mode === "dark" ? "#81c784" : "#2e7d32",
+    fontWeight: 700,
+  },
+  herschel400: {
+    color: theme.palette.mode === "dark" ? "#64a8e8" : "#1976d2",
+    fontWeight: 700,
+  },
+});
+
+export interface IDsoShortProps extends WithStyles<typeof styles> {
   id?: number;
   error?: string;
   dso?: IDso;
@@ -21,7 +51,7 @@ export interface IDsoShortState {
   dso?: IDso;
 }
 
-export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
+class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
   constructor(props: IDsoShortProps) {
     super(props);
 
@@ -63,6 +93,9 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
       );
     } else {
         if (this.state.dso) {
+          // H400 takes precedence when any Herschel entry belongs to that subset.
+          const herschelObjects = this.state.dso.herschelObjects || [];
+          const isH400 = herschelObjects.some(object => object.h400);
           const name = this.state.dso.name;
           const typeAbbreviation = getDsoTypeAbbreviation(this.state.dso.type || "") || this.state.dso.type;
           const nameStyle = this.props.nonDetection ? { textDecoration: "line-through" } : undefined;
@@ -88,9 +121,26 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
           <div className="dsoShort">
             {nameContent}
             <Typography color="textSecondary" variant="caption" component={"div" as any} gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
-              <span style={{ alignItems: "center", display: "inline-flex", gap: 4 }}>
-                {typeAbbreviation && <DsoTypeIcon type={this.state.dso.type} size={22} />}
-                <span>{[typeAbbreviation, this.state.dso.con].filter(Boolean).join(", ")}</span>
+              <span className={this.props.classes.metadata}>
+                {typeAbbreviation && <DsoTypeIcon className={this.props.classes.objectIcon} type={this.state.dso.type} size={22} />}
+                <span className={this.props.classes.metadataText}>
+                  {/* Separate all available metadata with commas while preserving the label tooltip. */}
+                  {[
+                    typeAbbreviation,
+                    this.state.dso.con,
+                    herschelObjects.length > 0 && (
+                      <Tooltip key="herschel" title={isH400 ? "Herschel 400 object" : "Herschel object"} describeChild={true}>
+                        <span className={isH400 ? this.props.classes.herschel400 : this.props.classes.herschel}>
+                          {isH400 ? "H400" : "H2500"}
+                        </span>
+                      </Tooltip>
+                    ),
+                  ].filter(Boolean).map((item, index) => (
+                    <React.Fragment key={index}>
+                      {index > 0 && ", "}{item}
+                    </React.Fragment>
+                  ))}
+                </span>
               </span>
             </Typography>
           </div>
@@ -105,3 +155,5 @@ export default class DsoShort extends React.Component<IDsoShortProps, IDsoShortS
     }
   }
 }
+
+export default withStyles(styles)(DsoShort);

@@ -147,7 +147,7 @@ const styles = (theme: Theme) => createStyles({
   },
   multipleDsoContainer: {
     marginBottom: "0.8em",
-    marginTop: "0.8em"
+    marginTop: "1.2em"
   },
   unmatchedObservationContainer: {
     borderLeft: `3px solid ${theme.palette.warning.dark}`,
