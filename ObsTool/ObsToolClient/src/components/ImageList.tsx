@@ -211,9 +211,18 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
     this.setState({ displayMode: "edit" });
   }
 
+  private resourcesRequestId = 0;
+
+  // This is to fix a timing bug we had before where the image list wasn't updated correctly.
+  // Only the latest refresh may update the list or session snapshot; an earlier response can predate a save.
   private refreshResourcesListFromApi = () => {
-    Api.getResources(this.props.observationId).then(
+    const requestId = ++this.resourcesRequestId;
+    const observationId = this.props.observationId;
+    Api.getResources(observationId).then(
       (response) => {
+        if (requestId !== this.resourcesRequestId || observationId !== this.props.observationId) {
+          return;
+        }
         const { data } = response;
         const updatedResources = data;
         // Keep the session-level observation snapshot in sync so the tab cannot remount with stale resource props.
@@ -226,7 +235,12 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
           resources: updatedResources
         });
       },
-      () => this.indicateError()
+      () => {
+        // A superseded failure must not replace the status of the current resource list.
+        if (requestId === this.resourcesRequestId && observationId === this.props.observationId) {
+          this.indicateError();
+        }
+      }
     );
   }
 
