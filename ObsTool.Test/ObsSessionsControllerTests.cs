@@ -163,6 +163,32 @@ namespace TestProject
         }
 
         [Test]
+        public void Get_ShowsEachPreviousObservationOnceWhenSeveralObjectsMatch()
+        {
+            // A report section can link several objects that were also grouped in earlier report sections.
+            SeedUser();
+            SeedDso(3793, "NGC", "3793", "NGC 3793");
+            SeedDso(3794, "NGC", "3794", "NGC 3794");
+            SeedDso(3795, "NGC", "3795", "NGC 3795");
+
+            var firstSessionId = SeedObsSession(new DateTime(2024, 9, 8), "First session");
+            var firstObservationId = SeedObservation(firstSessionId, $"{firstSessionId}-3793-3794-3795",
+                "First grouped observation", new[] { 3793, 3794, 3795 });
+            var secondSessionId = SeedObsSession(new DateTime(2024, 9, 10), "Second session");
+            var secondObservationId = SeedObservation(secondSessionId, $"{secondSessionId}-3793-3794",
+                "Second grouped observation", new[] { 3793, 3794 });
+            var currentSessionId = SeedObsSession(new DateTime(2026, 9, 10), "Current session");
+            SeedObservation(currentSessionId, $"{currentSessionId}-3793-3794-3795",
+                "Current grouped observation", new[] { 3793, 3794, 3795 });
+
+            var result = (OkObjectResult)_controller.Get(currentSessionId,
+                includeObservations: true, includeDso: true, includeOtherObservations: true);
+            var otherObservations = ((ObsSessionDto)result.Value).Observations.Single().OtherObservations;
+
+            Assert.That(otherObservations.Select(o => o.Id), Is.EqualTo(new[] { secondObservationId, firstObservationId }));
+        }
+
+        [Test]
         public void Put_ThrowsWhenIdentifiedObservationWithResourcesNoLongerMatches()
         {
             SeedUser();

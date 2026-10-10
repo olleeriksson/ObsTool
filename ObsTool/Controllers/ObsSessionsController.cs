@@ -146,6 +146,7 @@ namespace ObsTool.Controllers
                 }
 
                 observationDto.OtherObservations = observationDto.OtherObservations
+                    .DistinctBy(o => o.Id)  // If several DSOs in the same observation match the same historical observation, only show it once. Ie we observed M42 and M43 here *and* in the linked observation, but we only want to show the linked observation once.
                     .OrderByDescending(o => ParseObservationDateOrMin(o.ObsSession?.Date))
                     .ThenByDescending(o => o.Id)
                     .ToList();
