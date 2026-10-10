@@ -149,10 +149,10 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         }
     }
 
-    // Always refreshes shared reference data when entering a session so location CRUD is visible immediately.
+    // Refreshes locations in recency-first order for this user whenever entering a session.
     private loadLocations = () => {
         this.props.actions.getLocationsBegin();
-        Api.getLocations().then(
+        Api.getLocations(true).then(
             (response) => {
                 this.props.actions.getLocationsSuccess(response.data);
             },

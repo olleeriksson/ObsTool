@@ -108,8 +108,9 @@ class Api {
             { responseType: "blob" });
     }
 
-    public static getLocations() {
-        return axios.get<ILocation[]>(import.meta.env.VITE_API_URL + "/locations/");
+    // Lets the report form request recency first while management keeps the default ranking.
+    public static getLocations(recentFirst = false) {
+        return axios.get<ILocation[]>(import.meta.env.VITE_API_URL + "/locations/", { params: { recentFirst } });
     }
 
     public static addLocation(newLocation: ILocation) {

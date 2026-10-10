@@ -30,14 +30,15 @@ namespace ObsTool.Controllers
             _mapper = mapper;
         }
 
+        // Returns the management ranking unless the report form requests recency first.
         // GET: api/Locations
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] bool recentFirst = false)
         {
             var userId = _currentUserService.GetRequiredUserId();
             var locations = _locationsRepository.GetLocations(userId);
 
-            // Rank locations using a 50/50 blend of normalized recency and normalized usage count.
+            // Rank locations using a 75/25 blend of normalized recency and normalized usage count.
             var locationUsage = _obsSessionsRepository.GetObsSessions(userId)
                 .Where(s => s.LocationId.HasValue)
                 .GroupBy(s => s.LocationId.Value)
@@ -71,6 +72,14 @@ namespace ObsTool.Controllers
                     return (normalizedCount * 0.25d) + (normalizedRecency * 0.75d);
                 })
                 .ThenByDescending(loc => loc.Id);
+
+            // LINQ ordering is stable, so equal dates retain the weighted score and id ordering.
+            if (recentFirst)
+            {
+                sortedLocations = sortedLocations.OrderByDescending(loc => locationUsage.TryGetValue(loc.Id, out var usage)
+                    ? usage.LatestDate
+                    : DateTime.MinValue);
+            }
 
             var results = sortedLocations.Select(location => MapLocationDto(location, locationUsage.ContainsKey(location.Id)
                 ? locationUsage[location.Id].Count

@@ -71,6 +71,71 @@ namespace TestProject
             Assert.That(locations.Single(location => location.Id == unusedLocationId).NumReferences, Is.EqualTo(0));
         }
 
+        // Confirms report recency overrides frequency while the management ranking stays unchanged.
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Get_UsesRequestedLocationOrdering(bool recentFirst)
+        {
+            var oldestId = SeedLocation("Oldest site");
+            var popularId = SeedLocation("Popular site");
+            var newestId = SeedLocation("Newest site");
+            var unusedId = SeedLocation("Unused site");
+            var date = new DateTime(2026, 10, 10);
+            SeedObsSession(oldestId, date.AddDays(-1000));
+            for (var i = 0; i < 10; i++)
+            {
+                SeedObsSession(popularId, date.AddDays(-1));
+            }
+            SeedObsSession(newestId, date);
+
+            var result = (OkObjectResult)_controller.Get(recentFirst);
+            var ids = ((IEnumerable<LocationDto>)result.Value).Select(location => location.Id).ToArray();
+
+            Assert.That(ids, Is.EqualTo(recentFirst
+                ? new[] { newestId, popularId, oldestId, unusedId }
+                : new[] { popularId, newestId, oldestId, unusedId }));
+        }
+
+        // Equal dates use frequency and then descending id; unused sites keep descending id too.
+        [Test]
+        public void Get_RecentFirstPreservesExistingTieBreakers()
+        {
+            var popularId = SeedLocation("Popular site");
+            var olderId = SeedLocation("Equal-date site A");
+            var newerId = SeedLocation("Equal-date site B");
+            var unusedOlderId = SeedLocation("Unused site A");
+            var unusedNewerId = SeedLocation("Unused site B");
+            var date = new DateTime(2026, 10, 10);
+            SeedObsSession(popularId, date);
+            SeedObsSession(popularId, date);
+            SeedObsSession(olderId, date);
+            SeedObsSession(newerId, date);
+
+            var result = (OkObjectResult)_controller.Get(recentFirst: true);
+            var ids = ((IEnumerable<LocationDto>)result.Value).Select(location => location.Id).ToArray();
+
+            Assert.That(ids, Is.EqualTo(new[] { popularId, newerId, olderId, unusedNewerId, unusedOlderId }));
+        }
+
+        // Another user's session cannot change the current user's location recency or frequency.
+        [Test]
+        public void Get_RecentFirstUsesOnlyCurrentUserSessions()
+        {
+            SeedUser(2);
+            var oldId = SeedLocation("Old site");
+            var recentId = SeedLocation("Recent site");
+            var date = new DateTime(2026, 10, 10);
+            SeedObsSession(oldId, date.AddDays(-1));
+            SeedObsSession(recentId, date);
+            SeedObsSession(oldId, date.AddDays(1), 2);
+
+            var result = (OkObjectResult)_controller.Get(recentFirst: true);
+            var locations = ((IEnumerable<LocationDto>)result.Value).ToArray();
+
+            Assert.That(locations.Select(location => location.Id), Is.EqualTo(new[] { recentId, oldId }));
+            Assert.That(locations.All(location => location.NumReferences == 1), Is.True);
+        }
+
         [Test]
         public void Delete_ReturnsBadRequestWhenLocationHasSessionReferences()
         {
@@ -119,15 +184,15 @@ namespace TestProject
         }
 
         // Seeds the authenticated user required by the location/session foreign keys.
-        private void SeedUser()
+        private void SeedUser(int userId = 1)
         {
             _dbContext.Users.Add(new AppUser
             {
-                Id = 1,
-                Email = "user@example.com",
-                NormalizedEmail = "USER@EXAMPLE.COM",
-                Username = "user",
-                NormalizedUsername = "USER",
+                Id = userId,
+                Email = $"user{userId}@example.com",
+                NormalizedEmail = $"USER{userId}@EXAMPLE.COM",
+                Username = $"user{userId}",
+                NormalizedUsername = $"USER{userId}",
                 FullName = "Test User",
                 PasswordHash = "hash",
                 CreatedUtc = DateTime.UtcNow
@@ -149,11 +214,11 @@ namespace TestProject
         }
 
         // Adds one session referencing the supplied location id.
-        private void SeedObsSession(int locationId, DateTime date)
+        private void SeedObsSession(int locationId, DateTime date, int userId = 1)
         {
             _dbContext.ObsSessions.Add(new ObsSession
             {
-                UserId = 1,
+                UserId = userId,
                 LocationId = locationId,
                 Date = date,
                 Title = "Session",
