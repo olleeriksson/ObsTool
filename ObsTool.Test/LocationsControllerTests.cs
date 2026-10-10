@@ -117,17 +117,18 @@ namespace TestProject
             Assert.That(ids, Is.EqualTo(new[] { popularId, newerId, olderId, unusedNewerId, unusedOlderId }));
         }
 
-        // Another user's session cannot change the current user's location recency or frequency.
+        // Excludes another user's location and newer session from the current user's results.
         [Test]
         public void Get_RecentFirstUsesOnlyCurrentUserSessions()
         {
             SeedUser(2);
             var oldId = SeedLocation("Old site");
             var recentId = SeedLocation("Recent site");
+            var otherUserLocationId = SeedLocation("Other user site", userId: 2);
             var date = new DateTime(2026, 10, 10);
             SeedObsSession(oldId, date.AddDays(-1));
             SeedObsSession(recentId, date);
-            SeedObsSession(oldId, date.AddDays(1), 2);
+            SeedObsSession(otherUserLocationId, date.AddDays(1), userId: 2);
 
             var result = (OkObjectResult)_controller.Get(recentFirst: true);
             var locations = ((IEnumerable<LocationDto>)result.Value).ToArray();
@@ -201,11 +202,11 @@ namespace TestProject
         }
 
         // Adds one user-owned location and returns its generated id.
-        private int SeedLocation(string name)
+        private int SeedLocation(string name, int userId = 1)
         {
             var location = new Location
             {
-                UserId = 1,
+                UserId = userId,
                 Name = name
             };
             _dbContext.Locations.Add(location);
