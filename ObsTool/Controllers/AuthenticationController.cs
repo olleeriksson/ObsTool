@@ -160,7 +160,9 @@ namespace ObsTool.Controllers
             AddClaimIfValue(claims, AuthClaimTypes.FullName, loginResult.FullName);
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            // Persist the authentication cookie across browser restarts until its configured expiration.
+            var authenticationProperties = new AuthenticationProperties { IsPersistent = true };
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authenticationProperties);
         }
 
         private async Task<AuthenticationStatusDto> GetAuthenticationStatusForCurrentRequestAsync()
