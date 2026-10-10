@@ -15,6 +15,10 @@ import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
 import CheckIcon from "@mui/icons-material/Check";
+import CloudOutlinedIcon from "@mui/icons-material/CloudOutlined";
+import CloudOffIcon from "@mui/icons-material/CloudOff";
+import AddIcon from "@mui/icons-material/Add";
+import IconButton from "@mui/material/IconButton";
 import { getObservedObjectTargetKey } from "./ObservationTarget";
 
 const hiddenObservationIdentifierRegexp = /#\d+(?:-(?:\d+|![A-Z0-9]+!))*/gi;
@@ -56,6 +60,28 @@ const styles = (theme: Theme) => createStyles({
     display: "flex",
     alignItems: "center",
     flexWrap: "wrap",
+    // Reserve the ratings row height so its Save button keeps the same alignment.
+    minHeight: 54,  // was 64
+  },
+  // Keep the optional conditions action small and visually secondary.
+  showConditionsButton: {
+    color: theme.palette.text.disabled,
+    "&:hover": {
+      color: theme.palette.text.secondary,
+    },
+  },
+  // Overlay a small plus without changing the cloud or button dimensions.
+  conditionsIcon: {
+    display: "inline-flex",
+    position: "relative",
+    height: 20,
+    width: 20,
+  },
+  conditionsAddIcon: {
+    position: "absolute",
+    fontSize: 12,
+    top: -3,
+    right: -5,
   },
   topActionColumn: {
     display: "flex",
@@ -297,6 +323,7 @@ export interface IObsSessionFormState {
   errorOnControl: { [key: string]: string | undefined };
   obsSession: IObsSession;
   recentlyCopiedKey?: string;
+  showConditions: boolean;
 }
 
 class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFormState> {
@@ -319,6 +346,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
         dsoObjects: [],
       },
       recentlyCopiedKey: undefined,
+      showConditions: false,
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -345,6 +373,11 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
   }
 
   private keyFeedbackTimeoutId?: number;
+
+  // Toggles the optional conditions inputs without changing their session values.
+  private toggleConditionsFields = () => {
+    this.setState(prevState => ({ showConditions: !prevState.showConditions }));
+  }
 
   private handleSubmit(e: any) {
     e.preventDefault();
@@ -686,7 +719,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 variant="outlined"
               />
             </Grid>
-            <Grid>
+            {this.state.showConditions && <Grid>
               <TextField
                 id="conditions"
                 label="Conditions"
@@ -699,45 +732,66 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                 size="small"
                 variant="outlined"
               />
-            </Grid>
+            </Grid>}
             <Grid className={classes.sessionBodyWrapper}>
               <Grid container direction="row" className={classes.sessionBodyRow}>
                 <Grid container direction="column" className={classes.formFieldsColumn}>
                   <Grid>
                     <Grid container direction="row" className={classes.ratingSaveRow}>
                       <Grid className={classes.ratingControls}>
-                        <SelectComponent
-                          classes={classes.ratingSelect}
-                          label="Seeing"
-                          name="seeing"
-                          value={"" + this.state.obsSession.seeing}
-                          onChange={this.handleChange("seeing")}
-                          options={seeingOptions}
-                          margin="normal"
-                          size="small"
-                        />
-                        <SelectComponent
-                          classes={classes.ratingSelect}
-                          label="Transparency"
-                          name="transparency"
-                          value={"" + this.state.obsSession.transparency}
-                          onChange={this.handleChange("transparency")}
-                          options={transparencyOptions}
-                          margin="normal"
-                          size="small"
-                        />
-                        <TextField
-                          id="lm"
-                          label="Lim. mag."
-                          maxRows={10}
-                          value={this.state.obsSession.limitingMagnitude || ""}
-                          onChange={this.handleChange("limitingMagnitude")}
-                          error={this.state.errorOnControl.limitingMagnitude !== undefined}
-                          className={classes.ratingLimitingMagnitude}
-                          margin="normal"
-                          size="small"
-                          variant="outlined"
-                        />
+                        {this.state.showConditions && <>
+                          <SelectComponent
+                            classes={classes.ratingSelect}
+                            label="Seeing"
+                            name="seeing"
+                            value={"" + this.state.obsSession.seeing}
+                            onChange={this.handleChange("seeing")}
+                            options={seeingOptions}
+                            margin="normal"
+                            size="small"
+                          />
+                          <SelectComponent
+                            classes={classes.ratingSelect}
+                            label="Transparency"
+                            name="transparency"
+                            value={"" + this.state.obsSession.transparency}
+                            onChange={this.handleChange("transparency")}
+                            options={transparencyOptions}
+                            margin="normal"
+                            size="small"
+                          />
+                          <TextField
+                            id="lm"
+                            label="Lim. mag."
+                            maxRows={10}
+                            value={this.state.obsSession.limitingMagnitude || ""}
+                            onChange={this.handleChange("limitingMagnitude")}
+                            error={this.state.errorOnControl.limitingMagnitude !== undefined}
+                            className={classes.ratingLimitingMagnitude}
+                            margin="normal"
+                            size="small"
+                            variant="outlined"
+                          />
+                        </>}
+                        <Tooltip title={this.state.showConditions ? "Hide conditions fields" : "Show conditions fields"}>
+                          <IconButton
+                            type="button"
+                            size="small"
+                            aria-label={this.state.showConditions ? "Hide conditions fields" : "Show conditions fields"}
+                            aria-expanded={this.state.showConditions}
+                            className={classes.showConditionsButton}
+                            onClick={this.toggleConditionsFields}
+                          >
+                            {this.state.showConditions
+                              ? <CloudOffIcon fontSize="small" />
+                              : (
+                                <span className={classes.conditionsIcon} aria-hidden="true">
+                                  <CloudOutlinedIcon fontSize="small" />
+                                  <AddIcon className={classes.conditionsAddIcon} />
+                                </span>
+                              )}
+                          </IconButton>
+                        </Tooltip>
                       </Grid>
                       <Grid size="grow" className={classes.topActionColumn}>
                         <div className={classes.saveAction}>
