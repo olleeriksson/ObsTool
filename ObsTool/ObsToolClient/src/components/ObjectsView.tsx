@@ -691,7 +691,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         return (
             <li key={key} {...restProps}>
                 <span className={this.props.classes.typeOptionContent}>
-                    <DsoTypeIcon type={option} className={this.props.classes.typeOptionIcon} />
+                    <DsoTypeIcon type={option} size={32} className={this.props.classes.typeOptionIcon} />
                     <span>{translateDsoType(option) || option}</span>
                 </span>
             </li>

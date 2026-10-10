@@ -10,6 +10,8 @@ export type DsoTypeIconVariant =
     "galaxyClusterNebula" |
     "galaxyDiffuseNebula" |
     "galaxyGlobularCluster" |
+    "galaxyOpenCluster" |
+    "galaxyStar" |
     "globularCluster" |
     "nonexistent" |
     "openCluster" |
@@ -42,7 +44,9 @@ const TYPE_ICON_VARIANTS = new Map<string, DsoTypeIconVariant>([
     ["GALXY", "galaxy"],
     ["GX+DN", "galaxyDiffuseNebula"],
     ["GX+GC", "galaxyGlobularCluster"],
-    ["G+C+N", "clusterNebula"],
+    ["G+C+N", "galaxyClusterNebula"],
+    ["GX+SA", "galaxyStar"],
+    ["GX+OC", "galaxyOpenCluster"],
     ["GLOCL", "globularCluster"],
     ["LMCCN", "clusterNebula"],
     ["LMCDN", "brightNebula"],

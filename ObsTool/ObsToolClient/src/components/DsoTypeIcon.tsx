@@ -210,9 +210,23 @@ export function DsoTypeIcon({ className, size = 22, type }: IDsoTypeIconProps) {
         case "galaxyClusterNebula":
             return (
                 <svg {...commonProps}>
-                    <ellipse cx="12" cy="12" rx="7.5" ry="3" transform="rotate(25 12 12)" fill={colors.galaxyFill} stroke={colors.galaxyStroke} strokeWidth="1.35" opacity="0.95" />
+                    <ellipse cx="12" cy="12" rx="8" ry="3" transform="rotate(25 12 12)" fill={colors.galaxyFill} stroke={colors.galaxyStroke} strokeWidth="1.35" opacity="0.95" />
                     <circle cx="16.2" cy="9.5" r="2.6" fill={colors.openClusterFill} stroke={colors.openClusterStroke} strokeWidth="1" strokeDasharray="1.3 1.6" />
                     <rect x="14.8" y="8.1" width="2.8" height="2.8" rx="0.4" fill={colors.brightNebulaFill} stroke={colors.brightNebulaStroke} strokeWidth="0.8" />
+                </svg>
+            );
+        case "galaxyStar":
+            return (
+                <svg {...commonProps}>
+                    <ellipse cx="12" cy="12" rx="8" ry="3" transform="rotate(25 12 12)" fill={colors.galaxyFill} stroke={colors.galaxyStroke} strokeWidth="1.35" opacity="0.95" />
+                    <path d={STAR_PATH} transform="translate(16.2 9.8) scale(0.55)" fill={colors.starFill} stroke={colors.starStroke} strokeWidth="1.2" />
+                </svg>
+            );
+        case "galaxyOpenCluster":
+            return (
+                <svg {...commonProps}>
+                    <ellipse cx="12" cy="12" rx="8" ry="3" transform="rotate(25 12 12)" fill={colors.galaxyFill} stroke={colors.galaxyStroke} strokeWidth="1.35" opacity="0.95" />
+                    <circle cx="16.2" cy="9.8" r="2.9" fill={colors.openClusterFill} stroke={colors.openClusterStroke} strokeWidth="1.15" strokeDasharray="1.3 1.6" />
                 </svg>
             );
         case "globularCluster":
