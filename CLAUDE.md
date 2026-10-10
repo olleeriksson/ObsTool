@@ -241,7 +241,7 @@ Composite PK is `(ObservationId, DsoId, CustomObjectName)` - configured in `Main
 
 - **`DsoExtra`** - user-added metadata layered onto the read-only `Dso` (one-to-one). Holds a `Rating` (parsed from `+1`/`+2`/`-1`/`*`/`**` markers in the report) and a `FollowUp` flag (parsed from words like "revisit", "come back", "telescope"). Also references the `ObsSession` it was last updated from; `ReportTextManager` only overwrites it if the current session is newer.
 - **`ObsResource`** - photo / sketch / link / jot attached to an `Observation`. Carries display metadata: `Rotation`, `ZoomLevel`, `Inverted`, `BackgroundColor`. Resources of type `Sketch` and `Jot` are assumed to be Google Drive URLs and have the file ID extracted at parse time.
-- **`Location`** - where a session happened. Name, latitude/longitude, optional Google Maps address.
+- **`Location`** - where a session happened. Name only. Existing database coordinate/address columns are unused and are not removed by this change.
 - **`Instrument / Eyepiece`** - user-maintained equipment entities exposed through dedicated CRUD controllers/repos.
 - **`Article / Constellation`** - additional domain content relations (`ArticleConstellations`, `ArticleDsoObjects`) configured with composite keys in `MainDbContext`.
 

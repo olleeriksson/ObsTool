@@ -361,9 +361,6 @@ export interface IConstellationMapObject {
 export interface ILocation {
     id?: number;
     name: string;
-    longitude?: string;
-    latitude?: string;
-    googleMapsAddress: string;
     numReferences?: number;
 }
 

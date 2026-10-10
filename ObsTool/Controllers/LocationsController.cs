@@ -123,8 +123,8 @@ namespace ObsTool.Controllers
                 return BadRequest();
             }
 
-            if (string.IsNullOrEmpty(locationDto.Name) && string.IsNullOrEmpty(locationDto.Longitude)
-                && string.IsNullOrEmpty(locationDto.Latitude) && string.IsNullOrEmpty(locationDto.GoogleMapsAddress))
+            // A location update now contains only its name.
+            if (string.IsNullOrEmpty(locationDto.Name))
             {
                 return StatusCode(500, "Must provide some data");
             }

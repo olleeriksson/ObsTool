@@ -356,8 +356,7 @@ namespace TestProject
                 Location = new Location
                 {
                     Id = 6,
-                    Name = "Some location",
-                    GoogleMapsAddress = "Some address"
+                    Name = "Some location"
                 },
                 LocationId = 10,
                 Title = "A great title",

@@ -18,13 +18,5 @@ namespace ObsTool.Entities
         [Required]
         [MaxLength(250)]
         public string Name { get; set; }
-
-        [MaxLength(250)]
-        public string Longitude { get; set; }
-
-        [MaxLength(250)]
-        public string Latitude { get; set; }
-
-        public string GoogleMapsAddress { get; set; }
     }
 }

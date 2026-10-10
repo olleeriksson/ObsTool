@@ -89,9 +89,6 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         return {
             id: undefined,
             name: "",
-            longitude: "",
-            latitude: "",
-            googleMapsAddress: "",
             numReferences: 0
         };
     }
@@ -255,43 +252,6 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                                 size="small"
                             />
                         </Grid>
-                        <Grid container spacing={2} sx={{ px: 1 }}>
-                            <Grid size={{ xs: 12, md: 3 }}>
-                                <TextField
-                                    id="longitude"
-                                    label="Longitude"
-                                    type="string"
-                                    value={this.state.currentLocation.longitude}
-                                    onChange={this.handleFormChange("longitude")}
-                                    className={classes.rowField}
-                                    margin="dense"
-                                    size="small"
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 3 }}>
-                                <TextField
-                                    id="latitude"
-                                    label="Latitude"
-                                    type="string"
-                                    value={this.state.currentLocation.latitude}
-                                    onChange={this.handleFormChange("latitude")}
-                                    className={classes.rowField}
-                                    margin="dense"
-                                    size="small"
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 6 }}>
-                                <TextField
-                                    id="googelMapsAddress"
-                                    label="Google Maps address"
-                                    value={this.state.currentLocation.googleMapsAddress || ""}
-                                    onChange={this.handleFormChange("googleMapsAddress")}
-                                    className={classes.rowField}
-                                    margin="dense"
-                                    size="small"
-                                />
-                            </Grid>
-                        </Grid>
                         <Grid className={classes.actionRow}>
                             <Grid container direction="row">
                                 <Grid>
@@ -337,8 +297,6 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
                     </a>
                 </Typography>
                 <Typography variant="caption" gutterBottom={true}>
-                    Longitude: <strong>{location.longitude || "N/A"}</strong>,
-                    Latitude: <strong>{location.latitude || "N/A"}</strong>,
                     Obs sessions: <strong>{location.numReferences || 0}</strong>
                 </Typography>
             </Grid>

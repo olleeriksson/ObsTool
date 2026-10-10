@@ -14,13 +14,13 @@ DELETE FROM Instruments WHERE UserId = 2;
 DELETE FROM Locations WHERE UserId = 2;
 
 CREATE TEMP TABLE __seed_locations (Seq INTEGER PRIMARY KEY, Id INTEGER NOT NULL);
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (2, 'Frostmyr Ridge, Halsingland, Sweden', '62.0917', '15.0432', 'Frostmyr Ridge');
+INSERT INTO Locations (UserId, Name) VALUES (2, 'Frostmyr Ridge');
 INSERT INTO __seed_locations (Seq, Id) VALUES (1, last_insert_rowid());
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (2, 'Granebo dark field, Dalarna, Sweden', '60.3110', '14.9084', 'Granebo Dark Field');
+INSERT INTO Locations (UserId, Name) VALUES (2, 'Granebo Dark Field');
 INSERT INTO __seed_locations (Seq, Id) VALUES (2, last_insert_rowid());
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (2, 'Larkullen quarry road, Vastergotland, Sweden', '58.8276', '13.7251', 'Larkullen Quarry Road');
+INSERT INTO Locations (UserId, Name) VALUES (2, 'Larkullen Quarry Road');
 INSERT INTO __seed_locations (Seq, Id) VALUES (3, last_insert_rowid());
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (2, 'Skarviken shore meadow, Smaland, Sweden', '57.2418', '16.4689', 'Skarviken Shore Meadow');
+INSERT INTO Locations (UserId, Name) VALUES (2, 'Skarviken Shore Meadow');
 INSERT INTO __seed_locations (Seq, Id) VALUES (4, last_insert_rowid());
 
 CREATE TEMP TABLE __seed_instruments (Seq INTEGER PRIMARY KEY, Id INTEGER NOT NULL, Key TEXT NOT NULL);
@@ -464,13 +464,13 @@ ON CONFLICT(Id) DO UPDATE SET
     UpdatedUtc = '2026-05-27 00:00:00';
 
 CREATE TEMP TABLE __seed2_locations (Seq INTEGER PRIMARY KEY, Id INTEGER NOT NULL);
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Ravlunda backar, Skane, Sweden', '55.7104', '14.1936', 'Ravlunda Backar');
+INSERT INTO Locations (UserId, Name) VALUES (3, 'Ravlunda Backar');
 INSERT INTO __seed2_locations (Seq, Id) VALUES (1, last_insert_rowid());
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Kullaberg north meadow, Skane, Sweden', '56.3001', '12.4529', 'Kullaberg North Meadow');
+INSERT INTO Locations (UserId, Name) VALUES (3, 'Kullaberg North Meadow');
 INSERT INTO __seed2_locations (Seq, Id) VALUES (2, last_insert_rowid());
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Tiveden forest clearing, Narke, Sweden', '58.7198', '14.5910', 'Tiveden Forest Clearing');
+INSERT INTO Locations (UserId, Name) VALUES (3, 'Tiveden Forest Clearing');
 INSERT INTO __seed2_locations (Seq, Id) VALUES (3, last_insert_rowid());
-INSERT INTO Locations (UserId, GoogleMapsAddress, Latitude, Longitude, Name) VALUES (3, 'Hokangen lake road, Smaland, Sweden', '57.1674', '14.4720', 'Hokangen Lake Road');
+INSERT INTO Locations (UserId, Name) VALUES (3, 'Hokangen Lake Road');
 INSERT INTO __seed2_locations (Seq, Id) VALUES (4, last_insert_rowid());
 
 CREATE TEMP TABLE __seed2_instruments (Seq INTEGER PRIMARY KEY, Id INTEGER NOT NULL, Key TEXT NOT NULL);
