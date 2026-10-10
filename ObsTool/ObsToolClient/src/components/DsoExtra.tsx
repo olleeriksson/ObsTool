@@ -11,7 +11,7 @@ import * as objectTypes from "../utils/objectTypes";
 import GoogleImagesLink from "./GoogleImagesLink";
 import AladinLiteLink from "./AladinLiteLink";
 import ConstellationMap from "./ConstellationMap";
-import { IConstellationMapObject } from "../types/Types";
+import { toDsoMapObject } from "./DsoMapUtils";
 
 export interface IDsoExtraProps extends WithStyles<typeof styles> {
   id?: number;
@@ -50,25 +50,6 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
 
   private closeMapDialog = () => this.setState({ isMapDialogOpen: false });
 
-  private toMapObject() {
-    const dso = this.props.dso;
-    if (!dso || !dso.ra || !dso.dec || !dso.con) {
-      return null;
-    }
-
-    const mapObject: IConstellationMapObject = {
-      dsoId: dso.objectKind === undefined || dso.objectKind === "Sac" ? dso.id : undefined,
-      id: dso.objectKey || dso.id,
-      name: dso.name,
-      catalog: dso.catalog,
-      catalogNumber: dso.catalogNumber,
-      constellation: dso.con,
-      ra: dso.ra,
-      dec: dso.dec,
-    };
-    return mapObject;
-  }
-
   public render() {
     const { classes } = this.props;
 
@@ -85,7 +66,7 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
         const dsoTypeAbbreviation = objectTypes.getDsoTypeAbbreviation(this.props.dso.type || "") || this.props.dso.type;
         const searchTerms = [this.props.dso.name || "", translatedDsoType || ""];
 
-        const selectedObject = this.toMapObject();
+        const selectedObject = toDsoMapObject(this.props.dso);
         const canShowMap = selectedObject != null;
         const detailItems = [
           { label: "Type", value: dsoTypeAbbreviation },

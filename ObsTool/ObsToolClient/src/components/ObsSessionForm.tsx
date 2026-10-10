@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import TextareaAutosize from "@mui/material/TextField";
 import DsoShort from "./DsoShort";
+import DsoMapHover from "./DsoMapHover";
 import { IObsSession, ILocation, IInstrument, IObservation, IDsoObservation, IEyepiece } from "../types/Types";
 import classNames from "classnames";
 import Grid from "@mui/material/Grid2";
@@ -600,12 +601,13 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
               .map((dsoObs, dsoObsIndex) => {
                 const targetKey = getObservedObjectTargetKey(o, index, dsoObs, dsoObsIndex);
                 return (
-                  <DsoShort
-                    key={targetKey}
-                    dso={dsoObs.dso}
-                    nonDetection={dsoObs.nonDetection || o.nonDetection}
-                    onNameClick={() => this.props.onSelectObservedObject(targetKey)}
-                  />
+                  <DsoMapHover key={targetKey} dso={dsoObs.dso}>
+                    <DsoShort
+                      dso={dsoObs.dso}
+                      nonDetection={dsoObs.nonDetection || o.nonDetection}
+                      onNameClick={() => this.props.onSelectObservedObject(targetKey)}
+                    />
+                  </DsoMapHover>
                 );
               });
             const unmatchedShortLabels = unmatchedLabels.map((label, unmatchedIndex) =>
