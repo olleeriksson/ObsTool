@@ -578,3 +578,68 @@ it("hides the Clear button until the form contains a name", async () => {
 
     expect(screen.getByRole("button", { name: "Clear" })).toBeInTheDocument();
 });
+
+// Creates enough distinct objects to exercise paging in both tables.
+const pagedObjectList = (): IObjectList => ({
+    userObjects: Array.from({ length: 21 }, (_, index) => ({
+        id: index + 1, name: `User ${String(index + 1).padStart(2, "0")}`, objectKind: "User", canDelete: true,
+    })),
+    otherObjects: Array.from({ length: 21 }, (_, index) => ({
+        id: index + 1, name: `Other ${String(index + 1).padStart(2, "0")}`, objectKind: "Other",
+    })),
+});
+
+it("pages both tables independently with ten rows by default and adjustable page sizes", async () => {
+    renderObjectsView(pagedObjectList());
+    await screen.findByText("User 01");
+    const tables = screen.getAllByRole("table");
+    expect(getObjectTableRowNames(tables[0])).toHaveLength(10);
+    expect(getObjectTableRowNames(tables[1])).toHaveLength(10);
+    fireEvent.click(screen.getAllByRole("button", { name: "Go to next page" })[0]);
+    expect(getObjectTableRowNames(tables[0])[0]).toBe("User 11");
+    expect(getObjectTableRowNames(tables[1])[0]).toBe("Other 01");
+    fireEvent.mouseDown(screen.getAllByRole("combobox", { name: "Rows per page:" })[0]);
+    fireEvent.click(await screen.findByRole("option", { name: "25" }));
+    expect(getObjectTableRowNames(tables[0])).toHaveLength(21);
+    expect(getObjectTableRowNames(tables[0])[0]).toBe("User 01");
+    expect(getObjectTableRowNames(tables[1])).toHaveLength(10);
+    fireEvent.mouseDown(screen.getAllByRole("combobox", { name: "Rows per page:" })[1]);
+    fireEvent.click(await screen.findByRole("option", { name: "All" }));
+    expect(getObjectTableRowNames(tables[1])).toHaveLength(21);
+    expect(screen.getAllByRole("button", { name: "Go to next page" })[1]).toBeDisabled();
+    expect(Api.getObjects).toHaveBeenCalledTimes(1);
+});
+
+it("resets paging for search and sorting and searches across the full list", async () => {
+    renderObjectsView(pagedObjectList());
+    await screen.findByText("User 01");
+    const userTable = screen.getAllByRole("table")[0];
+    fireEvent.click(screen.getAllByRole("button", { name: "Go to next page" })[0]);
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search user defined objects" }), { target: { value: "User 21" } });
+    expect(getObjectTableRowNames(userTable)).toEqual(["User 21"]);
+    expect(screen.getByText("1–1 of 1")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search user defined objects" }), { target: { value: "missing" } });
+    expect(within(userTable).getByText("No matching objects")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search user defined objects" }), { target: { value: "" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Go to next page" })[0]);
+    fireEvent.click(within(userTable).getByRole("button", { name: "Name" }));
+    fireEvent.click(within(userTable).getByRole("button", { name: "Name" }));
+    expect(getObjectTableRowNames(userTable)[0]).toBe("User 21");
+    expect(screen.getAllByRole("button", { name: "Go to previous page" })[0]).toBeDisabled();
+});
+
+it("returns to the previous page when deletion removes the last page", async () => {
+    const objectList = pagedObjectList();
+    vi.spyOn(Api, "deleteUserObject").mockResolvedValue({} as any);
+    renderObjectsView(objectList);
+    await screen.findByText("User 01");
+    fireEvent.click(screen.getAllByRole("button", { name: "Go to next page" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Go to next page" })[0]);
+    vi.mocked(Api.getObjects).mockResolvedValue({ data: { ...objectList, userObjects: objectList.userObjects.slice(0, 20) } } as any);
+    fireEvent.click(screen.getByRole("button", { name: "Delete User 21" }));
+    confirmDeleteDialog();
+    await waitFor(() => {
+        expect(getObjectTableRowNames(screen.getAllByRole("table")[0])).toHaveLength(10);
+        expect(screen.getByText("11–20 of 20")).toBeInTheDocument();
+    });
+});

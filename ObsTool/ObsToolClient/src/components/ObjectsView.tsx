@@ -16,6 +16,7 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TextField from "@mui/material/TextField";
@@ -54,6 +55,11 @@ type ObjectTableSortDirection = "asc" | "desc";
 interface IObjectTableSortState {
     column?: ObjectTableSortColumn;
     direction: ObjectTableSortDirection;
+}
+
+interface IObjectTablePaginationState {
+    page: number;
+    rowsPerPage: number;
 }
 
 const styles = (theme: Theme) => createStyles({
@@ -242,6 +248,7 @@ interface IObjectsViewState {
     otherObjectSearchText: string;
     userObjectSort: IObjectTableSortState;
     otherObjectSort: IObjectTableSortState;
+    objectTablePagination: Record<ObjectTableKey, IObjectTablePaginationState>;
     isTypeIconPreviewExpanded: boolean;
     currentObject: IObservedObject;
     similarSacObjects: IDso[];
@@ -266,6 +273,10 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             otherObjectSearchText: "",
             userObjectSort: { column: "modified", direction: "desc" },
             otherObjectSort: { column: "modified", direction: "desc" },
+            objectTablePagination: {
+                user: { page: 0, rowsPerPage: 10 },
+                other: { page: 0, rowsPerPage: 10 },
+            },
             isTypeIconPreviewExpanded: this.readTypeIconPreviewExpandedPreference(),
             currentObject: this.getEmptyObject(),
             similarSacObjects: [],
@@ -321,7 +332,13 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
     private handleObjectSearchChange = (tableKey: ObjectTableKey) => (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         const stateKey = tableKey === "user" ? "userObjectSearchText" : "otherObjectSearchText";
-        this.setState({ [stateKey]: value } as Pick<IObjectsViewState, "userObjectSearchText" | "otherObjectSearchText">);
+        this.setState(prevState => ({
+            [stateKey]: value,
+            objectTablePagination: {
+                ...prevState.objectTablePagination,
+                [tableKey]: { ...prevState.objectTablePagination[tableKey], page: 0 },
+            },
+        } as Pick<IObjectsViewState, "userObjectSearchText" | "otherObjectSearchText" | "objectTablePagination">));
     }
 
     // Changes a table sort column, toggling direction when the current sorted column is clicked again.
@@ -336,7 +353,11 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                     column,
                     direction,
                 },
-            } as Pick<IObjectsViewState, "userObjectSort" | "otherObjectSort">;
+                objectTablePagination: {
+                    ...prevState.objectTablePagination,
+                    [tableKey]: { ...prevState.objectTablePagination[tableKey], page: 0 },
+                },
+            } as Pick<IObjectsViewState, "userObjectSort" | "otherObjectSort" | "objectTablePagination">;
         });
     }
 
@@ -1152,14 +1173,41 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         );
     }
 
-    // Renders one object table with search, sortable columns, and per-row edit/delete controls from API flags.
+    // Updates one table's page independently of the other table.
+    private handleObjectPageChange = (tableKey: ObjectTableKey) => (_event: unknown, page: number) => {
+        this.setState(prevState => ({
+            objectTablePagination: {
+                ...prevState.objectTablePagination,
+                [tableKey]: { ...prevState.objectTablePagination[tableKey], page },
+            },
+        }));
+    };
+
+    // Changes one table's page size and returns to its first page, including the Show all option.
+    private handleObjectRowsPerPageChange = (tableKey: ObjectTableKey) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const rowsPerPage = Number(event.target.value);
+        this.setState(prevState => ({
+            objectTablePagination: {
+                ...prevState.objectTablePagination,
+                [tableKey]: { page: 0, rowsPerPage },
+            },
+        }));
+    };
+
+    // Renders one object table with frontend paging, search, sorting, and per-row edit/delete controls.
     private renderObjectTable = (title: string, objects: IObservedObject[], tableKey: ObjectTableKey) => {
         const searchText = this.getObjectTableSearchText(tableKey);
         const sortState = this.getObjectTableSortState(tableKey);
         const visibleObjects = this.getVisibleObjects(objects, searchText, sortState);
         const hasActions = objects.some(object => object.canEdit || object.objectKind === "User");
         const columnCount = hasActions ? 9 : 8;
-        const rows = visibleObjects.map(object => {
+        const { page: requestedPage, rowsPerPage } = this.state.objectTablePagination[tableKey];
+        // Clamp the page after a reload or deletion so a shortened list never shows an empty last page.
+        const page = rowsPerPage === -1 ? 0 : Math.min(requestedPage, Math.max(0, Math.ceil(visibleObjects.length / rowsPerPage) - 1));
+        const pageObjects = rowsPerPage === -1
+            ? visibleObjects
+            : visibleObjects.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+        const rows = pageObjects.map(object => {
             const canEditObject = !!object.canEdit;
             const showDeleteObject = object.objectKind === "User" || (object.objectKind === "Other" && canEditObject);
             const deleteDisabled = !object.canDelete;
@@ -1240,6 +1288,15 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                                 )}
                             </TableBody>
                         </Table>
+                        <TablePagination
+                            component="div"
+                            count={visibleObjects.length}
+                            page={page}
+                            rowsPerPage={rowsPerPage}
+                            rowsPerPageOptions={[10, 25, 50, 100, { label: "All", value: -1 }]}
+                            onPageChange={this.handleObjectPageChange(tableKey)}
+                            onRowsPerPageChange={this.handleObjectRowsPerPageChange(tableKey)}
+                        />
                     </div>
                 )}
             </Paper>
