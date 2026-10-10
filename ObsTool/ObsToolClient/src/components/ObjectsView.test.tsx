@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { vi } from "vitest";
 import Api from "../api/Api";
+import { dsoTypeMap } from "../utils/objectTypes";
 import { IDataState, IDso, IObjectList } from "../types/Types";
 import { StyledObjectsView } from "./ObjectsView";
 import { MemoryRouter } from "react-router-dom";
@@ -195,11 +196,31 @@ it("offers previously saved custom object types in the Type dropdown", async () 
     expect(within(listbox).getByText("Satellite")).toBeInTheDocument();
 });
 
-it("orders Type dropdown options by user, hardcoded, then other object sources", async () => {
+// Verifies catalog visibility also applies to saved custom types while the new galaxy types remain selectable.
+it("hides Magellanic Cloud types from all dropdown sources and offers the new galaxy types", async () => {
+    renderObjectsView({
+        userObjects: [{ id: 4, name: "LMC object", type: "In LMC: Open cluster", objectKind: "User" }],
+        otherObjects: [{ id: 5, name: "SMC object", type: "SMCGC", objectKind: "Other" }],
+    });
+
+    const typeField = await screen.findByRole("combobox", { name: "Type" });
+    fireEvent.mouseDown(typeField);
+
+    const listbox = await screen.findByRole("listbox");
+    expect(within(listbox).queryByText(/^In (LMC|SMC):/)).not.toBeInTheDocument();
+    expect(within(listbox).getByText("In Galaxy: Stellation Association")).toBeInTheDocument();
+    expect(within(listbox).getByText("In Galaxy: Open cluster")).toBeInTheDocument();
+    fireEvent.click(within(listbox).getByText("In Galaxy: Open cluster"));
+    expect(typeField).toHaveValue("In Galaxy: Open cluster");
+});
+
+// Checks every visible catalog type retains map order even when also used by a saved custom object.
+it("orders Type dropdown options by map order, then user and other object sources", async () => {
     renderObjectsView({
         userObjects: [
             { id: 4, name: "Older User Type", type: "Older user type", objectKind: "User", modifiedDate: null },
             { id: 5, name: "Latest User Type", type: "Latest user type", objectKind: "User", modifiedDate: "2026-05-30T20:00:00Z" },
+            { id: 7, name: "Custom galaxy", type: "GALXY", objectKind: "User", modifiedDate: "2026-06-01T20:00:00Z" },
         ],
         otherObjects: [
             { id: 6, name: "Latest Other Type", type: "Latest other type", objectKind: "Other", modifiedDate: "2026-05-31T20:00:00Z" },
@@ -215,7 +236,13 @@ it("orders Type dropdown options by user, hardcoded, then other object sources",
     const hardcodedType = within(listbox).getByText("Galaxy");
     const latestOtherType = within(listbox).getByText("Latest other type");
     expect(latestUserType.compareDocumentPosition(olderUserType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(olderUserType.compareDocumentPosition(hardcodedType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const catalogLabels = Array.from(dsoTypeMap.values())
+        .filter(type => type.showInDropdown !== false)
+        .map(type => type.longName);
+    expect(within(listbox).getAllByRole("option").slice(0, catalogLabels.length).map(option => option.lastElementChild?.lastElementChild?.textContent))
+        .toEqual(catalogLabels);
+    expect(hardcodedType.compareDocumentPosition(latestUserType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(olderUserType.compareDocumentPosition(latestOtherType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(hardcodedType.compareDocumentPosition(latestOtherType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
@@ -328,7 +355,7 @@ it("renders the type icon preview inline after the add label with one large icon
     expect(screen.queryByRole("button", { name: "Preview type icons" })).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog", { name: "Object type icons" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Hide object type icons" })).toBeInTheDocument();
-    expect(previewRows).toHaveLength(38);
+    expect(previewRows).toHaveLength(40);
     expect(document.querySelector('[data-dso-type-preview-row="generic-current"] [data-dso-type-icon="generic"]')).toBeInTheDocument();
     expect(document.querySelector('[data-dso-type-preview-row^="undefined-"]')).not.toBeInTheDocument();
     expect(galaxyIcons).toHaveLength(1);

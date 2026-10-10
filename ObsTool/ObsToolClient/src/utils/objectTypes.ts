@@ -1,6 +1,8 @@
 export interface IDsoTypeDefinition {
     abbreviation: string;
     longName: string;
+    // Controls Type dropdown suggestions; omitted values default to visible.
+    showInDropdown?: boolean;
 }
 
 export const dsoTypeMap = new Map<string, IDsoTypeDefinition>([
@@ -11,21 +13,23 @@ export const dsoTypeMap = new Map<string, IDsoTypeDefinition>([
     ["GALCL", { abbreviation: "GALCL", longName: "Galaxy cluster" }],
     ["GALXY", { abbreviation: "Gx", longName: "Galaxy" }],
     ["GLOCL", { abbreviation: "GC", longName: "Globular Cluster" }],
-    ["GX+DN", { abbreviation: "GX+DN", longName: "Diffuse Nebula in a Galaxy" }],
-    ["GX+GC", { abbreviation: "GX+GC", longName: "Globular Cluster in a Galaxy" }],
-    ["G+C+N", { abbreviation: "G+C+N", longName: "Cluster with Nebulosity in a Galaxy" }],
-    ["LMCCN", { abbreviation: "LMCCN", longName: "Cluster with Nebulosity in the LMC" }],
-    ["LMCDN", { abbreviation: "LMCDN", longName: "Diffuse Nebula in the LMC" }],
-    ["LMCGC", { abbreviation: "LMCGC", longName: "Globular Cluster in the LMC" }],
-    ["LMCOC", { abbreviation: "LMCOC", longName: "Open cluster in the LMC" }],
+    ["GX+DN", { abbreviation: "GX+DN", longName: "In Galaxy: Nebula" }],
+    ["GX+GC", { abbreviation: "GX+GC", longName: "In Galaxy: Globular Cluster" }],
+    ["G+C+N", { abbreviation: "G+C+N", longName: "In Galaxy: Cluster with Nebulosity" }],
+    ["GX+SA", { abbreviation: "GX+SA", longName: "In Galaxy: Stellation Association" }],
+    ["GX+OC", { abbreviation: "GX+OC", longName: "In Galaxy: Open cluster" }],
+    ["LMCCN", { abbreviation: "LMCCN", longName: "In LMC: Cluster with Nebulosity", showInDropdown: false }],
+    ["LMCDN", { abbreviation: "LMCDN", longName: "In LMC: Nebula", showInDropdown: false }],
+    ["LMCGC", { abbreviation: "LMCGC", longName: "In LMC: Globular Cluster", showInDropdown: false }],
+    ["LMCOC", { abbreviation: "LMCOC", longName: "In LMC: Open cluster", showInDropdown: false }],
+    ["SMCCN", { abbreviation: "SMCCN", longName: "In SMC: Cluster with Nebulosity", showInDropdown: false }],
+    ["SMCDN", { abbreviation: "SMCDN", longName: "In SMC: Nebula", showInDropdown: false }],
+    ["SMCGC", { abbreviation: "SMCGC", longName: "In SMC: Globular Cluster", showInDropdown: false }],
+    ["SMCOC", { abbreviation: "SMCOC", longName: "In SMC: Open cluster", showInDropdown: false }],
     ["NONEX", { abbreviation: "NONEX", longName: "Nonexistent" }],
     ["OPNCL", { abbreviation: "OC", longName: "Open Cluster" }],
     ["PLNNB", { abbreviation: "PN", longName: "Planetary Nebula" }],
     ["PLANET", { abbreviation: "Pla", longName: "Planet" }],
-    ["SMCCN", { abbreviation: "SMCCN", longName: "Cluster with Nebulosity in the SMC" }],
-    ["SMCDN", { abbreviation: "SMCDN", longName: "Diffuse Nebula in the SMC" }],
-    ["SMCGC", { abbreviation: "SMCGC", longName: "Globular Cluster in the SMC" }],
-    ["SMCOC", { abbreviation: "SMCOC", longName: "Open cluster in the SMC" }],
     ["SNREM", { abbreviation: "SNREM", longName: "Supernova Remnant" }],
     ["QUASR", { abbreviation: "QUASR", longName: "Quasar" }],
     ["MOON", { abbreviation: "Moon", longName: "Moon" }],
@@ -58,17 +62,17 @@ export function translateDsoType(type: string) {
     return getDsoTypeDefinition(type)?.longName;
 }
 
-// Returns the known SAC type codes in long-name order for editable object forms.
-export function getDsoTypeOptions() {
+// Returns dropdown-visible SAC types in map insertion order; includeHidden also exposes catalog-only types.
+export function getDsoTypeOptions(includeHidden = false) {
     return Array.from(dsoTypeMap.entries())
-        .map(([code, type]) => ({ code, ...type }))
-        .sort((left, right) => left.longName.localeCompare(right.longName));
+        .filter(([, type]) => includeHidden || type.showInDropdown !== false)
+        .map(([code, type]) => ({ code, ...type }));
 }
 
 // Resolves a SAC code, app abbreviation, or long name to the stored SAC code.
 export function resolveDsoTypeCode(value: string) {
     const normalizedValue = (value || "").trim().toLowerCase();
-    const matchedOption = getDsoTypeOptions().find(option =>
+    const matchedOption = getDsoTypeOptions(true).find(option =>
         option.code.toLowerCase() === normalizedValue ||
         option.abbreviation.toLowerCase() === normalizedValue ||
         option.longName.toLowerCase() === normalizedValue);

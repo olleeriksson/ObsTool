@@ -33,7 +33,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import Api from "../api/Api";
 import { IAppState, IConstellationOption, IDataState, IDso, IObservedObject, IUserObjectForSave } from "../types/Types";
 import { connect } from "react-redux";
-import { getDsoTypeAbbreviation, getDsoTypeOptions, resolveDsoTypeCode, translateDsoType } from "../utils/objectTypes";
+import { getDsoTypeDefinition, getDsoTypeAbbreviation, getDsoTypeOptions, resolveDsoTypeCode, translateDsoType } from "../utils/objectTypes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
 import { DsoTypeIcon } from "./DsoTypeIcon";
@@ -609,11 +609,11 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         return translateDsoType(sacTypeCode) ? sacTypeCode : trimmedValue;
     }
 
-    // Adds a Type option once, treating custom type labels as case-insensitive choices.
+    // Adds visible Type options once, treating custom type labels as case-insensitive choices.
     private addTypeOption = (options: string[], existingOptions: Set<string>, value: string) => {
         const resolvedType = this.resolveStoredObjectType(value);
         const normalizedType = resolvedType.toLowerCase();
-        if (resolvedType && !existingOptions.has(normalizedType)) {
+        if (resolvedType && getDsoTypeDefinition(resolvedType)?.showInDropdown !== false && !existingOptions.has(normalizedType)) {
             options.push(resolvedType);
             existingOptions.add(normalizedType);
         }
@@ -664,14 +664,14 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
     }
 
-    // Builds Type dropdown options in source order: user object types, SAC types, shared object types.
+    // Lists SAC types in map order first, followed by additional user and shared object types.
     private getTypeOptions = () => {
         const options: string[] = [];
         const existingOptions = new Set<string>();
 
+        SAC_OBJECT_TYPE_OPTIONS.forEach(type => this.addTypeOption(options, existingOptions, type));
         this.getObjectTypeOptionsByModifiedDate(this.state.userObjects)
             .forEach(type => this.addTypeOption(options, existingOptions, type));
-        SAC_OBJECT_TYPE_OPTIONS.forEach(type => this.addTypeOption(options, existingOptions, type));
         this.getObjectTypeOptionsByModifiedDate(this.state.otherObjects)
             .forEach(type => this.addTypeOption(options, existingOptions, type));
         this.addTypeOption(options, existingOptions, this.state.currentObject.type || "");
@@ -759,7 +759,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             <Typography variant="subtitle2" className={this.props.classes.typePreviewSectionTitle}>
                 SAC object types
             </Typography>
-            {getDsoTypeOptions().map(option => (
+            {getDsoTypeOptions(true).map(option => (
                 <div
                     key={option.code}
                     className={this.props.classes.typePreviewRow}
