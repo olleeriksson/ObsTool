@@ -141,6 +141,29 @@ namespace TestProject
         }
 
         /// <summary>
+        /// Preserves compact dotted catalog numbers while stopping at sentence punctuation before another number.
+        /// </summary>
+        [TestCase("PK 241+2.1. 2300 was brighter.", 2)]
+        [TestCase("PK 241-7.1. 2276 was fainter.", 9)]
+        [TestCase("PK 241- 7.1 was faint.", 9)]
+        public void ReportTextParser_MatchesDottedCatalogNumbers(string reportText, int expectedId)
+        {
+            var reportTextManager = new ReportTextManager(null, null, _repo, null, null);
+            var obsSession = new ObsSession
+            {
+                Id = 99,
+                Date = DateTime.Now,
+                ReportText = reportText
+            };
+
+            var observation = reportTextManager.Parse(obsSession).Single().Value;
+
+            Assert.That(observation.DsoObservations.Select(dsoObs => dsoObs.DsoId),
+                Is.EqualTo(new[] { expectedId }));
+            Assert.That(observation.Identifier, Is.EqualTo($"99-{expectedId}"));
+        }
+
+        /// <summary>
         /// Seeds compact catalog rows that exercise designation formatting without relying on the real dev database.
         /// </summary>
         private void SeedDsoRows()

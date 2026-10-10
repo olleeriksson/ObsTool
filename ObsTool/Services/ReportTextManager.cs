@@ -354,7 +354,9 @@ namespace ObsTool.Services
             string introRegexp = @"(?:\s|\G)";  // non-capturing group of \s or end-of-previous-match (for when the designator starts at the beginning of the line)
             string startingMarkerRegexp = @"([(!])?";  // Start markers: ( and !
             string firstCatalogNumberPartRegexp = @"[+-]?\s*[0-9]+[A-Za-z]?";
-            string additionalCatalogNumberPartRegexp = @"(?:\s*[\+\-\.]\s*[A-Za-z]?\s*[0-9]+[A-Za-z]?)*";
+            // Dots must join adjacent number parts (PK 241+2.1); a sentence ending like NGC 2300. 2276 stops the name.
+            // Signed catalog components still allow spaces, as in MCG 5- 1- 66 or ESO 373-G 8.
+            string additionalCatalogNumberPartRegexp = @"(?:\s*[\+\-]\s*[A-Za-z]?\s*[0-9]+[A-Za-z]?|\.[0-9]+[A-Za-z]?)*";
             string catalogNumberRegexp = "(" + firstCatalogNumberPartRegexp + additionalCatalogNumberPartRegexp + ")";
             string endingMarkerRegexp = @"([)!])?";    // End markers: ) and !
             // Recognize an adjacent section marker without consuming it as a single-object closing bang.

@@ -83,6 +83,51 @@ namespace TestProject
             Assert.That(observationsMap.GetAt(0).Value.DsoObservations.Single().Dso.Name, Is.EqualTo("M 83"));
         }
 
+        /// <summary>
+        /// Keeps a number in the next sentence out of the preceding galaxy designation, including on reparse.
+        /// </summary>
+        [TestCase("")]
+        [TestCase("\r\n#140-1256-!NGC23002276!")]
+        public void testGalaxyNumbersAfterSentenceEndingPeriod(string identifierSuffix)
+        {
+            // Resolve only the two actual galaxies so an overlong designation cannot pass as a catalog match.
+            obsRepoMock.Setup(x => x.GetDsoByName(It.IsAny<string>(), false)).Returns((Dso)null);
+            obsRepoMock.Setup(x => x.GetDsoByName("NGC 2276", false))
+                .Returns(new Dso { Id = 1256, Name = "NGC 2276" });
+            obsRepoMock.Setup(x => x.GetDsoByName("NGC 2300", false))
+                .Returns(new Dso { Id = 1257, Name = "NGC 2300" });
+            var reportTextManager = new ReportTextManager(null, null, obsRepoMock.Object, null, null);
+            var obsSession = new ObsSession
+            {
+                Id = 140,
+                Date = DateTime.Now,
+                ReportText = "Down another declination from the north celestial pole was a group of galaxies, "
+                    + "NGC 2276, NGC 2300. 2276 was bigger and fainter. 2300 smaller and brighter. "
+                    + "Saw it more or less with direct vision." + identifierSuffix
+            };
+
+            var observationsMap = reportTextManager.Parse(obsSession);
+
+            Assert.That(observationsMap.Count, Is.EqualTo(1));
+            var observation = observationsMap.Single().Value;
+            Assert.That(observation.DsoObservations.Select(dsoObs => dsoObs.Dso.Name),
+                Is.EqualTo(new[] { "NGC 2276", "NGC 2300" }));
+            Assert.That(observation.NonDetection, Is.False);
+            obsRepoMock.Verify(x => x.GetDsoByName("NGC 2300. 2276", false), Times.Never);
+
+            // Existing identifiers remain stable; a new report uses the two resolved object IDs.
+            string expectedIdentifier = string.IsNullOrEmpty(identifierSuffix)
+                ? "140-1256-1257"
+                : "140-1256-!NGC23002276!";
+            Assert.That(observation.Identifier, Is.EqualTo(expectedIdentifier));
+            string parsedReportText = obsSession.ReportText;
+            var reparsedObservation = reportTextManager.Parse(obsSession).Single().Value;
+            Assert.That(reparsedObservation.Identifier, Is.EqualTo(expectedIdentifier));
+            Assert.That(reparsedObservation.DsoObservations.Select(dsoObs => dsoObs.Dso.Name),
+                Is.EqualTo(new[] { "NGC 2276", "NGC 2300" }));
+            Assert.That(obsSession.ReportText, Is.EqualTo(parsedReportText));
+        }
+
         [Test]
         public void testParsing2()
         {
