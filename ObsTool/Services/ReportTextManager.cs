@@ -21,6 +21,9 @@ namespace ObsTool.Services
         private static readonly Regex ConstellationKeywordRegex = new Regex(
             @"(?<![\p{L}\p{N}_])const(?![\p{L}\p{N}_])",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static readonly Regex InlineObjectRegex = new Regex(
+            @"(?<!>)>>(?!>)(?<global>[^<>\r\n]*)<<(?!<)|(?<!>)>(?!>)(?<user>[^<>\r\n]*)<(?!<)",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         private MainDbContext _dbContext;
         private ObservationsRepo _observationsRepo;
@@ -95,13 +98,16 @@ namespace ObsTool.Services
             .OrderByDescending(catalog => catalog.Length)
             .Select(Regex.Escape));
 
-        public void ParseAndStoreObservations(ObsSession obsSession)
+        public void ParseAndStoreObservations(ObsSession obsSession, bool canCreateOtherObjects = false)
         {
+            // Keep inline object creation and the derived observation update in one database transaction.
+            using var transaction = _dbContext.Database.BeginTransaction();
             // Parse
             OrderedDictionary<string, Observation> updatedObservations = Parse(
                 obsSession,
                 out ISet<string> identifiersFoundInReportText,
-                out ISet<string> identifiersWithUnmatchedDsoNames);
+                out ISet<string> identifiersWithUnmatchedDsoNames,
+                canCreateOtherObjects);
             // All returned observations are to be either updated or added, that is decided further down
             // by looking at the currently stored observations.
 
@@ -194,6 +200,7 @@ namespace ObsTool.Services
             }
 
             SaveChanges();
+            transaction.Commit();
         }
 
         /// <summary>
@@ -319,9 +326,20 @@ namespace ObsTool.Services
             }
         }
 
+        /// <summary>
+        /// Parses a report without granting shared-object creation privileges.
+        /// </summary>
         public OrderedDictionary<string, Observation> Parse(ObsSession obsSession)
         {
-            return Parse(obsSession, out _, out _);
+            return Parse(obsSession, out _, out _, false);
+        }
+
+        /// <summary>
+        /// Parses a report with the shared-object creation privilege supplied by the caller.
+        /// </summary>
+        public OrderedDictionary<string, Observation> Parse(ObsSession obsSession, bool canCreateOtherObjects)
+        {
+            return Parse(obsSession, out _, out _, canCreateOtherObjects);
         }
 
         /// <summary>
@@ -330,7 +348,8 @@ namespace ObsTool.Services
         private OrderedDictionary<string, Observation> Parse(
             ObsSession obsSession,
             out ISet<string> identifiersFoundInReportText,
-            out ISet<string> identifiersWithUnmatchedDsoNames)
+            out ISet<string> identifiersWithUnmatchedDsoNames,
+            bool canCreateOtherObjects)
         {
             string reportText = obsSession.ReportText;
             OrderedDictionary<string, Observation> observationsDict = new OrderedDictionary<string, Observation>();
@@ -344,6 +363,11 @@ namespace ObsTool.Services
             {
                 return observationsDict;
             }
+
+            var newUserObjects = new HashSet<UserObject>();
+            var newOtherObjects = new HashSet<OtherObject>();
+            reportText = CreateInlineObjects(obsSession.UserId, reportText, canCreateOtherObjects,
+                newUserObjects, newOtherObjects, out List<HashSet<string>> markedNamesBySection);
 
             //string[] primaryCatalogs = { "M", "NGC", "IC", "Sh", "UGC", "PGC" };
 
@@ -408,11 +432,13 @@ namespace ObsTool.Services
             if (reportParagraphs.Any())  // matches anywhere
             {
                 int obsIndex = 0;
+                int paragraphIndex = 0;
                 ISet<string> foundObjectKeys = new HashSet<string>();
                 ISet<string> foundUnmatchedDsoNames = new HashSet<string>();
 
                 foreach (ReportParagraph sectionsMatch in reportParagraphs)
                 {
+                    ISet<string> markedNames = markedNamesBySection[paragraphIndex++];
                     string sectionText = sectionsMatch.Text.Trim();  // the whole section, including resource links
                     string replacedDeprectedIdentifiers = ReplaceDeprecatedObsIdentifiers(sectionText);
                     var observationsIdentifier = FindExistingObsIdentifier(replacedDeprectedIdentifiers);
@@ -427,7 +453,11 @@ namespace ObsTool.Services
                     var obsResourcesInSection = new List<ObsResource>();
 
                     // User objects intentionally take priority over SAC and Other objects when names overlap.
-                    foreach (NamedObjectMatch<UserObject> userObjectMatch in FindUserObjectMatches(sectionObsText, userObjects))
+                    var userObjectMatches = FindUserObjectMatches(sectionObsText, userObjects)
+                        .Concat(FindUserObjectMatches(sectionText, userObjects.Where(item =>
+                            markedNames.Contains(DsoDesignationNormalizer.NormalizeFreeText(item.Name))))
+                            .Where(match => match.Index >= sectionObsText.Length));
+                    foreach (NamedObjectMatch<UserObject> userObjectMatch in userObjectMatches)
                     {
                         if (OverlapsAny(userObjectMatch.Index, userObjectMatch.Length, targetSpansInSection))
                         {
@@ -448,7 +478,9 @@ namespace ObsTool.Services
                         parsedTargetsInSection.Add(new ParsedObjectTarget
                         {
                             Index = userObjectMatch.Index,
-                            NonDetection = IsNamedObjectNonDetection(sectionObsText, userObjectMatch.Index, userObjectMatch.Length, userObjectMatch.Object.Name),
+                            NonDetection = IsNamedObjectNonDetection(
+                                userObjectMatch.Index < sectionObsText.Length ? sectionObsText : sectionText,
+                                userObjectMatch.Index, userObjectMatch.Length, userObjectMatch.Object.Name),
                             UserObject = userObjectMatch.Object,
                             ObjectKey = objectKey
                         });
@@ -543,7 +575,11 @@ namespace ObsTool.Services
                     }
 
                     // Other objects are checked last so they do not steal text already resolved as User or SAC objects.
-                    foreach (NamedObjectMatch<OtherObject> otherObjectMatch in FindOtherObjectMatches(sectionObsText, otherObjects))
+                    var otherObjectMatches = FindOtherObjectMatches(sectionObsText, otherObjects)
+                        .Concat(FindOtherObjectMatches(sectionText, otherObjects.Where(item =>
+                            markedNames.Contains(DsoDesignationNormalizer.NormalizeFreeText(item.Name))))
+                            .Where(match => match.Index >= sectionObsText.Length));
+                    foreach (NamedObjectMatch<OtherObject> otherObjectMatch in otherObjectMatches)
                     {
                         if (OverlapsAny(otherObjectMatch.Index, otherObjectMatch.Length, targetSpansInSection))
                         {
@@ -564,12 +600,17 @@ namespace ObsTool.Services
                         parsedTargetsInSection.Add(new ParsedObjectTarget
                         {
                             Index = otherObjectMatch.Index,
-                            NonDetection = IsNamedObjectNonDetection(sectionObsText, otherObjectMatch.Index, otherObjectMatch.Length, otherObjectMatch.Object.Name),
+                            NonDetection = IsNamedObjectNonDetection(
+                                otherObjectMatch.Index < sectionObsText.Length ? sectionObsText : sectionText,
+                                otherObjectMatch.Index, otherObjectMatch.Length, otherObjectMatch.Object.Name),
                             OtherObject = otherObjectMatch.Object,
                             ObjectKey = objectKey
                         });
                         targetSpansInSection.Add(new TextSpan { Index = otherObjectMatch.Index, Length = otherObjectMatch.Length });
                     }
+
+                    // Copy a constellation only when every other recognized target agrees on one known value.
+                    SetInlineObjectConstellations(parsedTargetsInSection, newUserObjects, newOtherObjects);
 
                     // Resolve the keyword only after all three object types have been identified.
                     if (ConstellationKeywordRegex.IsMatch(sectionText))
@@ -766,6 +807,90 @@ namespace ObsTool.Services
             obsSession.ReportText = reportText;
 
             return observationsDict;
+        }
+
+        /// <summary>
+        /// Creates marked objects anywhere in each report section and removes their delimiters.
+        /// </summary>
+        private string CreateInlineObjects(int userId, string reportText, bool canCreateOtherObjects,
+            ISet<UserObject> newUserObjects, ISet<OtherObject> newOtherObjects,
+            out List<HashSet<string>> markedNamesBySection)
+        {
+            var paragraphs = GetReportParagraphs(reportText).ToList();
+            markedNamesBySection = paragraphs.Select(paragraph => InlineObjectRegex.Matches(paragraph.Text)
+                .Cast<Match>()
+                .Select(match => DsoDesignationNormalizer.NormalizeFreeText(
+                    match.Groups["global"].Success ? match.Groups["global"].Value : match.Groups["user"].Value))
+                .ToHashSet()).ToList();
+            foreach (ReportParagraph paragraph in paragraphs.AsEnumerable().Reverse())
+            {
+                string replacement = InlineObjectRegex.Replace(paragraph.Text, match =>
+                {
+                    bool global = match.Groups["global"].Success;
+                    string name = (global ? match.Groups["global"].Value : match.Groups["user"].Value).Trim();
+                    ObjectsRepo.ValidateObjectName(name);
+                    if (_objectsRepo == null)
+                    {
+                        throw new ObsToolException("Inline object creation is unavailable.");
+                    }
+
+                    string normalizedName = DsoDesignationNormalizer.NormalizeFreeText(name);
+                    var existingUser = _objectsRepo.GetUserObjects(userId)
+                        .FirstOrDefault(item => DsoDesignationNormalizer.NormalizeFreeText(item.Name) == normalizedName);
+                    var existingOther = _objectsRepo.GetOtherObjects()
+                        .FirstOrDefault(item => DsoDesignationNormalizer.NormalizeFreeText(item.Name) == normalizedName);
+                    if (existingUser != null || existingOther != null)
+                    {
+                        return name;
+                    }
+
+                    if (global)
+                    {
+                        if (!canCreateOtherObjects)
+                        {
+                            throw new ObsToolException(403, "You do not have permission to create global objects.");
+                        }
+                        newOtherObjects.Add(_objectsRepo.AddOtherObject(new OtherObject { Name = name }));
+                    }
+                    else
+                    {
+                        newUserObjects.Add(_objectsRepo.AddUserObject(new UserObject { Name = name }, userId));
+                    }
+                    return name;
+                });
+                reportText = reportText.Remove(paragraph.Index, paragraph.Text.Length).Insert(paragraph.Index, replacement);
+            }
+            return reportText;
+        }
+
+        /// <summary>
+        /// Copies an unambiguous peer constellation to objects created by this report save.
+        /// </summary>
+        private void SetInlineObjectConstellations(IEnumerable<ParsedObjectTarget> targets,
+            ISet<UserObject> newUserObjects, ISet<OtherObject> newOtherObjects)
+        {
+            var peers = targets.Where(target => !newUserObjects.Contains(target.UserObject)
+                && !newOtherObjects.Contains(target.OtherObject)).ToList();
+            var constellations = peers.Select(target => target.Dso?.Con ?? target.UserObject?.Const ?? target.OtherObject?.Const)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            if (peers.Count == 0 || constellations.Count != 1 || peers.Any(target =>
+                string.IsNullOrWhiteSpace(target.Dso?.Con ?? target.UserObject?.Const ?? target.OtherObject?.Const)))
+            {
+                return;
+            }
+
+            foreach (ParsedObjectTarget target in targets)
+            {
+                if (newUserObjects.Contains(target.UserObject))
+                {
+                    target.UserObject.Const = constellations[0];
+                }
+                if (newOtherObjects.Contains(target.OtherObject))
+                {
+                    target.OtherObject.Const = constellations[0];
+                }
+            }
         }
 
         /// <summary>

@@ -10,6 +10,7 @@ using ObsTool.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace ObsTool.Controllers
 {
@@ -239,7 +240,7 @@ namespace ObsTool.Controllers
 
             _mainDbContext.SaveChanges();
 
-            _reportTextManager.ParseAndStoreObservations(addedObsSession);
+            _reportTextManager.ParseAndStoreObservations(addedObsSession, CanCreateOtherObjects(userId));
 
             _logger.LogInformation("Created an observation session:");
             _logger.LogInformation(PocoPrinter.ToString(addedObsSession));
@@ -292,7 +293,7 @@ namespace ObsTool.Controllers
 
             _mapper.Map(obsSessionDtoForUpdate, obsSessionEntity);
 
-            _reportTextManager.ParseAndStoreObservations(obsSessionEntity);
+            _reportTextManager.ParseAndStoreObservations(obsSessionEntity, CanCreateOtherObjects(userId));
 
             var result = _obsSessionsRepository.SaveChanges();
             if (!result)
@@ -330,6 +331,17 @@ namespace ObsTool.Controllers
             _logger.LogInformation(PocoPrinter.ToString(obsSessionEntity));
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Uses the same shared-object creation privilege as the Objects endpoint.
+        /// </summary>
+        private bool CanCreateOtherObjects(int userId)
+        {
+            return userId == 1 || string.Equals(
+                User.FindFirstValue(AuthClaimTypes.IsSuperAdmin),
+                bool.TrueString,
+                StringComparison.OrdinalIgnoreCase);
         }
     }
 }

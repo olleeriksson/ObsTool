@@ -738,6 +738,136 @@ namespace TestProject
             Assert.That(obsSession.ReportText, Is.EqualTo(reportText));
         }
 
+        /// <summary>
+        /// Creates a personal object, removes the markers, and copies a peer constellation.
+        /// </summary>
+        [Test]
+        public void InlinePersonalObjectIsCreatedAndLinked()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.Constellations.Add(new Constellation("Andromeda", "AND"));
+            dbContext.SaveChanges();
+            obsRepoMock.Setup(x => x.GetDsoByName("M 31", false, 1))
+                .Returns(new Dso { Id = 31, Name = "M 31", Con = "AND" });
+            var manager = new ReportTextManager(dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var session = new ObsSession { Id = 5, UserId = 1, ReportText = "M 31 and >New nebula< in const." };
+
+            var observation = manager.Parse(session).Values.Single();
+
+            var created = dbContext.UserObjects.Single();
+            Assert.That(created.Name, Is.EqualTo("New nebula"));
+            Assert.That(created.Const, Is.EqualTo("AND"));
+            Assert.That(observation.DsoObservations.Any(item => item.UserObjectId == created.Id), Is.True);
+            Assert.That(session.ReportText, Does.Contain("New nebula"));
+            Assert.That(session.ReportText, Does.Not.Contain(">"));
+            Assert.That(session.ReportText, Does.Not.Contain("<"));
+        }
+
+        /// <summary>
+        /// Recognizes a marked object even when it appears below the section's first line.
+        /// </summary>
+        [Test]
+        public void InlineObjectInSectionBodyIsLinked()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            var manager = new ReportTextManager(dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var session = new ObsSession { Id = 5, UserId = 1, ReportText = "A faint patch.\r\nIt was >New patch<." };
+
+            var observation = manager.Parse(session).Values.Single();
+
+            Assert.That(observation.DsoObservations.Single().UserObjectId, Is.EqualTo(dbContext.UserObjects.Single().Id));
+            Assert.That(session.ReportText, Does.Contain("It was New patch."));
+        }
+
+        /// <summary>
+        /// Allows privileged shared creation and rejects unprivileged shared creation.
+        /// </summary>
+        [Test]
+        public void InlineGlobalObjectRequiresPermission()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            var manager = new ReportTextManager(dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var denied = new ObsSession { Id = 5, UserId = 1, ReportText = ">>Shared target<< observed." };
+
+            Assert.Throws<ObsToolException>(() => manager.Parse(denied));
+            Assert.That(dbContext.OtherObjects, Is.Empty);
+
+            var allowed = new ObsSession { Id = 6, UserId = 1, ReportText = ">>Shared target<< observed." };
+            var observation = manager.Parse(allowed, true).Values.Single();
+            var created = dbContext.OtherObjects.Single();
+            Assert.That(observation.DsoObservations.Single().OtherObjectId, Is.EqualTo(created.Id));
+            Assert.That(allowed.ReportText, Does.Not.Contain(">"));
+        }
+
+        /// <summary>
+        /// Reuses a stored custom object for either marker spelling without creating a duplicate.
+        /// </summary>
+        [TestCase(">Existing target<")]
+        [TestCase(">>Existing target<<")]
+        public void InlineObjectReusesExistingName(string markedName)
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.UserObjects.Add(new UserObject { Id = 20, UserId = 1, Name = "Existing target" });
+            dbContext.SaveChanges();
+            var manager = new ReportTextManager(dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var session = new ObsSession { Id = 5, UserId = 1, ReportText = markedName + " observed." };
+
+            var observation = manager.Parse(session).Values.Single();
+
+            Assert.That(dbContext.UserObjects.Count(), Is.EqualTo(1));
+            Assert.That(dbContext.OtherObjects, Is.Empty);
+            Assert.That(observation.DsoObservations.Single().UserObjectId, Is.EqualTo(20));
+            Assert.That(session.ReportText, Does.Not.Contain(">"));
+        }
+
+        /// <summary>
+        /// Lets any user reference an existing shared object with global markers.
+        /// </summary>
+        [Test]
+        public void InlineGlobalMarkerReusesSharedObjectWithoutCreationPrivilege()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            dbContext.OtherObjects.Add(new OtherObject { Id = 10, Name = "Shared target" });
+            dbContext.SaveChanges();
+            var manager = new ReportTextManager(dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var session = new ObsSession { Id = 5, UserId = 1, ReportText = ">>Shared target<< observed." };
+
+            var observation = manager.Parse(session).Values.Single();
+
+            Assert.That(dbContext.OtherObjects.Count(), Is.EqualTo(1));
+            Assert.That(observation.DsoObservations.Single().OtherObjectId, Is.EqualTo(10));
+            Assert.That(session.ReportText, Does.Not.Contain(">"));
+        }
+
+        /// <summary>
+        /// Applies the object editor's name validation to marked names.
+        /// </summary>
+        [Test]
+        public void InlineObjectRejectsInvalidName()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            using var dbContext = CreateObjectParserContext(connection);
+            var manager = new ReportTextManager(dbContext, null, obsRepoMock.Object, null, null, null, new ObjectsRepo(dbContext));
+            var session = new ObsSession { Id = 5, UserId = 1, ReportText = ">Bad#name< observed." };
+
+            Assert.Throws<ObsToolException>(() => manager.Parse(session));
+            Assert.That(dbContext.UserObjects, Is.Empty);
+        }
+
+        /// <summary>
+        /// Creates an isolated object database for report parser tests.
+        /// </summary>
         private MainDbContext CreateObjectParserContext(SqliteConnection connection)
         {
             var options = new DbContextOptionsBuilder<MainDbContext>()

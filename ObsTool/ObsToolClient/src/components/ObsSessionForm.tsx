@@ -231,6 +231,11 @@ const styles = (theme: Theme) => createStyles({
   helpText: {
     lineHeight: 1.4,
     whiteSpace: "normal",
+    // Give the report syntax examples more contrast than their supporting descriptions.
+    "& code": {
+      color: theme.palette.mode === "dark" ? theme.palette.grey[200] : theme.palette.grey[900],
+      fontWeight: 600,
+    },
   },
   bottomActionColumn: {
     display: "flex",
@@ -836,13 +841,15 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                     <Grid container direction="row" className={classes.helpReferenceRow}>
                       <Grid className={classes.helpTextColumn}>
                         <Typography variant="caption" color="textSecondary" component={"div" as any} className={classes.helpText}>
-                          <div><code>!!</code>{" - "}Failed to observe all objects in the section</div>
-                          <div><code>!M 31!</code>{" - "}Failed to observe specific object in the section</div>
+                          <div><strong><code>!!</code></strong>{" - "}Failed to observe objects in section</div>
+                          <div><code>!M 31!</code>{" - "}Failed to observe specific object</div>
                           <div><code>(M 31)</code>{" - "}Ignore object reference</div>
                           <div><code>-1 +1 +2 * **</code>{" - "}Rate the object</div>
-                          <div><code>revisit</code>{" / "}<code>come back</code>{" - "}Reminder to observe the object again</div>
+                          <div><code>revisit</code>{" / "}<code>come back</code>{" - "}Friendly reminder</div>
                           <div><code>const</code>{" - "}Quick insert of constellation name</div>
-                          <div><code>Link: Image: Sketch: Jot: + url</code>{" - "}Quick insert of resource</div>
+                          <div><code>&gt;Obj&lt;</code>{" - "}Create a personal object in this section</div>
+                          <div><code>&gt;&gt;Obj&lt;&lt;</code>{" - "}Create a global object (with permission)</div>
+                          <div><code>Link: Image: Sketch: Jot: + url</code>{" - "}Add resource</div>
                         </Typography>
                       </Grid>
                       <Grid className={classes.equipmentActionGrid}>
