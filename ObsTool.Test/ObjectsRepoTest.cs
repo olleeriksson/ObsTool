@@ -1,12 +1,10 @@
 using System;
 using System.Linq;
-using System.Data.Common;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -26,7 +24,6 @@ namespace TestProject
         private SqliteConnection _connection;
         private MainDbContext _dbContext;
         private ObjectsRepo _repo;
-        private SingleReaderInterceptor _singleReaderInterceptor;
 
         [SetUp]
         public void Setup()
@@ -38,11 +35,7 @@ namespace TestProject
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open();
 
-            _singleReaderInterceptor = new SingleReaderInterceptor();
-            var options = new DbContextOptionsBuilder<MainDbContext>()
-                .UseSqlite(_connection)
-                .AddInterceptors(_singleReaderInterceptor)
-                .Options;
+            var options = TestDatabaseOptions.Create(_connection);
 
             _dbContext = new MainDbContext(options, new Mock<ILogger<MainDbContext>>().Object);
             _dbContext.Database.EnsureCreated();
@@ -289,8 +282,6 @@ namespace TestProject
                 new DsoObservation { ObservationId = 102, OtherObjectId = 40 });
             _dbContext.SaveChanges();
 
-            // SQLite permits nested readers; enforce the hosted MySQL restriction for this scenario.
-            _singleReaderInterceptor.Enabled = true;
             var summary = _repo.GetUserObjectReferenceSummaries(1)[30];
 
             Assert.That(summary.NumReferences, Is.EqualTo(2));
@@ -298,39 +289,6 @@ namespace TestProject
             Assert.That(summary.Sessions.Select(session => session.Date), Is.EqualTo(new[] { "2026-05-26", "2026-05-24" }));
             Assert.That(_repo.GetOtherObjectReferenceSummaries(1)[40].NumReferences, Is.EqualTo(1));
             Assert.That(CreateObjectsController(1, false).Get(), Is.TypeOf<OkObjectResult>());
-        }
-
-        /// <summary>
-        /// Emulates MySQL's single-reader restriction while keeping regression tests on isolated SQLite data.
-        /// </summary>
-        private sealed class SingleReaderInterceptor : DbCommandInterceptor
-        {
-            private DbDataReader _activeReader;
-            public bool Enabled { get; set; }
-
-            /// <summary>
-            /// Rejects another query while the previous result reader remains open.
-            /// </summary>
-            public override InterceptionResult<DbDataReader> ReaderExecuting(
-                DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result)
-            {
-                if (Enabled && _activeReader != null && !_activeReader.IsClosed)
-                {
-                    throw new InvalidOperationException("There is already an open DataReader associated with this Connection.");
-                }
-
-                return result;
-            }
-
-            /// <summary>
-            /// Tracks the reader returned by a successful query until EF closes it.
-            /// </summary>
-            public override DbDataReader ReaderExecuted(
-                DbCommand command, CommandExecutedEventData eventData, DbDataReader result)
-            {
-                _activeReader = result;
-                return result;
-            }
         }
 
         /// <summary>

@@ -913,9 +913,7 @@ namespace TestProject
         /// </summary>
         private MainDbContext CreateObjectParserContext(SqliteConnection connection)
         {
-            var options = new DbContextOptionsBuilder<MainDbContext>()
-                .UseSqlite(connection)
-                .Options;
+            var options = TestDatabaseOptions.Create(connection);
             var dbContext = new MainDbContext(options, new Mock<ILogger<MainDbContext>>().Object);
             dbContext.Database.EnsureCreated();
             dbContext.Users.Add(new AppUser

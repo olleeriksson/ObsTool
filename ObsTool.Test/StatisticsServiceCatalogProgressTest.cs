@@ -38,9 +38,7 @@ namespace TestProject
                 cmd.ExecuteNonQuery();
             }
 
-            var options = new DbContextOptionsBuilder<MainDbContext>()
-                .UseSqlite(_connection)
-                .Options;
+            var options = TestDatabaseOptions.Create(_connection);
 
             _dbContext = new MainDbContext(options, new Mock<ILogger<MainDbContext>>().Object);
             _dbContext.Database.EnsureCreated();

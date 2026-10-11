@@ -36,9 +36,7 @@ namespace TestProject
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open();
 
-            var options = new DbContextOptionsBuilder<MainDbContext>()
-                .UseSqlite(_connection)
-                .Options;
+            var options = TestDatabaseOptions.Create(_connection);
 
             _dbContext = new MainDbContext(options, new Mock<ILogger<MainDbContext>>().Object);
             _dbContext.Database.EnsureCreated();
