@@ -194,6 +194,9 @@ namespace ObsTool.Controllers
             var obsSession = _obsSessionsRepository.GetObsSession(id, userId, includeLocation: true, includeObservations: true, includeDso: true);
             var obsSessionDto = _mapper.Map<ObsSessionDto>(obsSession);
 
+            // Saving replaces the list summary with this response, so include counts from the updated report.
+            obsSessionDto.ObjectStats = ObsSessionObjectStatsDto.FromObsSession(obsSession);
+
             // The Observed Objects tab renders this response immediately and must not depend on a later full-page GET.
             PopulateOtherObservations(obsSession, obsSessionDto, userId, includePrevAndNextObservations: true);
 

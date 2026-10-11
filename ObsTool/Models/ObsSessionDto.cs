@@ -33,5 +33,7 @@ namespace ObsTool.Models
         public decimal? LimitingMagnitude { get; set; }
         public ICollection<ObservationDto> Observations { get; set; }
         public string ReportText { get; set; }
+        // Carries freshly parsed counts when a saved session replaces its summary in the list.
+        public ObsSessionObjectStatsDto ObjectStats { get; set; }
     }
 }

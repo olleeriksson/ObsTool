@@ -66,6 +66,78 @@ namespace TestProject
         //Assert.That(result, Is.EqualTo(expected));
         //}
 
+        // Both save endpoints replace the list entry and must return the same counts as a list reload.
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Save_ReturnsObjectStatsMatchingSessionList(bool createSession)
+        {
+            SeedUser();
+            SeedDso(31, "M", "31", "M 31");
+            SeedDso(42, "M", "42", "M 42");
+            _dbContext.Dso.Single(dso => dso.Id == 31).Type = "GALXY";
+            _dbContext.Dso.Single(dso => dso.Id == 42).Type = "BRTNB";
+            _dbContext.SaveChanges();
+
+            const string reportText = "M 31 and M 42 were observed together.";
+            ObsSessionDto savedSession;
+            if (createSession)
+            {
+                var result = (CreatedAtRouteResult)_controller.Post(new ObsSessionDtoForCreation
+                {
+                    Date = DateTime.Today,
+                    ReportText = reportText
+                });
+                savedSession = (ObsSessionDto)result.Value;
+            }
+            else
+            {
+                var sessionId = SeedObsSession();
+                var result = (OkObjectResult)_controller.Put(sessionId, new ObsSessionDtoForUpdate
+                {
+                    Date = DateTime.Today,
+                    ReportText = reportText
+                });
+                savedSession = (ObsSessionDto)result.Value;
+            }
+
+            var listResult = (OkObjectResult)_controller.Get(simple: true);
+            var listSession = ((System.Collections.Generic.IEnumerable<ObsSessionDtoSimple>)listResult.Value)
+                .Single(session => session.Id == savedSession.Id);
+
+            Assert.That(savedSession.ObjectStats, Is.Not.Null);
+            Assert.That(savedSession.ObjectStats.Total, Is.EqualTo(2));
+            Assert.That(savedSession.ObjectStats.Galaxies, Is.EqualTo(1));
+            Assert.That(savedSession.ObjectStats.Nebulae, Is.EqualTo(1));
+            Assert.That(savedSession.ObjectStats.Clusters, Is.Zero);
+            Assert.That(savedSession.ObjectStats.Other, Is.Zero);
+            Assert.That(System.Text.Json.JsonSerializer.Serialize(savedSession.ObjectStats),
+                Is.EqualTo(System.Text.Json.JsonSerializer.Serialize(listSession.ObjectStats)));
+        }
+
+        // Re-saving must recalculate counts rather than preserve the previous list summary.
+        [TestCase("M 31 was observed.", 1)]
+        [TestCase("No objects were observed.", 0)]
+        public void Put_RefreshesObjectStatsAfterObjectsAreRemoved(string updatedReport, int expectedTotal)
+        {
+            SeedUser();
+            SeedDso(31, "M", "31", "M 31");
+            SeedDso(42, "M", "42", "M 42");
+            var created = (CreatedAtRouteResult)_controller.Post(new ObsSessionDtoForCreation
+            {
+                Date = DateTime.Today,
+                ReportText = "M 31 and M 42 were observed together."
+            });
+            var sessionId = ((ObsSessionDto)created.Value).Id;
+
+            var updated = (OkObjectResult)_controller.Put(sessionId, new ObsSessionDtoForUpdate
+            {
+                Date = DateTime.Today,
+                ReportText = updatedReport
+            });
+
+            Assert.That(((ObsSessionDto)updated.Value).ObjectStats.Total, Is.EqualTo(expectedTotal));
+        }
+
         [Test]
         public void Post_ReturnsHerschelBadgesForParsedReportObjects()
         {
