@@ -10,7 +10,7 @@ import DsoShort from "./DsoShort";
 import DsoMapHover from "./DsoMapHover";
 import { IObsSession, ILocation, IInstrument, IObservation, IDsoObservation, IEyepiece } from "../types/Types";
 import classNames from "classnames";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import SelectComponent, { IKeyValuePair } from "./SelectComponent";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -677,7 +677,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     return (
       <div className="obsSessionForm">
         <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
-          <Grid size="grow" container direction="column">
+          <Grid size="grow" container sx={{ flexDirection: "column" }}>
             <Grid>
               <TextField
                 id="title"
@@ -749,7 +749,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
             </Grid>}
             <Grid className={classes.sessionBodyWrapper}>
               <Grid container direction="row" className={classes.sessionBodyRow}>
-                <Grid container direction="column" className={classes.formFieldsColumn}>
+                <Grid container sx={{ flexDirection: "column" }} className={classes.formFieldsColumn}>
                   <Grid>
                     <Grid container direction="row" className={classes.ratingSaveRow}>
                       <Grid className={classes.ratingControls}>
@@ -825,9 +825,11 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                       value={this.state.obsSession.reportText || ""}
                       onChange={this.handleChange("reportText")}
                       className={classNames(classes.formControl, classes.reportTextField)}
-                      inputProps={{ className: classes.textFieldReportText }}
                       margin="normal"
                       variant="outlined"
+                      slotProps={{
+                        htmlInput: { className: classes.textFieldReportText }
+                      }}
                     />
                   </Grid>
                   {this.props.errorMessage && (

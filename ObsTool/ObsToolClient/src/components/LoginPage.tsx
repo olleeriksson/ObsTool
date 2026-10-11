@@ -153,10 +153,10 @@ function LoginPage(props: ILoginPageProps) {
                             {isLoading && <CircularProgress size={24} />}
                         </div>
                         <div className={classes.actions}>
-                            <Button component={Link} to="/signup" color="primary">
+                            <Button nativeButton={false} component={Link} to="/signup" color="primary">
                                 Sign up
                             </Button>
-                            <Button component={Link} to="/forgot-password" color="primary">
+                            <Button nativeButton={false} component={Link} to="/forgot-password" color="primary">
                                 Forgot password
                             </Button>
                         </div>

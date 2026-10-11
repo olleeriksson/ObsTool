@@ -590,7 +590,7 @@ function renderPlot(
 }
 
 // Observes the plot container so the SVG projection uses the real viewport instead of a fixed aspect ratio.
-function useElementWidth(elementRef: React.RefObject<HTMLElement>) {
+function useElementWidth(elementRef: React.RefObject<HTMLElement | null>) {
     const [width, setWidth] = React.useState<number | null>(null);
 
     React.useLayoutEffect(() => {

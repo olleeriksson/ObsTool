@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import Paper from "@mui/material/Paper";
@@ -707,13 +707,16 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 label="Type"
                 margin="dense"
                 size="small"
-                InputProps={{
-                    ...params.InputProps,
-                    startAdornment: currentType ? (
-                        <InputAdornment position="start" className={this.props.classes.typeInputAdornment}>
-                            <DsoTypeIcon type={currentType} />
-                        </InputAdornment>
-                    ) : params.InputProps.startAdornment,
+                slotProps={{
+                    ...params.slotProps,
+                    input: {
+                        ...params.slotProps.input,
+                        startAdornment: currentType ? (
+                            <InputAdornment position="start" className={this.props.classes.typeInputAdornment}>
+                                <DsoTypeIcon type={currentType} />
+                            </InputAdornment>
+                        ) : params.slotProps.input.startAdornment,
+                    }
                 }}
             />
         );
@@ -977,17 +980,19 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 size="small"
                 type="search"
                 value={searchText}
-                inputProps={{
-                    "aria-label": `Search ${title.toLowerCase()}`,
-                }}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <SearchIcon fontSize="small" />
-                        </InputAdornment>
-                    ),
-                }}
-            />
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon fontSize="small" />
+                            </InputAdornment>
+                        ),
+                    },
+
+                    htmlInput: {
+                        "aria-label": `Search ${title.toLowerCase()}`,
+                    }
+                }} />
         </div>
     )
 
@@ -1351,7 +1356,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                 <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                     <FontAwesomeIcon icon="star" className="faSpaceAfter" size="lg" /> Managing Objects
                 </Typography>
-                <Grid container spacing={3} justifyContent="center">
+                <Grid container spacing={3} sx={{ justifyContent: "center" }}>
                     <Grid size={{ xs: 12, lg: 8 }}>
                         <Paper className={classes.panel} elevation={1}>
                             <div className={classes.formHeading}>
@@ -1390,10 +1395,12 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                                                 size="small"
                                                 required={true}
                                                 disabled={isEditing}
-                                                inputProps={{
-                                                    className: `${classes.nameInputText} ${isEditing ? classes.disabledNameInputText : ""}`,
-                                                }}
                                                 fullWidth={true}
+                                                slotProps={{
+                                                    htmlInput: {
+                                                        className: `${classes.nameInputText} ${isEditing ? classes.disabledNameInputText : ""}`,
+                                                    }
+                                                }}
                                             />
                                         </div>
                                     </Tooltip>

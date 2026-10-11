@@ -2,7 +2,7 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { IDso } from "../types/Types";
 import DsoExtra from "./DsoExtra";
 import DsoTitle from "./DsoTitle";
@@ -213,7 +213,7 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     );
 
     const dsoLabel = (
-      <Grid container alignItems="flex-start">
+      <Grid container sx={{ alignItems: "flex-start" }}>
         <Grid size={"auto"}>
           <DsoTypeIcon type={dso.type} size={dsoTypeIconSize} className={classes.dsoTypeIcon} />
         </Grid>

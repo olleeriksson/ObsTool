@@ -83,7 +83,7 @@ function ForgotPasswordPage(props: IForgotPasswordPageProps) {
                     <Button type="submit" variant="contained" color="primary" disabled={isLoading}>
                         Send reset email
                     </Button>
-                    <Button component={Link} to="/login" color="primary">
+                    <Button nativeButton={false} component={Link} to="/login" color="primary">
                         Back to login
                     </Button>
                     {isLoading && <CircularProgress size={24} />}

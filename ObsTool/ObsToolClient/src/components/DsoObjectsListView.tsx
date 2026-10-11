@@ -60,7 +60,9 @@ class DsoObjectsListView extends React.Component<IDsoObjectsListViewProps> {
                                         size="small"
                                         checked={Boolean(object.isObserved)}
                                         disabled={true}
-                                        inputProps={{ "aria-label": `${formatMapObjectLabel(object, "sac")} observed` }}
+                                        slotProps={{
+                                            input: { "aria-label": `${formatMapObjectLabel(object, "sac")} observed` }
+                                        }}
                                     />
                                 </TableCell>
                             </TableRow>

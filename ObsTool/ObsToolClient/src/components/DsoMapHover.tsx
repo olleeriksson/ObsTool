@@ -26,10 +26,10 @@ interface IDsoMapHoverProps extends WithStyles<typeof styles> {
   children: React.ReactNode;
 }
 
-// Show a temporary map only after the pointer rests on this object for 1.2 seconds.
+// Show a temporary map only after the pointer rests on this object for 700 milliseconds.
 function DsoMapHover({ dso, children, classes }: IDsoMapHoverProps) {
   const anchor = React.useRef<HTMLDivElement>(null);
-  const timer = React.useRef<ReturnType<typeof setTimeout>>();
+  const timer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [open, setOpen] = React.useState(false);
   const [previewWidth, setPreviewWidth] = React.useState(440);
   const selectedObject = toDsoMapObject(dso);

@@ -17,7 +17,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
 import DeleteDialog from "./DeleteDialog";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import ResourceImage, { IResourceImageBounds } from "./ResourceImage";
 import Slider from "@mui/material/Slider";
 import Checkbox from "@mui/material/Checkbox";
@@ -591,7 +591,7 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
         if (isExpanded) {
             return <div className={rootClassName}>
                 <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
-                <Grid container spacing={1} direction="column" className={classes.resourceFormExpanded}>
+                <Grid container spacing={1} sx={{ flexDirection: "column" }} className={classes.resourceFormExpanded}>
                     {gridViewContainer}
                 </Grid>
             </div>;
@@ -599,14 +599,14 @@ class ResourceView extends React.Component<IResourceViewProps, IResourceViewStat
 
         return <div className={rootClassName}>
             <DeleteDialog isOpen={this.state.isConfirmDeleteDialogOpen} title={deleteDialogTitle} text={deleteDialogText} onHandleClose={this.handleConfirmDeleteDialogClosed} />
-            <Grid container spacing={1} direction="column" className={formClassName}>
+            <Grid container spacing={1} sx={{ flexDirection: "column" }} className={formClassName}>
                 <Grid size="grow" className={shouldFillDialogSpace ? classes.imageControlsSectionExpanded : undefined}>
                     <Grid container spacing={1} direction="row" className={shouldFillDialogSpace ? classes.imageControlsRowExpanded : undefined}>
 
                         {this.state.displayMode === "right" && gridViewContainer}
 
                         <Grid className={shouldFillDialogSpace ? classes.controlsPanelExpanded : undefined}>
-                            <Grid container spacing={1} direction="column">
+                            <Grid container spacing={1} sx={{ flexDirection: "column" }}>
                                 <Grid>
                                     <FormControl className={classes.formControl}>
                                         <FormLabel >Type</FormLabel>

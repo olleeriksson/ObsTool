@@ -15,7 +15,7 @@ Two projects under one solution (`ObsTool.sln`):
 - **`ObsTool/`** — ASP.NET Core 10 backend. The SPA lives inside it at `ObsTool/ObsToolClient/` and is referenced as `SpaRoot` in `ObsTool.csproj`.
 - **`ObsTool.Test/`** — NUnit test project for the backend.
 
-The frontend has its own dedicated guidance at **`ObsTool/ObsToolClient/CLAUDE.md`** — read it before doing any frontend work. It covers the MUI v6 / tss-react styling shim, dev-server port rules, and testing setup. Do not duplicate that content here.
+The frontend has its own dedicated guidance at **`ObsTool/ObsToolClient/CLAUDE.md`** — read it before doing any frontend work. It covers the MUI v9 / tss-react styling shim, dev-server port rules, and testing setup. Do not duplicate that content here.
 
 ## Working Rules
 
@@ -58,7 +58,7 @@ dotnet publish ObsTool -c Release         # production build (also runs `npm run
 
 Visual Studio: open `ObsTool.sln` and F5 the `ObsTool` project (default launch URL `http://localhost:50996/`, IIS Express on `50995`).
 
-### Frontend (Vite / React 18)
+### Frontend (Vite / React 19)
 
 ```bash
 cd ObsTool/ObsToolClient
@@ -186,7 +186,7 @@ The only allowed user ids are `Users.Id = 1`, `Users.Id = 2`, and `Users.Id = 3`
 
 To intentionally start over from a clean target, add `--recreate-target-schema`; the command prints a destructive warning and requires confirmation before dropping target tables. Use `--confirm-recreate-target-schema` only for deliberate non-interactive maintenance. Do not remove this command just because the initial hosted sync has already been done.
 
-Frontend is a React 18 SPA: global Redux state (`src/store/AppStore.ts` -> reducers in `src/reducers/`, thunks in `src/actions/`), all API calls through the static `Api` class in `src/api/Api.ts` (axios with cookie credentials), React Router v6 in `src/components/Routes.tsx`, MUI v6 with the tss-react `withStyles` shim - see `ObsTool/ObsToolClient/CLAUDE.md`.
+Frontend is a React 19 SPA: global Redux state (`src/store/AppStore.ts` -> reducers in `src/reducers/`, thunks in `src/actions/`), all API calls through the static `Api` class in `src/api/Api.ts` (axios with cookie credentials), React Router v7 in `src/components/Routes.tsx`, MUI v9 with the tss-react `withStyles` shim - see `ObsTool/ObsToolClient/CLAUDE.md`.
 
 ## Domain model - the four core entities
 

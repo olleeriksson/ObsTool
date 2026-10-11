@@ -7,7 +7,7 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { IEyepiece, IObservation } from "../types/Types";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
@@ -166,7 +166,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
 
     return (
       <Paper className={classes.root}>
-        <Grid container spacing={2} direction="column">
+        <Grid container spacing={2} sx={{ flexDirection: "column" }}>
           <Grid size={12}>
             <Grid container spacing={2} wrap="nowrap">
               <Grid className={classes.instrumentBadgeColumn}>
@@ -179,7 +179,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                 />
               </Grid>
               <Grid size={{ xs: 11, sm: "grow" }}>
-                <Grid container direction="column" spacing={2}>
+                <Grid container sx={{ flexDirection: "column" }} spacing={2}>
                   <Grid size="grow">
                     {dsoObjects}
                     <div style={{ marginTop: "0.8em", marginBottom: "1em" }}>
@@ -203,7 +203,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
                 </Grid>
               </Grid>
               <Grid>
-                <Grid container direction="column" style={{ height: "100%" }}>
+                <Grid container sx={{ flexDirection: "column" }} style={{ height: "100%" }}>
                   <Grid size="grow">
                     <IconButton className={classes.backToFormButton} onClick={this.props.onBackToForm} aria-label="Back to observation form">
                       <ArrowBackIcon />

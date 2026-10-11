@@ -77,7 +77,7 @@ function ResetPasswordPage(props: IResetPasswordPageProps) {
             {isInvalidLink ? (
                 <div className={classes.form}>
                     <Typography className={classes.error}>The reset link is invalid.</Typography>
-                    <Button component={Link} to="/forgot-password" color="primary">
+                    <Button nativeButton={false} component={Link} to="/forgot-password" color="primary">
                         Request a new link
                     </Button>
                 </div>

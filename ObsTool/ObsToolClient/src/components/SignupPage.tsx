@@ -84,7 +84,7 @@ function SignupPage(props: ISignupPageProps) {
                 <>
                     <Typography className={classes.success}>Check your email to confirm your address before logging in.</Typography>
                     <div className={classes.actions}>
-                        <Button component={Link} to="/login" color="primary">
+                        <Button nativeButton={false} component={Link} to="/login" color="primary">
                             Back to login
                         </Button>
                     </div>
@@ -135,7 +135,7 @@ function SignupPage(props: ISignupPageProps) {
                         <Button type="submit" variant="contained" color="primary" disabled={isLoading}>
                             Sign up
                         </Button>
-                        <Button component={Link} to="/login" color="primary">
+                        <Button nativeButton={false} component={Link} to="/login" color="primary">
                             Back to login
                         </Button>
                         {isLoading && <CircularProgress size={24} />}

@@ -3,7 +3,7 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { IObsResource } from "../types/Types";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 // import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 // import classNames from "classnames";
@@ -138,7 +138,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       isLoading: false,
       isError: false,
       // isExpanded: false,
-      resources: [...this.props.resources || []],
+      resources: [...(this.props.resources || [])],
       isEditResourceDialogOpen: false,
       clickedResource: undefined,
       displayMode: undefined,
@@ -441,7 +441,7 @@ class ImageList extends React.Component<IImageListProps, IImageListState> {
       <div>
         {resourceDialog}
 
-        <Grid container spacing={0} direction="column">
+        <Grid container spacing={0} sx={{ flexDirection: "column" }}>
           {imagesTitle}
           {imageElements.length > 0 && (
             <MuiImageList className={classes.gridList} cols={4} rowHeight={140}>

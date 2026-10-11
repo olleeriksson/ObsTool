@@ -10,12 +10,14 @@ A React/TypeScript frontend for recording and tracking amateur astronomy observa
 
 ## Tech stack
 
-- **React 18** + **TypeScript 5**
-- **MUI v6** (`@mui/material`) for UI components
+- **React 19** + **TypeScript 6**
+- **MUI v9** (`@mui/material`) for UI components
 - **tss-react** (emotion) for component styling via `withStyles` HOC — see `src/muiCompat.ts`
-- **Redux** + `react-redux` for global state
-- **React Router v6**
-- **Vite 5** as build tool
+- **Redux 5** + **Redux Toolkit** + `react-redux` for global state
+- **React Router v7**
+- **Vite 8** as build tool
+
+Node **24.15.0+ (24.x)** or **26+** is required by the test environment. TypeScript stays at **6.0.3** because the current `typescript-eslint` peer range excludes TypeScript 7.
 
 ## Commands
 
@@ -42,9 +44,9 @@ An old MUI v4 reference build runs separately on **http://localhost:5000** somet
 
 **Styling pattern** — components use the `withStyles(styles)(Component)` HOC pattern throughout. Styles are emotion objects defined as `const styles = (theme: Theme) => createStyles({ ... })`. Do not switch individual components to `sx` or `styled()` without a deliberate refactor decision.
 
-**ThemeProvider** — `App.tsx` wraps the tree in `<ThemeProvider theme={theme}>` from `@mui/material/styles` (emotion context). Required for both MUI v6 components and tss-react `withStyles` HOCs to access the custom theme.
+**ThemeProvider** — `App.tsx` wraps the tree in `<ThemeProvider theme={theme}>` from `@mui/material/styles` (emotion context). Required for both MUI v9 components and tss-react `withStyles` HOCs to access the custom theme.
 
-**`.npmrc`** — contains `legacy-peer-deps=true`. This is intentional; some dependencies still declare `react@16` as a peer dep. Remove only after Phase 6 is complete.
+**`.npmrc`** — contains `legacy-peer-deps=true`. This is intentional; it is retained from the earlier migration; the current dependency set also resolves with strict peer checks. Remove only after Phase 6 is complete.
 
 ## Testing
 

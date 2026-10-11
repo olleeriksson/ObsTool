@@ -27,11 +27,11 @@ function renderHover(object: IDso = dso) {
   return { ...result, row };
 }
 
-it("opens at 1.2 seconds to the right and closes immediately on leave", () => {
+it("opens at 700 milliseconds to the right and closes immediately on leave", () => {
   vi.useFakeTimers();
   const { row } = renderHover();
   fireEvent.mouseEnter(row);
-  act(() => vi.advanceTimersByTime(1199));
+  act(() => vi.advanceTimersByTime(699));
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   act(() => vi.advanceTimersByTime(1));
   const tooltip = screen.getByRole("tooltip");
@@ -46,12 +46,12 @@ it("cancels brief hovers and requires the full delay again on re-entry", () => {
   vi.useFakeTimers();
   const { row, unmount } = renderHover();
   fireEvent.mouseEnter(row);
-  act(() => vi.advanceTimersByTime(800));
+  act(() => vi.advanceTimersByTime(400));
   fireEvent.mouseLeave(row);
-  act(() => vi.advanceTimersByTime(1200));
+  act(() => vi.advanceTimersByTime(700));
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   fireEvent.mouseEnter(row);
-  act(() => vi.advanceTimersByTime(1199));
+  act(() => vi.advanceTimersByTime(699));
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   unmount();
   expect(vi.getTimerCount()).toBe(0);
@@ -61,7 +61,7 @@ it("does not preview objects without coordinates", () => {
   vi.useFakeTimers();
   const { row } = renderHover({ ...dso, ra: undefined });
   fireEvent.mouseEnter(row);
-  act(() => vi.advanceTimersByTime(1200));
+  act(() => vi.advanceTimersByTime(700));
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
 });
 
@@ -71,7 +71,7 @@ it("preserves object clicks while dismissing the map", () => {
   render(<DsoMapHover dso={dso}><button onClick={onClick}>Object row</button></DsoMapHover>);
   const button = screen.getByRole("button");
   fireEvent.mouseEnter(button.parentElement!);
-  act(() => vi.advanceTimersByTime(1200));
+  act(() => vi.advanceTimersByTime(700));
   fireEvent.click(button);
   expect(onClick).toHaveBeenCalledOnce();
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();

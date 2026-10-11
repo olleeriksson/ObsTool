@@ -5,7 +5,7 @@ import type { WithStyles } from "src/muiCompat";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
@@ -169,7 +169,7 @@ const styles = (theme: Theme) => createStyles({
 });
 
 // Defined at module level so React sees a stable component identity across renders.
-// MUI v6 ButtonBase requires the `component` prop to be a forwardRef-capable element.
+// Forward the anchor ref so MUI can manage focus on navigation links.
 const LinkToHome = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/" ref={ref} {...props} />);
 const LinkToObservedDsos = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/observations" ref={ref} {...props} />);
 const LinkToSessions = React.forwardRef<HTMLAnchorElement, any>((props, ref) => <Link to="/sessions" ref={ref} {...props} />);
@@ -457,7 +457,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             );
         } else {
             userMenuComponent = (
-                <Button component={LinkToLogin} color="primary" className={appbarButtonClassName}>
+                <Button nativeButton={false} component={LinkToLogin} color="primary" className={appbarButtonClassName}>
                     <FontAwesomeIcon icon="key" className={navButtonIconClassName} /> Login
                 </Button>
             );
@@ -476,28 +476,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     </Typography>
                     <div className={classes.navControls}>
                         <div className={classes.navButtonGroup}>
-                            <Button component={LinkToHome} className={appbarButtonClassName}>
+                            <Button nativeButton={false} component={LinkToHome} className={appbarButtonClassName}>
                                 <FontAwesomeIcon icon="home" className={navButtonIconClassName} />Home
                             </Button>
-                            <Button component={LinkToObservedDsos} className={appbarButtonClassName}>
+                            <Button nativeButton={false} component={LinkToObservedDsos} className={appbarButtonClassName}>
                                 <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Observations
                             </Button>
-                            <Button component={LinkToSessions} className={appbarButtonClassName} onClick={this.handleClickSessions}>
+                            <Button nativeButton={false} component={LinkToSessions} className={appbarButtonClassName} onClick={this.handleClickSessions}>
                                 <FontAwesomeIcon icon="table" className={navButtonIconClassName} /> Sessions
                             </Button>
-                            <Button component={LinkToNewSession} className={appbarButtonClassName}>
+                            <Button nativeButton={false} component={LinkToNewSession} className={appbarButtonClassName}>
                                 <FontAwesomeIcon icon="plus" className={navButtonIconClassName} /> New session
                             </Button>
-                            <Button component={LinkToObjects} className={appbarButtonClassName}>
+                            <Button nativeButton={false} component={LinkToObjects} className={appbarButtonClassName}>
                                 <FontAwesomeIcon icon="star" className={navButtonIconClassName} /> Objects
                             </Button>
-                            <Button component={LinkToLocations} className={appbarButtonClassName}>
+                            <Button nativeButton={false} component={LinkToLocations} className={appbarButtonClassName}>
                                 <FontAwesomeIcon icon="map-marked" className={navButtonIconClassName} /> Locations
                             </Button>
-                            <Button component={LinkToInstruments} className={classNames(appbarButtonClassName, classes.instrumentsNavButton)}>
+                            <Button nativeButton={false} component={LinkToInstruments} className={classNames(appbarButtonClassName, classes.instrumentsNavButton)}>
                                 <TelescopeIcon variant="tableTop" size={24} className={classNames(navButtonIconClassName, classes.navTelescopeIcon, isLightTheme && classes.navTelescopeIconLightTheme)} /> Instruments
                             </Button>
-                            <Button component={LinkToEyepieces} className={appbarButtonClassName}>
+                            <Button nativeButton={false} component={LinkToEyepieces} className={appbarButtonClassName}>
                                 <FontAwesomeIcon icon="eye" className={navButtonIconClassName} /> Eyepieces
                             </Button>
                             {userMenuComponent}
@@ -517,7 +517,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             </main>
             {/* Footer */}
             <footer className={classNames(classes.footer, classes.layout)}>
-                <Grid container spacing={4} direction="column" justifyContent="space-evenly">
+                <Grid container spacing={4} sx={{ flexDirection: "column", justifyContent: "space-evenly" }} >
                     <Grid size="grow">
                         <Typography variant="subtitle1" align="center" color="textSecondary">
                             Copyright Olle Eriksson

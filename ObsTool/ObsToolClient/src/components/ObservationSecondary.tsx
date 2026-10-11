@@ -7,7 +7,7 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { IEyepiece, IObservation } from "../types/Types";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -192,7 +192,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
     const obsSessionTitle = this.props.observation.obsSession && this.props.observation.obsSession.title && this.props.observation.obsSession.title;
     const obsSessionLocation = this.props.observation.obsSession && this.props.observation.obsSession.location && "(" + this.props.observation.obsSession.location.name + ")";
     return (
-      <Grid container spacing={0} direction="column" className={classes.root}>
+      <Grid container spacing={0} sx={{ flexDirection: "column" }} className={classes.root}>
         <Grid size={12}>
           <Grid container spacing={0} direction="row">
             <Grid>
@@ -207,7 +207,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
               />
             </Grid>
             <Grid size={{ xs: 12, sm: "grow" }}>
-              <Grid container direction="column" spacing={2}>
+              <Grid container sx={{ flexDirection: "column" }} spacing={2}>
                 <Grid size="grow">
                   <Typography variant="body2" style={{ marginBottom: "0.5em" }}>
                     <a href={obsSessionUrl}>
@@ -233,7 +233,7 @@ class ObservationSecondary extends React.Component<IObservationSecondaryProps, I
               </Grid>
             </Grid>
             <Grid>
-              <Grid container direction="column">
+              <Grid container sx={{ flexDirection: "column" }}>
                 <Grid>
                   {expandButton}
                 </Grid>

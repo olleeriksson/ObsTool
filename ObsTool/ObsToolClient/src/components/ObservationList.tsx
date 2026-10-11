@@ -3,7 +3,7 @@ import { IObservation } from "../types/Types";
 import "./ObservationList.css";
 import Observation from "./Observation";
 import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 
 export interface IObservationListProps {
   observations: IObservation[];
@@ -48,7 +48,7 @@ class ObservationList extends React.Component<IObservationListProps> {
     if (this.props.observations) {
       if (this.props.observations.length > 0) {
         return <div className="observationList">
-          <Grid container direction="column" spacing={1}>
+          <Grid container sx={{ flexDirection: "column" }} spacing={1}>
             {observations}
           </Grid>
         </div>;

@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import logo from "../assets/images/obstool-logo-200px.png";
 import "./Layout.css";
@@ -62,7 +62,7 @@ class Home extends React.Component<IHomeProps> {
 
         return <div>
             {/* Header */}
-            <Grid container justifyContent="center">
+            <Grid container sx={{ justifyContent: "center" }}>
                 <Grid size={{ md: 12 }}>
                     <div className={classes.header}>
                         <Typography align="center" gutterBottom={true}>
@@ -77,7 +77,7 @@ class Home extends React.Component<IHomeProps> {
                     </div>
                 </Grid>
             </Grid>
-            <Grid container alignItems="flex-start" justifyContent="center">
+            <Grid container sx={{ alignItems: "flex-start", justifyContent: "center" }} >
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <div className={classes.homeSearchArea}>
                         <SearchInput />
@@ -85,7 +85,7 @@ class Home extends React.Component<IHomeProps> {
                 </Grid>
             </Grid>
             {/* First/second row */}
-            <Grid container spacing={5} justifyContent="center">
+            <Grid container spacing={5} sx={{ justifyContent: "center" }}>
                 <Grid size="auto" className={classes.cardGridItem}>
                     <Card>
                         <CardContent className={classes.cardContent}>
@@ -97,7 +97,7 @@ class Home extends React.Component<IHomeProps> {
                             </Typography>
                         </CardContent>
                         <CardActions className={classes.cardActions}>
-                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToObservedObjects}>
+                            <Button fullWidth={true} variant="outlined" color="primary" nativeButton={false} component={LinkToObservedObjects}>
                                 Observations
                             </Button>
                         </CardActions>
@@ -114,7 +114,7 @@ class Home extends React.Component<IHomeProps> {
                             </Typography>
                         </CardContent>
                         <CardActions className={classes.cardActions}>
-                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToSessions}>
+                            <Button fullWidth={true} variant="outlined" color="primary" nativeButton={false} component={LinkToSessions}>
                                 List sessions
                             </Button>
                         </CardActions>
@@ -131,7 +131,7 @@ class Home extends React.Component<IHomeProps> {
                             </Typography>
                         </CardContent>
                         <CardActions className={classes.cardActions}>
-                            <Button fullWidth={true} variant="outlined" color="primary" component={LinkToNewSession}>
+                            <Button fullWidth={true} variant="outlined" color="primary" nativeButton={false} component={LinkToNewSession}>
                                 New session
                             </Button>
                         </CardActions>
@@ -139,7 +139,7 @@ class Home extends React.Component<IHomeProps> {
                 </Grid>
             </Grid>
             {/* Second/third row */}
-            <Grid container alignItems="flex-start" justifyContent="center">
+            <Grid container sx={{ alignItems: "flex-start", justifyContent: "center" }} >
                 <Grid size={{ xs: 12, md: 8 }}>
                     <StatisticsTable />
                 </Grid>

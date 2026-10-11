@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
@@ -171,7 +171,7 @@ class ListView extends React.Component<IListViewProps> {
                     </Paper>
                     <div className={classes.emptyRightSide}>
                         <Button
-                            component={LinkToNewSession}
+                            nativeButton={false} component={LinkToNewSession}
                             className={classes.emptyNewSessionButton}
                             color="inherit"
                             size="large"
@@ -185,7 +185,7 @@ class ListView extends React.Component<IListViewProps> {
         }
 
         return <div className={classes.root}>
-            <Grid container spacing={5} alignItems="flex-start">
+            <Grid container spacing={5} sx={{ alignItems: "flex-start" }}>
                 <Grid size={{ xs: 12, lg: 4 }} className={classes.column}>
                     <Typography variant="h6" align="center" color="textPrimary" component="p">
                         <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" /> Sessions

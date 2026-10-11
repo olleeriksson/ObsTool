@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import viteTsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -12,11 +11,9 @@ export default defineConfig(({ mode }) => {
     base: basePath,
     plugins: [
       react(),
-      viteTsconfigPaths({
-        root: '.',
-        projects: ['./tsconfig.json'],
-      }),
     ],
+    // Vite resolves the application's src aliases directly from tsconfig.
+    resolve: { tsconfigPaths: true },
     build: {
       outDir: 'build',
     },

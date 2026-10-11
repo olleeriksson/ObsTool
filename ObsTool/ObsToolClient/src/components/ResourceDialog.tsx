@@ -7,7 +7,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { IObsResource } from "../types/Types";
 import ResourceView from "./ResourceView";
 import Switch from "@mui/material/Switch";
@@ -182,49 +182,53 @@ class ResourceDialog extends React.Component<IResourceDialogProps, IResourceDial
             </Tooltip>
         );
 
-        return <div className={classes.root}>
-            <Dialog
-                open={this.props.isOpen}
-                onClose={this.handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-                maxWidth={false}
-                PaperProps={{ className: dialogPaperClassName }}
-            >
-                <DialogTitle id="alert-dialog-title" className={classes.dialogTitle}>
-                    <span>&nbsp;</span>
-                    {dialogExpandButton}
-                </DialogTitle>
-                <DialogContent className={dialogContentClassName}>
-                    <Grid container direction="row" spacing={0} className={resourceGridClassName}>
-                        {resource1 && (
-                            <Grid className={resourceColumnClassName}>
-                                {resource1}
-                            </Grid>
-                        )}
-                        {resource2 && (
-                            <Grid className={resourceColumnClassName}>
-                                {resource2}
-                            </Grid>
-                        )}
-                    </Grid>
-                </DialogContent>
-                <DialogActions>
-                    <Grid container spacing={1} direction="row">
-                        <Grid size="grow">
-                            &nbsp;
+        return (
+            <div className={classes.root}>
+                <Dialog
+                    open={this.props.isOpen}
+                    onClose={this.handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                    maxWidth={false}
+                    slotProps={{
+                        paper: { className: dialogPaperClassName }
+                    }}
+                >
+                    <DialogTitle id="alert-dialog-title" className={classes.dialogTitle}>
+                        <span>&nbsp;</span>
+                        {dialogExpandButton}
+                    </DialogTitle>
+                    <DialogContent className={dialogContentClassName}>
+                        <Grid container direction="row" spacing={0} className={resourceGridClassName}>
+                            {resource1 && (
+                                <Grid className={resourceColumnClassName}>
+                                    {resource1}
+                                </Grid>
+                            )}
+                            {resource2 && (
+                                <Grid className={resourceColumnClassName}>
+                                    {resource2}
+                                </Grid>
+                            )}
                         </Grid>
-                        <Grid>
-                            {invertBothControl}
-                            <Button onClick={this.handleClose} color="primary">
-                                Close
-                            </Button>
+                    </DialogContent>
+                    <DialogActions>
+                        <Grid container spacing={1} direction="row">
+                            <Grid size="grow">
+                                &nbsp;
+                            </Grid>
+                            <Grid>
+                                {invertBothControl}
+                                <Button onClick={this.handleClose} color="primary">
+                                    Close
+                                </Button>
+                            </Grid>
                         </Grid>
-                    </Grid>
-                </DialogActions>
-            </Dialog>
+                    </DialogActions>
+                </Dialog>
 
-        </div>;
+            </div>
+        );
     }
 }
 

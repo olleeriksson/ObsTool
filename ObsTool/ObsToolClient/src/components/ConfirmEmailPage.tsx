@@ -72,7 +72,7 @@ function ConfirmEmailPage(props: IConfirmEmailPageProps) {
                 {email && <Typography className={classes.success}>Your email address is confirmed.</Typography>}
                 {error && <Typography className={classes.error}>{error}</Typography>}
                 {!isLoading && (
-                    <Button component={Link} to={loginUrl} color="primary" variant="contained">
+                    <Button nativeButton={false} component={Link} to={loginUrl} color="primary" variant="contained">
                         Go to login
                     </Button>
                 )}

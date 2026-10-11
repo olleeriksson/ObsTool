@@ -2,8 +2,8 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import green from "@mui/material/colors/green";
-import amber from "@mui/material/colors/amber";
+import { green, amber } from "@mui/material/colors";
+
 import classNames from "classnames";
 import SnackbarContent from "@mui/material/SnackbarContent";
 import IconButton from "@mui/material/IconButton";

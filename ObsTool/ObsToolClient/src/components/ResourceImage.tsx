@@ -83,8 +83,8 @@ const styles = (theme: Theme) => createStyles({
 });
 
 class ResourceImage extends React.PureComponent<IResourceImageProps, IResourceImageState> {
-    private imgRef: React.RefObject<HTMLImageElement>;
-    private imgContainerRef: React.RefObject<HTMLDivElement>;
+    private imgRef: React.RefObject<HTMLImageElement | null>;
+    private imgContainerRef: React.RefObject<HTMLDivElement | null>;
     private resizeObserver?: ResizeObserver;
 
     constructor(props: IResourceImageProps) {

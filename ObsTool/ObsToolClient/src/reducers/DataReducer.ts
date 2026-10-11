@@ -65,9 +65,10 @@ const initialDataState: IDataState = {
     checkedObsResources: []
 };
 
-type DataAction = authenticationAction.AuthenticationAction | ObsSessionAction | LocationAction | InstrumentAction | EyepieceAction | SearchAction | ObsResourceCheckAction;
+export type DataAction = authenticationAction.AuthenticationAction | ObsSessionAction | LocationAction | InstrumentAction | EyepieceAction | SearchAction | ObsResourceCheckAction;
 
-const DataReducer: Reducer<IDataState> = (state: IDataState = initialDataState, action: DataAction) => {
+// Handle the app action union while retaining the default state for Redux initialization.
+const DataReducer: Reducer<IDataState, DataAction> = (state: IDataState = initialDataState, action: DataAction) => {
 
     switch (action.type) {
         case constants.LOGGED_IN: {

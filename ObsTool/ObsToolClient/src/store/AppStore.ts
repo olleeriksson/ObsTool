@@ -1,10 +1,7 @@
-import { createStore, applyMiddleware } from "redux";
+import { configureStore } from "@reduxjs/toolkit";
 // import { routerMiddleware } from "react-router-redux";
 import rootReducer from "../reducers/index";
-import { ObsSessionAction } from "../actions/ObsSessionActions";
 import { IAppState, IDataState } from "../types/Types";
-import reduxImmutableStateInvariant from "redux-immutable-state-invariant";
-import { thunk } from "redux-thunk";
 
 const initialDataState: IDataState = {
     isLoggedIn: false,
@@ -36,19 +33,12 @@ const initialAppState: IAppState = {
     data: initialDataState
 };
 
-const initStore = () => {
-    const store = createStore<IAppState, ObsSessionAction, {}, {}>(
-        rootReducer,
-        initialAppState,
-        applyMiddleware(
-            reduxImmutableStateInvariant(),
-            thunk
-            // routerMiddleware(),
-            // routerMiddleware(history),
-        ),
-    );
-
-    return store;
-};
+// Configure Redux 5 with supported thunk and development mutation checks.
+const initStore = () => configureStore({
+    reducer: rootReducer,
+    preloadedState: initialAppState,
+    // Existing app state may contain domain objects; preserve the previous serialization policy.
+    middleware: getDefaultMiddleware => getDefaultMiddleware({ serializableCheck: false }),
+});
 
 export default initStore;

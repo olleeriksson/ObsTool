@@ -1,5 +1,6 @@
 import * as React from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { vi } from "vitest";
 import Api from "../api/Api";
@@ -208,7 +209,7 @@ it("hides Magellanic Cloud types from all dropdown sources and offers the new ga
 
     const listbox = await screen.findByRole("listbox");
     expect(within(listbox).queryByText(/^In (LMC|SMC):/)).not.toBeInTheDocument();
-    expect(within(listbox).getByText("In Galaxy: Stellation Association")).toBeInTheDocument();
+    expect(within(listbox).getByText("In Galaxy: Stellation Assoc.")).toBeInTheDocument();
     expect(within(listbox).getByText("In Galaxy: Open cluster")).toBeInTheDocument();
     fireEvent.click(within(listbox).getByText("In Galaxy: Open cluster"));
     expect(typeField).toHaveValue("In Galaxy: Open cluster");
@@ -304,8 +305,11 @@ it("keeps Type and Constellation after saving and uses them for the next object"
     fireEvent.change(await screen.findByRole("textbox", { name: /^Name/ }), { target: { value: "Mars" } });
     fireEvent.change(screen.getByRole("textbox", { name: "Common name" }), { target: { value: "The red planet" } });
     fireEvent.change(screen.getByRole("combobox", { name: "Type" }), { target: { value: "Planet" } });
-    fireEvent.change(screen.getByRole("combobox", { name: "Constellation" }), { target: { value: "Andromeda" } });
-    fireEvent.click(await screen.findByRole("option", { name: "Andromeda" }));
+    // MUI 9 follows real input focus when switching between autocomplete fields.
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "Constellation" }));
+    await user.keyboard("{ArrowDown}");
+    await user.click(await screen.findByRole("option", { name: "Andromeda" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 

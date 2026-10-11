@@ -367,20 +367,22 @@ function SystemEventLogPage(props: ISystemEventLogPageProps) {
                             className={classes.searchField}
                             value={searchText}
                             onChange={handleSearchTextChange}
-                            InputProps={{
-                                endAdornment: searchText ? (
-                                    <InputAdornment position="end">
-                                        <Tooltip title="Clear search">
-                                            <IconButton
-                                                size="small"
-                                                aria-label="Clear system event search"
-                                                onClick={handleClearSearch}
-                                            >
-                                                <ClearIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </InputAdornment>
-                                ) : undefined
+                            slotProps={{
+                                input: {
+                                    endAdornment: searchText ? (
+                                        <InputAdornment position="end">
+                                            <Tooltip title="Clear search">
+                                                <IconButton
+                                                    size="small"
+                                                    aria-label="Clear system event search"
+                                                    onClick={handleClearSearch}
+                                                >
+                                                    <ClearIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </InputAdornment>
+                                    ) : undefined
+                                }
                             }}
                         />
                         <TextField

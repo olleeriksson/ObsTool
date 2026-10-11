@@ -591,24 +591,26 @@ class ObsSessionList extends React.Component<IObsSessionListProps, IObsSessionLi
             placeholder="Title, date, location, instrument"
             size="small"
             value={this.state.searchText}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-              endAdornment: this.state.searchText ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="Clear session search"
-                    edge="end"
-                    onClick={this.onSearchTextClear}
-                    size="small"
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ) : undefined,
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+                endAdornment: this.state.searchText ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="Clear session search"
+                      edge="end"
+                      onClick={this.onSearchTextClear}
+                      size="small"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : undefined,
+              }
             }}
           />
           <TextField

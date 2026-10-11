@@ -6,7 +6,7 @@ import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Dialog from "@mui/material/Dialog";
@@ -255,7 +255,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                 <DialogTitle>Delete eyepiece?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete <strong>{this.state.currentEyepiece.name}</strong>? 
+                        Are you sure you want to delete <strong>{this.state.currentEyepiece.name}</strong>?
                         An eyepiece can be re-added later if needed, and any references in observation reports will applied
                         dynamically, so this action is reversible and does not cause data loss.
                     </DialogContentText>
@@ -270,7 +270,7 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
         const eyepieceForm = (
             <div>
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
-                    <Grid container direction="column" size="grow">
+                    <Grid container sx={{ flexDirection: "column" }} size="grow">
                         <Grid container spacing={2} sx={{ px: 1 }}>
                             <Grid size={{ xs: 12, md: 4 }}>
                                 <TextField
@@ -304,7 +304,9 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
                                     margin="dense"
                                     size="small"
                                     type="text"
-                                    inputProps={{ inputMode: "decimal", pattern: "[0-9]*[.]?[0-9]*" }}
+                                    slotProps={{
+                                        htmlInput: { inputMode: "decimal", pattern: "[0-9]*[.]?[0-9]*" }
+                                    }}
                                 />
                             </Grid>
                         </Grid>
@@ -356,13 +358,13 @@ class EyepiecesView extends React.Component<IEyepiecesViewProps, IEyepiecesViewS
             <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                 <FontAwesomeIcon icon="eye" className="faSpaceAfter" /> Eyepieces
             </Typography>
-            <Grid container spacing={5} justifyContent="center" direction="row">
+            <Grid container spacing={5} sx={{ justifyContent: "center" }} direction="row">
                 <Grid size={{ xs: 12, md: 8 }}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         {eyepieceForm}
                     </Paper>
                     <Paper className={classes.textfieldPaper} elevation={1}>
-                        <Grid container spacing={3} direction="column">
+                        <Grid container spacing={3} sx={{ flexDirection: "column" }}>
                             {eyepieceList}
                         </Grid>
                     </Paper>

@@ -6,7 +6,7 @@ import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Dialog from "@mui/material/Dialog";
@@ -450,7 +450,7 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
                     <Grid container spacing={0} size="grow" sx={{ px: 1 }}>
                         <Grid className={classes.fieldColumn} size={{ xs: 12, md: "grow" }}>
-                            <Grid container direction="column">
+                            <Grid container sx={{ flexDirection: "column" }}>
                                 <Grid container spacing={2}>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
@@ -489,7 +489,9 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                             className={classes.rowField}
                                             margin="dense"
                                             size="small"
-                                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                                            slotProps={{
+                                                htmlInput: { inputMode: "numeric", pattern: "[0-9]*" }
+                                            }}
                                         />
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -502,7 +504,9 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
                                             margin="dense"
                                             size="small"
                                             type="text"
-                                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                                            slotProps={{
+                                                htmlInput: { inputMode: "numeric", pattern: "[0-9]*" }
+                                            }}
                                         />
                                     </Grid>
                                 </Grid>
@@ -583,13 +587,13 @@ class InstrumentsView extends React.Component<IInstrumentsViewProps, IInstrument
             <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                 <TelescopeIcon variant="tableTop" className="faSpaceAfter" size={30} /> Instruments
             </Typography>
-            <Grid container spacing={5} justifyContent="center" direction="row">
+            <Grid container spacing={5} sx={{ justifyContent: "center" }} direction="row">
                 <Grid size={{ xs: 12, md: 8 }}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         {instrumentForm}
                     </Paper>
                     <Paper className={classes.textfieldPaper} elevation={1}>
-                        <Grid container spacing={3} direction="column">
+                        <Grid container spacing={3} sx={{ flexDirection: "column" }}>
                             {instrumentList}
                         </Grid>
                     </Paper>

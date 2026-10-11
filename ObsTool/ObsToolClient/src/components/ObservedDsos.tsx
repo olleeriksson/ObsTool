@@ -2,7 +2,7 @@ import * as React from "react";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import { IDso, IPagedDsoList } from "../types/Types";
@@ -106,9 +106,9 @@ class ObservedDsos extends React.Component<IObservedDsosProps, IObservedDsosStat
                 <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                     All observed objects
                 </Typography>
-                <Grid container spacing={5} justifyContent="center" direction="row">
+                <Grid container spacing={5} sx={{ justifyContent: "center" }} direction="row">
                     <Grid size={{ xs: 12, md: 8 }}>
-                        <Grid container spacing={0} justifyContent="center" direction="column">
+                        <Grid container spacing={0} sx={{ justifyContent: "center", flexDirection: "column" }} >
                             {obsList}
                         </Grid>
                     </Grid>

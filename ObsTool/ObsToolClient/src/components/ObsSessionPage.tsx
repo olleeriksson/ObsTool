@@ -3,7 +3,7 @@ import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import "./ObsSessionPage.css";
 import { IObsSession, IObservation } from "../types/Types";
 import Tabs from "@mui/material/Tabs";
@@ -472,7 +472,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
                                 <Typography />
                             </Grid>
                             <Grid size={10}>
-                                <Grid container direction="row" justifyContent="center">
+                                <Grid container direction="row" sx={{ justifyContent: "center" }}>
                                     <Grid>
                                         <Typography gutterBottom={true} variant="h4">
                                             <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" />

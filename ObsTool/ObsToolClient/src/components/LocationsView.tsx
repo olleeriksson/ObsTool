@@ -6,7 +6,7 @@ import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
@@ -240,7 +240,7 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
         const locationForm = (
             <div className="">
                 <form onSubmit={this.handleSubmit} className={classes.form} noValidate={true} autoComplete="off">
-                    <Grid container direction="column" size="grow">
+                    <Grid container sx={{ flexDirection: "column" }} size="grow">
                         <Grid sx={{ px: 1 }}>
                             <TextField
                                 id="name"
@@ -316,13 +316,13 @@ class LocationsView extends React.Component<ILocationsViewProps, ILocationsViewS
             <Typography variant="h6" align="center" color="textPrimary" component="p" style={{ marginTop: 20 }}>
                 <FontAwesomeIcon icon="map-marked" className="faSpaceAfter" size="lg" /> Locations
             </Typography>
-            <Grid container spacing={5} justifyContent="center" direction="row">
+            <Grid container spacing={5} sx={{ justifyContent: "center" }} direction="row">
                 <Grid size={{ xs: 12, md: 8 }}>
                     <Paper className={classes.textfieldPaper} elevation={1}>
                         {locationForm}
                     </Paper>
                     <Paper className={classes.textfieldPaper} elevation={1}>
-                        <Grid container spacing={3} direction="column">
+                        <Grid container spacing={3} sx={{ flexDirection: "column" }}>
                             {locations}
                         </Grid>
                     </Paper>

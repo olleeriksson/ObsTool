@@ -41,7 +41,6 @@ class SelectComponent extends React.Component<ISelectComponentProps> {
     return (
       <TextField
         select
-        SelectProps={{ native: true }}
         label={this.props.label}
         value={this.props.value}
         onChange={this.handleChange}
@@ -49,9 +48,11 @@ class SelectComponent extends React.Component<ISelectComponentProps> {
         variant="outlined"
         margin={this.props.margin || "normal"}
         size={this.props.size}
-        InputLabelProps={{ shrink: true }}
         helperText={this.props.helperText}
-      >
+        slotProps={{
+          select: { native: true },
+          inputLabel: { shrink: true }
+        }}>
         {options}
       </TextField>
     );

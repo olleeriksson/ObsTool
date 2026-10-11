@@ -75,7 +75,9 @@ class ConstellationDialog extends React.Component<IConstellationDialogProps, ICo
                 onClose={onClose}
                 fullWidth={true}
                 maxWidth="lg"
-                PaperProps={{ style: { width: "94vw", maxWidth: 1320, minHeight: "92vh" } }}
+                slotProps={{
+                    paper: { style: { width: "94vw", maxWidth: 1320, minHeight: "92vh" } }
+                }}
             >
                 <DialogTitle className={classes.titleRoot}>
                     <span>{title}</span>

@@ -108,7 +108,9 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
                 onClose={this.closeMapDialog}
                 fullWidth={true}
                 maxWidth="sm"
-                PaperProps={{ style: { width: "92vw", maxWidth: 760 } }}
+                slotProps={{
+                  paper: { style: { width: "92vw", maxWidth: 760 } }
+                }}
               >
                 <DialogTitle>{`Constellation map (${selectedObject.name})`}</DialogTitle>
                 <DialogContent className={classes.mapDialogContent}>
