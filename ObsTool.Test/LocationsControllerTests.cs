@@ -160,6 +160,34 @@ namespace TestProject
             Assert.That(_dbContext.Locations.Any(location => location.Id == locationId), Is.False);
         }
 
+        // Name-only creation fills required columns, and renaming preserves their existing values.
+        [Test]
+        public void NameOnlyLocation_CreateAndRenameRetainDatabaseFields()
+        {
+            var result = (CreatedAtRouteResult)_controller.Post(new LocationDtoForCreation { Name = "New site" });
+            var locationId = ((LocationDto)result.Value).Id;
+            _dbContext.ChangeTracker.Clear();
+
+            var savedLocation = _dbContext.Locations.Single(location => location.Id == locationId);
+            Assert.That(savedLocation.Name, Is.EqualTo("New site"));
+            Assert.That(new[] { savedLocation.GoogleMapsAddress, savedLocation.Latitude, savedLocation.Longitude },
+                Is.EqualTo(new[] { string.Empty, string.Empty, string.Empty }));
+
+            // Populate the retained columns independently of the name-only API before updating.
+            _dbContext.Database.ExecuteSqlInterpolated(
+                $"UPDATE Locations SET GoogleMapsAddress = {"Existing address"}, Latitude = {"59.3"}, Longitude = {"18.1"} WHERE Id = {locationId}");
+            _dbContext.ChangeTracker.Clear();
+
+            var updateResult = _controller.Put(locationId, new LocationDtoForUpdate { Name = "Renamed site" });
+            Assert.That(updateResult, Is.TypeOf<OkObjectResult>());
+            _dbContext.ChangeTracker.Clear();
+
+            savedLocation = _dbContext.Locations.Single(location => location.Id == locationId);
+            Assert.That(savedLocation.Name, Is.EqualTo("Renamed site"));
+            Assert.That(new[] { savedLocation.GoogleMapsAddress, savedLocation.Latitude, savedLocation.Longitude },
+                Is.EqualTo(new[] { "Existing address", "59.3", "18.1" }));
+        }
+
         // Creates the controller with real repositories so location/session reference behavior is tested through EF.
         private LocationsController CreateController()
         {

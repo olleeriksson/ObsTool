@@ -18,5 +18,17 @@ namespace ObsTool.Entities
         [Required]
         [MaxLength(250)]
         public string Name { get; set; }
+
+        // Supply the retained required database columns on inserts; location DTOs remain name-only.
+        [Required]
+        public string GoogleMapsAddress { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(250)]
+        public string Latitude { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(250)]
+        public string Longitude { get; set; } = string.Empty;
     }
 }
