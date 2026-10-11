@@ -453,6 +453,7 @@ namespace ObsTool.Services
                     dsoObservation.Observation.ObsSessionId
                 })
                 .Where(row => row.ObjectId.HasValue)
+                .ToList()  // Needed for MySQL, finish reading observation links before querying sessions on the same MySQL connection.
                 .Join(
                     _dbContext.ObsSessions.Where(session => session.UserId == userId).AsEnumerable(),
                     row => row.ObsSessionId,
