@@ -8,3 +8,4 @@
 2026-06-05    - A better New session button
 2026-06-10    - Enabled admin notifications
 2026-08-15    - Multiple bug fixed ahead of Sagittarius.
+2026-10-11    - Fixed a MySQL-specific current reader thread issue.
