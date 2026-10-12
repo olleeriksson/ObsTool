@@ -589,9 +589,9 @@ function renderPlot(
                 ))}
             </g>
             <g>
-                {projectedBackgroundObjects.map(object => renderCrosshair(object, "background", classes.backgroundObjectMarker, classes.transparentHitArea, 4, 9))}
-                {projectedObjects.map(object => renderCrosshair(object, "normal", classes.normalObjectMarker, classes.transparentHitArea, 4.5, 10))}
-                {projectedHighlightedObjects.map(object => renderCrosshair(object, "highlighted", classes.highlightedObjectMarker, classes.transparentHitArea, 6, 12))}
+                {projectedBackgroundObjects.map(object => renderCrosshair(object, "background", classes.backgroundObjectMarker, classes.transparentHitArea, 4, 9, setSelectedObjectInfo))}
+                {projectedObjects.map(object => renderCrosshair(object, "normal", classes.normalObjectMarker, classes.transparentHitArea, 4.5, 10, setSelectedObjectInfo))}
+                {projectedHighlightedObjects.map(object => renderCrosshair(object, "highlighted", classes.highlightedObjectMarker, classes.transparentHitArea, 6, 12, setSelectedObjectInfo))}
             </g>
             <g>
                 {labelPlacements.map(placement => renderObjectLabel(
@@ -800,7 +800,7 @@ function createGridSegments(focusedBoundaryPositions: CelestialPosition[]) {
 }
 
 // Emphasize highlighted targets with a thicker cross in both overview and locator maps.
-function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMapMarkerKind, markerClassName: string, hitAreaClassName: string, radius: number, hitRadius: number) {
+function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMapMarkerKind, markerClassName: string, hitAreaClassName: string, radius: number, hitRadius: number, setSelectedObjectInfo: (objectInfo: string) => void) {
     const strokeWidth = markerKind === "highlighted" ? 3 : 1.8;
     return (
         <Tooltip
@@ -812,7 +812,10 @@ function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMa
             disableInteractive={true}
             arrow={true}
         >
-            <g>
+            <g
+                onPointerDown={event => event.stopPropagation()}
+                onClick={event => selectMapObject(event, object.object, setSelectedObjectInfo)}
+            >
                 <line x1={object.x - radius} y1={object.y} x2={object.x + radius} y2={object.y} className={markerClassName} data-marker-kind={markerKind} strokeWidth={strokeWidth} strokeLinecap="round" />
                 <line x1={object.x} y1={object.y - radius} x2={object.x} y2={object.y + radius} className={markerClassName} data-marker-kind={markerKind} strokeWidth={strokeWidth} strokeLinecap="round" />
                 <circle
@@ -827,6 +830,7 @@ function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMa
     );
 }
 
+// Render clickable labels through the same selection path as the marker hit areas.
 function renderObjectLabel(placement: ReturnType<typeof selectLabelPlacements>[number], setSelectedObjectInfo: (objectInfo: string) => void, labelClassName: string) {
     const object = (placement.candidate as ProjectedMapObject).object;
     const tooltip = getObjectTooltip(object);
@@ -847,15 +851,18 @@ function renderObjectLabel(placement: ReturnType<typeof selectLabelPlacements>[n
                 className={labelClassName}
                 pointerEvents="all"
                 onPointerDown={event => event.stopPropagation()}
-                onClick={event => {
-                    event.stopPropagation();
-                    setSelectedObjectInfo(tooltip);
-                }}
+                onClick={event => selectMapObject(event, object, setSelectedObjectInfo)}
             >
                 {placement.label}
             </text>
         </Tooltip>
     );
+}
+
+// Share selection and event handling so marker and label clicks update the same controls panel.
+function selectMapObject(event: React.MouseEvent<SVGElement>, object: IConstellationMapObject, setSelectedObjectInfo: (objectInfo: string) => void) {
+    event.stopPropagation();
+    setSelectedObjectInfo(getObjectTooltip(object));
 }
 
 function getObjectTooltip(object: IConstellationMapObject) {

@@ -118,21 +118,39 @@ it("toggles each marker type from the controls panel", () => {
     expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(2);
 });
 
-it("shows selected object information when a label is clicked", () => {
-    render(
+// Exercise labels, cross lines, and enlarged hit areas across every marker group.
+it("selects the same object information from labels and markers without starting a pan", () => {
+    const { container } = render(
         <ConstellationMap
             constellation="And"
-            objects={[
-                { name: "NGC 224", catalog: "NGC", catalogNumber: "224", herschelNo: "H V-18", ra: "00 42.7", dec: "+41 16" },
-                { name: "NGC 205", catalog: "NGC", catalogNumber: "205", herschelNo: "H V-17", ra: "00 40.4", dec: "+41 41" },
-            ]}
+            objects={[{ name: "NGC 224", herschelNo: "H V-18", ra: "00 42.7", dec: "+41 16" }]}
+            highlightedObjects={[{ name: "NGC 205", herschelNo: "H V-17", ra: "00 40.4", dec: "+41 41" }]}
+            backgroundObjects={[{ name: "NGC 206", herschelNo: "H V-16", ra: "00 40.5", dec: "+40 44" }]}
             labelMode="herschel"
         />
     );
 
     fireEvent.click(screen.getByText("H V-18"));
-
     expect(screen.getByText("NGC 224 / H V-18")).toBeInTheDocument();
+
+    const map = screen.getByRole("img", { name: "Constellation map" });
+    const capturePointer = vi.fn();
+    Object.defineProperty(map, "setPointerCapture", { value: capturePointer });
+    const backgroundHitArea = container.querySelector("line[data-marker-kind='background']")!.parentElement!.querySelector("circle")!;
+    fireEvent.pointerDown(backgroundHitArea, { button: 0, isPrimary: true, pointerId: 1 });
+    expect(capturePointer).not.toHaveBeenCalled();
+    fireEvent.click(backgroundHitArea);
+    expect(screen.getByText("NGC 206 / H V-16")).toBeInTheDocument();
+    expect(screen.queryByText("NGC 224 / H V-18")).not.toBeInTheDocument();
+
+    fireEvent.click(container.querySelector("line[data-marker-kind='highlighted']")!);
+    expect(screen.getByText("NGC 205 / H V-17")).toBeInTheDocument();
+    fireEvent.click(container.querySelector("line[data-marker-kind='normal']")!);
+    expect(screen.getByText("NGC 224 / H V-18")).toBeInTheDocument();
+    expect(screen.queryByText("NGC 205 / H V-17")).not.toBeInTheDocument();
+
+    fireEvent.pointerDown(map, { button: 0, isPrimary: true, pointerId: 1 });
+    expect(capturePointer).toHaveBeenCalledWith(1);
 });
 
 it("zooms from the wheel when zooming is enabled", () => {
@@ -286,7 +304,7 @@ it("labels every statistics group with SAC names and keeps observed H400 objects
     expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(2);
     expect(container.querySelector("svg text")).toHaveTextContent("Unseen H400");
     expect(container.querySelectorAll("svg text")).toHaveLength(1);
-    expect(container.querySelector("line[data-marker-kind='highlighted']")).toHaveAttribute("stroke-width", "4");
+    expect(container.querySelector("line[data-marker-kind='highlighted']")).toHaveAttribute("stroke-width", "3");
 
     fireEvent.click(screen.getByRole("button", { name: "Herschel" }));
     expect(screen.getByRole("button", { name: "Herschel" })).toHaveAttribute("aria-pressed", "true");
