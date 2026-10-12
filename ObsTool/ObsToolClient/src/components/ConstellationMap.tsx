@@ -52,6 +52,10 @@ export interface IConstellationMapProps {
     highlightedLabel?: string;
     maxNumLabels?: number;
     labelMode?: ConstellationMapLabelMode;
+    /** Label a lone object in overview maps; locator maps keep it unlabeled. */
+    labelSingleObject?: boolean;
+    /** Include observed background objects in the label budget for overview maps. */
+    showBackgroundLabels?: boolean;
     width?: number | string;
     height?: number;
     showControls?: boolean;
@@ -165,6 +169,9 @@ const styles = (theme: Theme) => createStyles({
         stroke: theme.palette.mode === "dark" ? "#0d1117" : "#ffffff",
         strokeWidth: 2.2,
     },
+    backgroundObjectLabel: {
+        fill: theme.palette.mode === "dark" ? "#6f7d8f" : "#b4b4b4",
+    },
     controlsPanel: {
         background: theme.palette.mode === "dark" ? "#161b22" : "#ececec",
         borderLeft: `1px solid ${theme.palette.divider}`,
@@ -269,6 +276,8 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         highlightedLabel = "Highlighted objects",
         maxNumLabels,
         labelMode = "sac",
+        labelSingleObject = false,
+        showBackgroundLabels = false,
         width = "100%",
         height = defaultHeight,
         showControls = true,
@@ -276,7 +285,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         allowZoom = true,
     } = props;
 
-    const defaultMaxLabels = getDefaultMaxLabels(objects, highlightedObjects);
+    const defaultMaxLabels = getDefaultMaxLabels(objects, highlightedObjects, showBackgroundLabels ? backgroundObjects : []);
     const [activeLabelMode, setActiveLabelMode] = React.useState<ConstellationMapLabelMode>(labelMode);
     const [activeMaxLabels, setActiveMaxLabels] = React.useState(maxNumLabels ?? defaultMaxLabels);
     const [pan, setPan] = React.useState<PlanePan>({ x: 0, y: 0 });
@@ -343,12 +352,14 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         4,
         activeLabelMode,
         mapPadding);
-    const foregroundObjectCount = projectedHighlightedObjects.length + projectedObjects.length;
-    const sliderMax = Math.max(1, foregroundObjectCount);
+    // Overview maps label observed objects too, using the same slider and collision placement.
+    const labelCandidates = [...projectedObjects, ...(showBackgroundLabels ? projectedBackgroundObjects : [])];
+    const labelObjectCount = projectedHighlightedObjects.length + labelCandidates.length;
+    const sliderMax = Math.max(1, labelObjectCount);
     const displayedMaxLabels = Math.min(activeMaxLabels, sliderMax);
-    const showAllForegroundLabels = displayedMaxLabels >= foregroundObjectCount;
-    const labelPlacements = foregroundObjectCount > 1
-        ? selectLabelPlacements(projectedHighlightedObjects, projectedObjects, displayedMaxLabels, labelFontSize, viewBoxWidth, height, showAllForegroundLabels)
+    const showAllLabels = displayedMaxLabels >= labelObjectCount;
+    const labelPlacements = labelObjectCount > 1 || (labelSingleObject && labelObjectCount === 1)
+        ? selectLabelPlacements(projectedHighlightedObjects, labelCandidates, displayedMaxLabels, labelFontSize, viewBoxWidth, height, showAllLabels)
         : [];
 
     return (
@@ -401,11 +412,11 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                         aria-label="Constellation map label style"
                         className={classes.labelToggleGroup}
                     >
-                        <ToggleButton value="herschel" className={classes.labelToggleButton}>
-                            Herschel
-                        </ToggleButton>
                         <ToggleButton value="sac" className={classes.labelToggleButton}>
                             SAC
+                        </ToggleButton>
+                        <ToggleButton value="herschel" className={classes.labelToggleButton}>
+                            Herschel
                         </ToggleButton>
                     </ToggleButtonGroup>
                     <Typography variant="caption" component="div" className={classes.labelCount}>
@@ -583,7 +594,10 @@ function renderPlot(
                 {projectedHighlightedObjects.map(object => renderCrosshair(object, "highlighted", classes.highlightedObjectMarker, classes.transparentHitArea, 6, 12))}
             </g>
             <g>
-                {labelPlacements.map(placement => renderObjectLabel(placement, setSelectedObjectInfo, classes.objectLabel))}
+                {labelPlacements.map(placement => renderObjectLabel(
+                    placement,
+                    setSelectedObjectInfo,
+                    `${classes.objectLabel} ${projectedBackgroundObjects.some(object => object.key === placement.key) ? classes.backgroundObjectLabel : ""}`))}
             </g>
         </svg>
     );
@@ -734,13 +748,9 @@ function uniqueObjects(objects: IConstellationMapObject[]) {
     });
 }
 
-function getDefaultMaxLabels(objects: IConstellationMapObject[], highlightedObjects: IConstellationMapObject[]) {
-    const uniqueHighlightedObjects = uniqueObjects(highlightedObjects);
-    const highlightedKeys = new Set(uniqueHighlightedObjects.map(getMapObjectKey));
-    const uniqueNormalObjects = uniqueObjects(objects).filter(object => !highlightedKeys.has(getMapObjectKey(object)));
-
-    // With no explicit max, label every foreground object; background detections stay unlabeled.
-    return uniqueHighlightedObjects.length + uniqueNormalObjects.length;
+// Count each eligible object once so overview maps default to labels for all three groups.
+function getDefaultMaxLabels(objects: IConstellationMapObject[], highlightedObjects: IConstellationMapObject[], backgroundObjects: IConstellationMapObject[]) {
+    return uniqueObjects([...highlightedObjects, ...objects, ...backgroundObjects]).length;
 }
 
 function getUniqueLineVertices(lineSegments: RawCoordinate[][], extent: MapExtent, viewBoxWidth: number, height: number, padding: MapPadding) {
@@ -789,7 +799,9 @@ function createGridSegments(focusedBoundaryPositions: CelestialPosition[]) {
     return segments;
 }
 
+// Emphasize highlighted targets with a thicker cross in both overview and locator maps.
 function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMapMarkerKind, markerClassName: string, hitAreaClassName: string, radius: number, hitRadius: number) {
+    const strokeWidth = markerKind === "highlighted" ? 3 : 1.8;
     return (
         <Tooltip
             key={object.key}
@@ -801,8 +813,8 @@ function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMa
             arrow={true}
         >
             <g>
-                <line x1={object.x - radius} y1={object.y} x2={object.x + radius} y2={object.y} className={markerClassName} data-marker-kind={markerKind} strokeWidth={1.8} strokeLinecap="round" />
-                <line x1={object.x} y1={object.y - radius} x2={object.x} y2={object.y + radius} className={markerClassName} data-marker-kind={markerKind} strokeWidth={1.8} strokeLinecap="round" />
+                <line x1={object.x - radius} y1={object.y} x2={object.x + radius} y2={object.y} className={markerClassName} data-marker-kind={markerKind} strokeWidth={strokeWidth} strokeLinecap="round" />
+                <line x1={object.x} y1={object.y - radius} x2={object.x} y2={object.y + radius} className={markerClassName} data-marker-kind={markerKind} strokeWidth={strokeWidth} strokeLinecap="round" />
                 <circle
                     cx={object.x}
                     cy={object.y}

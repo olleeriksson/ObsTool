@@ -40,10 +40,12 @@ class ConstellationView extends React.Component<IConstellationViewProps, IConste
         selectedTab: 0,
     };
 
+    // Render the statistics overview with labels for every visible group, including single objects.
     public render() {
         const { backgroundLabel, classes, constellationAbbrv, constellationName, highlightedLabel, objectLabel, objects } = this.props;
-        const highlightedObjects = objects.filter(object => object.h400);
-        const backgroundObjects = objects.filter(object => object.isObserved && !object.h400);
+        // Observed objects belong to the background group, including members of H400.
+        const highlightedObjects = objects.filter(object => !object.isObserved && object.h400);
+        const backgroundObjects = objects.filter(object => object.isObserved);
         const normalObjects = objects.filter(object => !object.isObserved && !object.h400);
 
         return (
@@ -66,7 +68,9 @@ class ConstellationView extends React.Component<IConstellationViewProps, IConste
                         objectLabel={objectLabel}
                         backgroundLabel={backgroundLabel}
                         highlightedLabel={highlightedLabel}
-                        labelMode="herschel"
+                        labelMode="sac"
+                        labelSingleObject={true}
+                        showBackgroundLabels={true}
                         height={760}
                     />
                 </div>

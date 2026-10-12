@@ -2,6 +2,7 @@ import * as React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import ConstellationMap from "./ConstellationMap";
+import ConstellationView from "./ConstellationView";
 
 it("does not label a single foreground object", () => {
     render(
@@ -244,4 +245,53 @@ it("fits the SVG viewBox to the measured plot viewport", async () => {
     } finally {
         globalThis.ResizeObserver = originalResizeObserver;
     }
+});
+// Verify that detection status takes precedence over H400 membership in the dialog's map filters.
+it("labels every statistics group with SAC names and keeps observed H400 objects out of unseen groups", () => {
+    const { container } = render(
+        <ConstellationView
+            constellationAbbrv="UMI"
+            constellationName="Ursa Minor"
+            objects={[
+                { name: "NGC 6217", herschelNo: "H I-280", ra: "16 32.7", dec: "+78 12", h400: true, isObserved: true },
+                { name: "Unseen H400", ra: "16 00", dec: "+78 00", h400: true, isObserved: false },
+                { name: "Unseen H2500", ra: "15 00", dec: "+78 00", h400: false, isObserved: false },
+            ]}
+            objectLabel="Unseen Herschel 2500"
+            backgroundLabel="Already observed"
+            highlightedLabel="Unseen Herschel 400"
+        />
+    );
+
+    expect(screen.getByRole("checkbox", { name: "NGC 6217 observed", hidden: true })).toBeChecked();
+    const labelSelector = screen.getByRole("group", { name: "Constellation map label style" });
+    expect(labelSelector.querySelector("button")).toHaveTextContent("SAC");
+    expect(screen.getByRole("button", { name: "SAC" })).toHaveAttribute("aria-pressed", "true");
+    expect(container.querySelectorAll("svg text")).toHaveLength(3);
+    expect(screen.getByText("Label count: 3")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
+    expect(container.querySelectorAll("line[data-marker-kind='background']")).toHaveLength(2);
+    const observedLabel = container.querySelector("svg text")!;
+    const observedMarker = container.querySelector("line[data-marker-kind='background']")!;
+    expect(observedLabel).toHaveTextContent("NGC 6217");
+    expect(getComputedStyle(observedLabel).fill).toBe(getComputedStyle(observedMarker).stroke);
+    expect(container.querySelectorAll("svg text")).toHaveLength(1);
+    expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(0);
+    expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
+    expect(container.querySelectorAll("line[data-marker-kind='background']")).toHaveLength(0);
+    expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(2);
+    expect(container.querySelector("svg text")).toHaveTextContent("Unseen H400");
+    expect(container.querySelectorAll("svg text")).toHaveLength(1);
+    expect(container.querySelector("line[data-marker-kind='highlighted']")).toHaveAttribute("stroke-width", "4");
+
+    fireEvent.click(screen.getByRole("button", { name: "Herschel" }));
+    expect(screen.getByRole("button", { name: "Herschel" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+    expect(container.querySelectorAll("svg text")).toHaveLength(1);
+    expect(container.querySelector("svg text")).toHaveTextContent("Unseen H2500");
 });
