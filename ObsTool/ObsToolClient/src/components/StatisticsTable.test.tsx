@@ -2,7 +2,8 @@ import * as React from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { vi } from "vitest";
+import { vi, beforeEach } from "vitest";
+import { labelVisibilityStorageKey } from "../store/LabelVisibilityStore";
 import Api from "../api/Api";
 import { IStatistics } from "../types/Types";
 import { lightThemeSecondaryColor } from "../theme/ThemeColors";
@@ -75,6 +76,12 @@ const allSessionsStatistics: IStatistics = {
         h400: { total: 5, observed: 4, nonDetections: 2 },
     }],
 };
+
+// Keep global browser preferences isolated between statistics scenarios.
+beforeEach(() => {
+    localStorage.removeItem(labelVisibilityStorageKey);
+    window.dispatchEvent(new StorageEvent("storage", { key: labelVisibilityStorageKey }));
+});
 
 afterEach(() => {
     vi.restoreAllMocks();
@@ -211,4 +218,27 @@ it("shows failed H2500 and H400 attempts on their own row", async () => {
     expect(screen.getByRole("row", { name: "Unsuccessfull H2500 objects 2 Unsuccessfull H400 objects 1" })).toBeInTheDocument();
     expect(screen.queryByText("(+2)")).not.toBeInTheDocument();
     expect(screen.queryByText("(+1)")).not.toBeInTheDocument();
+});
+
+// Verify that dialog changes immediately update the statistics column and its global visibility.
+it("updates the constellation status when every dialog label is hidden and removes the column when disabled", async () => {
+    vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: statistics } as any);
+    vi.spyOn(Api, "getH2500ObjectsForConstellationMap").mockResolvedValue({ data: [
+        { name: "NGC 1976", herschelId: 1, ra: "05 35.3", dec: "-05 23", isObserved: true },
+        { name: "NGC 1977", herschelId: 2, ra: "05 35.4", dec: "-04 50", h400: true },
+    ] } as any);
+    const { container } = render(<StatisticsTable />, { wrapper });
+    fireEvent.click(await screen.findByText("Statistics by constellation"));
+    expect(screen.getByRole("columnheader", { name: "Label visibility status" })).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Orion"));
+    await screen.findByRole("switch", { name: "Label visibility filter" });
+    const dialog = screen.getByRole("dialog");
+    fireEvent.click(dialog.querySelector("line[data-marker-kind='background']")!);
+    fireEvent.click(dialog.querySelector("line[data-marker-kind='highlighted']")!);
+    fireEvent.click(screen.getByRole("button", { name: "Close constellation dialog" }));
+    expect(await screen.findByRole("img", { name: /ORI.*all Herschel labels hidden/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Orion"));
+    fireEvent.click(await screen.findByRole("switch", { name: "Label visibility filter" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close constellation dialog" }));
+    await waitFor(() => expect(container.querySelector("th[aria-label='Label visibility status']")).not.toBeInTheDocument());
 });

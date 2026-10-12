@@ -1,4 +1,7 @@
 import * as React from "react";
+import Button from "@mui/material/Button";
+import Switch from "@mui/material/Switch";
+import { useLabelVisibility, setLabelVisibilityEnabled, toggleHiddenLabel, toggleHiddenLabels, resetHiddenLabels } from "../store/LabelVisibilityStore";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
@@ -56,6 +59,8 @@ export interface IConstellationMapProps {
     labelSingleObject?: boolean;
     /** Include observed background objects in the label budget for overview maps. */
     showBackgroundLabels?: boolean;
+    /** Enable persistent label toggling only for the statistics constellation dialog. */
+    enableLabelVisibilityFilter?: boolean;
     width?: number | string;
     height?: number;
     showControls?: boolean;
@@ -223,19 +228,21 @@ const styles = (theme: Theme) => createStyles({
             fontSize: 12,
         },
     },
+    // Separate persistent label preferences from marker visibility using the existing compact control sizes.
+    labelVisibilitySection: {
+        marginTop: theme.spacing(2),
+    },
+    resetLabelsButton: {
+        marginTop: theme.spacing(1),
+        fontSize: 11,
+        lineHeight: 1.15,
+        minHeight: 24,
+        padding: "2px 6px",
+        textTransform: "none",
+    },
     markerVisibilityCheckbox: {
         paddingBottom: 2,
         paddingTop: 2,
-    },
-    selectedObjectInfo: {
-        background: theme.palette.mode === "dark" ? "#0d1117" : "#f8f8f8",
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: 4,
-        color: theme.palette.text.primary,
-        fontSize: 12,
-        lineHeight: 1.35,
-        marginTop: 14,
-        padding: "8px 10px",
     },
     plotBackground: {
         fill: theme.palette.mode === "dark" ? "#111820" : "#f4f4f4",
@@ -278,6 +285,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         labelMode = "sac",
         labelSingleObject = false,
         showBackgroundLabels = false,
+        enableLabelVisibilityFilter = false,
         width = "100%",
         height = defaultHeight,
         showControls = true,
@@ -291,7 +299,11 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const [pan, setPan] = React.useState<PlanePan>({ x: 0, y: 0 });
     const [zoom, setZoom] = React.useState(1);
     const [isDragging, setIsDragging] = React.useState(false);
-    const [selectedObjectInfo, setSelectedObjectInfo] = React.useState<string | null>(null);
+    const labelVisibility = useLabelVisibility();
+    // Both labels and marker hit areas toggle the same stored catalog identity.
+    const toggleObjectLabel = (object: IConstellationMapObject) => {
+        if (enableLabelVisibilityFilter) { toggleHiddenLabel(constellation, getMapObjectKey(object)); }
+    };
     const [visibleMarkers, setVisibleMarkers] = React.useState<Record<ConstellationMapMarkerKind, boolean>>({
         background: true,
         normal: true,
@@ -308,7 +320,6 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     React.useEffect(() => {
         setPan({ x: 0, y: 0 });
         setZoom(clamp(initialZoom, minZoom, maxZoom));
-        setSelectedObjectInfo(null);
     }, [constellation, initialZoom]);
 
     const constellationId = normalizeConstellationId(constellation);
@@ -335,6 +346,12 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const visibleBackgroundObjects = visibleMarkers.background ? backgroundObjects : [];
     const visibleNormalObjects = visibleMarkers.normal ? objects : [];
     const visibleHighlightedObjects = visibleMarkers.highlighted ? highlightedObjects : [];
+    // Bulk changes follow marker checkboxes and the same group precedence as marker rendering.
+    const toggleLabelKeys = uniqueObjects([
+        ...visibleHighlightedObjects,
+        ...visibleNormalObjects.filter(object => !highlightedKeys.has(getMapObjectKey(object))),
+        ...visibleBackgroundObjects.filter(object => !foregroundKeys.has(getMapObjectKey(object))),
+    ]).map(getMapObjectKey);
     const projectedBackgroundObjects = projectObjects(
         uniqueObjects(visibleBackgroundObjects).filter(object => !foregroundKeys.has(getMapObjectKey(object))),
         viewExtent,
@@ -362,6 +379,11 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         ? selectLabelPlacements(projectedHighlightedObjects, labelCandidates, displayedMaxLabels, labelFontSize, viewBoxWidth, height, showAllLabels)
         : [];
 
+    // Apply the manual filter after default placement so hiding a label does not replace it with a different one.
+    const hiddenLabels = new Set(labelVisibility.hiddenByConstellation[constellationId] || []);
+    const filteredPlacements = enableLabelVisibilityFilter && labelVisibility.enabled
+        ? labelPlacements.filter(placement => !hiddenLabels.has(placement.key)) : labelPlacements;
+
     return (
         <div className={classes.root} style={{ width, minHeight: height }}>
             <div className={classes.plotContainer} ref={plotContainerRef}>
@@ -378,7 +400,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     projectedBackgroundObjects,
                     projectedObjects,
                     projectedHighlightedObjects,
-                    labelPlacements,
+                    filteredPlacements,
                     mapPadding,
                     focusedBoundaryClipPathId,
                     allowZoom,
@@ -387,7 +409,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     isDragging,
                     setPan,
                     setZoom,
-                    setSelectedObjectInfo,
+                    toggleObjectLabel,
                     setIsDragging,
                     dragState)}
             </div>
@@ -456,9 +478,23 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                             label={option.label}
                         />
                     ))}
-                    {selectedObjectInfo && (
-                        <div className={classes.selectedObjectInfo}>
-                            {selectedObjectInfo}
+                    {enableLabelVisibilityFilter && (
+                        <div className={classes.labelVisibilitySection}>
+                            <FormControlLabel
+                                className={classes.markerVisibilityControl}
+                                control={<Switch size="small" checked={labelVisibility.enabled} onChange={(_, checked) => setLabelVisibilityEnabled(checked)} />}
+                                label="Label visibility filter"
+                            />
+                            {/* Hide or restore all labels in checked marker groups, retaining unchecked groups unchanged. */}
+                            <Button className={classes.resetLabelsButton} variant="outlined" size="small" fullWidth={true}
+                                disabled={!labelVisibility.enabled || toggleLabelKeys.length === 0}
+                                onClick={() => toggleHiddenLabels(constellation, toggleLabelKeys)}
+                                title="Hide or show all labels in the checked marker groups">
+                                Toggle labels
+                            </Button>
+                            <Button className={classes.resetLabelsButton} variant="outlined" size="small" fullWidth={true} onClick={() => resetHiddenLabels(constellation)} title="Reset hidden labels in this constellation">
+                                Reset labels
+                            </Button>
                         </div>
                     )}
                 </aside>
@@ -509,7 +545,7 @@ function renderPlot(
     isDragging: boolean,
     setPan: (pan: PlanePan) => void,
     setZoom: (zoom: number) => void,
-    setSelectedObjectInfo: (objectInfo: string) => void,
+    toggleObjectLabel: (object: IConstellationMapObject) => void,
     setIsDragging: (isDragging: boolean) => void,
     dragState: React.MutableRefObject<DragState | null>) {
     const surroundingBoundaryRings = getPolygonRings(constellationBounds.features.filter(feature => normalizeConstellationId(feature.id) !== focusedConstellationId));
@@ -589,14 +625,14 @@ function renderPlot(
                 ))}
             </g>
             <g>
-                {projectedBackgroundObjects.map(object => renderCrosshair(object, "background", classes.backgroundObjectMarker, classes.transparentHitArea, 4, 9, setSelectedObjectInfo))}
-                {projectedObjects.map(object => renderCrosshair(object, "normal", classes.normalObjectMarker, classes.transparentHitArea, 4.5, 10, setSelectedObjectInfo))}
-                {projectedHighlightedObjects.map(object => renderCrosshair(object, "highlighted", classes.highlightedObjectMarker, classes.transparentHitArea, 6, 12, setSelectedObjectInfo))}
+                {projectedBackgroundObjects.map(object => renderCrosshair(object, "background", classes.backgroundObjectMarker, classes.transparentHitArea, 4, 9, toggleObjectLabel))}
+                {projectedObjects.map(object => renderCrosshair(object, "normal", classes.normalObjectMarker, classes.transparentHitArea, 4.5, 10, toggleObjectLabel))}
+                {projectedHighlightedObjects.map(object => renderCrosshair(object, "highlighted", classes.highlightedObjectMarker, classes.transparentHitArea, 6, 12, toggleObjectLabel))}
             </g>
             <g>
                 {labelPlacements.map(placement => renderObjectLabel(
                     placement,
-                    setSelectedObjectInfo,
+                    toggleObjectLabel,
                     `${classes.objectLabel} ${projectedBackgroundObjects.some(object => object.key === placement.key) ? classes.backgroundObjectLabel : ""}`))}
             </g>
         </svg>
@@ -800,7 +836,7 @@ function createGridSegments(focusedBoundaryPositions: CelestialPosition[]) {
 }
 
 // Emphasize highlighted targets with a thicker cross in both overview and locator maps.
-function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMapMarkerKind, markerClassName: string, hitAreaClassName: string, radius: number, hitRadius: number, setSelectedObjectInfo: (objectInfo: string) => void) {
+function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMapMarkerKind, markerClassName: string, hitAreaClassName: string, radius: number, hitRadius: number, toggleObjectLabel: (object: IConstellationMapObject) => void) {
     const strokeWidth = markerKind === "highlighted" ? 3 : 1.8;
     return (
         <Tooltip
@@ -814,7 +850,7 @@ function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMa
         >
             <g
                 onPointerDown={event => event.stopPropagation()}
-                onClick={event => selectMapObject(event, object.object, setSelectedObjectInfo)}
+                onClick={event => toggleMapObjectLabel(event, object.object, toggleObjectLabel)}
             >
                 <line x1={object.x - radius} y1={object.y} x2={object.x + radius} y2={object.y} className={markerClassName} data-marker-kind={markerKind} strokeWidth={strokeWidth} strokeLinecap="round" />
                 <line x1={object.x} y1={object.y - radius} x2={object.x} y2={object.y + radius} className={markerClassName} data-marker-kind={markerKind} strokeWidth={strokeWidth} strokeLinecap="round" />
@@ -830,8 +866,8 @@ function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMa
     );
 }
 
-// Render clickable labels through the same selection path as the marker hit areas.
-function renderObjectLabel(placement: ReturnType<typeof selectLabelPlacements>[number], setSelectedObjectInfo: (objectInfo: string) => void, labelClassName: string) {
+// Render clickable labels through the same filter path as the marker hit areas.
+function renderObjectLabel(placement: ReturnType<typeof selectLabelPlacements>[number], toggleObjectLabel: (object: IConstellationMapObject) => void, labelClassName: string) {
     const object = (placement.candidate as ProjectedMapObject).object;
     const tooltip = getObjectTooltip(object);
     return (
@@ -851,7 +887,7 @@ function renderObjectLabel(placement: ReturnType<typeof selectLabelPlacements>[n
                 className={labelClassName}
                 pointerEvents="all"
                 onPointerDown={event => event.stopPropagation()}
-                onClick={event => selectMapObject(event, object, setSelectedObjectInfo)}
+                onClick={event => toggleMapObjectLabel(event, object, toggleObjectLabel)}
             >
                 {placement.label}
             </text>
@@ -859,10 +895,10 @@ function renderObjectLabel(placement: ReturnType<typeof selectLabelPlacements>[n
     );
 }
 
-// Share selection and event handling so marker and label clicks update the same controls panel.
-function selectMapObject(event: React.MouseEvent<SVGElement>, object: IConstellationMapObject, setSelectedObjectInfo: (objectInfo: string) => void) {
+// Share event handling so labels and markers toggle the same label without starting map gestures.
+function toggleMapObjectLabel(event: React.MouseEvent<SVGElement>, object: IConstellationMapObject, toggleObjectLabel: (object: IConstellationMapObject) => void) {
     event.stopPropagation();
-    setSelectedObjectInfo(getObjectTooltip(object));
+    toggleObjectLabel(object);
 }
 
 function getObjectTooltip(object: IConstellationMapObject) {

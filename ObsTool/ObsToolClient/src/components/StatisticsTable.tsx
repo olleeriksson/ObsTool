@@ -22,6 +22,7 @@ import { IStatistics, IObsGroupStatistics, IConstellationStatistics } from "../t
 import Api from "../api/Api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ConstellationDialog from "./ConstellationDialog";
+import ConstellationLabelStatus, { ConstellationLabelStatusHeader } from "./ConstellationLabelStatus";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -649,6 +650,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             <Table className={classes.constellationTable} size="small">
                 <TableHead>
                     <TableRow>
+                        <ConstellationLabelStatusHeader />
                         {this.renderSortableHeader("Constellation", "constellation")}
                         {this.renderSortableHeader("Observed", "observed", "right")}
                         {showNowComparison && <TableCell className={`${classes.nowComparison} ${classes.constellationNowComparisonCell}`} size="small" align="right">(now)</TableCell>}
@@ -675,6 +677,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                                     }
                                 }}
                             >
+                                <ConstellationLabelStatus constellation={row.constellationAbbrv} total={row.h2500.total} />
                                 <TableCell size="small" component="th" scope="row">{row.constellation}</TableCell>
                                 <TableCell size="small" align="right">{row.observed}</TableCell>
                                 {showNowComparison && <TableCell className={classes.constellationNowComparisonCell} size="small" align="right">{this.renderNumberDelta(row.observed, allConstellation?.observed)}</TableCell>}

@@ -1,8 +1,15 @@
 import * as React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
+import { vi, beforeEach } from "vitest";
+import { labelVisibilityStorageKey } from "../store/LabelVisibilityStore";
 import ConstellationMap from "./ConstellationMap";
 import ConstellationView from "./ConstellationView";
+
+// Isolate persisted global preferences between scenarios.
+beforeEach(() => {
+    localStorage.removeItem(labelVisibilityStorageKey);
+    window.dispatchEvent(new StorageEvent("storage", { key: labelVisibilityStorageKey }));
+});
 
 it("does not label a single foreground object", () => {
     render(
@@ -118,20 +125,30 @@ it("toggles each marker type from the controls panel", () => {
     expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(2);
 });
 
-// Exercise labels, cross lines, and enlarged hit areas across every marker group.
-it("selects the same object information from labels and markers without starting a pan", () => {
-    const { container } = render(
+// Exercise the shared toggle path, default-placement fallback, and persistent preferences.
+it("toggles labels through markers and labels and preserves hidden choices while disabled", () => {
+    const { container, rerender } = render(
         <ConstellationMap
             constellation="And"
-            objects={[{ name: "NGC 224", herschelNo: "H V-18", ra: "00 42.7", dec: "+41 16" }]}
-            highlightedObjects={[{ name: "NGC 205", herschelNo: "H V-17", ra: "00 40.4", dec: "+41 41" }]}
-            backgroundObjects={[{ name: "NGC 206", herschelNo: "H V-16", ra: "00 40.5", dec: "+40 44" }]}
-            labelMode="herschel"
+            objects={[{ name: "NGC 224", herschelId: 1, ra: "00 42.7", dec: "+41 16" }]}
+            highlightedObjects={[{ name: "NGC 205", herschelId: 2, ra: "00 40.4", dec: "+41 41" }]}
+            backgroundObjects={[{ name: "NGC 206", herschelId: 3, ra: "00 40.5", dec: "+40 44" }]}
+            showBackgroundLabels={true}
+            labelSingleObject={true}
+            enableLabelVisibilityFilter={true}
         />
     );
-
-    fireEvent.click(screen.getByText("H V-18"));
-    expect(screen.getByText("NGC 224 / H V-18")).toBeInTheDocument();
+    const labels = () => container.querySelectorAll("svg text");
+    expect(labels()).toHaveLength(3);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(labels()).toHaveLength(0);
+    expect(container.querySelectorAll("line[data-marker-kind]")).toHaveLength(6);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(labels()).toHaveLength(3);
+    fireEvent.click(container.querySelector("svg text")!);
+    expect(labels()).toHaveLength(2);
+    fireEvent.click(container.querySelector("line[data-marker-kind='highlighted']")!);
+    expect(labels()).toHaveLength(3);
 
     const map = screen.getByRole("img", { name: "Constellation map" });
     const capturePointer = vi.fn();
@@ -140,17 +157,39 @@ it("selects the same object information from labels and markers without starting
     fireEvent.pointerDown(backgroundHitArea, { button: 0, isPrimary: true, pointerId: 1 });
     expect(capturePointer).not.toHaveBeenCalled();
     fireEvent.click(backgroundHitArea);
-    expect(screen.getByText("NGC 206 / H V-16")).toBeInTheDocument();
-    expect(screen.queryByText("NGC 224 / H V-18")).not.toBeInTheDocument();
-
-    fireEvent.click(container.querySelector("line[data-marker-kind='highlighted']")!);
-    expect(screen.getByText("NGC 205 / H V-17")).toBeInTheDocument();
     fireEvent.click(container.querySelector("line[data-marker-kind='normal']")!);
-    expect(screen.getByText("NGC 224 / H V-18")).toBeInTheDocument();
-    expect(screen.queryByText("NGC 205 / H V-17")).not.toBeInTheDocument();
+    expect(labels()).toHaveLength(1);
+    expect(container.querySelectorAll("line[data-marker-kind]")).toHaveLength(6);
+    expect(container.querySelector("aside")).not.toHaveTextContent("NGC 224");
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(labels()).toHaveLength(0);
+    expect(JSON.parse(localStorage.getItem(labelVisibilityStorageKey)!).hiddenByConstellation.AND.sort()).toEqual(["h-1", "h-2", "h-3"]);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(labels()).toHaveLength(3);
+    fireEvent.click(backgroundHitArea);
+    fireEvent.click(container.querySelector("line[data-marker-kind='normal']")!);
+    expect(labels()).toHaveLength(1);
 
-    fireEvent.pointerDown(map, { button: 0, isPrimary: true, pointerId: 1 });
-    expect(capturePointer).toHaveBeenCalledWith(1);
+    fireEvent.click(screen.getByRole("switch", { name: "Label visibility filter" }));
+    expect(labels()).toHaveLength(3);
+    fireEvent.click(backgroundHitArea);
+    const persisted = JSON.parse(localStorage.getItem(labelVisibilityStorageKey)!);
+    expect(screen.getByRole("button", { name: "Toggle labels" })).toBeDisabled();
+    expect(persisted.enabled).toBe(false);
+    expect(persisted.hiddenByConstellation.AND.sort()).toEqual(["h-1", "h-3"]);
+    fireEvent.click(screen.getByRole("switch", { name: "Label visibility filter" }));
+    expect(labels()).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Reset labels" }));
+    expect(labels()).toHaveLength(3);
+
+    fireEvent.click(backgroundHitArea);
+    rerender(<ConstellationMap constellation="UMI" objects={[]} enableLabelVisibilityFilter={true} />);
+    expect(screen.getByRole("switch", { name: "Label visibility filter" })).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Reset labels" }));
+    expect(JSON.parse(localStorage.getItem(labelVisibilityStorageKey)!).hiddenByConstellation.AND).toEqual(["h-3"]);
+    // Reloading the persisted snapshot must retain hidden choices across page loads.
+    window.dispatchEvent(new StorageEvent("storage", { key: labelVisibilityStorageKey }));
+    expect(JSON.parse(localStorage.getItem(labelVisibilityStorageKey)!).hiddenByConstellation.AND).toEqual(["h-3"]);
 });
 
 it("zooms from the wheel when zooming is enabled", () => {
@@ -312,4 +351,37 @@ it("labels every statistics group with SAC names and keeps observed H400 objects
     fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
     expect(container.querySelectorAll("svg text")).toHaveLength(1);
     expect(container.querySelector("svg text")).toHaveTextContent("Unseen H2500");
+});
+
+// Bulk toggling follows marker groups, normalizes mixed selections, and leaves other groups intact.
+it("hides or restores all labels only in checked marker groups", () => {
+    const { container } = render(<ConstellationMap
+        constellation="And"
+        objects={[{ name: "Normal", herschelId: 1, ra: "00 40.4", dec: "+41 41" }]}
+        backgroundObjects={[{ name: "Observed", herschelId: 2, ra: "00 40.5", dec: "+40 44" }]}
+        highlightedObjects={[
+            { name: "H400 A", herschelId: 3, ra: "00 42.7", dec: "+41 16" },
+            { name: "H400 B", herschelId: 4, ra: "00 43.7", dec: "+41 26" },
+        ]}
+        objectLabel="Unseen Herschel 2500" backgroundLabel="Already observed" highlightedLabel="Unseen Herschel 400"
+        showBackgroundLabels={true} labelSingleObject={true} enableLabelVisibilityFilter={true}
+    />);
+    const hiddenKeys = () => JSON.parse(localStorage.getItem(labelVisibilityStorageKey)!).hiddenByConstellation.AND.sort();
+    fireEvent.click(container.querySelector("line[data-marker-kind='normal']")!);
+    fireEvent.click(container.querySelector("line[data-marker-kind='highlighted']")!);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(hiddenKeys()).toEqual(["h-1", "h-3", "h-4"]);
+    expect(container.querySelectorAll("svg text")).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(hiddenKeys()).toEqual(["h-1"]);
+    expect(container.querySelectorAll("svg text")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
+    expect(screen.getByRole("button", { name: "Toggle labels" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(hiddenKeys()).toEqual(["h-1", "h-2"]);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(hiddenKeys()).toEqual(["h-1"]);
 });

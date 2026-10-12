@@ -71,6 +71,7 @@ class ConstellationView extends React.Component<IConstellationViewProps, IConste
                         labelMode="sac"
                         labelSingleObject={true}
                         showBackgroundLabels={true}
+                        enableLabelVisibilityFilter={true}
                         height={760}
                     />
                 </div>
