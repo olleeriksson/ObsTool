@@ -27,6 +27,7 @@ namespace ObsTool.Models
         public ObsGroupStatisticsDto H2500 { get; set; }
         public ObsGroupStatisticsDto H400 { get; set; }
         public IEnumerable<ConstellationStatisticsDto> Constellations { get; set; }
+        public IEnumerable<InterstellarumStatisticsDto> InterstellarumCharts { get; set; }
 
     }
 }

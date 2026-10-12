@@ -142,6 +142,53 @@ namespace TestProject
             Assert.That(objects[1].IsObserved, Is.False);
         }
 
+        // Check overlap, row identity, general detections, and non-detections against the same geometry.
+        [Test]
+        public void InterstellarumStatistics_CountsEachObjectOncePerChartAndPreservesUserScope()
+        {
+            SeedConstellationsAndDsos();
+            SeedHerschelObjects();
+            SeedObservations();
+            foreach (var dso in _dbContext.Dso) { dso.RA = "14 00"; }
+            _dbContext.SaveChanges();
+            var statistics = _statisticsService.GetStatistics(TestUserId);
+            Assert.That(statistics.InterstellarumCharts.Count(), Is.EqualTo(114));
+            foreach (var number in new[] { 56, 57 })
+            {
+                var row = statistics.InterstellarumCharts.Single(c => c.Chart == number);
+                Assert.That(row.Observed, Is.EqualTo(3));
+                Assert.That(row.H2500.Total, Is.EqualTo(4));
+                Assert.That(row.H2500.Observed, Is.EqualTo(2));
+                Assert.That(row.H2500.NonDetections, Is.EqualTo(2));
+                Assert.That(row.H400.Total, Is.EqualTo(2));
+                Assert.That(row.H400.Observed, Is.EqualTo(1));
+                var objects = _statisticsService.GetH2500ObjectsForInterstellarumMap(number, TestUserId).ToList();
+                Assert.That(objects.Select(o => o.HerschelId), Is.EqualTo(new[] { 1, 2, 3, 4 }));
+                Assert.That(objects.Count(o => o.IsObserved), Is.EqualTo(2));
+                Assert.That(_statisticsService.GetH2500ObjectsForInterstellarumMap(number, 999).Any(o => o.IsObserved), Is.False);
+            }
+            Assert.That(statistics.InterstellarumCharts.Single(c => c.Chart == 1).H2500.Total, Is.Zero);
+            Assert.That(_statisticsService.GetH2500ObjectsForInterstellarumMap(115, TestUserId), Is.Empty);
+        }
+
+        // Apply the same recent-session cutoff to both chart counts and the existing constellation counts.
+        [Test]
+        public void InterstellarumStatistics_RespectsSessionExclusion()
+        {
+            SeedConstellationsAndDsos();
+            SeedHerschelObjects();
+            foreach (var dso in _dbContext.Dso) { dso.RA = "13 00"; }
+            _dbContext.ObsSessions.AddRange(CreateObsSession(1, new DateTime(2024, 1, 1)), CreateObsSession(2, new DateTime(2024, 1, 2)));
+            _dbContext.Observations.AddRange(CreateObservation(1, 1), CreateObservation(2, 2));
+            _dbContext.SaveChanges();
+            var all = _statisticsService.GetStatistics(TestUserId).InterstellarumCharts.Single(c => c.Chart == 57);
+            var scoped = _statisticsService.GetStatistics(TestUserId, 1).InterstellarumCharts.Single(c => c.Chart == 57);
+            Assert.That(all.H2500.Observed, Is.EqualTo(3));
+            Assert.That(scoped.H2500.Observed, Is.EqualTo(2));
+            Assert.That(scoped.H2500.Total, Is.EqualTo(all.H2500.Total));
+            Assert.That(scoped.Observed, Is.EqualTo(1));
+        }
+
         private void SeedConstellationsAndDsos()
         {
             _dbContext.Constellations.AddRange(

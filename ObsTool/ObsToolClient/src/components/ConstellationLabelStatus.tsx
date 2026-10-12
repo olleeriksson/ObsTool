@@ -6,6 +6,7 @@ import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CloseIcon from "@mui/icons-material/Close";
 import Api from "../api/Api";
+import { InterstellarumChart } from "./InterstellarumAtlas";
 import bounds from "../data/constellations/constellations.bounds.json";
 import { getMapObjectKey } from "./ConstellationMapUtils";
 import { useLabelVisibility } from "../store/LabelVisibilityStore";
@@ -49,7 +50,7 @@ export function ConstellationLabelStatusHeader() {
 }
 
 // Load catalog identities only for constellations with saved hidden labels; never infer completion from a visible map subset.
-export default function ConstellationLabelStatus({ constellation, total }: { constellation: string; total: number }) {
+export default function ConstellationLabelStatus({ constellation, total, chart }: { constellation: string; total: number; chart?: InterstellarumChart }) {
     const { enabled, hiddenByConstellation } = useLabelVisibility();
     const hidden = hiddenByConstellation[constellation.toUpperCase()] || [];
     const [catalog, setCatalog] = React.useState<{ constellation: string; keys: string[] }>();
@@ -59,13 +60,16 @@ export default function ConstellationLabelStatus({ constellation, total }: { con
         if (!needsCatalog) { return; }
         let active = true;
         setFailed(false);
-        Api.getH2500ObjectsForConstellationMap(constellation).then(response => {
+        const request = chart ? Api.getH2500ObjectsForInterstellarumMap(chart.chart)
+            : Api.getH2500ObjectsForConstellationMap(constellation);
+        request.then(response => {
             if (active) { setCatalog({ constellation, keys: response.data.map(getMapObjectKey) }); }
         }, () => { if (active) { setFailed(true); } });
         return () => { active = false; };
-    }, [constellation, needsCatalog]);
+    }, [constellation, needsCatalog, chart]);
     if (!enabled) { return null; }
-    const visibility = getConstellationVisibility(constellation);
+    const visibility = chart ? classifyDeclinationBounds(chart.bounding_box.dec_min_deg, chart.bounding_box.dec_max_deg)
+        : getConstellationVisibility(constellation);
     const loading = needsCatalog && catalog?.constellation !== constellation;
     if (!visibility || loading || failed) {
         return <TableCell style={statusCellStyle} aria-label={failed ? "Could not load label status" : "Loading label status"} />;
@@ -78,7 +82,7 @@ export default function ConstellationLabelStatus({ constellation, total }: { con
     const partlyHidden = hiddenCount > 0 && !complete;
     const color = total === 0 ? statusColors.empty
         : visibility === "never" && !complete && !partlyHidden ? statusColors.unstarted : statusColors[visibility];
-    const description = `${constellation}: ${visibility === "full" ? "Fully" : visibility === "partial" ? "Partly" : "Never"} visible at 55.3\u00b0 N; ${total === 0 ? "No Herschel objects" : complete ? "All done" : partlyHidden ? "Half done" : "Not started"}`;
+    const description = `${chart ? `Interstellarum chart ${chart.chart}` : constellation}: ${visibility === "full" ? "Fully" : visibility === "partial" ? "Partly" : "Never"} visible at 55.3\u00b0 N; ${total === 0 ? "No Herschel objects" : complete ? "All done" : partlyHidden ? "Half done" : "Not started"}`;
     return (
         <TableCell style={statusCellStyle} align="center">
             {(total === 0 || complete || partlyHidden || visibility !== "full") && (

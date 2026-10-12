@@ -51,6 +51,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Share the supplied atlas geometry with the frontend and embed it for deployed API lookup. -->
+    <EmbeddedResource Include="ObsToolClient/src/data/interstellarum-chart-footprints.json" LogicalName="ObsTool.Interstellarum.json" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

@@ -327,6 +327,7 @@ export interface IStatistics {
     h2500?: IObsGroupStatistics;
     h400?: IObsGroupStatistics;
     constellations?: IConstellationStatistics[];
+    interstellarumCharts?: IInterstellarumStatistics[];
 }
 
 export interface IObsGroupStatistics {
@@ -338,6 +339,13 @@ export interface IObsGroupStatistics {
 export interface IConstellationStatistics {
     constellation: string;
     constellationAbbrv: string;
+    observed: number;
+    h2500: IObsGroupStatistics;
+    h400: IObsGroupStatistics;
+}
+
+export interface IInterstellarumStatistics {
+    chart: number;
     observed: number;
     h2500: IObsGroupStatistics;
     h400: IObsGroupStatistics;

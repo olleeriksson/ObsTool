@@ -240,6 +240,11 @@ class Api {
         });
     }
 
+    // Fetch the full Herschel checklist within a chart's union of physical page footprints.
+    public static getH2500ObjectsForInterstellarumMap(chart: number) {
+        return axios.get<IConstellationMapObject[]>(import.meta.env.VITE_API_URL + `/statistics/interstellarum/${chart}/h2500`);
+    }
+
     public static getH2500ObjectsForConstellationMap(constellation: string) {
         return axios.get<IConstellationMapObject[]>(import.meta.env.VITE_API_URL + "/statistics/constellations/" + encodeURIComponent(constellation) + "/h2500");
     }

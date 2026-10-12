@@ -3,6 +3,7 @@ import { useSyncExternalStore } from "react";
 export const labelVisibilityStorageKey = "obstool.labelVisibility";
 export interface LabelVisibilityState {
     enabled: boolean;
+    // Area IDs are constellation abbreviations or INTERSTELLARUM-<number>; choices remain independent.
     hiddenByConstellation: Record<string, string[]>;
 }
 const listeners = new Set<() => void>();
@@ -60,7 +61,7 @@ export function toggleHiddenLabels(constellation: string, keys: string[]) {
     updateState({ ...state, hiddenByConstellation: { ...state.hiddenByConstellation, [id]: [...hidden] } });
 }
 
-// Reset the current constellation only, retaining the choices made in every other constellation.
+// Reset the current sky area only, retaining choices in every other constellation and chart.
 export function resetHiddenLabels(constellation: string) {
     const hiddenByConstellation = { ...state.hiddenByConstellation };
     delete hiddenByConstellation[constellation.toUpperCase()];

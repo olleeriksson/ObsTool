@@ -7,10 +7,21 @@ import { createStyles, withStyles } from "src/muiCompat";
 import type { WithStyles } from "src/muiCompat";
 import { IConstellationMapObject } from "../types/Types";
 import ConstellationMap from "./ConstellationMap";
+import { InterstellarumChart } from "./InterstellarumAtlas";
 import DsoObjectsListView from "./DsoObjectsListView";
 
 const styles = (theme: Theme) => createStyles({
+    // Keep tabs above a panel that consumes the remaining dialog height.
+    root: {
+        display: "flex",
+        flexDirection: "column",
+        flex: "1 1 auto",
+        minHeight: 0,
+    },
     tabPanel: {
+        flex: "1 1 auto",
+        minHeight: 0,
+        overflow: "auto",
         paddingTop: theme.spacing(2),
     },
     emptyPanel: {
@@ -19,6 +30,7 @@ const styles = (theme: Theme) => createStyles({
 });
 
 interface IConstellationViewProps extends WithStyles<typeof styles> {
+    chart?: InterstellarumChart;
     constellationName: string;
     constellationAbbrv: string;
     objects: IConstellationMapObject[];
@@ -29,6 +41,7 @@ interface IConstellationViewProps extends WithStyles<typeof styles> {
 
 interface IConstellationViewState {
     selectedTab: number;
+    mapHeight: number;
 }
 
 /**
@@ -38,7 +51,30 @@ interface IConstellationViewState {
 class ConstellationView extends React.Component<IConstellationViewProps, IConstellationViewState> {
     public state: IConstellationViewState = {
         selectedTab: 0,
+        mapHeight: 760,
     };
+
+    private panelObserver?: ResizeObserver;
+
+    // Measure the panel's content box so the map grows with dialog and viewport resizing.
+    private setMapPanelRef = (panel: HTMLDivElement | null) => {
+        this.panelObserver?.disconnect();
+        if (!panel || typeof ResizeObserver === "undefined") { return; }
+        this.panelObserver = new ResizeObserver(entries => {
+            const availableHeight = entries[0]?.contentRect.height;
+            if (availableHeight && availableHeight > 0) {
+                // Account for the map border while retaining a usable map on very short screens.
+                const mapHeight = Math.max(240, Math.floor(availableHeight) - 2);
+                if (mapHeight !== this.state.mapHeight) { this.setState({ mapHeight }); }
+            }
+        });
+        this.panelObserver.observe(panel);
+    };
+
+    // Release the panel observer when the dialog view is removed.
+    public componentWillUnmount() {
+        this.panelObserver?.disconnect();
+    }
 
     // Render the statistics overview with labels for every visible group, including single objects.
     public render() {
@@ -49,7 +85,7 @@ class ConstellationView extends React.Component<IConstellationViewProps, IConste
         const normalObjects = objects.filter(object => !object.isObserved && !object.h400);
 
         return (
-            <Box>
+            <Box className={classes.root}>
                 <Tabs
                     value={this.state.selectedTab}
                     onChange={(_, selectedTab: number) => this.setState({ selectedTab })}
@@ -58,8 +94,9 @@ class ConstellationView extends React.Component<IConstellationViewProps, IConste
                     <Tab label="Map" />
                     <Tab label="List" />
                 </Tabs>
-                <div className={classes.tabPanel} hidden={this.state.selectedTab !== 0}>
+                <div className={classes.tabPanel} ref={this.setMapPanelRef} hidden={this.state.selectedTab !== 0}>
                     <ConstellationMap
+                        chart={this.props.chart}
                         constellation={constellationAbbrv}
                         constellationName={constellationName}
                         objects={normalObjects}
@@ -72,7 +109,7 @@ class ConstellationView extends React.Component<IConstellationViewProps, IConste
                         labelSingleObject={true}
                         showBackgroundLabels={true}
                         enableLabelVisibilityFilter={true}
-                        height={760}
+                        height={this.state.mapHeight}
                     />
                 </div>
                 <div className={`${classes.tabPanel} ${classes.emptyPanel}`} hidden={this.state.selectedTab !== 1}>

@@ -236,9 +236,77 @@ it("updates the constellation status when every dialog label is hidden and remov
     fireEvent.click(dialog.querySelector("line[data-marker-kind='background']")!);
     fireEvent.click(dialog.querySelector("line[data-marker-kind='highlighted']")!);
     fireEvent.click(screen.getByRole("button", { name: "Close constellation dialog" }));
-    expect(await screen.findByRole("img", { name: /ORI.*all Herschel labels hidden/ })).toBeInTheDocument();
+    expect(await screen.findByRole("img", { name: /ORI.*All done/ })).toBeInTheDocument();
     fireEvent.click(screen.getByText("Orion"));
     fireEvent.click(await screen.findByRole("switch", { name: "Label visibility filter" }));
     fireEvent.click(screen.getByRole("button", { name: "Close constellation dialog" }));
     await waitFor(() => expect(container.querySelector("th[aria-label='Label visibility status']")).not.toBeInTheDocument());
+});
+
+// The atlas section uses independent expansion/sort state and fetches its dialog by chart number.
+it("opens atlas charts in numeric order and loads their Herschel objects", async () => {
+    vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: {
+        ...statistics,
+        interstellarumCharts: [11, 2, 57].map(chart => ({ chart, observed: 1,
+            h2500: { total: 1, observed: 1, nonDetections: 0 }, h400: { total: 1, observed: 1, nonDetections: 0 } })),
+    } } as any);
+    const loadChart = vi.spyOn(Api, "getH2500ObjectsForInterstellarumMap").mockResolvedValue({ data: [
+        { herschelId: 1, name: "Atlas object", ra: "13 00", dec: "+00 00", h400: true },
+    ] } as any);
+    render(<StatisticsTable />, { wrapper });
+    fireEvent.click(await screen.findByText("Statistics by Interstellarum charts"));
+    expect(screen.getAllByRole("rowheader").map(cell => cell.textContent).filter(text => text?.startsWith("Chart "))).toEqual(["Chart 2", "Chart 11", "Chart 57"]);
+    expect(screen.queryByText("Orion")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Chart 57"));
+    expect(await screen.findByText("Interstellarum chart 57")).toBeInTheDocument();
+    expect(loadChart).toHaveBeenCalledWith(57);
+    await waitFor(() => expect(screen.getByRole("img", { name: "Interstellarum chart map" }).querySelector("text")).toHaveTextContent("Atlas object"));
+    expect(screen.getByRole("img", { name: "Interstellarum chart map" })).toBeInTheDocument();
+});
+
+// Keep the same dialog open across atlas navigation, retaining expanded size and respecting endpoints.
+it("navigates charts in table order and retains the expanded size", async () => {
+    vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: { ...statistics,
+        interstellarumCharts: [11, 2, 57].map(chart => ({ chart, observed: 1,
+            h2500: { total: 1, observed: 1, nonDetections: 0 }, h400: { total: 1, observed: 1, nonDetections: 0 } })),
+    } } as any);
+    const load = vi.spyOn(Api, "getH2500ObjectsForInterstellarumMap").mockResolvedValue({ data: [] } as any);
+    render(<StatisticsTable />, { wrapper });
+    fireEvent.click(await screen.findByText("Statistics by Interstellarum charts"));
+    fireEvent.click(screen.getByText("Chart 2"));
+    expect(screen.getByRole("button", { name: "Previous Interstellarum chart" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Expand dialog size" }));
+    expect(screen.getByRole("dialog")).toHaveStyle({ maxWidth: "none", width: "calc(100% - 16px)", height: "calc(100dvh - 16px)", margin: "8px" });
+    fireEvent.click(screen.getByRole("button", { name: "Next Interstellarum chart" }));
+    expect(await screen.findByText("Interstellarum chart 11")).toBeInTheDocument();
+    expect(load).toHaveBeenCalledWith(11);
+    expect(screen.getByRole("button", { name: "Restore dialog size" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Next Interstellarum chart" }));
+    expect(await screen.findByText("Interstellarum chart 57")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next Interstellarum chart" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Previous Interstellarum chart" }));
+    expect(await screen.findByText("Interstellarum chart 11")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Restore dialog size" }));
+    expect(screen.getByRole("dialog").style.maxWidth).toBe("1320px");
+    expect(screen.getByRole("dialog").style.width).toBe("94vw");
+    expect(screen.getByRole("dialog").style.height).toBe("96dvh");
+});
+
+// Constellations use their own current sort order and their existing object endpoint.
+it("navigates constellations without closing the dialog", async () => {
+    vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: { ...statistics,
+        constellations: [...statistics.constellations!, { ...statistics.constellations![0],
+            constellation: "Andromeda", constellationAbbrv: "AND", h2500: { total: 10, observed: 2, nonDetections: 0 } }],
+    } } as any);
+    const load = vi.spyOn(Api, "getH2500ObjectsForConstellationMap").mockResolvedValue({ data: [] } as any);
+    render(<StatisticsTable />, { wrapper });
+    fireEvent.click(await screen.findByText("Statistics by constellation"));
+    fireEvent.click(screen.getByText("Orion"));
+    expect(screen.getByRole("button", { name: "Previous constellation" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Next constellation" }));
+    expect(await screen.findByText("Constellation: Andromeda")).toBeInTheDocument();
+    expect(load).toHaveBeenCalledWith("AND");
+    expect(screen.getByRole("button", { name: "Next constellation" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Previous constellation" }));
+    expect(await screen.findByText("Constellation: Orion")).toBeInTheDocument();
 });

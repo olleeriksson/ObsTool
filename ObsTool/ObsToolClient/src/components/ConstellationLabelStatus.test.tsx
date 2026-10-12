@@ -36,20 +36,20 @@ it("shows the requested status icons only with the global filter enabled", async
     </tr></tbody></table>);
     expect(screen.getByRole("columnheader", { name: "Label visibility status" })).toBeInTheDocument();
     expect(screen.queryByRole("img", { name: /UMI/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /CEN.*labels remaining/ })).toHaveStyle({ color: "#d3d3d3" });
-    expect(screen.getByRole("img", { name: /CHA.*labels remaining/ })).toHaveStyle({ color: "#d3d3d3" });
+    expect(screen.getByRole("img", { name: /CEN.*Not started/ })).toHaveStyle({ color: "#a1a1a1" });
+    expect(screen.getByRole("img", { name: /CHA.*Not started/ })).toHaveStyle({ color: "#a1a1a1" });
     expect(screen.getByTestId("EllipsisIcon")).toBeInTheDocument();
     expect(screen.getByTestId("CloseIcon")).toBeInTheDocument();
     act(() => { for (const con of ["UMI", "CEN", "CHA"]) { toggleHiddenLabel(con, "h-1"); } });
     await waitFor(() => expect(screen.getAllByTestId("CheckBoxOutlineBlankIcon")).toHaveLength(3));
-    expect(screen.getByRole("img", { name: /UMI.*some Herschel labels hidden/ })).toHaveStyle({ color: "#4f8532" });
-    expect(screen.getByRole("img", { name: /CEN.*some Herschel labels hidden/ })).toHaveStyle({ color: "#d3d3d3" });
-    expect(screen.getByRole("img", { name: /CHA.*some Herschel labels hidden/ })).toHaveStyle({ color: "#000000" });
+    expect(screen.getByRole("img", { name: /UMI.*Half done/ })).toHaveStyle({ color: "#4f8532" });
+    expect(screen.getByRole("img", { name: /CEN.*Half done/ })).toHaveStyle({ color: "#a1a1a1" });
+    expect(screen.getByRole("img", { name: /CHA.*Half done/ })).toHaveStyle({ color: "#000000" });
     expect(screen.queryByTestId("EllipsisIcon")).not.toBeInTheDocument();
     act(() => { for (const con of ["UMI", "CEN", "CHA"]) { toggleHiddenLabel(con, "h-2"); } });
-    expect(screen.getByRole("img", { name: /UMI.*all Herschel labels hidden/ })).toHaveStyle({ color: "#4f8532" });
-    expect(screen.getByRole("img", { name: /CEN.*all Herschel labels hidden/ })).toHaveStyle({ color: "#d3d3d3" });
-    expect(screen.getByRole("img", { name: /CHA.*all Herschel labels hidden/ })).toHaveStyle({ color: "#000000" });
+    expect(screen.getByRole("img", { name: /UMI.*All done/ })).toHaveStyle({ color: "#4f8532" });
+    expect(screen.getByRole("img", { name: /CEN.*All done/ })).toHaveStyle({ color: "#a1a1a1" });
+    expect(screen.getByRole("img", { name: /CHA.*All done/ })).toHaveStyle({ color: "#000000" });
     expect(screen.getAllByTestId("CheckBoxIcon")).toHaveLength(3);
     act(() => { setLabelVisibilityEnabled(false); });
     expect(screen.queryByRole("columnheader")).not.toBeInTheDocument();
@@ -79,7 +79,7 @@ it("shows a red cross for constellations without Herschel objects", () => {
     </tr></tbody></table>);
     expect(screen.getAllByRole("img")).toHaveLength(3);
     for (const icon of screen.getAllByRole("img")) {
-        expect(icon).toHaveAccessibleName(/no Herschel objects/);
+        expect(icon).toHaveAccessibleName(/No Herschel objects/);
         expect(icon).toHaveStyle({ color: "#d32f2f" });
     }
     expect(screen.getAllByTestId("CloseIcon")).toHaveLength(3);

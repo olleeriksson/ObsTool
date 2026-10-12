@@ -14,6 +14,7 @@ import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import { IConstellationMapObject } from "../types/Types";
 import constellationBoundsJson from "../data/constellations/constellations.bounds.json";
+import { InterstellarumChart } from "./InterstellarumAtlas";
 import constellationLinesJson from "../data/constellations/constellations.lines.json";
 import {
     CelestialPosition,
@@ -45,6 +46,7 @@ interface GeoJsonFeature {
 type RawCoordinate = [number, number];
 
 export interface IConstellationMapProps {
+    chart?: InterstellarumChart;
     constellation: string;
     constellationName?: string;
     objects: IConstellationMapObject[];
@@ -325,8 +327,11 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const constellationId = normalizeConstellationId(constellation);
     const focusedBoundaryFeatures = getConstellationFeatures(constellationBounds, constellationId);
     const focusedLineFeatures = getConstellationFeatures(constellationLines, constellationId);
-    const focusedBoundaryRings = getPolygonRings(focusedBoundaryFeatures);
-    const focusedLineSegments = getLineSegments(focusedLineFeatures);
+    // Chart boundaries retain separate leaf rings so their overlap renders as a union.
+    const focusedBoundaryRings = props.chart
+        ? props.chart.pages.map(page => page.boundary_ra_dec_deg as RawCoordinate[])
+        : getPolygonRings(focusedBoundaryFeatures);
+    const focusedLineSegments = props.chart ? [] : getLineSegments(focusedLineFeatures);
     const focusedBoundaryPositions = focusedBoundaryRings.flat().map(toCelestialPosition);
     const extent = createMapExtent(focusedBoundaryPositions);
 
@@ -492,7 +497,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                                 title="Hide or show all labels in the checked marker groups">
                                 Toggle labels
                             </Button>
-                            <Button className={classes.resetLabelsButton} variant="outlined" size="small" fullWidth={true} onClick={() => resetHiddenLabels(constellation)} title="Reset hidden labels in this constellation">
+                            <Button className={classes.resetLabelsButton} variant="outlined" size="small" fullWidth={true} onClick={() => resetHiddenLabels(constellation)} title={props.chart ? "Reset hidden labels in this chart" : "Reset hidden labels in this constellation"}>
                                 Reset labels
                             </Button>
                         </div>
@@ -558,7 +563,7 @@ function renderPlot(
     return (
         <svg
             role="img"
-            aria-label="Constellation map"
+            aria-label={focusedConstellationId.startsWith("INTERSTELLARUM-") ? "Interstellarum chart map" : "Constellation map"}
             width="100%"
             height={height}
             viewBox={`0 0 ${viewBoxWidth} ${height}`}

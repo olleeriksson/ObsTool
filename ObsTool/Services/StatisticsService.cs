@@ -41,7 +41,8 @@ namespace ObsTool.Services
                 NumNonDetections = GetNumNonDetections(userId, excludedObsSessionIds),
                 H2500 = catalogProgressStatistics.H2500,
                 H400 = catalogProgressStatistics.H400,
-                Constellations = catalogProgressStatistics.Constellations
+                Constellations = catalogProgressStatistics.Constellations,
+                InterstellarumCharts = GetInterstellarumStatistics(userId, excludedObsSessionIds)
             };
         }
 
@@ -203,6 +204,62 @@ namespace ObsTool.Services
                     IsObserved = h.SacDeepSkyObjectsId != null && observedDsoIds.Contains(h.SacDeepSkyObjectsId.Value)
                 })
                 .ToList();
+        }
+
+        // Materialize each query before geometry lookup so MySQL never has overlapping active readers.
+        private IEnumerable<InterstellarumStatisticsDto> GetInterstellarumStatistics(int userId, List<int> excludedSessions)
+        {
+            var herschel = _dbContext.H2500.AsNoTracking().Include(h => h.Dso).Where(h => h.Dso != null).ToList();
+            var detections = DetectedDsoObservations(userId, excludedSessions).AsNoTracking()
+                .Where(d => d.DsoId.HasValue).Select(d => d.DsoId.Value).Distinct().ToHashSet();
+            var nonDetections = _dbContext.DsoObservations.AsNoTracking()
+                .Where(d => d.Observation.UserId == userId && !excludedSessions.Contains(d.Observation.ObsSessionId))
+                .Where(d => d.DsoId.HasValue && (d.NonDetection || d.Observation.NonDetection))
+                .Select(d => d.DsoId.Value).Distinct().ToHashSet();
+            var observedObjects = _dbContext.Dso.AsNoTracking().Where(d => detections.Contains(d.Id)).ToList();
+            // Parse each coordinate once, even when duplicate Herschel rows or overlapping charts reuse it.
+            var positions = herschel.Select(h => h.Dso).Concat(observedObjects).DistinctBy(d => d.Id)
+                .Select(d => new { d.Id, Valid = InterstellarumAtlas.TryPosition(d.RA, d.DEC, out var ra, out var dec), Ra = ra, Dec = dec })
+                .Where(p => p.Valid).ToDictionary(p => p.Id);
+            // Assign all memberships independently; overlapping charts intentionally count the same object.
+            return InterstellarumAtlas.Charts.Select(chart =>
+            {
+                var members = positions.Values.Where(p => InterstellarumAtlas.Contains(chart, p.Ra, p.Dec))
+                    .Select(p => p.Id).ToHashSet();
+                var objects = herschel.Where(h => members.Contains(h.Dso.Id)).ToList();
+                return new InterstellarumStatisticsDto
+                {
+                    Chart = chart.Number,
+                    Observed = observedObjects.Count(d => members.Contains(d.Id)),
+                    H2500 = CreateCatalogStatistics(objects, nonDetections, detections),
+                    H400 = CreateCatalogStatistics(objects.Where(h => h.H400), nonDetections, detections)
+                };
+            }).ToList();
+        }
+
+        // Use the same membership predicate for chart statistics and the full Herschel dialog list.
+        private static bool IsOnChart(InterstellarumAtlas.Chart chart, Dso dso)
+        {
+            return InterstellarumAtlas.TryPosition(dso.RA, dso.DEC, out var ra, out var dec)
+                && InterstellarumAtlas.Contains(chart, ra, dec);
+        }
+
+        // Return all linked Herschel rows, with detection state scoped to the current user.
+        public IEnumerable<ConstellationMapObjectDto> GetH2500ObjectsForInterstellarumMap(int chartNumber, int userId)
+        {
+            var chart = InterstellarumAtlas.Charts.SingleOrDefault(c => c.Number == chartNumber);
+            if (chart == null) { return Enumerable.Empty<ConstellationMapObjectDto>(); }
+            var detected = DetectedDsoObservations(userId, GetExcludedObsSessionIds(userId, 0))
+                .Where(d => d.DsoId.HasValue).Select(d => d.DsoId.Value).Distinct().ToHashSet();
+            return _dbContext.H2500.AsNoTracking().Include(h => h.Dso).Where(h => h.Dso != null)
+                .OrderBy(h => h.HerschelId).ToList().Where(h => IsOnChart(chart, h.Dso))
+                .Select(h => new ConstellationMapObjectDto
+                {
+                    HerschelId = h.HerschelId, HerschelNo = h.HerschelNo, H400 = h.H400,
+                    DsoId = h.Dso.Id, Name = h.Dso.Name, Catalog = h.Dso.Catalog,
+                    CatalogNumber = h.Dso.CatalogNumber, Constellation = h.Dso.Con,
+                    RA = h.Dso.RA, DEC = h.Dso.DEC, IsObserved = detected.Contains(h.Dso.Id)
+                }).ToList();
         }
 
         public (ObsGroupStatisticsDto H2500, ObsGroupStatisticsDto H400, IEnumerable<ConstellationStatisticsDto> Constellations) GetCatalogProgressStatistics(int userId, int statsExcludeLastSessions = 0)

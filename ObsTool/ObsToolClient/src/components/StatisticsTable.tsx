@@ -22,6 +22,7 @@ import { IStatistics, IObsGroupStatistics, IConstellationStatistics } from "../t
 import Api from "../api/Api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ConstellationDialog from "./ConstellationDialog";
+import { interstellarumCharts } from "./InterstellarumAtlas";
 import ConstellationLabelStatus, { ConstellationLabelStatusHeader } from "./ConstellationLabelStatus";
 
 const styles = (theme: Theme) => createStyles({
@@ -199,6 +200,10 @@ const styles = (theme: Theme) => createStyles({
 });
 
 export interface IStatisticsTableProps extends WithStyles<typeof styles> {
+    /** Render only the atlas section using the parent statistics snapshot and independent sort/dialog state. */
+    chartStatistics?: IStatistics;
+    chartAllSessionsStatistics?: IStatistics;
+    chartExcludeLastSessions?: number;
 }
 
 export interface IStatisticsTableState {
@@ -227,8 +232,8 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             isError: false,
             statistics: undefined,
             isConstellationStatisticsExpanded: false,
-            constellationSortBy: "h2500",
-            constellationSortDirection: "desc",
+            constellationSortBy: props.chartStatistics ? "constellation" : "h2500",
+            constellationSortDirection: props.chartStatistics ? "asc" : "desc",
             constellationCatalogSortMetric: "observed",
             selectedConstellation: undefined,
             isConstellationDialogOpen: false,
@@ -238,7 +243,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     }
 
     public componentDidMount() {
-        this.loadData();
+        if (!this.props.chartStatistics) { this.loadData(); }
     }
 
     private loadData() {
@@ -535,7 +540,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             let result = 0;
             switch (constellationSortBy) {
                 case "constellation":
-                    result = a.constellation.localeCompare(b.constellation);
+                    result = a.constellation.localeCompare(b.constellation, undefined, { numeric: !!this.props.chartStatistics });
                     break;
                 case "observed":
                     result = a.observed - b.observed;
@@ -549,7 +554,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             }
 
             if (result === 0) {
-                result = a.constellation.localeCompare(b.constellation);
+                result = a.constellation.localeCompare(b.constellation, undefined, { numeric: !!this.props.chartStatistics });
             }
             return result * direction;
         });
@@ -644,14 +649,16 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     private renderConstellationTable(stats: IConstellationStatistics[]) {
         const { classes } = this.props;
         const sortedStats = this.sortConstellationStats(stats);
-        const allConstellations = this.getAllSessionsConstellationsByAbbreviation();
+        const allConstellations = this.props.chartStatistics
+            ? new Map(this.getChartRows(this.props.chartAllSessionsStatistics).map(row => [row.constellationAbbrv, row]))
+            : this.getAllSessionsConstellationsByAbbreviation();
         const showNowComparison = this.shouldShowNowComparison();
         return (
             <Table className={classes.constellationTable} size="small">
                 <TableHead>
                     <TableRow>
                         <ConstellationLabelStatusHeader />
-                        {this.renderSortableHeader("Constellation", "constellation")}
+                        {this.renderSortableHeader(this.props.chartStatistics ? "Chart" : "Constellation", "constellation")}
                         {this.renderSortableHeader("Observed", "observed", "right")}
                         {showNowComparison && <TableCell className={`${classes.nowComparison} ${classes.constellationNowComparisonCell}`} size="small" align="right">(now)</TableCell>}
                         {this.renderSortableHeader("H400", "h400", "right")}
@@ -677,7 +684,8 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                                     }
                                 }}
                             >
-                                <ConstellationLabelStatus constellation={row.constellationAbbrv} total={row.h2500.total} />
+                                <ConstellationLabelStatus constellation={row.constellationAbbrv} total={row.h2500.total}
+                                    chart={this.getSelectedChart(row.constellationAbbrv)} />
                                 <TableCell size="small" component="th" scope="row">{row.constellation}</TableCell>
                                 <TableCell size="small" align="right">{row.observed}</TableCell>
                                 {showNowComparison && <TableCell className={classes.constellationNowComparisonCell} size="small" align="right">{this.renderNumberDelta(row.observed, allConstellation?.observed)}</TableCell>}
@@ -758,7 +766,9 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     }
 
     private shouldShowNowComparison() {
-        return this.state.statsExcludeLastSessions > 0 && !!this.state.allSessionsStatistics;
+        return this.props.chartStatistics
+            ? (this.props.chartExcludeLastSessions || 0) > 0 && !!this.props.chartAllSessionsStatistics
+            : this.state.statsExcludeLastSessions > 0 && !!this.state.allSessionsStatistics;
     }
 
     private openConstellationDialog(constellation: IConstellationStatistics) {
@@ -766,6 +776,32 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
             selectedConstellation: constellation,
             isConstellationDialogOpen: true,
         });
+    }
+
+    // Navigate through the displayed table order, preserving the open dialog and its expanded width.
+    private navigateDialog(direction: -1 | 1) {
+        const rows = this.getDialogRows();
+        const index = rows.findIndex(row => row.constellationAbbrv === this.state.selectedConstellation?.constellationAbbrv);
+        const next = index >= 0 ? rows[index + direction] : undefined;
+        if (next) { this.setState({ selectedConstellation: next }); }
+    }
+
+    // Reuse the active table sorting for constellation and atlas navigation independently.
+    private getDialogRows() {
+        return this.sortConstellationStats(this.props.chartStatistics
+            ? this.getChartRows(this.props.chartStatistics) : this.state.statistics?.constellations || []);
+    }
+
+    // Share navigation wiring and disable the arrows at the first and last displayed areas.
+    private renderAreaDialog() {
+        const rows = this.getDialogRows();
+        const index = rows.findIndex(row => row.constellationAbbrv === this.state.selectedConstellation?.constellationAbbrv);
+        return <ConstellationDialog open={this.state.isConstellationDialogOpen}
+            constellation={this.state.selectedConstellation}
+            chart={this.getSelectedChart(this.state.selectedConstellation?.constellationAbbrv)}
+            hasPrevious={index > 0} hasNext={index >= 0 && index < rows.length - 1}
+            onPrevious={() => this.navigateDialog(-1)} onNext={() => this.navigateDialog(1)}
+            onClose={() => this.closeConstellationDialog()} />;
     }
 
     private closeConstellationDialog() {
@@ -776,7 +812,8 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
 
     private renderConstellationStatisticsRows() {
         const { classes } = this.props;
-        const constellations = this.state.statistics?.constellations || [];
+        const constellations = this.props.chartStatistics
+            ? this.getChartRows(this.props.chartStatistics) : this.state.statistics?.constellations || [];
         if (constellations.length === 0) {
             return null;
         }
@@ -799,10 +836,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                                         }
                                     }}
                                 >
-                                    <span>Statistics by constellation</span>
+                                    <span>{this.props.chartStatistics ? "Statistics by Interstellarum charts" : "Statistics by constellation"}</span>
                                     <IconButton
                                         className={classes.toggleButton}
-                                        aria-label="Toggle constellation progress"
+                                        aria-label={this.props.chartStatistics ? "Toggle Interstellarum chart progress" : "Toggle constellation progress"}
                                         size="small"
                                     >
                                         <ExpandMoreIcon
@@ -825,7 +862,25 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         );
     }
 
+    // Adapt the atlas API rows to the shared table presentation without changing constellation consumers.
+    private getChartRows(statistics?: IStatistics): IConstellationStatistics[] {
+        return (statistics?.interstellarumCharts || []).map(row => ({
+            ...row, constellation: `Chart ${row.chart}`, constellationAbbrv: `INTERSTELLARUM-${row.chart}`,
+        }));
+    }
+
+    // Resolve the namespaced area ID used consistently by the dialog and label-status column.
+    private getSelectedChart(areaId?: string) {
+        return this.props.chartStatistics ? interstellarumCharts.find(chart => `INTERSTELLARUM-${chart.chart}` === areaId) : undefined;
+    }
+
     public render() {
+        if (this.props.chartStatistics) {
+            return <>
+                {this.renderConstellationStatisticsRows()}
+                {this.renderAreaDialog()}
+            </>;
+        }
         const { classes } = this.props;
         const hasStatistics = !!this.state.statistics;
         const showNowComparison = this.shouldShowNowComparison();
@@ -885,11 +940,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                         </Table>
                     </Paper>
                     {this.renderConstellationStatisticsRows()}
-                    <ConstellationDialog
-                        open={this.state.isConstellationDialogOpen}
-                        constellation={this.state.selectedConstellation}
-                        onClose={() => this.closeConstellationDialog()}
-                    />
+                    <StatisticsTable classes={classes} chartStatistics={this.state.statistics}
+                        chartAllSessionsStatistics={this.state.allSessionsStatistics}
+                        chartExcludeLastSessions={this.state.statsExcludeLastSessions} />
+                    {this.renderAreaDialog()}
                 </>
             );
         }

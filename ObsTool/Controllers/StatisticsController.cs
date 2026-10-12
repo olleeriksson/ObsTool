@@ -24,6 +24,14 @@ namespace ObsTool.Controllers
             return Ok(_statisticsService.GetStatistics(userId, statsExcludeLastSessions));
         }
 
+        // Reject chart numbers outside the atlas before returning the current user's map objects.
+        [HttpGet("interstellarum/{chart:int}/h2500")]
+        public IActionResult GetH2500ObjectsForInterstellarumMap([FromRoute] int chart)
+        {
+            if (chart < 1 || chart > 114) { return BadRequest("Chart must be between 1 and 114."); }
+            return Ok(_statisticsService.GetH2500ObjectsForInterstellarumMap(chart, _currentUserService.GetRequiredUserId()));
+        }
+
         [HttpGet("constellations/{constellation}/h2500")]
         public IActionResult GetH2500ObjectsForConstellationMap([FromRoute] string constellation)
         {
