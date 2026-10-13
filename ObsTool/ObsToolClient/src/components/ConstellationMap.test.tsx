@@ -145,7 +145,8 @@ it("toggles labels through markers and labels and preserves hidden choices while
     expect(container.querySelectorAll("line[data-marker-kind]")).toHaveLength(6);
     fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
     expect(labels()).toHaveLength(3);
-    fireEvent.click(container.querySelector("svg text")!);
+    // Select the highlighted label explicitly because background labels now paint first.
+    fireEvent.click(container.querySelector("g[data-map-layer='highlighted'] text")!);
     expect(labels()).toHaveLength(2);
     fireEvent.click(container.querySelector("line[data-marker-kind='highlighted']")!);
     expect(labels()).toHaveLength(3);

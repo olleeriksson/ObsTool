@@ -644,18 +644,20 @@ function renderPlot(
                     />
                 ))}
             </g>
-            <g>
-                {projectedBackgroundObjects.map(object => renderCrosshair(object, "background", classes.backgroundObjectMarker, classes.transparentHitArea, 4, 9, toggleObjectLabel))}
-                {projectedObjects.map(object => renderCrosshair(object, "normal", classes.normalObjectMarker, classes.transparentHitArea, 4.5, 10, toggleObjectLabel))}
-                {projectedHighlightedObjects.map(object => renderCrosshair(object, "highlighted", classes.highlightedObjectMarker, classes.transparentHitArea, 6, 12, toggleObjectLabel))}
-            </g>
-            <g>
-                {labelPlacements.map(placement => renderObjectLabel(
-                    placement,
-                    toggleObjectLabel,
-                    `${classes.objectLabel} ${projectedHighlightedObjects.some(object => object.key === placement.key) ? classes.highlightedObjectLabel
-                        : projectedBackgroundObjects.some(object => object.key === placement.key) ? classes.backgroundObjectLabel : classes.normalObjectLabel}`))}
-            </g>
+            {/* Paint each group's markers and labels together so higher-priority objects cover the whole lower layer. */}
+            {([
+                { kind: "background", objects: projectedBackgroundObjects, markerClass: classes.backgroundObjectMarker, labelClass: classes.backgroundObjectLabel, radius: 4, hitRadius: 9 },
+                { kind: "normal", objects: projectedObjects, markerClass: classes.normalObjectMarker, labelClass: classes.normalObjectLabel, radius: 4.5, hitRadius: 10 },
+                { kind: "highlighted", objects: projectedHighlightedObjects, markerClass: classes.highlightedObjectMarker, labelClass: classes.highlightedObjectLabel, radius: 6, hitRadius: 12 },
+            ] as const).map(layer => (
+                <g key={layer.kind} data-map-layer={layer.kind}>
+                    {layer.objects.map(object => renderCrosshair(object, layer.kind, layer.markerClass, classes.transparentHitArea, layer.radius, layer.hitRadius, toggleObjectLabel))}
+                    {labelPlacements.filter(placement => layer.objects.some(object => object.key === placement.key)).map(placement => renderObjectLabel(
+                        placement,
+                        toggleObjectLabel,
+                        `${classes.objectLabel} ${layer.labelClass}`))}
+                </g>
+            ))}
         </svg>
     );
 }
