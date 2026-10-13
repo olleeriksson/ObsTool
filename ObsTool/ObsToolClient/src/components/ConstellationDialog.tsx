@@ -107,12 +107,12 @@ class ConstellationDialog extends React.Component<IConstellationDialogProps, ICo
                 slotProps={{
                     paper: {
                         style: {
-                            // Expand both dimensions with equal margins; normal view uses slightly more height.
-                            width: isExpanded ? "calc(100% - 16px)" : "94vw",
-                            maxWidth: isExpanded ? "none" : 1320,
-                            margin: isExpanded ? 8 : "2vh 32px",
-                            height: isExpanded ? "calc(100dvh - 16px)" : "96dvh",
-                            maxHeight: isExpanded ? "calc(100dvh - 16px)" : "96dvh",
+                            // Keep the default view shorter and wider; expanded mode leaves a small background border.
+                            width: isExpanded ? "calc(100% - 32px)" : "calc(100% - 48px)",
+                            maxWidth: isExpanded ? "none" : 1400,
+                            margin: isExpanded ? 12 : "6dvh 24px",
+                            height: isExpanded ? "calc(100dvh - 32px)" : "88dvh",
+                            maxHeight: isExpanded ? "calc(100dvh - 32px)" : "88dvh",
                         },
                     }
                 }}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi, beforeEach } from "vitest";
 import { labelVisibilityStorageKey } from "../store/LabelVisibilityStore";
 import ConstellationMap from "./ConstellationMap";
@@ -262,18 +262,28 @@ it("clips the white constellation fill to the focused boundary", () => {
     expect(clippedFill).toHaveAttribute("data-map-layer", "focused-fill");
 });
 
-it("fits the SVG viewBox to the measured plot viewport", async () => {
+// Resize the real plot observer and verify that shrinking the map removes grid lines.
+it("fits the SVG and grid density to the measured plot viewport", async () => {
     const originalResizeObserver = globalThis.ResizeObserver;
+    let resizeObserver: MockResizeObserver | undefined;
 
     class MockResizeObserver {
         private readonly callback: ResizeObserverCallback;
 
+        // Retain the live observer so this test can simulate viewport changes.
         public constructor(callback: ResizeObserverCallback) {
+            resizeObserver = this;
             this.callback = callback;
         }
 
+        // Supply the initial measured width when the plot is mounted.
         public observe() {
-            this.callback([{ contentRect: { width: 640 } as DOMRectReadOnly } as ResizeObserverEntry], this as unknown as ResizeObserver);
+            this.resize(640);
+        }
+
+        // Notify the same observer when the plot shrinks.
+        public resize(width: number) {
+            this.callback([{ contentRect: { width } as DOMRectReadOnly } as ResizeObserverEntry], this as unknown as ResizeObserver);
         }
 
         public unobserve() {
@@ -299,6 +309,11 @@ it("fits the SVG viewBox to the measured plot viewport", async () => {
 
         await waitFor(() => expect(map).toHaveAttribute("viewBox", "0 0 640 500"));
         expect(map.querySelector("rect[data-map-layer='background']")).toHaveAttribute("width", "640");
+        const initialGridLines = map.querySelectorAll("path[class*=gridLine]").length;
+        expect(initialGridLines).toBeGreaterThan(0);
+        act(() => resizeObserver!.resize(240));
+        expect(map).toHaveAttribute("viewBox", "0 0 240 500");
+        expect(map.querySelectorAll("path[class*=gridLine]").length).toBeLessThan(initialGridLines);
     } finally {
         globalThis.ResizeObserver = originalResizeObserver;
     }
@@ -344,6 +359,9 @@ it("labels every statistics group with SAC names and keeps observed H400 objects
     expect(container.querySelector("svg text")).toHaveTextContent("Unseen H400");
     expect(container.querySelectorAll("svg text")).toHaveLength(1);
     expect(container.querySelector("line[data-marker-kind='highlighted']")).toHaveAttribute("stroke-width", "3");
+    // Group colors must match their markers without competing with shared typography.
+    expect(getComputedStyle(container.querySelector("svg text")!).fill).toBe(
+        getComputedStyle(container.querySelector("line[data-marker-kind='highlighted']")!).stroke);
 
     fireEvent.click(screen.getByRole("button", { name: "Herschel" }));
     expect(screen.getByRole("button", { name: "Herschel" })).toHaveAttribute("aria-pressed", "true");
@@ -351,6 +369,8 @@ it("labels every statistics group with SAC names and keeps observed H400 objects
     fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
     expect(container.querySelectorAll("svg text")).toHaveLength(1);
     expect(container.querySelector("svg text")).toHaveTextContent("Unseen H2500");
+    expect(getComputedStyle(container.querySelector("svg text")!).fill).toBe(
+        getComputedStyle(container.querySelector("line[data-marker-kind='normal']")!).stroke);
 });
 
 // Bulk toggling follows marker groups, normalizes mixed selections, and leaves other groups intact.

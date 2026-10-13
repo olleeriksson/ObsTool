@@ -276,7 +276,7 @@ it("navigates charts in table order and retains the expanded size", async () => 
     fireEvent.click(screen.getByText("Chart 2"));
     expect(screen.getByRole("button", { name: "Previous Interstellarum chart" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Expand dialog size" }));
-    expect(screen.getByRole("dialog")).toHaveStyle({ maxWidth: "none", width: "calc(100% - 16px)", height: "calc(100dvh - 16px)", margin: "8px" });
+    expect(screen.getByRole("dialog")).toHaveStyle({ maxWidth: "none", width: "calc(100% - 24px)", height: "calc(100dvh - 24px)", margin: "12px" });
     fireEvent.click(screen.getByRole("button", { name: "Next Interstellarum chart" }));
     expect(await screen.findByText("Interstellarum chart 11")).toBeInTheDocument();
     expect(load).toHaveBeenCalledWith(11);
@@ -287,9 +287,9 @@ it("navigates charts in table order and retains the expanded size", async () => 
     fireEvent.click(screen.getByRole("button", { name: "Previous Interstellarum chart" }));
     expect(await screen.findByText("Interstellarum chart 11")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Restore dialog size" }));
-    expect(screen.getByRole("dialog").style.maxWidth).toBe("1320px");
-    expect(screen.getByRole("dialog").style.width).toBe("94vw");
-    expect(screen.getByRole("dialog").style.height).toBe("96dvh");
+    expect(screen.getByRole("dialog").style.maxWidth).toBe("1400px");
+    expect(screen.getByRole("dialog").style.width).toBe("calc(100% - 48px)");
+    expect(screen.getByRole("dialog").style.height).toBe("88dvh");
 });
 
 // Constellations use their own current sort order and their existing object endpoint.

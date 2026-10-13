@@ -136,12 +136,13 @@ export function unwrapLongitudeRelative(longitude: number, centerLongitude: numb
     return unwrapped;
 }
 
-export function createMapExtent(coordinates: CelestialPosition[]): MapExtent | null {
+// Fit boundary bounds around an optional fixed center so polar charts have a stable RA orientation.
+export function createMapExtent(coordinates: CelestialPosition[], projectionCenter?: CelestialPosition): MapExtent | null {
     if (coordinates.length === 0) {
         return null;
     }
 
-    const center = getSphericalMeanCenter(coordinates);
+    const center = projectionCenter ?? getSphericalMeanCenter(coordinates);
     const planePoints = coordinates
         .map(point => projectToTangentPlane(point, center.longitude, center.latitude))
         .filter((point): point is { planeX: number; planeY: number } => point != null);

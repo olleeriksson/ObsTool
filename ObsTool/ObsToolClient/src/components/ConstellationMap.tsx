@@ -15,6 +15,7 @@ import type { WithStyles } from "src/muiCompat";
 import { IConstellationMapObject } from "../types/Types";
 import constellationBoundsJson from "../data/constellations/constellations.bounds.json";
 import { InterstellarumChart } from "./InterstellarumAtlas";
+import { createGridSegments, getMapGridSpacing, MapGridSpacing } from "./ConstellationMapGrid";
 import constellationLinesJson from "../data/constellations/constellations.lines.json";
 import {
     CelestialPosition,
@@ -167,17 +168,33 @@ const styles = (theme: Theme) => createStyles({
     focusedVertex: {
         fill: theme.palette.mode === "dark" ? "#b9c6d6" : "#666666",
     },
+    highlightedObjectMarker: {
+        stroke: theme.palette.mode === "dark" ? "#64b5f6" : "#1565c0",
+    },
+    highlightedObjectLabel: {
+        fill: theme.palette.mode === "dark" ? "#64b5f6" : "#1565c0",
+    },
+    backgroundObjectLabel: {
+        fill: theme.palette.mode === "dark" ? "#6f7d8f" : "#b4b4b4",
+    },
+    backgroundObjectMarker: {
+        stroke: theme.palette.mode === "dark" ? "#6f7d8f" : "#b4b4b4",
+    },
+    // Match normal markers and labels with green shades suited to each theme.
+    normalObjectMarker: {
+        stroke: theme.palette.mode === "dark" ? "#81c784" : "#2e7d32",
+    },
+    normalObjectLabel: {
+        fill: theme.palette.mode === "dark" ? "#81c784" : "#2e7d32",
+    },
+    // Share typography and outlines without overriding any group's label color.
     objectLabel: {
         cursor: "pointer",
-        fill: theme.palette.primary.main,
         fontFamily: "'Trebuchet MS', Verdana, sans-serif",
         fontSize: labelFontSize,
         paintOrder: "stroke",
         stroke: theme.palette.mode === "dark" ? "#0d1117" : "#ffffff",
         strokeWidth: 2.2,
-    },
-    backgroundObjectLabel: {
-        fill: theme.palette.mode === "dark" ? "#6f7d8f" : "#b4b4b4",
     },
     controlsPanel: {
         background: theme.palette.mode === "dark" ? "#161b22" : "#ececec",
@@ -252,15 +269,6 @@ const styles = (theme: Theme) => createStyles({
     focusedBoundaryFill: {
         fill: theme.palette.mode === "dark" ? "#0d1117" : "#ffffff",
     },
-    backgroundObjectMarker: {
-        stroke: theme.palette.mode === "dark" ? "#6f7d8f" : "#b4b4b4",
-    },
-    normalObjectMarker: {
-        stroke: theme.palette.primary.main,
-    },
-    highlightedObjectMarker: {
-        stroke: theme.palette.mode === "dark" ? "#f0f6fc" : "#111111",
-    },
     transparentHitArea: {
         fill: "transparent",
         stroke: "none",
@@ -333,7 +341,11 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         : getPolygonRings(focusedBoundaryFeatures);
     const focusedLineSegments = props.chart ? [] : getLineSegments(focusedLineFeatures);
     const focusedBoundaryPositions = focusedBoundaryRings.flat().map(toCelestialPosition);
-    const extent = createMapExtent(focusedBoundaryPositions);
+    // At RA 0, a north-pole projection points downward and a south-pole projection points upward.
+    // Fix both polar centers to RA 0 so chart 1 has RA 00h below and chart 114 has RA 12h below.
+    const polarCenter = props.chart?.chart === 1 ? { longitude: 0, latitude: 90 }
+        : props.chart?.chart === 114 ? { longitude: 0, latitude: -90 } : undefined;
+    const extent = createMapExtent(focusedBoundaryPositions, polarCenter);
 
     if (extent == null) {
         return (
@@ -402,6 +414,8 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     viewBoxWidth,
                     height,
                     focusedBoundaryPositions,
+                    // Adapt constellation density to the measured plot; atlas charts retain fixed intervals.
+                    getMapGridSpacing(extent.centerLatitude, props.chart?.chart, { width: viewBoxWidth, height }),
                     projectedBackgroundObjects,
                     projectedObjects,
                     projectedHighlightedObjects,
@@ -538,6 +552,7 @@ function renderPlot(
     viewBoxWidth: number,
     height: number,
     focusedBoundaryPositions: CelestialPosition[],
+    gridSpacing: MapGridSpacing,
     projectedBackgroundObjects: ProjectedMapObject[],
     projectedObjects: ProjectedMapObject[],
     projectedHighlightedObjects: ProjectedMapObject[],
@@ -555,7 +570,7 @@ function renderPlot(
     dragState: React.MutableRefObject<DragState | null>) {
     const surroundingBoundaryRings = getPolygonRings(constellationBounds.features.filter(feature => normalizeConstellationId(feature.id) !== focusedConstellationId));
     const surroundingLineSegments = getLineSegments(constellationLines.features.filter(feature => normalizeConstellationId(feature.id) !== focusedConstellationId));
-    const gridSegments = createGridSegments(focusedBoundaryPositions);
+    const gridSegments = createGridSegments(focusedBoundaryPositions, gridSpacing);
     const focusedBoundaryFillPaths = focusedBoundaryRings
         .map(ring => coordinatesToPath(ring, viewExtent, viewBoxWidth, height, true, mapPadding, true))
         .filter((path): path is string => path != null);
@@ -638,7 +653,8 @@ function renderPlot(
                 {labelPlacements.map(placement => renderObjectLabel(
                     placement,
                     toggleObjectLabel,
-                    `${classes.objectLabel} ${projectedBackgroundObjects.some(object => object.key === placement.key) ? classes.backgroundObjectLabel : ""}`))}
+                    `${classes.objectLabel} ${projectedHighlightedObjects.some(object => object.key === placement.key) ? classes.highlightedObjectLabel
+                        : projectedBackgroundObjects.some(object => object.key === placement.key) ? classes.backgroundObjectLabel : classes.normalObjectLabel}`))}
             </g>
         </svg>
     );
@@ -811,33 +827,6 @@ function getUniqueLineVertices(lineSegments: RawCoordinate[][], extent: MapExten
     });
 
     return Array.from(vertices.values());
-}
-
-function createGridSegments(focusedBoundaryPositions: CelestialPosition[]) {
-    const latitudes = focusedBoundaryPositions.map(point => point.latitude);
-    const minLatitude = Math.max(-89, Math.min(...latitudes) - 20);
-    const maxLatitude = Math.min(89, Math.max(...latitudes) + 20);
-    const latitudeStart = Math.floor(minLatitude / 5) * 5;
-    const latitudeEnd = Math.ceil(maxLatitude / 5) * 5;
-    const segments: RawCoordinate[][] = [];
-
-    for (let longitude = -180; longitude < 180; longitude += 15) {
-        const segment: RawCoordinate[] = [];
-        for (let latitude = -89; latitude <= 89; latitude += 2) {
-            segment.push([normalizeLongitude(longitude), latitude]);
-        }
-        segments.push(segment);
-    }
-
-    for (let latitude = latitudeStart; latitude <= latitudeEnd; latitude += 5) {
-        const segment: RawCoordinate[] = [];
-        for (let longitude = -180; longitude <= 180; longitude += 2) {
-            segment.push([normalizeLongitude(longitude), latitude]);
-        }
-        segments.push(segment);
-    }
-
-    return segments;
 }
 
 // Emphasize highlighted targets with a thicker cross in both overview and locator maps.

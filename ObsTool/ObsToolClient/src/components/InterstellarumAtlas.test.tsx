@@ -1,6 +1,7 @@
 import * as React from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it } from "vitest";
+import ConstellationMap from "./ConstellationMap";
 import ConstellationView from "./ConstellationView";
 import ConstellationLabelStatus from "./ConstellationLabelStatus";
 import { chartContainsPosition, getObjectCharts, interstellarumCharts } from "./InterstellarumAtlas";
@@ -71,4 +72,24 @@ it("classifies chart visibility independently of constellation boundaries", () =
     expect(screen.getByRole("img", { name: /chart 114: Never visible/ })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /chart 82: Partly visible/ })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /chart 57: Fully visible.*No Herschel/ })).toBeInTheDocument();
+});
+
+// Check rendered marker positions so the polar RA orientation covers the full map projection path.
+it.each([
+    { chartNumber: 1, bottomRa: "00 00", topRa: "12 00", dec: "+85 00" },
+    { chartNumber: 114, bottomRa: "12 00", topRa: "00 00", dec: "-85 00" },
+])("orients chart $chartNumber with its specified RA towards the bottom", ({ chartNumber, bottomRa, topRa, dec }) => {
+    const { container } = render(<ConstellationMap
+        constellation={`INTERSTELLARUM-${chartNumber}`}
+        chart={interstellarumCharts[chartNumber - 1]}
+        objects={[
+            { name: "Bottom", ra: bottomRa, dec },
+            { name: "Top", ra: topRa, dec },
+        ]}
+        showControls={false}
+    />);
+    const markers = container.querySelectorAll('line[data-marker-kind="normal"]');
+    expect(markers).toHaveLength(4);
+    expect(Number(markers[0].getAttribute("y1"))).toBeGreaterThan(Number(markers[2].getAttribute("y1")));
+    expect(Number(markers[0].getAttribute("x1"))).toBeCloseTo(Number(markers[2].getAttribute("x1")), 6);
 });
