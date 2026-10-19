@@ -93,3 +93,22 @@ it.each([
     expect(Number(markers[0].getAttribute("y1"))).toBeGreaterThan(Number(markers[2].getAttribute("y1")));
     expect(Number(markers[0].getAttribute("x1"))).toBeCloseTo(Number(markers[2].getAttribute("x1")), 6);
 });
+
+// Boundaries must paint above the chart fill to remain visible in regular and polar charts.
+it.each([1, 57, 114])("shows constellation boundaries above the fill in chart %i", chartNumber => {
+    const { container } = render(<ConstellationMap
+        constellation={`INTERSTELLARUM-${chartNumber}`}
+        chart={interstellarumCharts[chartNumber - 1]}
+        objects={[]}
+        showControls={false}
+    />);
+    const fill = container.querySelector("rect[data-map-layer='focused-fill']")!;
+    const boundaries = container.querySelectorAll("path[class*=surroundingBoundary]");
+    expect(fill).toBeInTheDocument();
+    expect(boundaries.length).toBeGreaterThan(0);
+    for (const boundary of boundaries) {
+        expect(fill.compareDocumentPosition(boundary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(boundary.getAttribute("d")).toMatch(/^M/);
+        expect(boundary.getAttribute("d")).not.toMatch(/NaN|Infinity/);
+    }
+});

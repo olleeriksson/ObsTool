@@ -133,27 +133,27 @@ const styles = (theme: Theme) => createStyles({
     },
     surroundingBoundary: {
         fill: "none",
-        stroke: theme.palette.mode === "dark" ? "#314052" : "#d1d1d1",
+        stroke: theme.palette.mode === "dark" ? "#314052" : "#9d9d9d",
         strokeDasharray: "5 4",
         strokeWidth: 0.9,
     },
     gridLine: {
         fill: "none",
-        stroke: theme.palette.mode === "dark" ? "#263444" : "#cfcfcf",
+        stroke: theme.palette.mode === "dark" ? "#263444" : "#e1e1e1",
         strokeWidth: 0.8,
     },
     surroundingLine: {
         fill: "none",
-        stroke: theme.palette.mode === "dark" ? "#384759" : "#c2c2c2",
+        stroke: theme.palette.mode === "dark" ? "#384759" : "#777777",
         strokeLinecap: "round",
         strokeLinejoin: "round",
-        strokeWidth: 1.1,
+        strokeWidth: 1.5,
     },
     focusedBoundary: {
         fill: "none",
-        stroke: theme.palette.mode === "dark" ? "#93a4b8" : "#626262",
-        strokeDasharray: "6 4",
-        strokeWidth: 1.5,
+        stroke: theme.palette.mode === "dark" ? "#93a4b8" : "#8d8d8d",
+        strokeDasharray: "6 2",
+        strokeWidth: 2.0,
     },
     focusedLine: {
         fill: "none",
@@ -169,10 +169,10 @@ const styles = (theme: Theme) => createStyles({
         fill: theme.palette.mode === "dark" ? "#b9c6d6" : "#666666",
     },
     highlightedObjectMarker: {
-        stroke: theme.palette.mode === "dark" ? "#64b5f6" : "#1565c0",
+        stroke: theme.palette.mode === "dark" ? "#64b5f6" : "#227ce3",
     },
     highlightedObjectLabel: {
-        fill: theme.palette.mode === "dark" ? "#64b5f6" : "#1565c0",
+        fill: theme.palette.mode === "dark" ? "#64b5f6" : "#227ce3",
     },
     backgroundObjectLabel: {
         fill: theme.palette.mode === "dark" ? "#6f7d8f" : "#b4b4b4",
@@ -182,10 +182,10 @@ const styles = (theme: Theme) => createStyles({
     },
     // Match normal markers and labels with green shades suited to each theme.
     normalObjectMarker: {
-        stroke: theme.palette.mode === "dark" ? "#81c784" : "#2e7d32",
+        stroke: theme.palette.mode === "dark" ? "#81c784" : "#2aa330",
     },
     normalObjectLabel: {
-        fill: theme.palette.mode === "dark" ? "#81c784" : "#2e7d32",
+        fill: theme.palette.mode === "dark" ? "#81c784" : "#2aa330",
     },
     // Share typography and outlines without overriding any group's label color.
     objectLabel: {
@@ -604,11 +604,12 @@ function renderPlot(
             </defs>
             <rect x={0} y={0} width={viewBoxWidth} height={height} className={classes.plotBackground} data-map-layer="background" />
             <g aria-hidden="true">
+                {focusedBoundaryFillPaths.length > 0 && <rect x={0} y={0} width={viewBoxWidth} height={height} className={classes.focusedBoundaryFill} data-map-layer="focused-fill" clipPath={`url(#${focusedBoundaryClipPathId})`} />}
+                {/* Keep constellation boundaries above the opaque fill, including inside atlas charts. */}
                 {surroundingBoundaryRings.map((ring, index) => renderPath(ring, viewExtent, viewBoxWidth, height, true, {
                     key: `surrounding-boundary-${index}`,
                     className: classes.surroundingBoundary,
                 }, mapPadding))}
-                {focusedBoundaryFillPaths.length > 0 && <rect x={0} y={0} width={viewBoxWidth} height={height} className={classes.focusedBoundaryFill} data-map-layer="focused-fill" clipPath={`url(#${focusedBoundaryClipPathId})`} />}
                 {gridSegments.map((segment, index) => renderPath(segment, viewExtent, viewBoxWidth, height, false, {
                     key: `grid-${index}`,
                     className: classes.gridLine,
