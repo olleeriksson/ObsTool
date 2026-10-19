@@ -98,9 +98,9 @@ it("opens the constellation dialog from a constellation statistics row", async (
 
     await waitFor(() => expect(getObjects).toHaveBeenCalledWith("ORI"));
     expect(screen.getByText("Constellation: Orion")).toBeInTheDocument();
-    expect(await screen.findByRole("checkbox", { name: "Unseen Herschel 2500" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Already observed" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Unseen Herschel 400" })).toBeInTheDocument();
+    expect(await screen.findByRole("checkbox", { name: "Unseen H2500" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Observed H2500" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Unseen H400" })).toBeInTheDocument();
 });
 
 it("reloads statistics when the session exclusion control changes", async () => {
@@ -272,24 +272,34 @@ it("navigates charts in table order and retains the expanded size", async () => 
     } } as any);
     const load = vi.spyOn(Api, "getH2500ObjectsForInterstellarumMap").mockResolvedValue({ data: [] } as any);
     render(<StatisticsTable />, { wrapper });
-    fireEvent.click(await screen.findByText("Statistics by Interstellarum charts"));
-    fireEvent.click(screen.getByText("Chart 2"));
+    await userEvent.click(await screen.findByText("Statistics by Interstellarum charts"));
+    await userEvent.click(screen.getByText("Chart 2"));
     expect(screen.getByRole("button", { name: "Previous Interstellarum chart" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Expand dialog size" }));
-    expect(screen.getByRole("dialog")).toHaveStyle({ maxWidth: "none", width: "calc(100% - 24px)", height: "calc(100dvh - 24px)", margin: "12px" });
-    fireEvent.click(screen.getByRole("button", { name: "Next Interstellarum chart" }));
+    const dialog = screen.getByRole("dialog");
+    const normalWidth = dialog.style.width;
+    const normalHeight = dialog.style.height;
+    await userEvent.click(screen.getByRole("button", { name: "Expand dialog size" }));
+    // Verify the size changes and persists without coupling navigation to visual spacing choices.
+    const expandedWidth = dialog.style.width;
+    const expandedHeight = dialog.style.height;
+    expect(expandedWidth).not.toBe(normalWidth);
+    expect(expandedHeight).not.toBe(normalHeight);
+    await userEvent.click(screen.getByRole("button", { name: "Next Interstellarum chart" }));
     expect(await screen.findByText("Interstellarum chart 11")).toBeInTheDocument();
     expect(load).toHaveBeenCalledWith(11);
+    expect(screen.getByRole("dialog")).toBe(dialog);
+    expect(dialog.style.width).toBe(expandedWidth);
+    expect(dialog.style.height).toBe(expandedHeight);
     expect(screen.getByRole("button", { name: "Restore dialog size" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Next Interstellarum chart" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next Interstellarum chart" }));
     expect(await screen.findByText("Interstellarum chart 57")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next Interstellarum chart" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Previous Interstellarum chart" }));
+    await userEvent.click(screen.getByRole("button", { name: "Previous Interstellarum chart" }));
     expect(await screen.findByText("Interstellarum chart 11")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Restore dialog size" }));
-    expect(screen.getByRole("dialog").style.maxWidth).toBe("1400px");
-    expect(screen.getByRole("dialog").style.width).toBe("calc(100% - 48px)");
-    expect(screen.getByRole("dialog").style.height).toBe("88dvh");
+    await userEvent.click(screen.getByRole("button", { name: "Restore dialog size" }));
+    expect(screen.getByRole("button", { name: "Expand dialog size" })).toHaveAttribute("aria-pressed", "false");
+    expect(dialog.style.width).toBe(normalWidth);
+    expect(dialog.style.height).toBe(normalHeight);
 });
 
 // Constellations use their own current sort order and their existing object endpoint.

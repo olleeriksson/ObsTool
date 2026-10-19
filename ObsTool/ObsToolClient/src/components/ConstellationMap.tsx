@@ -53,9 +53,11 @@ export interface IConstellationMapProps {
     objects: IConstellationMapObject[];
     backgroundObjects?: IConstellationMapObject[];
     highlightedObjects?: IConstellationMapObject[];
+    highlightedBackgroundObjects?: IConstellationMapObject[];
     objectLabel?: string;
     backgroundLabel?: string;
     highlightedLabel?: string;
+    highlightedBackgroundLabel?: string;
     maxNumLabels?: number;
     labelMode?: ConstellationMapLabelMode;
     /** Label a lone object in overview maps; locator maps keep it unlabeled. */
@@ -99,7 +101,7 @@ const boundaryPaddingRatio = 0.02;
 const labelFontSize = 12;
 const minZoom = 1.0;
 const maxZoom = 6;
-type ConstellationMapMarkerKind = "background" | "normal" | "highlighted";
+type ConstellationMapMarkerKind = "background" | "highlighted-background" | "normal" | "highlighted";
 
 const styles = (theme: Theme) => createStyles({
     root: {
@@ -280,6 +282,7 @@ type ConstellationMapClasses = WithStyles<typeof styles>["classes"];
 const constellationBounds = constellationBoundsJson as GeoJsonFeatureCollection;
 const constellationLines = constellationLinesJson as GeoJsonFeatureCollection;
 
+// Render independently controlled object groups with shared projection and label placement.
 function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styles>) {
     const {
         classes,
@@ -288,9 +291,11 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         objects,
         backgroundObjects = [],
         highlightedObjects = [],
+        highlightedBackgroundObjects = [],
         objectLabel = "Objects",
         backgroundLabel = "Background objects",
         highlightedLabel = "Highlighted objects",
+        highlightedBackgroundLabel = "Highlighted background objects",
         maxNumLabels,
         labelMode = "sac",
         labelSingleObject = false,
@@ -303,7 +308,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         allowZoom = true,
     } = props;
 
-    const defaultMaxLabels = getDefaultMaxLabels(objects, highlightedObjects, showBackgroundLabels ? backgroundObjects : []);
+    const defaultMaxLabels = getDefaultMaxLabels(objects, highlightedObjects, showBackgroundLabels ? [...backgroundObjects, ...highlightedBackgroundObjects] : []);
     const [activeLabelMode, setActiveLabelMode] = React.useState<ConstellationMapLabelMode>(labelMode);
     const [activeMaxLabels, setActiveMaxLabels] = React.useState(maxNumLabels ?? defaultMaxLabels);
     const [pan, setPan] = React.useState<PlanePan>({ x: 0, y: 0 });
@@ -316,6 +321,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     };
     const [visibleMarkers, setVisibleMarkers] = React.useState<Record<ConstellationMapMarkerKind, boolean>>({
         background: true,
+        "highlighted-background": true,
         normal: true,
         highlighted: true,
     });
@@ -323,7 +329,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const measuredPlotWidth = useElementWidth(plotContainerRef);
     const dragState = React.useRef<DragState | null>(null);
     const focusedBoundaryClipPathId = React.useId().replace(/:/g, "");
-    const markerVisibilityOptions = getMarkerVisibilityOptions(objectLabel, backgroundLabel, highlightedLabel);
+    const markerVisibilityOptions = getMarkerVisibilityOptions(objectLabel, backgroundLabel, highlightedLabel, props.highlightedBackgroundObjects ? highlightedBackgroundLabel : undefined);
 
     React.useEffect(() => setActiveLabelMode(labelMode), [labelMode]);
     React.useEffect(() => setActiveMaxLabels(maxNumLabels ?? defaultMaxLabels), [maxNumLabels, defaultMaxLabels]);
@@ -359,7 +365,9 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const viewExtent = createViewExtent(extent, pan, zoom);
     const mapPadding = getMapPadding(viewBoxWidth, height);
     const foregroundKeys = new Set([...objects, ...highlightedObjects].map(getMapObjectKey));
+    const backgroundExcludedKeys = new Set([...objects, ...highlightedObjects, ...highlightedBackgroundObjects].map(getMapObjectKey));
     const highlightedKeys = new Set(highlightedObjects.map(getMapObjectKey));
+    const visibleHighlightedBackgroundObjects = visibleMarkers["highlighted-background"] ? highlightedBackgroundObjects : [];
     const visibleBackgroundObjects = visibleMarkers.background ? backgroundObjects : [];
     const visibleNormalObjects = visibleMarkers.normal ? objects : [];
     const visibleHighlightedObjects = visibleMarkers.highlighted ? highlightedObjects : [];
@@ -367,16 +375,21 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
     const toggleLabelKeys = uniqueObjects([
         ...visibleHighlightedObjects,
         ...visibleNormalObjects.filter(object => !highlightedKeys.has(getMapObjectKey(object))),
-        ...visibleBackgroundObjects.filter(object => !foregroundKeys.has(getMapObjectKey(object))),
+        ...visibleHighlightedBackgroundObjects.filter(object => !foregroundKeys.has(getMapObjectKey(object))),
+        ...visibleBackgroundObjects.filter(object => !backgroundExcludedKeys.has(getMapObjectKey(object))),
     ]).map(getMapObjectKey);
     const projectedBackgroundObjects = projectObjects(
-        uniqueObjects(visibleBackgroundObjects).filter(object => !foregroundKeys.has(getMapObjectKey(object))),
+        uniqueObjects(visibleBackgroundObjects).filter(object => !backgroundExcludedKeys.has(getMapObjectKey(object))),
         viewExtent,
         viewBoxWidth,
         height,
         3,
         activeLabelMode,
         mapPadding);
+    // Observed H400 targets retain highlight geometry while staying behind unseen targets.
+    const projectedHighlightedBackgroundObjects = projectObjects(
+        uniqueObjects(visibleHighlightedBackgroundObjects).filter(object => !foregroundKeys.has(getMapObjectKey(object))),
+        viewExtent, viewBoxWidth, height, 3.5, activeLabelMode, mapPadding);
     const projectedHighlightedObjects = projectObjects(uniqueObjects(visibleHighlightedObjects), viewExtent, viewBoxWidth, height, 5, activeLabelMode, mapPadding);
     const projectedObjects = projectObjects(
         uniqueObjects(visibleNormalObjects).filter(object => !highlightedKeys.has(getMapObjectKey(object))),
@@ -387,7 +400,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
         activeLabelMode,
         mapPadding);
     // Overview maps label observed objects too, using the same slider and collision placement.
-    const labelCandidates = [...projectedObjects, ...(showBackgroundLabels ? projectedBackgroundObjects : [])];
+    const labelCandidates = [...projectedObjects, ...(showBackgroundLabels ? [...projectedHighlightedBackgroundObjects, ...projectedBackgroundObjects] : [])];
     const labelObjectCount = projectedHighlightedObjects.length + labelCandidates.length;
     const sliderMax = Math.max(1, labelObjectCount);
     const displayedMaxLabels = Math.min(activeMaxLabels, sliderMax);
@@ -417,6 +430,7 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
                     // Adapt constellation density to the measured plot; atlas charts retain fixed intervals.
                     getMapGridSpacing(extent.centerLatitude, props.chart?.chart, { width: viewBoxWidth, height }),
                     projectedBackgroundObjects,
+                    projectedHighlightedBackgroundObjects,
                     projectedObjects,
                     projectedHighlightedObjects,
                     filteredPlacements,
@@ -523,10 +537,11 @@ function ConstellationMap(props: IConstellationMapProps & WithStyles<typeof styl
 }
 
 // Builds the controls in the same order as the map's public marker-label props.
-function getMarkerVisibilityOptions(objectLabel: string, backgroundLabel: string, highlightedLabel: string): Array<{ kind: ConstellationMapMarkerKind; label: string }> {
+function getMarkerVisibilityOptions(objectLabel: string, backgroundLabel: string, highlightedLabel: string, highlightedBackgroundLabel?: string): Array<{ kind: ConstellationMapMarkerKind; label: string }> {
     return [
         { kind: "highlighted", label: highlightedLabel },
         { kind: "normal", label: objectLabel },
+        ...(highlightedBackgroundLabel ? [{ kind: "highlighted-background" as const, label: highlightedBackgroundLabel }] : []),
         { kind: "background", label: backgroundLabel },
     ];
 }
@@ -542,6 +557,7 @@ function setMarkerVisibility(
     }));
 }
 
+// Paint map geometry and complete object layers in back-to-front order.
 function renderPlot(
     classes: ConstellationMapClasses,
     focusedConstellationId: string,
@@ -554,6 +570,7 @@ function renderPlot(
     focusedBoundaryPositions: CelestialPosition[],
     gridSpacing: MapGridSpacing,
     projectedBackgroundObjects: ProjectedMapObject[],
+    projectedHighlightedBackgroundObjects: ProjectedMapObject[],
     projectedObjects: ProjectedMapObject[],
     projectedHighlightedObjects: ProjectedMapObject[],
     labelPlacements: ReturnType<typeof selectLabelPlacements>,
@@ -648,6 +665,7 @@ function renderPlot(
             {/* Paint each group's markers and labels together so higher-priority objects cover the whole lower layer. */}
             {([
                 { kind: "background", objects: projectedBackgroundObjects, markerClass: classes.backgroundObjectMarker, labelClass: classes.backgroundObjectLabel, radius: 4, hitRadius: 9 },
+                { kind: "highlighted-background", objects: projectedHighlightedBackgroundObjects, markerClass: classes.backgroundObjectMarker, labelClass: classes.backgroundObjectLabel, radius: 6, hitRadius: 12 },
                 { kind: "normal", objects: projectedObjects, markerClass: classes.normalObjectMarker, labelClass: classes.normalObjectLabel, radius: 4.5, hitRadius: 10 },
                 { kind: "highlighted", objects: projectedHighlightedObjects, markerClass: classes.highlightedObjectMarker, labelClass: classes.highlightedObjectLabel, radius: 6, hitRadius: 12 },
             ] as const).map(layer => (
@@ -808,7 +826,7 @@ function uniqueObjects(objects: IConstellationMapObject[]) {
     });
 }
 
-// Count each eligible object once so overview maps default to labels for all three groups.
+// Count each eligible object once so overview maps default to labels for all eligible groups.
 function getDefaultMaxLabels(objects: IConstellationMapObject[], highlightedObjects: IConstellationMapObject[], backgroundObjects: IConstellationMapObject[]) {
     return uniqueObjects([...highlightedObjects, ...objects, ...backgroundObjects]).length;
 }
@@ -834,7 +852,7 @@ function getUniqueLineVertices(lineSegments: RawCoordinate[][], extent: MapExten
 
 // Emphasize highlighted targets with a thicker cross in both overview and locator maps.
 function renderCrosshair(object: ProjectedMapObject, markerKind: ConstellationMapMarkerKind, markerClassName: string, hitAreaClassName: string, radius: number, hitRadius: number, toggleObjectLabel: (object: IConstellationMapObject) => void) {
-    const strokeWidth = markerKind === "highlighted" ? 3 : 1.8;
+    const strokeWidth = (markerKind === "highlighted" || markerKind === "highlighted-background") ? 3 : 1.8;
     return (
         <Tooltip
             key={object.key}

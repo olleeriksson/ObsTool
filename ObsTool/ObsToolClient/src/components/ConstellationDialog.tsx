@@ -201,9 +201,9 @@ class ConstellationDialog extends React.Component<IConstellationDialogProps, ICo
                 constellationName={constellation.constellation}
                 constellationAbbrv={constellation.constellationAbbrv}
                 objects={this.state.objects}
-                objectLabel="Unseen Herschel 2500"
-                backgroundLabel="Already observed"
-                highlightedLabel="Unseen Herschel 400"
+                objectLabel="Unseen H2500"
+                backgroundLabel="Observed H2500"
+                highlightedLabel="Unseen H400"
             />
         );
     }

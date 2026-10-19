@@ -101,9 +101,9 @@ it("toggles each marker type from the controls panel", () => {
             objects={[{ name: "NGC 205", herschelNo: "H V-17", ra: "00 40.4", dec: "+41 41" }]}
             backgroundObjects={[{ name: "NGC 206", herschelNo: "H V-16", ra: "00 40.5", dec: "+40 44" }]}
             highlightedObjects={[{ name: "NGC 224", herschelNo: "H V-18", ra: "00 42.7", dec: "+41 16" }]}
-            objectLabel="Unseen Herschel 2500"
-            backgroundLabel="Already observed"
-            highlightedLabel="Unseen Herschel 400"
+            objectLabel="Unseen H2500"
+            backgroundLabel="Observed H2500"
+            highlightedLabel="Unseen H400"
             labelMode="herschel"
         />
     );
@@ -112,15 +112,15 @@ it("toggles each marker type from the controls panel", () => {
     expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(2);
     expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(2);
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Observed H2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H400" }));
 
     expect(container.querySelectorAll("line[data-marker-kind='background']")).toHaveLength(0);
     expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(0);
     expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(0);
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H2500" }));
 
     expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(2);
 });
@@ -330,9 +330,9 @@ it("labels every statistics group with SAC names and keeps observed H400 objects
                 { name: "Unseen H400", ra: "16 00", dec: "+78 00", h400: true, isObserved: false },
                 { name: "Unseen H2500", ra: "15 00", dec: "+78 00", h400: false, isObserved: false },
             ]}
-            objectLabel="Unseen Herschel 2500"
-            backgroundLabel="Already observed"
-            highlightedLabel="Unseen Herschel 400"
+            objectLabel="Unseen H2500"
+            backgroundLabel="Observed H2500"
+            highlightedLabel="Unseen H400"
         />
     );
 
@@ -342,20 +342,20 @@ it("labels every statistics group with SAC names and keeps observed H400 objects
     expect(screen.getByRole("button", { name: "SAC" })).toHaveAttribute("aria-pressed", "true");
     expect(container.querySelectorAll("svg text")).toHaveLength(3);
     expect(screen.getByText("Label count: 3")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
-    expect(container.querySelectorAll("line[data-marker-kind='background']")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H400" }));
+    expect(container.querySelectorAll("line[data-marker-kind='highlighted-background']")).toHaveLength(2);
     const observedLabel = container.querySelector("svg text")!;
-    const observedMarker = container.querySelector("line[data-marker-kind='background']")!;
+    const observedMarker = container.querySelector("line[data-marker-kind='highlighted-background']")!;
     expect(observedLabel).toHaveTextContent("NGC 6217");
     expect(getComputedStyle(observedLabel).fill).toBe(getComputedStyle(observedMarker).stroke);
     expect(container.querySelectorAll("svg text")).toHaveLength(1);
     expect(container.querySelectorAll("line[data-marker-kind='normal']")).toHaveLength(0);
     expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(0);
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
-    expect(container.querySelectorAll("line[data-marker-kind='background']")).toHaveLength(0);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Observed H400" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H400" }));
+    expect(container.querySelectorAll("line[data-marker-kind='highlighted-background']")).toHaveLength(0);
     expect(container.querySelectorAll("line[data-marker-kind='highlighted']")).toHaveLength(2);
     expect(container.querySelector("svg text")).toHaveTextContent("Unseen H400");
     expect(container.querySelectorAll("svg text")).toHaveLength(1);
@@ -366,8 +366,8 @@ it("labels every statistics group with SAC names and keeps observed H400 objects
 
     fireEvent.click(screen.getByRole("button", { name: "Herschel" }));
     expect(screen.getByRole("button", { name: "Herschel" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H400" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H2500" }));
     expect(container.querySelectorAll("svg text")).toHaveLength(1);
     expect(container.querySelector("svg text")).toHaveTextContent("Unseen H2500");
     expect(getComputedStyle(container.querySelector("svg text")!).fill).toBe(
@@ -384,25 +384,67 @@ it("hides or restores all labels only in checked marker groups", () => {
             { name: "H400 A", herschelId: 3, ra: "00 42.7", dec: "+41 16" },
             { name: "H400 B", herschelId: 4, ra: "00 43.7", dec: "+41 26" },
         ]}
-        objectLabel="Unseen Herschel 2500" backgroundLabel="Already observed" highlightedLabel="Unseen Herschel 400"
+        objectLabel="Unseen H2500" backgroundLabel="Observed H2500" highlightedLabel="Unseen H400"
         showBackgroundLabels={true} labelSingleObject={true} enableLabelVisibilityFilter={true}
     />);
     const hiddenKeys = () => JSON.parse(localStorage.getItem(labelVisibilityStorageKey)!).hiddenByConstellation.AND.sort();
     fireEvent.click(container.querySelector("line[data-marker-kind='normal']")!);
     fireEvent.click(container.querySelector("line[data-marker-kind='highlighted']")!);
-    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Observed H2500" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H2500" }));
     fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
     expect(hiddenKeys()).toEqual(["h-1", "h-3", "h-4"]);
     expect(container.querySelectorAll("svg text")).toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
     expect(hiddenKeys()).toEqual(["h-1"]);
     expect(container.querySelectorAll("svg text")).toHaveLength(2);
-    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen Herschel 400" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Unseen H400" }));
     expect(screen.getByRole("button", { name: "Toggle labels" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Already observed" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Observed H2500" }));
     fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
     expect(hiddenKeys()).toEqual(["h-1", "h-2"]);
     fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
     expect(hiddenKeys()).toEqual(["h-1"]);
+});
+
+// Verify geometry, paint order, label budgeting, and isolated filtering for all four groups.
+it("renders observed H400 targets with highlight geometry and background colors", () => {
+    const { container } = render(<ConstellationView
+        constellationAbbrv="And" constellationName="Andromeda"
+        objects={[
+            { name: "Observed H2500", herschelId: 1, ra: "00 40", dec: "+40 44", isObserved: true },
+            { name: "Observed H400", herschelId: 2, herschelNo: "H V-17", ra: "00 41", dec: "+41 41", isObserved: true, h400: true },
+            { name: "Unseen H2500", herschelId: 3, ra: "00 42", dec: "+40 52" },
+            { name: "Unseen H400", herschelId: 4, ra: "00 43", dec: "+41 16", h400: true },
+        ]}
+    />);
+    const layers = Array.from(container.querySelectorAll("svg > g[data-map-layer]"));
+    expect(layers.map(layer => layer.getAttribute("data-map-layer"))).toEqual([
+        "background", "highlighted-background", "normal", "highlighted",
+    ]);
+    expect(screen.getByText("Label count: 4")).toBeInTheDocument();
+    const observedMarker = layers[1].querySelector("line")!;
+    const highlightedMarker = layers[3].querySelector("line")!;
+    expect(observedMarker).toHaveAttribute("stroke-width", highlightedMarker.getAttribute("stroke-width"));
+    expect(Number(observedMarker.getAttribute("x2")) - Number(observedMarker.getAttribute("x1"))).toBe(12);
+    expect(getComputedStyle(observedMarker).stroke).toBe(getComputedStyle(layers[0].querySelector("line")!).stroke);
+    expect(getComputedStyle(layers[1].querySelector("text")!).fill).toBe(getComputedStyle(observedMarker).stroke);
+    expect(getComputedStyle(observedMarker).stroke).not.toBe(getComputedStyle(highlightedMarker).stroke);
+
+    // Manual label hiding and bulk restoration include the new group using the existing object identity.
+    fireEvent.click(layers[1].querySelector("text")!);
+    expect(layers[1].querySelector("text")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(container.querySelectorAll("svg text")).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle labels" }));
+    expect(layers[1].querySelector("text")).toHaveTextContent("Observed H400");
+    fireEvent.click(screen.getByRole("button", { name: "Herschel" }));
+    expect(layers[1].querySelector("text")).toHaveTextContent("H V-17");
+    fireEvent.click(screen.getByRole("checkbox", { name: "Observed H400" }));
+    expect(layers[1].querySelector("line")).toBeNull();
+    expect(layers[1].querySelector("text")).toBeNull();
+    for (const index of [0, 2, 3]) {
+        expect(layers[index].querySelectorAll("line")).toHaveLength(2);
+        expect(layers[index].querySelector("text")).toBeInTheDocument();
+    }
 });
