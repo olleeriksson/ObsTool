@@ -76,8 +76,13 @@ const styles = (theme: Theme) => createStyles({
     lineHeight: 1,
   },
   header: {
+    // Keep the content beside the date badge until the viewport is narrower than 300px.
+    flexBasis: 0,
     flexGrow: 1,
     minWidth: 0,
+    [theme.breakpoints.down(300)]: {
+      flexBasis: "100%",
+    },
   },
   titleLine: {
     alignItems: "baseline",
@@ -86,9 +91,10 @@ const styles = (theme: Theme) => createStyles({
     minWidth: 0,
   },
   title: {
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
+    // Wrap long titles within the available content width, including unbroken words.
+    minWidth: 0,
+    overflowWrap: "anywhere",
+    whiteSpace: "normal",
     fontWeight: 500,
   },
   metaLine: {
@@ -405,7 +411,7 @@ class ObsSessionCard extends React.Component<IObsSessionCardProps, IObsSessionCa
                   )}
                 </div>
               </Grid>
-              <Grid size={{ xs: 12, sm: "grow" }} className={classes.header}>
+              <Grid className={classes.header}>
                 <div className={classes.titleLine}>
                   <Typography className={classes.title} variant="subtitle1">
                     {obsSession.title || "Untitled session"}
