@@ -100,7 +100,7 @@ const defaultHeight = 420;
 const boundaryPaddingRatio = 0.02;
 const labelFontSize = 12;
 const minZoom = 1.0;
-const maxZoom = 6;
+const maxZoom = 30;
 type ConstellationMapMarkerKind = "background" | "highlighted-background" | "normal" | "highlighted";
 
 const styles = (theme: Theme) => createStyles({
