@@ -28,6 +28,14 @@ const styles = (theme: Theme) => createStyles({
     padding: theme.spacing(1),
     paddingTop: theme.spacing(2),
   },
+  observationRow: {
+    [theme.breakpoints.down("sm")]: { columnGap: theme.spacing(1) },
+  },
+  instrumentImage: {
+    margin: 10,
+    [theme.breakpoints.down("sm")]: { margin: "4px 0" },
+  },
+  dsoColumn: { minWidth: 0 },
   image: {
     margin: 10,
     display: "flex",
@@ -61,6 +69,12 @@ const styles = (theme: Theme) => createStyles({
     flexShrink: 0,
     justifyContent: "center",
     width: 70,
+    // Keep the instrument readable without reserving a wide mobile column.
+    [theme.breakpoints.down("sm")]: {
+      width: 40,
+      "& img, & svg": { width: 32, height: 32 },
+      "& .MuiTypography-root": { maxWidth: 40 },
+    },
   },
 });
 
@@ -155,6 +169,7 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
               showBadge={false}
               showDsoAnnotations={true}
               showDsoExtra={true}
+              compactOnMobile={true}
               showObservations={false}
               showPrevAndNextObservation={false}
               startWithObservationsExpanded={false}
@@ -168,17 +183,17 @@ class Observation extends React.Component<IObservationProps, IObservationState> 
       <Paper className={classes.root}>
         <Grid container spacing={2} sx={{ flexDirection: "column" }}>
           <Grid size={12}>
-            <Grid container spacing={2} wrap="nowrap">
+            <Grid container spacing={2} wrap="nowrap" className={classes.observationRow}>
               <Grid className={classes.instrumentBadgeColumn}>
                 <ObsInstrumentBadge
                   instrument={this.props.observation.instrument}
                   compact={true}
                   iconSize={50}
                   labelWidth={48}
-                  imageClassName={classes.image}
+                  imageClassName={classes.instrumentImage}
                 />
               </Grid>
-              <Grid size={{ xs: 11, sm: "grow" }}>
+              <Grid size="grow" className={classes.dsoColumn}>
                 <Grid container sx={{ flexDirection: "column" }} spacing={2}>
                   <Grid size="grow">
                     {dsoObjects}

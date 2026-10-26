@@ -18,6 +18,17 @@ const styles = (theme: Theme) => createStyles({
     marginLeft: "1.5em",
     minWidth: 48,
   },
+  // Compact observation headers retain the portrait, caption, and H400 marker.
+  compact: {
+    [theme.breakpoints.down("sm")]: {
+      "& .herschel-content, &.herschel-content": { marginLeft: 0, minWidth: 36 },
+      marginLeft: 4,
+      minWidth: 36,
+      "& img": { height: 30 },
+      "& .MuiTypography-root": { fontSize: "0.55rem" },
+      "& .MuiBadge-badge": { fontSize: "0.55rem", height: 14, minWidth: 14, padding: "0 3px" },
+    },
+  },
   clickable: {
     cursor: "pointer",
   },
@@ -47,6 +58,7 @@ const styles = (theme: Theme) => createStyles({
 interface HerschelBadgeProps extends WithStyles<typeof styles> {
   herschelObjects?: IHerschelInfo[];
   allowDetails?: boolean;
+  compactOnMobile?: boolean;
   isExpanded?: boolean;
   onClick?: () => void;
 }
@@ -85,7 +97,7 @@ class HerschelBadge extends React.Component<HerschelBadgeProps> {
     const overlayLabel = this.getOverlayLabel();
     const icon = <img src={HerschelIcon} className={classes.icon} alt="" />;
     const content = (
-      <span className={classNames(classes.root, { [classes.active]: this.props.isExpanded })}>
+      <span className={classNames(classes.root, "herschel-content", { [classes.active]: this.props.isExpanded, [classes.compact]: this.props.compactOnMobile })}>
         {overlayLabel ? (
           <Badge badgeContent={overlayLabel} className={classes.overlay}>
             {icon}
@@ -104,7 +116,7 @@ class HerschelBadge extends React.Component<HerschelBadgeProps> {
     return (
       <Tooltip title={this.getTooltip()}>
         <ButtonBase
-          className={classNames(classes.root, classes.clickable)}
+          className={classNames(classes.root, classes.clickable, { [classes.compact]: this.props.compactOnMobile })}
           onClick={this.props.onClick}
           aria-expanded={this.props.isExpanded}
           aria-label="Show Herschel details"

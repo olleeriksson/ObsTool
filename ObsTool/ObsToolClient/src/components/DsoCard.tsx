@@ -20,6 +20,18 @@ import { IHerschelDetails } from "../types/Types";
 import { DsoTypeIcon } from "./DsoTypeIcon";
 
 const styles = (theme: Theme) => createStyles({
+  // Keep mobile details and links in the text column beside the Herschel badge.
+  compactLabel: {
+    [theme.breakpoints.down("sm")]: {
+      display: "grid",
+      gridTemplateColumns: "auto minmax(0, 1fr) auto",
+      "& > .dso-content": { gridColumn: 2, gridRow: 1, minWidth: 0 },
+      "& .dso-title": { minWidth: 0, flexWrap: "wrap" },
+      "& > .dso-herschel": { gridColumn: 3, gridRow: 1, marginTop: 0 },
+      "& [data-dso-type-icon]": { marginRight: 6 },
+    },
+  },
+  herschelSlot: { marginTop: "0.8em" },
   root: {
     top: 20,
     right: -15,
@@ -78,6 +90,7 @@ interface IDsoCardProps extends WithStyles<typeof styles> {
   startWithObservationsExpanded?: boolean;
   allowHerschelDetails?: boolean;
   dsoTypeIconSize?: number;
+  compactOnMobile?: boolean;
 }
 
 interface IDynamicDsoLabelState {
@@ -189,13 +202,14 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     );
 
     const dsoExtra = this.props.showDsoExtra && (
-      <DsoExtra dso={dso} />
+      <DsoExtra dso={dso} compactOnMobile={this.props.compactOnMobile} />
     );
 
     const allowHerschelDetails = this.props.allowHerschelDetails !== false && (dso.objectKind === undefined || dso.objectKind === "Sac");
     const herschelBadge = dso.herschelObjects && dso.herschelObjects.length > 0 && (
-      <Grid size={"auto"} style={{ marginTop: "0.8em" }}>
+      <Grid size={"auto"} className={classNames(classes.herschelSlot, "dso-herschel")}>
         <HerschelBadge
+          compactOnMobile={this.props.compactOnMobile}
           herschelObjects={dso.herschelObjects}
           allowDetails={allowHerschelDetails}
           isExpanded={this.state.isHerschelExpanded}
@@ -213,12 +227,12 @@ class DsoCard extends React.Component<IDsoCardProps, IDynamicDsoLabelState> {
     );
 
     const dsoLabel = (
-      <Grid container sx={{ alignItems: "flex-start" }}>
+      <Grid container className={this.props.compactOnMobile ? classes.compactLabel : undefined} sx={{ alignItems: "flex-start" }}>
         <Grid size={"auto"}>
           <DsoTypeIcon type={dso.type} size={dsoTypeIconSize} className={classes.dsoTypeIcon} />
         </Grid>
-        <Grid size={"grow"}>
-          <div className={classes.titleRow}>
+        <Grid size={"grow"} className="dso-content">
+          <div className={classNames(classes.titleRow, "dso-title")}>
             {dsoSearchLabel}
             {dsoAnnotations}
           </div>

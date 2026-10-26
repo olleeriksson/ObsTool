@@ -1,6 +1,8 @@
 import * as React from "react";
 import { formatConstellationAbbreviation } from "../utils/constellations";
 import { IDso } from "../types/Types";
+import IconButton from "@mui/material/IconButton";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Typography from "@mui/material/Typography";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
@@ -12,12 +14,28 @@ import DsoMapDialog from "./DsoMapDialog";
 import { toDsoMapObject } from "./DsoMapUtils";
 
 export interface IDsoExtraProps extends WithStyles<typeof styles> {
+  compactOnMobile?: boolean;
   id?: number;
   error?: string;
   dso?: IDso;
 }
 
 const styles = (theme: Theme) => createStyles({
+  // Only observation cards collapse metadata; resource links remain visible.
+  compact: {
+    [theme.breakpoints.down("sm")]: {
+      "& .dso-details": { display: "none" },
+      "& .dso-details.expanded": { display: "block" },
+      "& .dso-links": { display: "block" },
+      "& .dso-separator": { display: "none" },
+      "& .dso-details-toggle": { display: "inline-flex" },
+    },
+  },
+  detailsToggle: {
+    display: "none",
+    padding: 4,
+    verticalAlign: "middle",
+  },
   dsoExtra: {
     marginLeft: theme.spacing(0),
     marginTop: theme.spacing(0.5),
@@ -34,6 +52,7 @@ const styles = (theme: Theme) => createStyles({
 
 interface IDsoExtraState {
   isMapDialogOpen: boolean;
+  isDetailsExpanded: boolean;
 }
 
 class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
@@ -41,8 +60,12 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
     super(props);
     this.state = {
       isMapDialogOpen: false,
+      isDetailsExpanded: false,
     };
   }
+
+  // Toggle catalog metadata independently of the always-visible resource links.
+  private toggleDetails = () => this.setState(state => ({ isDetailsExpanded: !state.isDetailsExpanded }));
 
   private openMapDialog = () => this.setState({ isMapDialogOpen: true });
 
@@ -78,27 +101,42 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
         ].filter(item => item.value && `${item.value}`.trim() !== "");
 
         return (
-          <div className={classes.dsoExtra}>
+          <div className={`${classes.dsoExtra} ${this.props.compactOnMobile ? classes.compact : ""}`}>
             <Typography variant="caption" color="textSecondary" gutterBottom={true}>
-              {detailItems.map(item => (
-                <React.Fragment key={item.label}>
-                  <strong>{item.label}:</strong> {item.value} &nbsp;
-                </React.Fragment>
-              ))}
-              {detailItems.length > 0 && <>|&nbsp;</>}
-              <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} />&nbsp;|&nbsp;
-              <AladinLiteLink linkTitle="Aladin Lite" searchTerm={this.props.dso.name} />
-              {canShowMap && (
-                <>
-                  &nbsp;|&nbsp;
-                  <span
-                    className={classes.mapLink}
-                    onClick={this.openMapDialog}
+              <span className={`dso-details ${this.state.isDetailsExpanded ? "expanded" : ""}`}>
+                {detailItems.map(item => (
+                  <React.Fragment key={item.label}>
+                    <strong>{item.label}:</strong> {item.value} &nbsp;
+                  </React.Fragment>
+                ))}
+              </span>
+              {detailItems.length > 0 && <span className="dso-separator">|&nbsp;</span>}
+              <span className="dso-links">
+                <GoogleImagesLink linkTitle="Google image search" searchTerms={searchTerms} />&nbsp;|&nbsp;
+                <AladinLiteLink linkTitle="Aladin Lite" searchTerm={this.props.dso.name} />
+                {canShowMap && (
+                  <>
+                    &nbsp;|&nbsp;
+                    <span
+                      className={classes.mapLink}
+                      onClick={this.openMapDialog}
+                    >
+                      Constellation map
+                    </span>
+                  </>
+                )}
+                {this.props.compactOnMobile && detailItems.length > 0 && (
+                  <IconButton
+                    className={`${classes.detailsToggle} dso-details-toggle`}
+                    onClick={this.toggleDetails}
+                    aria-label={this.state.isDetailsExpanded ? "Hide object details" : "Show object details"}
+                    aria-expanded={this.state.isDetailsExpanded}
+                    size="small"
                   >
-                    Constellation map
-                  </span>
-                </>
-              )}
+                    <ExpandMoreIcon style={{ transform: this.state.isDetailsExpanded ? "rotate(180deg)" : undefined }} />
+                  </IconButton>
+                )}
+              </span>
             </Typography>
             {canShowMap && selectedObject && (
               <DsoMapDialog
