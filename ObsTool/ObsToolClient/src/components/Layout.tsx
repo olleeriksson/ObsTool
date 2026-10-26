@@ -115,6 +115,11 @@ const styles = (theme: Theme) => createStyles({
         width: "auto",
         marginLeft: theme.spacing(3),
         marginRight: theme.spacing(3),
+        // Remove the outer gutters on narrow screens.
+        [theme.breakpoints.down(600)]: {
+            marginLeft: 0,
+            marginRight: 0,
+        },
         [theme.breakpoints.up(1400)]: {
             width: 1400,
             marginLeft: "auto",

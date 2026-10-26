@@ -204,6 +204,10 @@ const styles = (theme: Theme) => createStyles({
     maxWidth: 90,
     minWidth: 90,
     paddingTop: theme.spacing(5.5),
+    // Give the report the full row on narrow screens by hiding the object sidebar.
+    [theme.breakpoints.down(400)]: {
+      display: "none",
+    },
   },
   objectListHeading: {
     fontWeight: 900,

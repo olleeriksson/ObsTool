@@ -27,6 +27,10 @@ export default function DsoMapDialog({ selectedObject, open, onClose, closeOnCli
       slotProps={{
         paper: {
           style: { width: "92vw", maxWidth: 760 },
+          // Remove the locator dialog's outer margins on narrow screens.
+          sx: (theme) => ({
+            [theme.breakpoints.down(600)]: { margin: 0 },
+          }),
           // Report-list maps close on any click inside, including the title and chart.
           onClickCapture: closeOnClick ? onClose : undefined,
         },

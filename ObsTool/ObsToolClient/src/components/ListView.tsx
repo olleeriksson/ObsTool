@@ -24,9 +24,22 @@ const styles = (theme: Theme) => createStyles({
     root: {
         marginTop: theme.spacing(1),
     },
-    column: {
+    sessionListColumn: {
         marginTop: theme.spacing(2),
-        // padding: "1em !important",
+        marginLeft: 5,
+        marginRight: 5,
+        // Reserve room for the session list's side margins at every screen size.
+        maxWidth: "calc(100% - 10px)",
+        [theme.breakpoints.up("lg")]: {
+            // Match MUI's four-column width (one third minus two thirds of the gap), then subtract the margins.
+            maxWidth: "calc((100% - 2 * var(--Grid-parent-columnSpacing)) / 3 - 10px)",
+        },
+    },
+    reportColumn: {
+        marginTop: theme.spacing(2),
+        // Keep the report flush with its grid edges at every screen size.
+        marginLeft: 0,
+        marginRight: 0,
     },
     sessionList: {
         marginTop: theme.spacing(2),
@@ -34,6 +47,10 @@ const styles = (theme: Theme) => createStyles({
     observationPaper: {
         marginTop: theme.spacing(2),
         padding: theme.spacing(2),
+        // Let the report use the full paper width on narrow screens.
+        [theme.breakpoints.down(600)]: {
+            padding: 0,
+        },
     },
     emptyRightSide: {
         alignItems: "start",
@@ -216,13 +233,13 @@ class ListView extends React.Component<IListViewProps> {
 
         return <div className={classes.root}>
             <Grid container spacing={5} sx={{ alignItems: "flex-start" }}>
-                <Grid size={{ xs: 12, lg: 4 }} className={classes.column}>
+                <Grid size={{ xs: 12, lg: 4 }} className={classes.sessionListColumn}>
                     <Typography variant="h6" align="center" color="textPrimary" component="p">
                         <FontAwesomeIcon icon={["far", "calendar-alt"]} className="faSpaceAfter" /> Sessions
                     </Typography>
                     {leftSideView}
                 </Grid>
-                <Grid size={{ xs: 12, lg: 8 }} className={classes.column}>
+                <Grid size={{ xs: 12, lg: 8 }} className={classes.reportColumn}>
                     <div ref={this.reportPanelRef}>
                         {rightSideView}
                     </div>
