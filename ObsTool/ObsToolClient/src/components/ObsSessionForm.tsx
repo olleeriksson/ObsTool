@@ -616,6 +616,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                   <DsoMapHover key={targetKey} dso={dsoObs.dso}>
                     <DsoShort
                       dso={dsoObs.dso}
+                      enableConstellationMap={true}
                       nonDetection={dsoObs.nonDetection || o.nonDetection}
                       onNameClick={() => this.props.onSelectObservedObject(targetKey)}
                     />

@@ -1,16 +1,13 @@
 import * as React from "react";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
 import * as objectTypes from "../utils/objectTypes";
 import GoogleImagesLink from "./GoogleImagesLink";
 import AladinLiteLink from "./AladinLiteLink";
-import ConstellationMap from "./ConstellationMap";
+import DsoMapDialog from "./DsoMapDialog";
 import { toDsoMapObject } from "./DsoMapUtils";
 
 export interface IDsoExtraProps extends WithStyles<typeof styles> {
@@ -103,31 +100,12 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
               )}
             </Typography>
             {canShowMap && selectedObject && (
-              <Dialog
+              <DsoMapDialog
+                selectedObject={selectedObject}
                 open={this.state.isMapDialogOpen}
                 onClose={this.closeMapDialog}
-                fullWidth={true}
-                maxWidth="sm"
-                slotProps={{
-                  paper: { style: { width: "92vw", maxWidth: 760 } }
-                }}
-              >
-                <DialogTitle>{`Constellation map (${selectedObject.name})`}</DialogTitle>
-                <DialogContent className={classes.mapDialogContent}>
-                  <ConstellationMap
-                    constellation={selectedObject.constellation || ""}
-                    constellationName={selectedObject.constellation}
-                    objects={[]}
-                    highlightedObjects={[selectedObject]}
-                    maxNumLabels={1}
-                    labelMode="sac"
-                    width="100%"
-                    height={500}
-                    showControls={false}
-                    allowZoom={true}
-                  />
-                </DialogContent>
-              </Dialog>
+                contentClassName={classes.mapDialogContent}
+              />
             )}
           </div>
         );

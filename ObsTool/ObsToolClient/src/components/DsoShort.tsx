@@ -7,6 +7,8 @@ import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
 import Tooltip from "@mui/material/Tooltip";
+import DsoMapDialog from "./DsoMapDialog";
+import { toDsoMapObject } from "./DsoMapUtils";
 import { DsoTypeIcon } from "./DsoTypeIcon";
 import { getDsoTypeAbbreviation } from "../utils/objectTypes";
 
@@ -42,9 +44,11 @@ export interface IDsoShortProps extends WithStyles<typeof styles> {
   dso?: IDso;
   nonDetection?: boolean;
   onNameClick?: () => void;
+  enableConstellationMap?: boolean;
 }
 
 export interface IDsoShortState {
+  isMapDialogOpen: boolean;
   isMounted: boolean;
   isLoading: boolean;
   isError: boolean;
@@ -56,6 +60,7 @@ class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
     super(props);
 
     this.state = {
+      isMapDialogOpen: false,
       isMounted: true,
       isLoading: true,
       isError: false,
@@ -71,6 +76,12 @@ class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
       this.setState({ dso: this.props.dso });
     }
   }
+
+  // Keep click-open maps independent of the parent row's temporary hover preview.
+  private openMapDialog = () => this.setState({ isMapDialogOpen: true });
+
+  // Clicking the overlay, its backdrop, or Escape dismisses the persistent map.
+  private closeMapDialog = () => this.setState({ isMapDialogOpen: false });
 
   public render() {
     if (this.props.error) {
@@ -97,6 +108,21 @@ class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
           const herschelObjects = this.state.dso.herschelObjects || [];
           const isH400 = herschelObjects.some(object => object.h400);
           const name = this.state.dso.name;
+          const selectedObject = this.props.enableConstellationMap ? toDsoMapObject(this.state.dso) : null;
+          // Only valid locator maps get a button; other metadata remains plain text.
+          const constellationContent = selectedObject ? (
+            <Link
+              component="button"
+              type="button"
+              color="inherit"
+              variant="inherit"
+              underline="always"
+              onClick={this.openMapDialog}
+              aria-label={`Show constellation map for ${name}`}
+            >
+              {this.state.dso.con}
+            </Link>
+          ) : this.state.dso.con;
           const typeAbbreviation = getDsoTypeAbbreviation(this.state.dso.type || "") || this.state.dso.type;
           const nameStyle = this.props.nonDetection ? { textDecoration: "line-through" } : undefined;
         const nameTypography = (
@@ -119,6 +145,14 @@ class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
 
         return (
           <div className="dsoShort">
+            {selectedObject && (
+              <DsoMapDialog
+                selectedObject={selectedObject}
+                open={this.state.isMapDialogOpen}
+                onClose={this.closeMapDialog}
+                closeOnClick={true}
+              />
+            )}
             {nameContent}
             <Typography color="textSecondary" variant="caption" component={"div" as any} gutterBottom={false} style={this.props.nonDetection ? { textDecoration: "line-through" } : undefined}>
               <span className={this.props.classes.metadata}>
@@ -127,7 +161,7 @@ class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
                   {/* Separate all available metadata with commas while preserving the label tooltip. */}
                   {[
                     typeAbbreviation,
-                    this.state.dso.con,
+                    constellationContent,
                     herschelObjects.length > 0 && (
                       <Tooltip key="herschel" title={isH400 ? "Herschel 400 object" : "Herschel object"} describeChild={true}>
                         <span className={isH400 ? this.props.classes.herschel400 : this.props.classes.herschel}>
