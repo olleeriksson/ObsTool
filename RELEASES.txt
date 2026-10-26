@@ -9,3 +9,4 @@
 2026-06-10    - Enabled admin notifications
 2026-08-15    - Multiple bug fixed ahead of Sagittarius.
 2026-10-11    - Fixed a MySQL-specific current reader thread issue.
+2026-10-26    - Insterstellarum maps, increased login expiration, const map click for touch devices, normalized const names, session click scrolls to it.
