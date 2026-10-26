@@ -70,6 +70,16 @@ interface IListViewProps extends WithStyles<typeof styles> {
 }
 
 class ListView extends React.Component<IListViewProps> {
+    private reportPanelRef = React.createRef<HTMLDivElement>();
+    private scrollFrame?: number;
+
+    // Cancel deferred scrolling if navigation removes the session list before the next frame.
+    public componentWillUnmount() {
+        if (this.scrollFrame !== undefined) {
+            window.cancelAnimationFrame(this.scrollFrame);
+        }
+    }
+
     constructor(props: IListViewProps) {
         super(props);
 
@@ -112,7 +122,27 @@ class ListView extends React.Component<IListViewProps> {
             // Keep the split view mounted so the session-list pagination does not reset while the URL reflects the selection.
             this.props.actions.selectObsSession(obsSessionId);
             this.replaceSessionsUrl(obsSessionId);
+            this.scrollToReportOnTouch();
         }
+    }
+
+    // Wait for React to display the selection, then bring the report into view on touch devices.
+    private scrollToReportOnTouch = () => {
+        if (!window.matchMedia("(pointer: coarse)").matches) {
+            return;
+        }
+
+        if (this.scrollFrame !== undefined) {
+            window.cancelAnimationFrame(this.scrollFrame);
+        }
+        this.scrollFrame = window.requestAnimationFrame(() => {
+            this.scrollFrame = undefined;
+            const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            this.reportPanelRef.current?.scrollIntoView({
+                behavior: reduceMotion ? "instant" : "smooth",
+                block: "start",
+            });
+        });
     }
 
     private replaceSessionsUrl = (obsSessionId: number) => {
@@ -193,7 +223,9 @@ class ListView extends React.Component<IListViewProps> {
                     {leftSideView}
                 </Grid>
                 <Grid size={{ xs: 12, lg: 8 }} className={classes.column}>
-                    {rightSideView}
+                    <div ref={this.reportPanelRef}>
+                        {rightSideView}
+                    </div>
                 </Grid>
             </Grid>
         </div>;
