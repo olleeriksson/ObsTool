@@ -81,8 +81,8 @@ namespace ObsTool
                         cookieOptions.Cookie.Path = pathBase;
                     }
 
-                    // Keep a persistent sign-in valid for 12 hours, renewing it as the user uses the API.
-                    cookieOptions.ExpireTimeSpan = TimeSpan.FromHours(12);
+                    // Keep a persistent sign-in valid for two weeks, renewing it as the user uses the API.
+                    cookieOptions.ExpireTimeSpan = TimeSpan.FromDays(14);
                     cookieOptions.SlidingExpiration = true;
                     // The following is needed because with cookie authentication the default is 
                     // to redirect to a login page, and we want a 401 to be returned from an api request.
