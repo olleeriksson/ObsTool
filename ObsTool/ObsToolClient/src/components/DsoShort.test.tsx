@@ -74,3 +74,10 @@ it("keeps abbreviations as text without coordinates or without the opt-in", () =
   render(<DsoShort dso={dso} />);
   expect(screen.queryByRole("button")).not.toBeInTheDocument();
 });
+
+// Existing custom data and catalog data share presentation without affecting map eligibility.
+it.each(["Sac", "Other", "User"] as const)("formats uppercase %s constellation metadata", objectKind => {
+  render(<DsoShort dso={{ ...dso, objectKind, con: "CVN", ra: undefined }} enableConstellationMap={true} />);
+  expect(screen.getByText(/CVn/)).toBeInTheDocument();
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+});

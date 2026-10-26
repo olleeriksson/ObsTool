@@ -29,3 +29,9 @@ it("opens the constellation map dialog from the map link", () => {
     expect(screen.getByText("Constellation map (NGC 224)")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Constellation map" })).toBeInTheDocument();
 });
+
+// Detailed cards use the same standard casing as compact object rows.
+it("formats uppercase constellation metadata", () => {
+    render(<DsoExtra dso={{ ...dso, con: "UMA" }} />);
+    expect(screen.getByText(/UMa/)).toBeInTheDocument();
+});

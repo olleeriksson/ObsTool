@@ -1,4 +1,5 @@
 import * as React from "react";
+import { formatConstellationAbbreviation } from "../utils/constellations";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { WithStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
@@ -110,6 +111,7 @@ class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
           const name = this.state.dso.name;
           const selectedObject = this.props.enableConstellationMap ? toDsoMapObject(this.state.dso) : null;
           // Only valid locator maps get a button; other metadata remains plain text.
+          const constellationAbbreviation = formatConstellationAbbreviation(this.state.dso.con);
           const constellationContent = selectedObject ? (
             <Link
               component="button"
@@ -120,9 +122,9 @@ class DsoShort extends React.Component<IDsoShortProps, IDsoShortState> {
               onClick={this.openMapDialog}
               aria-label={`Show constellation map for ${name}`}
             >
-              {this.state.dso.con}
+              {constellationAbbreviation}
             </Link>
-          ) : this.state.dso.con;
+          ) : constellationAbbreviation;
           const typeAbbreviation = getDsoTypeAbbreviation(this.state.dso.type || "") || this.state.dso.type;
           const nameStyle = this.props.nonDetection ? { textDecoration: "line-through" } : undefined;
         const nameTypography = (

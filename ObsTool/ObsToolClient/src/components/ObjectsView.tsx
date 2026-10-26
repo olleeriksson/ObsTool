@@ -1,4 +1,5 @@
 import * as React from "react";
+import { formatConstellationAbbreviation } from "../utils/constellations";
 import { withStyles, createStyles } from "src/muiCompat";
 import type { Theme } from "@mui/material/styles";
 import type { WithStyles } from "src/muiCompat";
@@ -403,12 +404,12 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
         }));
     }
 
-    // Stores uppercase constellation abbreviations so custom objects match existing SAC display conventions.
+    // Store the standard abbreviation casing used when displaying catalog and custom objects.
     private handleConstellationChange = (_event: React.SyntheticEvent, value: IConstellationOption | null) => {
         this.setState(prevState => ({
             currentObject: {
                 ...prevState.currentObject,
-                const: value?.abbreviation ? value.abbreviation.toUpperCase() : "",
+                const: formatConstellationAbbreviation(value?.abbreviation),
             },
             isError: false,
             errorMessage: undefined,
@@ -454,7 +455,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
             allCommonNames: current.allCommonNames || "",
             notes: current.notes || "",
             type: current.type ? resolveDsoTypeCode(current.type) : "",
-            const: current.const ? current.const.toUpperCase() : "",
+            const: formatConstellationAbbreviation(current.const),
             ra: current.ra || "",
             dec: current.dec || "",
             mag: current.mag || "",
@@ -1223,7 +1224,7 @@ export class ObjectsView extends React.Component<IObjectsViewProps, IObjectsView
                         <Typography variant="caption" color="textSecondary">{object.commonName || object.otherNames || ""}</Typography>
                     </TableCell>
                     <TableCell className={this.props.classes.tableCell}>{this.getObjectTypeDisplayValue(object)}</TableCell>
-                    <TableCell className={this.props.classes.tableCell}>{object.const || ""}</TableCell>
+                    <TableCell className={this.props.classes.tableCell}>{formatConstellationAbbreviation(object.const)}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.ra || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.dec || ""}</TableCell>
                     <TableCell className={this.props.classes.tableCell}>{object.mag || ""}</TableCell>

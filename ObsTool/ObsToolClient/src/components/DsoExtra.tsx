@@ -1,4 +1,5 @@
 import * as React from "react";
+import { formatConstellationAbbreviation } from "../utils/constellations";
 import { IDso } from "../types/Types";
 import Typography from "@mui/material/Typography";
 import { withStyles, createStyles } from "src/muiCompat";
@@ -67,7 +68,7 @@ class DsoExtra extends React.Component<IDsoExtraProps, IDsoExtraState> {
         const canShowMap = selectedObject != null;
         const detailItems = [
           { label: "Type", value: dsoTypeAbbreviation },
-          { label: "Const", value: this.props.dso.con },
+          { label: "Const", value: formatConstellationAbbreviation(this.props.dso.con) },
           { label: "Mag", value: this.props.dso.mag },
           { label: "SB", value: this.props.dso.sb },
           { label: "Class", value: this.props.dso.class },

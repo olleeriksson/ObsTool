@@ -321,7 +321,7 @@ it("keeps Type and Constellation after saving and uses them for the next object"
     fireEvent.change(screen.getByRole("textbox", { name: /^Name/ }), { target: { value: "Jupiter" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(addUserObject).toHaveBeenLastCalledWith(expect.objectContaining({
-        name: "Jupiter", type: "PLANET", const: "AND",
+        name: "Jupiter", type: "PLANET", const: "And",
     })));
 });
 
@@ -683,4 +683,15 @@ it("returns to the previous page when deletion removes the last page", async () 
         expect(getObjectTableRowNames(screen.getAllByRole("table")[0])).toHaveLength(10);
         expect(screen.getByText("11–20 of 20")).toBeInTheDocument();
     });
+});
+
+// Existing uppercase custom objects are normalized for display without rewriting stored rows.
+it("displays standard constellation casing in custom object tables", async () => {
+    renderObjectsView({
+        ...emptyObjectList,
+        userObjects: [{ id: 7, name: "Custom object", objectKind: "User", const: "CVN" }],
+        otherObjects: [{ id: 8, name: "Shared object", objectKind: "Other", const: "UMA" }],
+    });
+    expect(await screen.findByRole("cell", { name: "CVn" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "UMa" })).toBeInTheDocument();
 });
