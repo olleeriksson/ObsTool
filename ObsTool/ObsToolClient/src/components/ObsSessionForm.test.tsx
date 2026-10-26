@@ -121,7 +121,7 @@ it("explains unmatched identifiers in the object tooltip", async () => {
   expect(await screen.findByText("NGC12345 did not match any known object.")).toBeInTheDocument();
 });
 
-it("shows save errors directly below the report text", () => {
+it("shows the same save error near both Save buttons", () => {
   renderForm({
     id: 7,
     title: "Test session",
@@ -131,10 +131,18 @@ it("shows save errors directly below the report text", () => {
   }, "Save aborted: observation has attached resources.");
 
   const reportText = screen.getByLabelText("Report Text");
-  const alert = screen.getByRole("alert");
+  const alerts = screen.getAllByRole("alert");
+  const saveButtons = screen.getAllByRole("button", { name: "Save" });
 
-  expect(alert).toHaveTextContent("Save aborted: observation has attached resources.");
-  expect(reportText.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  // Each Save button has matching feedback on its side of the report text.
+  expect(alerts).toHaveLength(2);
+  for (const alert of alerts) {
+    expect(alert).toHaveTextContent("Save aborted: observation has attached resources.");
+  }
+  expect(saveButtons[0].compareDocumentPosition(alerts[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(alerts[0].compareDocumentPosition(reportText) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(reportText.compareDocumentPosition(alerts[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(alerts[1].compareDocumentPosition(saveButtons[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
 it("uses section-specific key-label widths and hides copy feedback after 1.2 seconds", () => {

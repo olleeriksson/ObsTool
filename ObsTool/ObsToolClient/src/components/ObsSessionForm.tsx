@@ -591,6 +591,22 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
     );
   }
 
+  // Shows the same save failure at both ends of the report so either Save button has nearby feedback.
+  private renderSaveError = () => {
+    const { classes, errorMessage } = this.props;
+    if (!errorMessage) {
+      return null;
+    }
+
+    return (
+      <Grid>
+        <div role="alert" className={classes.formError}>
+          <Typography variant="body1" className={classes.formErrorText}>{errorMessage}</Typography>
+        </div>
+      </Grid>
+    );
+  }
+
   // Keeps the spinner's sibling slot mounted so Save buttons do not shift when loading changes.
   private renderSaveProgressSlot = (className?: string) => {
     const { classes } = this.props;
@@ -822,6 +838,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                       </Grid>
                     </Grid>
                   </Grid>
+                  {this.renderSaveError()}
                   <Grid>
                     <TextareaAutosize
                       id="reportText"
@@ -837,13 +854,7 @@ class ObsSessionForm extends React.Component<IObsSessionFormProps, IObsSessionFo
                       }}
                     />
                   </Grid>
-                  {this.props.errorMessage && (
-                    <Grid>
-                      <div role="alert" className={classes.formError}>
-                        <Typography variant="body1" className={classes.formErrorText}>{this.props.errorMessage}</Typography>
-                      </div>
-                    </Grid>
-                  )}
+                  {this.renderSaveError()}
                   <Grid>
                     <Grid container direction="row" className={classes.helpReferenceRow}>
                       <Grid className={classes.helpTextColumn}>
