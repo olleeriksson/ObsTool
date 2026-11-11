@@ -171,7 +171,7 @@ it("shows blue now deltas when viewing historical statistics", async () => {
     expect(within(h2500Row).getByText("+2")).toHaveStyle({ color: theme.palette.secondary.main });
     expect(within(h2500Row).getAllByText("(+20%)")).toHaveLength(2);
 
-    const failedRow = screen.getByRole("row", { name: "Unsuccessfull H2500 objects 2 +1 Unsuccessfull H400 objects 1 +1" });
+    const failedRow = screen.getByRole("row", { name: "Unsuccessful H2500 objects 2 +1 Unsuccessful H400 objects 1 +1" });
     expect(within(failedRow).getAllByText("+1")).toHaveLength(2);
 
     fireEvent.click(screen.getByText("Statistics by constellation"));
@@ -215,7 +215,7 @@ it("shows failed H2500 and H400 attempts on their own row", async () => {
     expect(screen.getByText("Observed H400 objects")).toBeInTheDocument();
     expect(screen.getByText(/3 \/ 5/)).toBeInTheDocument();
     expect(screen.getByText("(60%)")).toBeInTheDocument();
-    expect(screen.getByRole("row", { name: "Unsuccessfull H2500 objects 2 Unsuccessfull H400 objects 1" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Unsuccessful H2500 objects 2 Unsuccessful H400 objects 1" })).toBeInTheDocument();
     expect(screen.queryByText("(+2)")).not.toBeInTheDocument();
     expect(screen.queryByText("(+1)")).not.toBeInTheDocument();
 });

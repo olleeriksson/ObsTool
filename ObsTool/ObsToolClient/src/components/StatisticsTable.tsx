@@ -355,9 +355,9 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                     this.renderCatalogProgressDelta(statistics.h400, this.state.allSessionsStatistics?.h400, false)));
                 rowsData.push(this.addRow(
                     id++,
-                    "Unsuccessfull H2500 objects", statistics.h2500.nonDetections.toString(),
+                    "Unsuccessful H2500 objects", statistics.h2500.nonDetections.toString(),
                     this.renderNumberDelta(statistics.h2500.nonDetections, this.state.allSessionsStatistics?.h2500?.nonDetections),
-                    "Unsuccessfull H400 objects", statistics.h400.nonDetections.toString(),
+                    "Unsuccessful H400 objects", statistics.h400.nonDetections.toString(),
                     this.renderNumberDelta(statistics.h400.nonDetections, this.state.allSessionsStatistics?.h400?.nonDetections)));
             }
         }
