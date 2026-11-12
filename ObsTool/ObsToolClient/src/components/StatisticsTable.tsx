@@ -309,25 +309,25 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 this.renderNumberDelta(statistics.numObservedGalaxies, this.state.allSessionsStatistics?.numObservedGalaxies)));
             rowsData.push(this.addRow(
                 id++,
-                "All objects attempted", statistics.numObservedObjects.toString(),
-                this.renderNumberDelta(statistics.numObservedObjects, this.state.allSessionsStatistics?.numObservedObjects),
-                "Observed Bright Nebulae", statistics.numObservedBrightNebulae.toString(),
-                this.renderNumberDelta(statistics.numObservedBrightNebulae, this.state.allSessionsStatistics?.numObservedBrightNebulae),
-                "All objects ever observed or attempted."));
-            rowsData.push(this.addRow(
-                id++,
                 "Observed objects", statistics.numDetections.toString(),
                 this.renderNumberDelta(statistics.numDetections, this.state.allSessionsStatistics?.numDetections),
-                "Observed Open Clusters", statistics.numObservedOpenClusters.toString(),
-                this.renderNumberDelta(statistics.numObservedOpenClusters, this.state.allSessionsStatistics?.numObservedOpenClusters),
+                "Observed Bright Nebulae", statistics.numObservedBrightNebulae.toString(),
+                this.renderNumberDelta(statistics.numObservedBrightNebulae, this.state.allSessionsStatistics?.numObservedBrightNebulae),
                 "All objects attempted and successfully observed at least once."));
             rowsData.push(this.addRow(
                 id++,
-                "Unsuccessfully observed", statistics.numNonDetections.toString(),
-                this.renderNumberDelta(statistics.numNonDetections, this.state.allSessionsStatistics?.numNonDetections),
+                "Attempted objects", statistics.numAttempted.toString(),
+                this.renderNumberDelta(statistics.numAttempted, this.state.allSessionsStatistics?.numAttempted),
+                "Observed Open Clusters", statistics.numObservedOpenClusters.toString(),
+                this.renderNumberDelta(statistics.numObservedOpenClusters, this.state.allSessionsStatistics?.numObservedOpenClusters),
+                "All objects attempted but never successfully observed."));
+            rowsData.push(this.addRow(
+                id++,
+                "Total observed + attempted", statistics.numObservedAndAttempted.toString(),
+                this.renderNumberDelta(statistics.numObservedAndAttempted, this.state.allSessionsStatistics?.numObservedAndAttempted),
                 "Observed Planetary Nebulae", statistics.numObservedPlanetaryNebulae.toString(),
                 this.renderNumberDelta(statistics.numObservedPlanetaryNebulae, this.state.allSessionsStatistics?.numObservedPlanetaryNebulae),
-                "All objects attempted but never successfully observed."));
+                "All objects ever observed or attempted."));
             rowsData.push(this.addRow(
                 id++,
                 "Recorded sketches", statistics.numSketches.toString(),
@@ -346,6 +346,13 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                 this.renderCountWithTotalDelta(statistics.numObservedMessierObjects, 110, this.state.allSessionsStatistics?.numObservedMessierObjects),
                 "Observed NGC objects", statistics.numObservedNGCObjects.toString(),
                 this.renderNumberDelta(statistics.numObservedNGCObjects, this.state.allSessionsStatistics?.numObservedNGCObjects)));
+            // Show attempted objects without a successful detection separately from detected catalog objects.
+            rowsData.push(this.addRow(
+                id++,
+                "Attempted Messier objects", statistics.numAttemptedMessierObjects.toString(),
+                this.renderNumberDelta(statistics.numAttemptedMessierObjects, this.state.allSessionsStatistics?.numAttemptedMessierObjects),
+                "Attempted NGC objects", statistics.numAttemptedNGCObjects.toString(),
+                this.renderNumberDelta(statistics.numAttemptedNGCObjects, this.state.allSessionsStatistics?.numAttemptedNGCObjects)));
             if (statistics.h2500 && statistics.h400) {
                 rowsData.push(this.addRow(
                     id++,
@@ -355,10 +362,10 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
                     this.renderCatalogProgressDelta(statistics.h400, this.state.allSessionsStatistics?.h400, false)));
                 rowsData.push(this.addRow(
                     id++,
-                    "Unsuccessful H2500 objects", statistics.h2500.nonDetections.toString(),
-                    this.renderNumberDelta(statistics.h2500.nonDetections, this.state.allSessionsStatistics?.h2500?.nonDetections),
-                    "Unsuccessful H400 objects", statistics.h400.nonDetections.toString(),
-                    this.renderNumberDelta(statistics.h400.nonDetections, this.state.allSessionsStatistics?.h400?.nonDetections)));
+                    "Attempted H2500 objects", statistics.h2500.attemptedObjects.toString(),
+                    this.renderNumberDelta(statistics.h2500.attemptedObjects, this.state.allSessionsStatistics?.h2500?.attemptedObjects),
+                    "Attempted H400 objects", statistics.h400.attemptedObjects.toString(),
+                    this.renderNumberDelta(statistics.h400.attemptedObjects, this.state.allSessionsStatistics?.h400?.attemptedObjects)));
             }
         }
         return rowsData;
@@ -388,7 +395,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
     private renderCatalogProgress(stats: IObsGroupStatistics, includeNonDetections = true) {
         return (
             <span className={this.props.classes.progressPrimary}>
-                {stats.observed}{includeNonDetections && this.renderNonDetections(stats.nonDetections)} / {stats.total}
+                {stats.observed}{includeNonDetections && this.renderNonDetections(stats.attemptedObjects)} / {stats.total}
                 <span className={this.props.classes.percentText}>({this.formatPercent(stats.observed, stats.total)})</span>
             </span>
         );
@@ -401,7 +408,7 @@ class StatisticsTable extends React.Component<IStatisticsTableProps, IStatistics
         }
 
         const nonDetectionDelta = includeNonDetections
-            ? ` (${this.formatSignedDelta(allStats.nonDetections - stats.nonDetections)})`
+            ? ` (${this.formatSignedDelta(allStats.attemptedObjects - stats.attemptedObjects)})`
             : "";
 
         return this.renderNowComparison(

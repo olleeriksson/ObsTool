@@ -25,7 +25,7 @@ namespace ObsTool.Services
             {
                 NumObsSessions = includedObsSessions.Count(),
                 NumObservations = GetNumObservations(userId, excludedObsSessionIds),
-                NumObservedObjects = GetNumObservedObjects(userId, excludedObsSessionIds),
+                NumObservedAndAttempted = GetNumObservedObjects(userId, excludedObsSessionIds),
                 NumObservedGalaxies = GetNumObservedObjectsByType("GALXY", userId, excludedObsSessionIds),
                 NumObservedBrightNebulae = GetNumObservedObjectsByType("BRTNB", userId, excludedObsSessionIds),
                 NumObservedDarkNebulae = GetNumObservedObjectsByType("DRKNB", userId, excludedObsSessionIds),
@@ -34,11 +34,13 @@ namespace ObsTool.Services
                 NumObservedGlobularClusters = GetNumObservedObjectsByType("GLOCL", userId, excludedObsSessionIds),
                 NumObservedMessierObjects = GetNumObservedObjectsByCatalog("M", userId, excludedObsSessionIds),
                 NumObservedNGCObjects = GetNumObservedObjectsByCatalog("NGC", userId, excludedObsSessionIds),
+                NumAttemptedMessierObjects = GetNumUnsuccessfulObservationsByCatalog("M", userId, excludedObsSessionIds),
+                NumAttemptedNGCObjects = GetNumUnsuccessfulObservationsByCatalog("NGC", userId, excludedObsSessionIds),
                 NumLocations = includedObsSessions.Where(obsSession => obsSession.LocationId.HasValue).Select(obsSession => obsSession.LocationId.Value).Distinct().Count(),
                 NumDsoInDatabase = _dbContext.Dso.Count(),
                 NumSketches = GetNumSketches(userId, excludedObsSessionIds),
                 NumDetections = GetNumDetections(userId, excludedObsSessionIds),
-                NumNonDetections = GetNumNonDetections(userId, excludedObsSessionIds),
+                NumAttempted = GetNumNonDetections(userId, excludedObsSessionIds),
                 H2500 = catalogProgressStatistics.H2500,
                 H400 = catalogProgressStatistics.H400,
                 Constellations = catalogProgressStatistics.Constellations,
@@ -408,13 +410,29 @@ namespace ObsTool.Services
                 .Count();
         }
 
-        // Counts distinct observed objects from one catalog inside the session scope.
+        // Counts each catalog object once if it has a successful detection inside the session scope.
         private int GetNumObservedObjectsByCatalog(string catalog, int userId, List<int> excludedObsSessionIds)
         {
-            return ObservationsInIncludedSessions(userId, excludedObsSessionIds)
-                .SelectMany(o => o.DsoObservations)
+            return DetectedDsoObservations(userId, excludedObsSessionIds)
                 .Where(dsoObs => dsoObs.DsoId.HasValue && dsoObs.Dso.Catalog == catalog)
                 .Select(dsoObs => dsoObs.Dso.Id)
+                .Distinct()
+                .Count();
+        }
+
+        // Counts distinct attempted catalog objects with no successful detection inside the session scope.
+        private int GetNumUnsuccessfulObservationsByCatalog(string catalog, int userId, List<int> excludedObsSessionIds)
+        {
+            var detectedDsoIds = DetectedDsoObservations(userId, excludedObsSessionIds)
+                .Where(d => d.DsoId.HasValue)
+                .Select(d => d.DsoId.Value);
+
+            return ObservationsInIncludedSessions(userId, excludedObsSessionIds)
+                .SelectMany(o => o.DsoObservations)
+                .Where(d => d.DsoId.HasValue && d.Dso.Catalog == catalog)
+                .Where(d => d.NonDetection || d.Observation.NonDetection)
+                .Where(d => !detectedDsoIds.Contains(d.DsoId.Value))
+                .Select(d => d.DsoId.Value)
                 .Distinct()
                 .Count();
         }
@@ -462,7 +480,7 @@ namespace ObsTool.Services
             {
                 Total = total,
                 Observed = observed,
-                NonDetections = nonDetections
+                AttemptedObjects = nonDetections
             };
         }
 

@@ -437,7 +437,7 @@ class ObsSessionPage extends React.Component<IObsSessionPageProps, IObsSessionPa
         const numDsoObjects = this.state.obsSession.observations
             && utils.flatMap(this.state.obsSession.observations, (obs: IObservation) => obs.dsoObservations);
 
-        const listTabLabel = "Observed Objects (" + (numDsoObjects && numDsoObjects.length || 0) + ")";
+        const listTabLabel = "Object list (" + (numDsoObjects && numDsoObjects.length || 0) + ")";
 
         const deleteDialogTitle = "Delete " + (this.state.obsSession && this.state.obsSession.title) + "?";
         const deleteDialogText = "Are you sure you want to delete the observation session titled " +

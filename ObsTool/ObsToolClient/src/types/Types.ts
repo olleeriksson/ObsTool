@@ -309,7 +309,7 @@ export interface IObsSessionObjectStats {
 
 export interface IStatistics {
     numObsSessions: number;
-    numObservedObjects: number;
+    numObservedAndAttempted: number;
     numObservedGalaxies: number;
     numObservedBrightNebulae: number;
     numObservedDarkNebulae: number;
@@ -318,12 +318,14 @@ export interface IStatistics {
     numObservedGlobularClusters: number;
     numObservedMessierObjects: number;
     numObservedNGCObjects: number;
+    numAttemptedMessierObjects: number;
+    numAttemptedNGCObjects: number;
     numObservations: number;
     numLocations: number;
     numSketches: number;
     numDsoInDatabase: number;
     numDetections: number;
-    numNonDetections: number;
+    numAttempted: number;
     h2500?: IObsGroupStatistics;
     h400?: IObsGroupStatistics;
     constellations?: IConstellationStatistics[];
@@ -333,7 +335,7 @@ export interface IStatistics {
 export interface IObsGroupStatistics {
     total: number;
     observed: number;
-    nonDetections: number;
+    attemptedObjects: number;
 }
 
 export interface IConstellationStatistics {

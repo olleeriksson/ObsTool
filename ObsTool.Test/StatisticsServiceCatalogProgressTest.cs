@@ -65,11 +65,11 @@ namespace TestProject
 
             Assert.That(statistics.H2500.Total, Is.EqualTo(5));
             Assert.That(statistics.H2500.Observed, Is.EqualTo(2));
-            Assert.That(statistics.H2500.NonDetections, Is.EqualTo(2));
+            Assert.That(statistics.H2500.AttemptedObjects, Is.EqualTo(2));
 
             Assert.That(statistics.H400.Total, Is.EqualTo(2));
             Assert.That(statistics.H400.Observed, Is.EqualTo(1));
-            Assert.That(statistics.H400.NonDetections, Is.EqualTo(1));
+            Assert.That(statistics.H400.AttemptedObjects, Is.EqualTo(1));
         }
 
         [Test]
@@ -159,7 +159,7 @@ namespace TestProject
                 Assert.That(row.Observed, Is.EqualTo(3));
                 Assert.That(row.H2500.Total, Is.EqualTo(4));
                 Assert.That(row.H2500.Observed, Is.EqualTo(2));
-                Assert.That(row.H2500.NonDetections, Is.EqualTo(2));
+                Assert.That(row.H2500.AttemptedObjects, Is.EqualTo(2));
                 Assert.That(row.H400.Total, Is.EqualTo(2));
                 Assert.That(row.H400.Observed, Is.EqualTo(1));
                 var objects = _statisticsService.GetH2500ObjectsForInterstellarumMap(number, TestUserId).ToList();

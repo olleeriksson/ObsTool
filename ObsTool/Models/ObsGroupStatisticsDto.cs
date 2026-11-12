@@ -4,6 +4,6 @@ namespace ObsTool.Models
     {
         public int Total { get; set; }
         public int Observed { get; set; }
-        public int NonDetections { get; set; }
+        public int AttemptedObjects { get; set; }
     }
 }

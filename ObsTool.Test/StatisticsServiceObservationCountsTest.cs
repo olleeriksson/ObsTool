@@ -199,12 +199,59 @@ namespace TestProject
 
             Assert.That(statistics.NumObsSessions, Is.EqualTo(2));
             Assert.That(statistics.NumObservations, Is.EqualTo(2));
-            Assert.That(statistics.NumObservedObjects, Is.EqualTo(2));
+            Assert.That(statistics.NumObservedAndAttempted, Is.EqualTo(2));
             Assert.That(statistics.NumObservedGalaxies, Is.EqualTo(2));
             Assert.That(statistics.NumObservedOpenClusters, Is.EqualTo(0));
             Assert.That(statistics.NumObservedMessierObjects, Is.EqualTo(1));
             Assert.That(statistics.NumObservedNGCObjects, Is.EqualTo(1));
             Assert.That(statistics.NumLocations, Is.EqualTo(1));
+        }
+
+        // Verify repeated failures count once and successful detections take precedence within the user and session scope.
+        [TestCase("M")]
+        [TestCase("NGC")]
+        public void GetStatistics_CatalogCountsSeparateDetectedObjectsFromNeverDetectedObjects(string catalog)
+        {
+            _dbContext.ObsSessions.AddRange(
+                CreateObsSession(1, TestUserId, new DateTime(2024, 1, 1), 10),
+                CreateObsSession(2, TestUserId, new DateTime(2024, 1, 2), 10),
+                CreateObsSession(3, TestUserId, new DateTime(2024, 1, 3), 10),
+                CreateObsSession(4, 2, new DateTime(2024, 1, 4), 10));
+            _dbContext.Dso.AddRange(CreateDso(1, catalog, "GALXY"), CreateDso(2, catalog, "GALXY"),
+                CreateDso(3, "IC", "GALXY"));
+
+            var individualFailure = CreateObservation(1, 1);
+            individualFailure.DsoObservations[0].NonDetection = true;
+            var bothFlagsFailure = CreateObservation(1, 1);
+            bothFlagsFailure.NonDetection = true;
+            bothFlagsFailure.DsoObservations[0].NonDetection = true;
+            var sectionFailure = CreateObservation(1, 2);
+            sectionFailure.NonDetection = true;
+            var recentFailure = CreateObservation(3, 1);
+            recentFailure.DsoObservations[0].NonDetection = true;
+            var otherUserDetection = CreateObservation(4, 2);
+            otherUserDetection.UserId = 2;
+            var otherUserFailure = CreateObservation(4, 1);
+            otherUserFailure.UserId = 2;
+            otherUserFailure.NonDetection = true;
+            var otherCatalogFailure = CreateObservation(1, 3);
+            otherCatalogFailure.NonDetection = true;
+            _dbContext.Observations.AddRange(individualFailure, bothFlagsFailure, sectionFailure, recentFailure,
+                CreateObservation(2, 1), CreateObservation(2, 1), otherUserDetection, otherUserFailure,
+                otherCatalogFailure);
+            _dbContext.SaveChanges();
+
+            // A later success removes the object from unsuccessful totals unless that successful session is excluded.
+            foreach (var excluded in new[] { 0, 1, 2 })
+            {
+                var statistics = _statisticsService.GetStatistics(TestUserId, excluded);
+                Assert.That(statistics.NumObservedMessierObjects, Is.EqualTo(catalog == "M" && excluded < 2 ? 1 : 0));
+                Assert.That(statistics.NumObservedNGCObjects, Is.EqualTo(catalog == "NGC" && excluded < 2 ? 1 : 0));
+                Assert.That(statistics.NumAttemptedMessierObjects, Is.EqualTo(catalog == "M" ? (excluded < 2 ? 1 : 2) : 0));
+                Assert.That(statistics.NumAttemptedNGCObjects, Is.EqualTo(catalog == "NGC" ? (excluded < 2 ? 1 : 2) : 0));
+            }
+            Assert.That(_statisticsService.GetNumObservedMessierObjects(TestUserId), Is.EqualTo(catalog == "M" ? 1 : 0));
+            Assert.That(_statisticsService.GetNumObservedNGCObjects(TestUserId), Is.EqualTo(catalog == "NGC" ? 1 : 0));
         }
 
         // Creates a dated session row for statistics exclusion tests.

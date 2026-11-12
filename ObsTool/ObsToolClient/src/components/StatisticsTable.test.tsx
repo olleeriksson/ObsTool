@@ -23,7 +23,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 const statistics: IStatistics = {
     numObsSessions: 1,
-    numObservedObjects: 1,
+    numObservedAndAttempted: 1,
     numObservedGalaxies: 1,
     numObservedBrightNebulae: 0,
     numObservedDarkNebulae: 0,
@@ -32,20 +32,22 @@ const statistics: IStatistics = {
     numObservedGlobularClusters: 0,
     numObservedMessierObjects: 0,
     numObservedNGCObjects: 1,
+    numAttemptedMessierObjects: 2,
+    numAttemptedNGCObjects: 3,
     numObservations: 1,
     numLocations: 1,
     numSketches: 0,
     numDsoInDatabase: 1,
     numDetections: 1,
-    numNonDetections: 0,
-    h2500: { total: 10, observed: 4, nonDetections: 2 },
-    h400: { total: 5, observed: 3, nonDetections: 1 },
+    numAttempted: 0,
+    h2500: { total: 10, observed: 4, attemptedObjects: 2 },
+    h400: { total: 5, observed: 3, attemptedObjects: 1 },
     constellations: [{
         constellation: "Orion",
         constellationAbbrv: "ORI",
         observed: 1,
-        h2500: { total: 10, observed: 4, nonDetections: 2 },
-        h400: { total: 5, observed: 3, nonDetections: 1 },
+        h2500: { total: 10, observed: 4, attemptedObjects: 2 },
+        h400: { total: 5, observed: 3, attemptedObjects: 1 },
     }],
 };
 
@@ -55,10 +57,10 @@ const allSessionsStatistics: IStatistics = {
     numObservedGalaxies: 3,
     numObservations: 4,
     numObservedBrightNebulae: 2,
-    numObservedObjects: 5,
+    numObservedAndAttempted: 5,
     numObservedOpenClusters: 1,
     numDetections: 3,
-    numNonDetections: 1,
+    numAttempted: 1,
     numObservedPlanetaryNebulae: 1,
     numSketches: 2,
     numObservedGlobularClusters: 1,
@@ -66,14 +68,16 @@ const allSessionsStatistics: IStatistics = {
     numObservedDarkNebulae: 1,
     numObservedMessierObjects: 2,
     numObservedNGCObjects: 3,
-    h2500: { total: 10, observed: 6, nonDetections: 3 },
-    h400: { total: 5, observed: 4, nonDetections: 2 },
+    numAttemptedMessierObjects: 4,
+    numAttemptedNGCObjects: 6,
+    h2500: { total: 10, observed: 6, attemptedObjects: 3 },
+    h400: { total: 5, observed: 4, attemptedObjects: 2 },
     constellations: [{
         constellation: "Orion",
         constellationAbbrv: "ORI",
         observed: 3,
-        h2500: { total: 10, observed: 6, nonDetections: 3 },
-        h400: { total: 5, observed: 4, nonDetections: 2 },
+        h2500: { total: 10, observed: 6, attemptedObjects: 3 },
+        h400: { total: 5, observed: 4, attemptedObjects: 2 },
     }],
 };
 
@@ -171,7 +175,10 @@ it("shows blue now deltas when viewing historical statistics", async () => {
     expect(within(h2500Row).getByText("+2")).toHaveStyle({ color: theme.palette.secondary.main });
     expect(within(h2500Row).getAllByText("(+20%)")).toHaveLength(2);
 
-    const failedRow = screen.getByRole("row", { name: "Unsuccessful H2500 objects 2 +1 Unsuccessful H400 objects 1 +1" });
+    const catalogFailedRow = screen.getByRole("row", { name: "Attempted Messier objects 2 +2 Attempted NGC objects 3 +3" });
+    expect(within(catalogFailedRow).getByText("+3")).toBeInTheDocument();
+
+    const failedRow = screen.getByRole("row", { name: "Attempted H2500 objects 2 +1 Attempted H400 objects 1 +1" });
     expect(within(failedRow).getAllByText("+1")).toHaveLength(2);
 
     fireEvent.click(screen.getByText("Statistics by constellation"));
@@ -190,18 +197,29 @@ it("shows updated object statistics labels and tooltips", async () => {
     expect(await screen.findByText("Observing sessions")).toBeInTheDocument();
     expect(screen.queryByText("Recorded observations")).not.toBeInTheDocument();
     expect(screen.queryByText("Detections (non-detections)")).not.toBeInTheDocument();
-    expect(screen.getByRole("row", { name: "All objects attempted 1 Observed Bright Nebulae 0" })).toBeInTheDocument();
-    expect(screen.getByRole("row", { name: "Observed objects 1 Observed Open Clusters 0" })).toBeInTheDocument();
-    expect(screen.getByRole("row", { name: "Unsuccessfully observed 0 Observed Planetary Nebulae 0" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Observed objects 1 Observed Bright Nebulae 0" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Attempted objects 0 Observed Open Clusters 0" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Total observed + attempted 1 Observed Planetary Nebulae 0" })).toBeInTheDocument();
 
-    await user.hover(screen.getByText("All objects attempted"));
+    await user.hover(screen.getByText("Total observed + attempted"));
     expect(await screen.findByText("All objects ever observed or attempted.")).toBeInTheDocument();
 
     await user.hover(screen.getByText("Observed objects"));
     expect(await screen.findByText("All objects attempted and successfully observed at least once.")).toBeInTheDocument();
 
-    await user.hover(screen.getByText("Unsuccessfully observed"));
+    await user.hover(screen.getByText("Attempted objects"));
     expect(await screen.findByText("All objects attempted but never successfully observed.")).toBeInTheDocument();
+});
+
+// Verify unsuccessful catalog objects appear as plain counts in a single row below successful detections.
+it("shows unsuccessful Messier and NGC object counts on their own row", async () => {
+    vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: statistics } as any);
+
+    render(<StatisticsTable />, { wrapper });
+
+    const row = await screen.findByRole("row", { name: "Attempted Messier objects 2 Attempted NGC objects 3" });
+    expect(row.previousElementSibling).toHaveTextContent("Observed Messier objects");
+    expect(row.previousElementSibling).toHaveTextContent("Observed NGC objects");
 });
 
 it("shows failed H2500 and H400 attempts on their own row", async () => {
@@ -215,7 +233,7 @@ it("shows failed H2500 and H400 attempts on their own row", async () => {
     expect(screen.getByText("Observed H400 objects")).toBeInTheDocument();
     expect(screen.getByText(/3 \/ 5/)).toBeInTheDocument();
     expect(screen.getByText("(60%)")).toBeInTheDocument();
-    expect(screen.getByRole("row", { name: "Unsuccessful H2500 objects 2 Unsuccessful H400 objects 1" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Attempted H2500 objects 2 Attempted H400 objects 1" })).toBeInTheDocument();
     expect(screen.queryByText("(+2)")).not.toBeInTheDocument();
     expect(screen.queryByText("(+1)")).not.toBeInTheDocument();
 });
@@ -248,7 +266,7 @@ it("opens atlas charts in numeric order and loads their Herschel objects", async
     vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: {
         ...statistics,
         interstellarumCharts: [11, 2, 57].map(chart => ({ chart, observed: 1,
-            h2500: { total: 1, observed: 1, nonDetections: 0 }, h400: { total: 1, observed: 1, nonDetections: 0 } })),
+            h2500: { total: 1, observed: 1, attemptedObjects: 0 }, h400: { total: 1, observed: 1, attemptedObjects: 0 } })),
     } } as any);
     const loadChart = vi.spyOn(Api, "getH2500ObjectsForInterstellarumMap").mockResolvedValue({ data: [
         { herschelId: 1, name: "Atlas object", ra: "13 00", dec: "+00 00", h400: true },
@@ -268,7 +286,7 @@ it("opens atlas charts in numeric order and loads their Herschel objects", async
 it("navigates charts in table order and retains the expanded size", async () => {
     vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: { ...statistics,
         interstellarumCharts: [11, 2, 57].map(chart => ({ chart, observed: 1,
-            h2500: { total: 1, observed: 1, nonDetections: 0 }, h400: { total: 1, observed: 1, nonDetections: 0 } })),
+            h2500: { total: 1, observed: 1, attemptedObjects: 0 }, h400: { total: 1, observed: 1, attemptedObjects: 0 } })),
     } } as any);
     const load = vi.spyOn(Api, "getH2500ObjectsForInterstellarumMap").mockResolvedValue({ data: [] } as any);
     render(<StatisticsTable />, { wrapper });
@@ -306,7 +324,7 @@ it("navigates charts in table order and retains the expanded size", async () => 
 it("navigates constellations without closing the dialog", async () => {
     vi.spyOn(Api, "getStatistics").mockResolvedValue({ data: { ...statistics,
         constellations: [...statistics.constellations!, { ...statistics.constellations![0],
-            constellation: "Andromeda", constellationAbbrv: "AND", h2500: { total: 10, observed: 2, nonDetections: 0 } }],
+            constellation: "Andromeda", constellationAbbrv: "AND", h2500: { total: 10, observed: 2, attemptedObjects: 0 } }],
     } } as any);
     const load = vi.spyOn(Api, "getH2500ObjectsForConstellationMap").mockResolvedValue({ data: [] } as any);
     render(<StatisticsTable />, { wrapper });
